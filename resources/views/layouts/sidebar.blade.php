@@ -5,16 +5,16 @@
                     <div class="dropdown profile-element">
                         <img alt="image" class="rounded-circle" src="{{asset('assets/img/profile_small.jpg')}}"/>
                         <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-                            <span class="block m-t-xs font-bold">{{auth()->guard('admin')->user()->name}}</span>
+                            <span class="block m-t-xs font-bold">{{auth()->user()->name}}</span>
                             <span class="text-muted text-xs block">Developer<b class="caret"></b></span>
                         </a>
                         <ul class="dropdown-menu animated fadeInRight m-t-xs">
                             <li>
-								<a class="dropdown-item"  href="{{ route('logoutstore') }}"
+								<a class="dropdown-item"  href="{{ route('logout.store') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">Logout</a>
 								
-								<form id="logout-form" action="{{ route('logoutstore') }}" method="POST" class="d-none">
+								<form id="logout-form" action="{{ route('logout.store') }}" method="POST" class="d-none">
 									@csrf
 								</form>
 							</li>

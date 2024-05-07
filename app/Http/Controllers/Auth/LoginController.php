@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -18,22 +19,70 @@ class LoginController extends Controller
     |
     */
 
-    use AuthenticatesUsers;
+    // use AuthenticatesUsers;
 
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/home';
+    // /**
+    //  * Where to redirect users after login.
+    //  *
+    //  * @var string
+    //  */
+    // protected $redirectTo = '/home';
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    // /**
+    //  * Create a new controller instance.
+    //  *
+    //  * @return void
+    //  */
+    // public function __construct()
+    // {
+    //     $this->middleware('guest')->except('logout');
+    // }
+
+    public function index()
     {
-        $this->middleware('guest')->except('logout');
+        //return inertia
+        return view('auth.login');
+    }
+
+    public function store(Request $request)
+    {
+        //set validation
+        $request->validate([
+            'email'     => 'required|email',
+            'password'  => 'required',
+        ]);
+
+         //get email and password from request
+         $credentials = $request->only('email', 'password');
+
+         //attempt to login
+         if (auth()->attempt($credentials)) {
+ 
+             //regenerate session
+             $request->session()->regenerate();
+ 
+             //redirect route dashboard
+             return redirect()->route('dashboard');
+         }
+ 
+         //if login fails
+         return back()->withErrors([
+             'email' => 'The provided credentials do not match our records.',
+         ]);
+    }
+
+    public function logout(Request $request)
+    {
+        //logout user
+        auth()->logout();
+        
+        //invalidate session
+        $request->session()->invalidate();
+        
+        //session regenerate
+        $request->session()->regenerateToken();
+        
+        //redirect login page
+        return redirect('/login');
     }
 }

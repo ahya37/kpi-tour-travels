@@ -6,11 +6,12 @@ use App\Models\User;
 
 class AuthService 
 {
-	public static function login($request)
+	public static function store($request)
 	{
 		DB::beginTransaction();
         try {
            
+			// OLD CODE
 			$auth = $request->only('email','password');
 			
 			$user = User::where('email', $request->email);
@@ -24,6 +25,8 @@ class AuthService
 				$userAuth = auth()->guard('admin')->user();
 				$token = $userAuth->createToken('app-percik')->plainTextToken;
 
+				$request->session()->regenerate();
+
 				// update token from token sanctum
 				$user->update(['remember_token' => $token]);
 				DB::commit();
@@ -34,6 +37,22 @@ class AuthService
 
 				return redirect()->back()->with(['error' => 'Email / Password Salah']);
 			}
+
+			// NEW CODE
+
+			// get email and password from request
+			// $credentials = $request->only('email', 'password');
+
+			// //attempt to login
+			// if (auth()->attempt($credentials)) {
+	
+			// 	//regenerate session
+			// 	$request->session()->regenerate();
+	
+			// 	//redirect route dashboard
+			// 	return redirect()->route('dashboard');
+			// }
+ 
 		   
         } catch (\Exception $e) {
 			DB::rollback();

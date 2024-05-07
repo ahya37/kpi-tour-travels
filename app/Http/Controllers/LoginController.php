@@ -8,16 +8,16 @@ use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
-    public function loginpage()
+    public function login()
     {
         return view('auth.login');
     }
 
-    public function login(AuthRequest $request)
+    public function store(AuthRequest $request)
     {
       try{
         
-        return AuthService::login($request);
+        return AuthService::store($request);
         
       }catch(ValidationException $e){
         // Log error $e->getMessage();

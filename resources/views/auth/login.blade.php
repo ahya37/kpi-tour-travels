@@ -24,7 +24,7 @@
             </p> 
             <p>Login</p>
 			@include('layouts.notification')
-            <form class="m-t" role="form" method="POST" action="{{ route('loginstore') }}">
+            <form class="m-t" role="form" method="POST" action="{{ route('login.store') }}">
 			 @csrf
                 <div class="form-group">
                     <input type="email" name="email" class="form-control" placeholder="Email" required="">

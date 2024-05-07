@@ -1,27 +1,38 @@
 <?php
 
-use App\Http\Controllers\LoginController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\PermissionController;
 
 Route::get('/', function () {
     return view('auth.login');
 });
 
-Route::get('/signin',[LoginController::class,'loginpage'])->name('loginpage');
-Route::post('/signin/store',[LoginController::class,'login'])->name('loginstore');
+// NEW CODE
+//route login index
+Route::get('/login', [LoginController::class, 'index'])->name('login')->middleware('guest');
 
-Route::middleware(['admin'])->prefix('dashboard')->group(function () {
-    Route::get('/',[DashboardController::class,'index'])->name('dashboard');
+//route login store
+Route::post('/login', [LoginController::class, 'store'])->name('login.store')->middleware('guest');
+//route logout
 
-     //Examlple
-    // Route::controller(ExController::class)->group(function(){
-    //      Route::post('ex', 'exMethod')->name('ex.store');
-    // });
+Route::group(['middleware' => ['auth']], function () {
+    //route dashboard
+    Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
+    Route::post('/logout', [LoginController::class,'logout'])->name('logout.store');
 
-    Route::post('/logoutstore',[LoginController::class,'logout'])->name('logoutstore'); 
 });
+
+// OLD CODE
+// Route::get('/login',[LoginController::class,'login'])->name('login');
+// Route::post('/login',[LoginController::class,'store'])->name('login.store');
+
+// Route::middleware(['admin'])->prefix('dashboard')->group(function () {
+//     Route::get('/',[DashboardController::class,'index'])->name('dashboard');    
+//     Route::post('/logout',[LoginController::class,'logout'])->name('logout.store'); 
+// });
 
 // Auth::routes();
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

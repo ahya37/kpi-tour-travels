@@ -11,13 +11,13 @@
             <ul class="nav navbar-top-links navbar-right">
                
                 <li>
-                    <a href="{{ route('logoutstore') }}"
+                    <a href="{{ route('logout.store') }}"
                                        onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">
                         <i class="fa fa-sign-out"></i> Log out
                     </a>
 					
-					<form id="logout-form" action="{{ route('logoutstore') }}" method="POST" class="d-none">
+					<form id="logout-form" action="{{ route('logout.store') }}" method="POST" class="d-none">
                         @csrf
                     </form>
                 </li>

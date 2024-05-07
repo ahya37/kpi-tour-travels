@@ -17,7 +17,7 @@ class AuthAdminMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if(!auth()->guard('admin')->check()){
-            return redirect()->route('loginpage');
+            return redirect()->route('login');
         }
 
         return $next($request);
