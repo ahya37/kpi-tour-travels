@@ -1,0 +1,101 @@
+.hvr{
+	&:hover{
+		border-color: $primary;
+		box-shadow: 0px 0px 13px 0px rgba(41, 83, 232,0.1);
+	}
+}
+
+.contact-footer{
+	height: 25px;
+	position: relative;
+    overflow: hidden;
+	a{
+		color:$primary;
+	}
+	ul{
+		margin-top: 5px;
+		display: flex;
+		position: absolute;
+		top: -47px;
+		transition: all 0.3s;
+		background: white;
+		li{
+			margin-right: 12px;
+			i{
+				font-size: 20px;
+			}
+
+		}
+	}
+	&.show{
+		ul{
+			top: -4px;	
+		}
+		
+	}
+}
+.default-select{
+	&.style-3{
+		width: auto !important;
+		border-radius: 2rem;
+		left: 0;
+		top: 0;
+		height: auto !important;
+		.btn {
+			padding: 17px 20px;
+			font-size: 18px !important;
+			color: #202020!important;
+			border: 1px solid $border-color!important;
+			border-radius: 60px !important;
+			font-weight: 600;	
+			&:after{
+				color: #C4C4C4;
+				margin-left: 20px;
+				font-size: 20px;
+			}
+			
+		}
+		@include respond('phone-land'){
+			.btn{
+				padding: 0.625rem 1rem;
+				font-size: 0.813rem!important;				
+			}
+		}
+		
+	}
+}
+
+.contact-bx{
+	border-width:2px;
+	border-color:$white;
+	h6{
+		font-size: 20px;
+	}
+	.image-bx{
+		display:inline-block;
+		position:relative;
+		span.active{
+			height:18px;
+			width:18px;
+			position:absolute;
+			bottom: 3px;
+			right: 3px;
+			border-radius:2rem;
+			background:$success;
+			border:4px solid $white;
+		}
+	}
+	@include respond('tab-port'){
+		h6{
+			font-size:18px;
+		}
+	}
+	@include respond('phone-land'){
+		.image-bx img{
+			width:70px;
+		}
+		h6{
+			font-size: 16px;
+		}
+	}
+}	

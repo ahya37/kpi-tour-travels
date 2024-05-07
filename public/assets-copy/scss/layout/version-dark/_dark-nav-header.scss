@@ -1,0 +1,36 @@
+[data-theme-version="dark"] {
+    .nav-header, 
+    .nav-control {
+        background-color:$dark-card;
+    }
+	/* .svg-logo-rect{
+			fill:$color;
+		} */
+	/* .svg-logo-circle{
+		fill:rgba($color, .25);
+		stroke:rgba($white,0.2);
+	} */
+	/* .svg-logo-text{
+		fill:$white;
+	} */
+	.svg-logo-title{
+		fill:$white;
+	}
+	/* .svg-logo-path{
+		fill:$color;
+	} */
+	.nav-header{
+		border-color:$d-border;
+	}
+    .nav-control {
+        color: $white;
+    }
+
+    .brand-logo {
+        color: $white;
+
+        &:hover {
+            color: $white;
+        }
+    }
+}

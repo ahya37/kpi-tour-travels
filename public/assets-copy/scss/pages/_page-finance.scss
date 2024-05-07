@@ -1,0 +1,96 @@
+.default-select{
+	&.style-2{
+		width: auto !important;
+		border-radius: 2rem;
+		left: 0;
+		top: 0;
+		height: auto !important;
+		.btn {
+			padding: 10px 20px;
+			font-size: 18px !important;
+			color: #202020!important;
+			border: 1px solid #EBDCFF!important;
+			border-radius: 60px !important;
+			font-weight: 600;	
+			&:after{
+				color: #CECECE;
+				margin-left: 8px;
+				font-size: 20px;
+			}
+			@include respond ('phone'){
+				font-weight: 400;	
+				padding:5px 12px;
+				font-size: 14px !important;
+			}
+		}
+		
+	}
+}
+.activity-icon {
+    height: 63px;
+    width: 63px;
+    border-radius: 100%;
+    border: 1px solid;
+    border-color: #FA4F44;
+	background-color: #FA4F44;
+    display: inline-block;
+    text-align: center;
+    line-height: 63px;
+	@include respond ('phone'){
+		height:40px;
+		width:40px;
+		line-height:45px;
+	}
+}
+
+.bal-info{
+	.num-info{
+		margin-right: 12px;	
+		h2{
+			font-size: 38px;
+			font-weight: 700;
+		}
+		p{
+			font-size: 18px;
+		}
+	}
+	.num-info-2{
+		h4{
+			font-size: 18px;
+		}
+		span{
+			font-size: 16px;
+		}
+	}
+	@include respond('tab-port') {
+		.num-info{
+			h2{
+				font-size: 20px;	
+			}
+			p{
+				font-size: 16px;
+			}
+		}
+		.num-info-2{
+			h4{
+				font-size: 16px;
+			}
+			span{
+				font-size: 14px;
+			}
+		}
+			
+	}
+	@include respond('phone') {
+		.num-info{
+			h2{
+				font-size: 18px;	
+			}
+			p{
+				font-size: 14px;
+			}
+		}
+		
+	}
+	
+}

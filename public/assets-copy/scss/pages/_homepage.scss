@@ -1,0 +1,496 @@
+.select2-container--default .select2-selection--multiple .select2-selection__choice{
+	border-radius:15px;
+}
+
+.deznav .copyright {
+    font-size: 14px;
+    padding: 0 45px;
+    margin-top: 40px;
+    color: #aa97b0;
+    margin-top: 40px;
+	margin-bottom: 40px;
+	p{
+		margin-bottom:10px;
+		color:$body-color;
+		strong{
+			display:block;
+		}
+	}
+	@include custommq($max: 1350px) {
+		padding: 0 20px;
+	}
+	@include respond('phone-land') {
+		padding:0 20px;
+	}
+	
+}
+
+//shadows
+.shadow-primary{
+	box-shadow:0px 4px 10px rgba($primary,0.4);
+}
+.shadow-warning{
+	box-shadow:0px 4px 10px rgba($warning,0.4);
+}
+.shadow-secondary{
+	box-shadow:0px 4px 10px rgba($secondary,0.4);
+}
+.shadow-info{
+	box-shadow:0px 4px 10px rgba($info,0.4);
+}
+.shadow-danger{
+	box-shadow:0px 4px 10px rgba($danger,0.4);
+}
+
+.heart {
+    width: 60px;
+    height: 60px;
+    display: inline-block;
+    background: url('../images/like.png');
+    cursor: pointer;
+    margin: -25px -15px;
+}
+.heart-blast {
+    background-position: -1680px 0 !important;
+    transition: background 1s steps(28);
+}
+
+.card-bx{
+	h2{
+		font-size: 36px;
+	}
+	p{
+		font-size: 18px;
+	}
+	span{
+		font-size: 16px;
+	}
+	@include respond('phone'){
+		h2{
+			font-size: 26px;
+		}
+		p{
+			font-size: 16px;
+		}
+		span{
+			font-size: 14px;
+		}
+	}
+}
+
+.default-select{
+	&.style-1{
+		width: auto !important;
+		border-radius: 2rem;
+		left: 0;
+		top: 0;
+		height: auto !important;
+		.btn {
+			padding: 6px 20px;
+			font-size: 18px !important;
+			color: #202020!important;
+			border: 1px solid $border-color!important;
+			border-radius: 60px !important;
+			font-weight: 600;	
+			&:after{
+				color: $primary;
+				margin-left: 8px;
+				font-size: 20px;
+			}
+			@include respond ('phone'){
+				font-size: 14px !important;
+				font-weight:400;
+			}
+		}		
+	}
+	&.btn-head{
+		width: auto !important;
+		border-radius: 2rem;
+		left: 0;
+		top: 0;
+		height: auto !important;
+		.btn {
+			padding: 18px 20px;
+			font-size: 18px !important;
+			color: #202020!important;
+			border-radius: 60px !important;
+			font-weight: 600;	
+			background: #efefef!important;	
+			&:after{
+				color: #464a53;
+				margin-left: 8px;
+				font-size: 16px;
+			}
+			@include respond('laptop'){
+				padding: 10px 15px;
+			}
+		}		
+	}
+	
+}
+.donut-chart-sale{
+	small{
+		font-size: 24px;
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		left: 0;
+		display: flex;
+		align-items: center;
+		top: 0;
+		justify-content: center;
+		font-weight: 700;
+	}
+}
+
+.card-footer{
+	&.style-1{
+		a{
+			position: absolute;
+			height: 56px;
+			width: 56px;
+			line-height: 56px;
+			font-size: 18px;
+			left: 50%;
+			border-radius: 100%;
+			background: #fff;
+			color: #0B2A97;
+			box-shadow: 0px 0px 10px rgba(0, 0, 0,0.1 );
+			transform: translateX(-50%);
+			bottom: -20px;
+			&.text-primary{
+				&:hover{
+					color: $primary!important;
+				}		
+			}
+			@include respond ('phone'){
+				bottom:-5px;
+			}
+		}
+	}
+}
+
+.intuition-table{
+	.table td{
+		border-top: 1px solid transparent;
+	}
+	.intuition-profile{
+		img{
+			width: 64px;
+		}
+		.info{
+			span{
+				font-size: 14px;
+			}
+		}
+	}
+	.info-2{
+		h4{
+			font-size: 24px;
+		}
+		span{
+			font-size: 14px;
+		}
+	}
+	.price{
+		h4{
+			font-size: 20px;
+		}
+	}
+	@include respond('phone'){
+		.intuition-profile{
+			img{
+				width: 40px;
+			}
+			.info{
+				h5{
+					a{
+						font-size: 14px;
+					}
+				}
+				span{
+					font-size: 12px;
+				}
+			}
+		}
+		.info-2{
+			h4{
+				font-size: 16px;
+			}
+			span{
+				font-size: 12px;
+			}
+		}
+		.price{
+			h4{
+				font-size: 14px;
+			}
+		}
+	}
+}
+
+.light{
+	&.btn-primary{
+		color: #202020;
+	}
+}
+.header-cal{	
+	h4{
+		font-size: 24px;
+	}
+	p{
+		font-size: 16px;
+	}
+	@include respond('laptop'){
+		h4{
+			padding-right: 130px;	
+		}
+	}
+	@include respond('phone'){
+		h4{
+			font-size: 18px;	
+		}
+		p{
+			font-size: 14px;
+		}
+	}
+}
+.event-calender{
+    color: $black;
+	.bootstrap-datetimepicker-widget table{
+		width:100%;
+		tr {
+			td{
+				border-right: 1px solid #eee;
+				border-bottom: 1px solid #eee;
+				&:last-child{
+					border-right:0;
+				}
+			}
+			&:last-child{
+				td{
+					border-bottom:0;
+				}
+			}
+		}
+		td span, 
+		td i{
+			border-radius: 35px;
+			height: 47px;
+			line-height: 47px;
+		}
+		td{
+			padding: 16px 8px 15px 5px;
+			border-radius: 35px;
+			line-height: 1;
+			
+			&.today:before,
+			&.active.today:before{
+				content:none;
+			}
+			@include respond('tab-land') {
+				padding: 11px 5px 11px 5px;
+				min-width: 34px;
+			}
+		}	
+				
+		th{
+			padding:15px 5px;
+			border-radius:$radius;
+			height: 20px;
+			line-height: 20px;
+			width: 20px;
+			font-weight: 400;
+			opacity: 1;
+			font-size: 14px;
+			&.picker-switch{
+				padding:0;
+			}
+		}
+		
+		.new:hover, 
+		.old:hover{
+			color:$white;
+		}
+		
+		.timepicker-hour, 
+		.timepicker-minute, 
+		.timepicker-second{
+			font-weight: 500;
+		}
+		
+		
+		//td.active, 
+		//td.active:hover,
+		//span, 
+		//i{
+		//	color:$black;
+		//}
+		thead tr .picker-switch{
+			font-size: 20px;
+			font-weight: 700;
+			opacity: 1;
+			position: absolute;
+			width: auto;
+			top: 30px;
+			right: 30px;
+			@include respond('phone-land') {
+				font-size: 20px;
+			}
+			&:hover{
+				background: transparent;
+			}
+		}
+		.next,
+		.prev{
+			font-size: 14px;
+			padding: 0;
+			position: absolute;
+			top:65px;
+			&:hover{
+				background: transparent;
+			}
+		}
+		.next{
+			right:30px;
+		}
+		.prev{
+			right:60px;
+		}
+		
+		.btn-primary{
+			border:0;
+			padding:10px;
+		}
+		.btn-primary,
+		td span.active, 
+		td i.active,
+		td span:hover, 
+		td i:hover,
+		td.day:hover, 
+		td.hour:hover, 
+		td.minute:hover, 
+		td.second:hover{
+			background:$primary; 
+			color:$white;
+		}
+		
+	}
+	
+	
+	.datepicker table tr td.active, .datepicker table tr td.today{
+		background: $primary!important;
+		color:$white!important;
+		box-shadow:none;
+		position:relative;
+		&:after{
+			position:absolute;
+			height:16px;
+			width:16px;
+			right: -3px;
+			top: -3px;
+			border-radius: 16px;
+			content:"";
+			border:3px solid $white;
+			background:#E328AF;
+		}
+	}
+}
+
+.lenguage-btn{
+	.dropdown-menu.inner{
+		position:relative!important;
+	}
+	@include respond('tab-land'){
+		display:none!important;
+	}
+}
+.date-ds-btn{
+	background:$white;
+	span{
+		font-size:18px;
+		color:$black;
+	}
+	small{
+		font-size:14px;
+	}
+	@include respond ('phone-land'){
+		padding: 6px 10px;
+		svg{
+			width:22px;
+			height:22px;
+		}
+		span{
+			font-size:14px;
+		}
+		small{
+			font-size:12px;
+		}
+	}
+}
+.circle-svg-ico{
+	@include respond ('phone'){
+		height:40px;
+		width:40px;
+	}
+}
+.required{
+	color:$danger;
+}
+.form-group{
+	margin-bottom:1rem;
+}
+.media{
+	display:flex;
+	align-items:flex-start;
+}
+.btn-block{
+	display:block;
+	width:100%;
+}
+.border-s-1 {
+    border-radius: 0 $radius $radius 0 !important;
+}
+.text-justify{
+	text-align:justify;
+}
+.list-style{
+	li{
+		list-style-type:unset;
+	}
+}
+.sweet-image{
+	width:20%;
+}
+.clockpicker-popover{
+	position:absolute;
+	
+	.popover-title{
+		padding:10px 0;
+	}
+	&.popover{
+		border:0;
+	}
+}
+
+.dz-scroll {
+    overflow-y: scroll;
+}
+body > *{
+   // overflow-y: scroll;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(111, 133, 147, 0.1) #fff0;
+}
+::-webkit-scrollbar {
+	width: 5px;
+	opacity:0;
+}
+/* ::-webkit-scrollbar-thumb{
+	background:  rgba(111, 133, 147, 0.0); 
+} */
+::-webkit-scrollbar-thumb{
+	background:  rgba(111, 133, 147, 0.1); 
+}
+.yellow{
+	color:#ffa755 !important;
+}

@@ -1,0 +1,35 @@
+ .contact-icon{
+	height:50px;
+	width:50px;
+	color:$primary;
+	font-size:30px;
+	border-radius: 6px;
+	line-height:50px;
+	display:block;
+	background:rgba($primary,0.05);
+	text-align:center;
+	
+	@include respond('laptop'){
+		height:41px;
+		width:41px;
+		line-height:41px;
+		min-width:41px;
+		font-size:18px;
+	}
+	i{
+		font-size:20px;
+	}
+ }
+ 
+.card-table{
+	thead{
+		th{
+			font-size: 20px;
+			color: $black;	
+			white-space: nowrap;
+			@include respond ('phone'){
+				font-size:16px;
+			}
+		}
+	}		
+}
