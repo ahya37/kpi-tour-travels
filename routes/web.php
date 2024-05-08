@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MarketingController;
+use App\Http\Controllers\ModalController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\PermissionController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -19,9 +19,22 @@ Route::post('/login', [LoginController::class, 'store'])->name('login.store')->m
 //route logout
 
 Route::group(['middleware' => ['auth']], function () {
+
     //route dashboard
     Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class,'logout'])->name('logout.store');
+
+    //marketing
+    Route::prefix('marketings')->controller(MarketingController::class)->group(function(){
+        Route::get('/target','target')->name('marketing.target');
+        Route::post('/target','storeTarget')->name('marketing.target.store');
+        
+        // datatable
+        Route::post('/target/list','listTarget');
+
+        //modal 
+        Route::get('target/modal', [ModalController::class,'loadModalMarketingTarget']);
+    });
 
 });
 

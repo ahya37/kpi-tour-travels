@@ -25,14 +25,14 @@
 				 <li class="{{request()->is('dashboard') ? 'active' : ''}}">
                      <a href="{{route('dashboard')}}"><i class="fa fa-bar-chart-o"></i> <span class="nav-label">Dashboard</span></a>
                  </li>
-				 {{-- <li class="{{request()->is('marketing/*') ? 'active' : ''}}">
-                        <a href="#"><i class="fa fa-diamond"></i> <span class="nav-label">Dashboard</span> <span class="fa arrow"></span></a>
+				 <li class="{{request()->is('marketings/*') ? 'active' : ''}}">
+                        <a href="#"><i class="fa fa-diamond"></i> <span class="nav-label">Marketing</span> <span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level">
-                            <li class="active"><a href="{{route('dashboard')}}">Marketing</a></li>
+                            <li class="active"><a href="{{route('marketing.target')}}">Target Jamaah</a></li>
 
                         </ul>
 
-                   </li> --}}
+                   </li>
             </ul>
 
         </div>
