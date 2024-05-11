@@ -3,7 +3,6 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MarketingController;
-use App\Http\Controllers\ModalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -31,9 +30,14 @@ Route::group(['middleware' => ['auth']], function () {
         
         // datatable
         Route::post('/target/list','listTarget');
+        
+        // detail target marketing
+        Route::get('/target/detail/{marketingTargetId}','detailMarketingTarget');
+        Route::post('/target/detail/{marketingTargetId}/store','detailMarketingTargetStore');
 
         //modal 
-        Route::get('target/modal', [ModalController::class,'loadModalMarketingTarget']);
+        Route::get('modal/target','loadModalMarketingTarget');
+        Route::get('modal/target/detail','loadModalDetailMarketingTarget');
     });
 
 });
