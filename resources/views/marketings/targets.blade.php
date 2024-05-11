@@ -40,7 +40,7 @@
                                         <th>Opsi</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="dataTable">
                                 </tbody>
                               
                             </table>

@@ -34,6 +34,7 @@ class MarketingTargetService
 
     public static function listTarget($request)
     {
+        sleep(1);
         $orderBy = 'year';
         switch ($request->input('order.0.column')) {
             case '1':
