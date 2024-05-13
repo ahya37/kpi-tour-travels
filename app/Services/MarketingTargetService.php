@@ -7,6 +7,7 @@ use App\Models\DetailMarketingTarget;
 use App\Models\MarketingTarget;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
 
 class MarketingTargetService 
 {
@@ -155,12 +156,64 @@ class MarketingTargetService
 
         $recordsTotal = $detailTargetMarketing->count();
 
+
         return response()->json([
                 'draw'=>$request->input('draw'),
                 'recordsTotal'=>$recordsTotal,
                 'recordsFiltered'=>$recordsFiltered,
                 'data'=> $detailTargetMarketing
             ]);
+    }
+
+    public static function prospectMaterialStore($formData)
+    {
+        $response = Http::post(env('API_PERCIK').'/member/bahanprospek/store',$formData);
+        
+        // Check if the request was successful
+        if ($response->successful()) {
+            $data = $response->json();
+
+            $data = [
+                'message' => $data
+            ];
+
+            return response()->json($data);
+
+        } else {
+
+            $errorCode    = $response->status();
+            $errorMessage = $response->body();
+
+            $data = [
+                'error' => $errorCode,
+                'message' => $errorMessage
+            ];
+
+            return  response()->json($data);
+        }
+    }
+
+    public static function prospectMaterialList($request)
+    {
+        $response = Http::get(env('API_PERCIK').'/member/bahanprospek/list', $request);
+        // Check if the request was successful
+        if ($response->successful()) {
+            $data = $response->json();
+
+            return $data;
+
+        } else {
+
+            $errorCode    = $response->status();
+            $errorMessage = $response->body();
+
+            $data = [
+                'error' => $errorCode,
+                'message' => $errorMessage
+            ];
+
+            return  response()->json($data);
+        }
     }
 	
 }

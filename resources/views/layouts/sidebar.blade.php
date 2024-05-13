@@ -31,6 +31,10 @@
                             <li class="active"><a href="{{route('marketing.target')}}">Target Jamaah</a></li>
 
                         </ul>
+                        <ul class="nav nav-second-level">
+                            <li class="active"><a href="{{route('marketing.prospectmaterial')}}">Bahan Prospek</a></li>
+
+                        </ul>
 
                    </li>
             </ul>

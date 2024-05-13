@@ -35,6 +35,11 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/target/detail/{marketingTargetId}','detailMarketingTarget');
         Route::post('/target/detail/{marketingTargetId}/store','detailMarketingTargetStore');
         Route::post('/target/detail/list/{detailMarketingTargetId}','detailListTarget');
+        
+        // bahan prospek
+        Route::get('/prospectmaterial','prospectMaterial')->name('marketing.prospectmaterial');
+        Route::post('/prospectmaterial/store','prospectMaterialStore')->name('marketing.prospectmaterial.store');
+        Route::post('/prospectmaterial/list','prospectMaterialList');
 
         //modal 
         Route::get('modal/target','loadModalMarketingTarget');

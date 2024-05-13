@@ -9,6 +9,7 @@ use App\Helpers\ResponseFormatter;
 use App\Http\Requests\DetailMarketingTargetRequests;
 use App\Models\Program;
 use App\Services\MarketingTargetService;
+use Illuminate\Support\Facades\Http;
 
 class MarketingController extends Controller
 {
@@ -129,5 +130,26 @@ class MarketingController extends Controller
         $requestDataTableMarketingtarget = $request;
         return MarketingTargetService::detailListTarget($requestDataTableMarketingtarget,$detailMarketingTargetId);
         
+    }
+
+    // Bahan Prospek
+    public function prospectMaterial()
+    {
+        return view('marketings.prospect-material',[
+            'title' => 'Bahan Prospek'
+        ]);
+    }
+
+    public function prospectMaterialStore(Request $request)
+    {
+        $formData = $request->only(['year']);
+        $response = MarketingTargetService::prospectMaterialStore($formData);
+        return $response;
+    }
+
+    public function prospectMaterialList(Request $request)
+    {
+        $response = MarketingTargetService::prospectMaterialList($request);
+        return $response;
     }
 }
