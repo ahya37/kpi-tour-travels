@@ -34,6 +34,7 @@ Route::group(['middleware' => ['auth']], function () {
         // detail target marketing
         Route::get('/target/detail/{marketingTargetId}','detailMarketingTarget');
         Route::post('/target/detail/{marketingTargetId}/store','detailMarketingTargetStore');
+        Route::post('/target/detail/list/{detailMarketingTargetId}','detailListTarget');
 
         //modal 
         Route::get('modal/target','loadModalMarketingTarget');

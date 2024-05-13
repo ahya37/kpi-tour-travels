@@ -35,7 +35,7 @@ class MarketingTargetService
 
     public static function listTarget($request)
     {
-        sleep(1);
+        // sleep(1);
         $orderBy = 'year';
         switch ($request->input('order.0.column')) {
             case '1':
@@ -43,31 +43,31 @@ class MarketingTargetService
                 break;
         }
 
-        $data = MarketingTarget::select('id','year','total_target','total_realization','total_difference');
+       $marketingTargets = MarketingTarget::getMarketingtargets();
 
         if($request->input('search.value')!=null){
-            $data = $data->where(function($q)use($request){
+           $marketingTargets =$marketingTargets->where(function($q)use($request){
                 $q->whereRaw('LOWER(year) like ? ',['%'.strtolower($request->input('search.value')).'%']);
                 ;
             });
         }
 
         // if($request->input('month') != '' AND $request->input('year') != ''){
-        //                     $data->whereMonth('start_date', $request->month);
-        //                     $data->whereYear('end_date', $request->year);
+        //                    $marketingTargets->whereMonth('start_date', $request->month);
+        //                    $marketingTargets->whereYear('end_date', $request->year);
         //                 }
 
-        $recordsFiltered = $data->get()->count();
-        if($request->input('length')!=-1) $data = $data->skip($request->input('start'))->take($request->input('length'));
-        $data = $data->orderBy($orderBy,$request->input('order.0.dir'))->get();
+        $recordsFiltered =$marketingTargets->get()->count();
+        if($request->input('length')!=-1)$marketingTargets =$marketingTargets->skip($request->input('start'))->take($request->input('length'));
+       $marketingTargets =$marketingTargets->orderBy($orderBy,$request->input('order.0.dir'))->get();
 
-        $recordsTotal = $data->count();
+        $recordsTotal =$marketingTargets->count();
 
         return response()->json([
                 'draw'=>$request->input('draw'),
                 'recordsTotal'=>$recordsTotal,
                 'recordsFiltered'=>$recordsFiltered,
-                'data'=> $data
+                'data'=>$marketingTargets
             ]);
     }
 
@@ -81,19 +81,45 @@ class MarketingTargetService
 	{
 		DB::beginTransaction();
         try {
+
+            // cek jika program sudah ada di bulan dan tahun yang sama
+            $countDetailMarketingTargets = DetailMarketingTarget::getDetailMarketingTargetWhereMarketingId($requestDetailMarketingtarget['marketing_target_id'])
+                                           ->where('program_id',$requestDetailMarketingtarget['program_id'])
+                                           ->where('month_number',$requestDetailMarketingtarget['month_number'])
+                                           ->count();
+
+            if ($countDetailMarketingTargets != 0) {
+                
+                $results = [
+                    'success'  => 0,
+                    'message' => "Program di bulan tersebut sudah tersedia !"
+                ];
+
+                return $results;
+
+            }else{
+
+                DetailMarketingTarget::create([
+                    'id' => Str::random(30),
+                    'marketing_target_id' => $requestDetailMarketingtarget['marketing_target_id'],
+                    'program_id' => $requestDetailMarketingtarget['program_id'],
+                    'month_number' => $requestDetailMarketingtarget['month_number'],
+                    'month_name' => $requestDetailMarketingtarget['month_name'],
+                    'target' => $requestDetailMarketingtarget['target'],
+                    'created_by' => Auth::user()->id,
+                    'updated_by' => Auth::user()->id,
+                ]);
+
+                DB::commit(); 
+                $results = [
+                    'success'  => 1,
+                    'message' => 'Program dengan target sukses tersimpan!'
+                ];
+
+                return $results;
+            }
+
             
-            DetailMarketingTarget::create([
-                'id' => Str::random(30),
-                'marketing_target_id' => $requestDetailMarketingtarget['marketing_target_id'],
-                'program_id' => $requestDetailMarketingtarget['program_id'],
-                'month_number' => $requestDetailMarketingtarget['month_number'],
-                'month_name' => $requestDetailMarketingtarget['month_name'],
-                'target' => $requestDetailMarketingtarget['target'],
-                'created_by' => Auth::user()->id,
-                'updated_by' => Auth::user()->id,
-            ]);
-            
-            DB::commit(); 
 
         } catch (\Exception $e) {
 			DB::rollback();
@@ -103,5 +129,38 @@ class MarketingTargetService
         }
 		
 	}
+
+    public static function detailListTarget($request, $detailMarketingTargetId)
+    {
+        // sleep(1);
+        $orderBy = 'month_name';
+        switch ($request->input('order.0.column')) {
+            case '1':
+                $orderBy = 'month_name';
+                break;
+        }
+
+        $detailTargetMarketing = DetailMarketingTarget::getDetailMarketingTargetWhereMarketingId($detailMarketingTargetId);
+
+        if($request->input('search.value')!=null){
+            $detailTargetMarketing = $detailTargetMarketing->where(function($q)use($request){
+                $q->whereRaw('LOWER(month_name) like ? ',['%'.strtolower($request->input('search.value')).'%']);
+                ;
+            });
+        }
+
+        $recordsFiltered = $detailTargetMarketing->get()->count();
+        if($request->input('length')!=-1) $detailTargetMarketing = $detailTargetMarketing->skip($request->input('start'))->take($request->input('length'));
+        $detailTargetMarketing = $detailTargetMarketing->orderBy($orderBy,$request->input('order.0.dir'))->get();
+
+        $recordsTotal = $detailTargetMarketing->count();
+
+        return response()->json([
+                'draw'=>$request->input('draw'),
+                'recordsTotal'=>$recordsTotal,
+                'recordsFiltered'=>$recordsFiltered,
+                'data'=> $detailTargetMarketing
+            ]);
+    }
 	
 }

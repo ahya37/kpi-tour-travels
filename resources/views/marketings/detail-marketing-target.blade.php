@@ -5,6 +5,7 @@
     <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/sweetalert/sweetalert.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
 @endpush
 
 @section('breadcrumb')
@@ -58,4 +59,5 @@
     <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/marketings/modal-add-detail-marketing-targets.js') }}"></script>
+    <script src="{{ asset('js/marketings/index-detail-targets.js') }}"></script>
 @endpush

@@ -25,7 +25,7 @@ class MarketingController extends Controller
             $requestMarketingtarget = $request->validated();
             MarketingTargetService::store($requestMarketingtarget);
             return ResponseFormatter::success([
-                'message' =>  'Save marketing target is successfuly' 
+                'message' =>  'Save marketing target is successfuly!' 
             ]);
     }
 
@@ -120,9 +120,14 @@ class MarketingController extends Controller
             $requestDetailMarketingtarget['month_name']   =  explode("-",$requestDetailMarketingtarget['month'])[1];
             $requestDetailMarketingtarget['marketing_target_id']   =  $marketingTargetId;
 
-            MarketingTargetService::detailMarketingTargetStore($requestDetailMarketingtarget);
-            return ResponseFormatter::success([
-                'message' =>  'Save marketing target is successfuly'
-            ]);
+            $results = MarketingTargetService::detailMarketingTargetStore($requestDetailMarketingtarget);
+            return ResponseFormatter::success($results);
+    }
+
+    public function detailListTarget(Request $request, $detailMarketingTargetId)
+    {
+        $requestDataTableMarketingtarget = $request;
+        return MarketingTargetService::detailListTarget($requestDataTableMarketingtarget,$detailMarketingTargetId);
+        
     }
 }

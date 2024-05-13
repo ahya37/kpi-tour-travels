@@ -62,27 +62,27 @@ saveButton.click(function (e) {
     success: (response) => {
       if (response) {
         swal({
-          title: "Good job!",
-          text: `${response.data.message}`,
-          type: "success",
+          title: response.data.success === 1 ? 'Good job!' : 'Warning',
+          type: response.data.success === 1 ? 'success' : 'warning',
+          text: response.data.message,
           position: "center",
           showConfirmButton: false,
           width: 500,
-          timer: 900,
+          timer: 1500,
         });
         closeModal();
-        // table.ajax.reload();
+        table.ajax.reload();
       }
     },
     error: function (error) {
       swal({
         title: "Gagal!",
-        position: "center",
         type: "danger",
+        position: "center",
         text: error.responseJSON.data.message,
         showConfirmButton: false,
         width: 500,
-        timer: 900,
+        timer: 1500,
       });
     }
   });
