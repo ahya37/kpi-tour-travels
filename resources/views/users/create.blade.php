@@ -48,7 +48,7 @@
                             <div class="form-group  row"><label class="col-sm-2 col-form-label">Roles</label>
                                 <div class="col-sm-10">
                                    @foreach ($roles as $item)
-                                       <input type="checkbox" name="roles[]" value="{{$item->name}}" id="check-{{$item->id}}">{{$item->name}}
+                                       <input type="checkbox" name="roles[]" value="{{$item->name}}" id="check-{{$item->id}}"> {{$item->name}}
                                    @endforeach
                                 </div>
                             </div>

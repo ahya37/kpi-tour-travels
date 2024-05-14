@@ -46,10 +46,11 @@ class UserController extends Controller
         try {
             
             $requestUser = $request->validated(); 
-            $results = UserService::store($requestUser);
+            UserService::store($requestUser);
             
             DB::commit();
-            return $results;
+
+            return redirect()->route('users.index')->with(['success' => 'Sukses menyimpan users!']);
         } catch (\Exception $e) {
             DB::rollback();
             return $e->getMessage();
