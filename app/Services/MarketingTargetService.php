@@ -49,7 +49,6 @@ class MarketingTargetService
         if($request->input('search.value')!=null){
            $marketingTargets =$marketingTargets->where(function($q)use($request){
                 $q->whereRaw('LOWER(year) like ? ',['%'.strtolower($request->input('search.value')).'%']);
-                ;
             });
         }
 
@@ -146,7 +145,6 @@ class MarketingTargetService
         if($request->input('search.value')!=null){
             $detailTargetMarketing = $detailTargetMarketing->where(function($q)use($request){
                 $q->whereRaw('LOWER(month_name) like ? ',['%'.strtolower($request->input('search.value')).'%']);
-                ;
             });
         }
 
@@ -193,9 +191,9 @@ class MarketingTargetService
         }
     }
 
-    public static function prospectMaterialList($request)
+    public static function prospectMaterialList()
     {
-        $response = Http::get(env('API_PERCIK').'/member/bahanprospek/list', $request);
+        $response = Http::get(env('API_PERCIK').'/member/bahanprospek/list');
         // Check if the request was successful
         if ($response->successful()) {
             $data = $response->json();

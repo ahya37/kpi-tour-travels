@@ -43,16 +43,25 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th>Label</th>
                                         <th>CS</th>
+                                        <th>Label</th>
                                         <th>Alumni</th>
                                         <th>Created At</th>
                                         <th>Opsi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="dataTable">
+                                    @foreach ($prospectMaterial as $item)
+                                        <tr>
+                                            <td>{{$no++}}</td>
+                                            <td>{{$item['cs']}}</td>
+                                            <td>{{$item['label']}}</td>
+                                            <td>{{$item['jml_members']}}</td>
+                                            <td>{{$item['created_at']}}</td>
+                                            <td></td>
+                                        </tr>
+                                    @endforeach
                                 </tbody>
-                              
                             </table>
                         </div>
                     </div>
@@ -61,6 +70,7 @@
         </div>
     </div>
 @endsection
+
 @push('addon-script')
     <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/chartJs/Chart.min.js') }}"></script>
@@ -73,5 +83,4 @@
     <script src="{{ asset('js/loaders.js') }}"></script>
     <script src="{{ asset('js/ladda-button.js') }}"></script>
     <script src="{{ asset('js/marketings/prospect-material.js') }}"></script>
-
 @endpush

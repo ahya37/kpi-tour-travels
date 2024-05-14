@@ -135,8 +135,12 @@ class MarketingController extends Controller
     // Bahan Prospek
     public function prospectMaterial()
     {
+        $prospectMaterial = MarketingTargetService::prospectMaterialList();
+        $no = 1;
         return view('marketings.prospect-material',[
-            'title' => 'Bahan Prospek'
+            'title' => 'Bahan Prospek',
+            'prospectMaterial' => $prospectMaterial['data']['data'],
+            'no' => $no
         ]);
     }
 
@@ -144,12 +148,6 @@ class MarketingController extends Controller
     {
         $formData = $request->only(['year']);
         $response = MarketingTargetService::prospectMaterialStore($formData);
-        return $response;
-    }
-
-    public function prospectMaterialList(Request $request)
-    {
-        $response = MarketingTargetService::prospectMaterialList($request);
         return $response;
     }
 }
