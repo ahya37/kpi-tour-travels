@@ -21,7 +21,7 @@
                         </ul>
                     </div>
                 </li>
-				
+                @if (Auth::user()->hasRole('admin'))
 				 <li class="{{request()->is('dashboard') ? 'active' : ''}}">
                      <a href="{{route('dashboard')}}"><i class="fa fa-bar-chart-o"></i> <span class="nav-label">Dashboard</span></a>
                  </li>
@@ -33,10 +33,22 @@
                         </ul>
                         <ul class="nav nav-second-level">
                             <li class="active"><a href="{{route('marketing.prospectmaterial')}}">Bahan Prospek</a></li>
-
                         </ul>
-
                    </li>
+
+                   <li class="{{request()->is('accounts/*') ? 'active' : ''}}">
+                    <a href="#"><i class="fa fa-users"></i><span class="nav-label">Accounts</span> <span class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level">
+                        <li class="active"><a href="{{route('permissions.index')}}">Permissions</a></li>
+                    </ul>
+                    <ul class="nav nav-second-level">
+                        <li class="active"><a href="{{route('users.index')}}">Users</a></li>
+                    </ul>
+                    <ul class="nav nav-second-level">
+                        <li class="active"><a href="{{route('roles.index')}}">Roles</a></li>
+                    </ul>
+               </li>
+            @endif
             </ul>
 
         </div>

@@ -66,8 +66,8 @@ class LoginController extends Controller
          }
  
          //if login fails
-         return back()->withErrors([
-             'email' => 'The provided credentials do not match our records.',
+         return back()->with([
+             'error' => 'Email atau password salah',
          ]);
     }
 

@@ -19,7 +19,12 @@ class PermissionController extends Controller
 
         //append query string to pagination links
         $permissions->appends(['q' => request()->q]);
+        $no = 1;
 
-        return $permissions;
+        return view('permissions.index',[
+            'title' => 'Permission',
+            'permissions' => $permissions,
+            'no' => $no
+        ]);
     }
 }

@@ -3,13 +3,16 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MarketingController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Contracts\Permission;
 
 Route::get('/', function () {
     return view('auth.login');
 });
 
-// NEW CODE
 //route login index
 Route::get('/login', [LoginController::class, 'index'])->name('login')->middleware('guest');
 
@@ -43,18 +46,22 @@ Route::group(['middleware' => ['auth']], function () {
         //modal 
         Route::get('modal/target','loadModalMarketingTarget');
         Route::get('modal/target/detail','loadModalDetailMarketingTarget');
+
+    });
+
+    Route::prefix('accounts')->group(function(){
+        Route::get('/permissions',[PermissionController::class,'index'])->name('permissions.index')
+            ->middleware('permission:permissions.index');
+
+        Route::controller(UserController::class)->group(function(){
+            Route::get('/users', 'index')->name('users.index')->middleware('permission:users.index');
+            Route::get('/users/create', 'create')->name('users.create')->middleware('permission:users.create');
+            Route::post('/users/store', 'store')->name('users.store');
+        });
+
+        Route::controller(RoleController::class)->group(function(){
+            Route::get('/roles', 'index')->name('roles.index')->middleware('permission:roles.index');
+        });
     });
 
 });
-
-// OLD CODE
-// Route::get('/login',[LoginController::class,'login'])->name('login');
-// Route::post('/login',[LoginController::class,'store'])->name('login.store');
-
-// Route::middleware(['admin'])->prefix('dashboard')->group(function () {
-//     Route::get('/',[DashboardController::class,'index'])->name('dashboard');    
-//     Route::post('/logout',[LoginController::class,'logout'])->name('logout.store'); 
-// });
-
-// Auth::routes();
-// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
