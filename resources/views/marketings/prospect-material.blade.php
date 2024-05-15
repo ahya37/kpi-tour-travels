@@ -21,6 +21,7 @@
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
             <div class="col-lg-12">
+                @include('layouts.notification')
                 <div class="ibox ">
                     <div class="ibox-title">
                        <form action="{{route('marketing.prospectmaterial.store')}}" method="POST" enctype="multipart/form-data">

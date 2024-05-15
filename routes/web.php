@@ -7,7 +7,6 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-use Spatie\Permission\Contracts\Permission;
 
 Route::get('/', function () {
     return view('auth.login');

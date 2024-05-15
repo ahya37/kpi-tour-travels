@@ -7,9 +7,12 @@ use App\Http\Requests\MarketingTargetRequest;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Http\Requests\DetailMarketingTargetRequests;
+use App\Models\AlumniProspekMaterial;
+use App\Models\DetailAlumniProspekMaterial;
 use App\Models\Program;
 use App\Services\MarketingTargetService;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class MarketingController extends Controller
 {
@@ -146,8 +149,53 @@ class MarketingController extends Controller
 
     public function prospectMaterialStore(Request $request)
     {
-        $formData = $request->only(['year']);
-        $response = MarketingTargetService::prospectMaterialStore($formData);
-        return $response;
+        DB::beginTransaction();
+        try {
+            $formData = $request->only(['year']);
+            $response = MarketingTargetService::prospectMaterialStore($formData);
+    
+            $bahanProspekAlumni = $response['data']['listBahanProspekAlumni'];
+            foreach ($bahanProspekAlumni as  $value) {
+                AlumniProspekMaterial::create([
+                    'id' => $value['id'],
+                    'periode' => 0,
+                    'label' => $value['label'],
+                    'customer_service_id' => $value['customer_service_id'],
+                    'members' => $value['jml_members'],
+                    'notes' => '',
+                    'created_by' => Auth::user()->id,
+                    'updated_by' => Auth::user()->id,
+                ]);
+
+                foreach ($value['detailBahanProspekAlumni'] as $item) {
+                   $address   = $item['ALAMAT'] ?? $item['ALAMAT_UMRAH'];
+                   $kelurahan = $item['KELURAHAN'] ?? $item['KELURAHAN_UMRAH'];
+                   $kecamatan = $item['KECAMATAN'] ?? $item['KECAMATAN_UMRAH'];
+                   $kota      = $item['KOTA'] ?? $item['KOTA_UMRAH'];
+                   $provinsi  = $item['PROPINSI'] ?? $item['PROPINSI_UMRAH'];
+
+                   $addressFull = $address.', '.$kelurahan.', '.$kecamatan.', '.$kota.', '.$provinsi;
+                   DetailAlumniProspekMaterial::create([
+                        'id' => $item['detailBahanProspekAlumni'],
+                        'alumni_prospect_material_id' => $item['bahan_prospek_alumni_id'],
+                        'id_members' => $item['ID'],
+                        'name' => $item['NAMA'],
+                        'telp' => $item['TELEPON'] ?? $item['HP'],
+                        'address' => $addressFull,
+                        'created_by' => Auth::user()->id,
+                        'updated_by' => Auth::user()->id,
+                   ]);
+                }
+            }
+    
+            // simpan ke table alumni_prospect_material
+            DB::commit();
+            return redirect()->back()->with(['success' => 'Sukses generate alumni jamaah umrah']);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            // Create LOG $e->getMessage();
+            return redirect()->back()->with(['error' => 'Gagal generate alumni jamaah umrah']);
+        }
     }
 }

@@ -170,12 +170,7 @@ class MarketingTargetService
         // Check if the request was successful
         if ($response->successful()) {
             $data = $response->json();
-
-            $data = [
-                'message' => $data
-            ];
-
-            return response()->json($data);
+            return $data;
 
         } else {
 

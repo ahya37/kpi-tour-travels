@@ -55,8 +55,8 @@
 @push('prepend-script')
     @include('layouts.modals.modal-targets')
 @endpush
-@push('addon-script')
 
+@push('addon-script')
     <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/chartJs/Chart.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
