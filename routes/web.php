@@ -6,6 +6,8 @@ use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\EmployeesController;
+use App\Http\Controllers\GroupDivisionController;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Contracts\Permission;
 
@@ -62,6 +64,27 @@ Route::group(['middleware' => ['auth']], function () {
         Route::controller(RoleController::class)->group(function(){
             Route::get('/roles', 'index')->name('roles.index')->middleware('permission:roles.index');
         });
+    });
+
+    // EMPLOYEES
+    Route::prefix('employees')->group(function(){
+        Route::get('/', [EmployeesController::class, 'index'])->name('employees');
+        Route::get('/home', [EmployeesController::class, 'index'])->name('employees.index');
+        Route::get('/add', [EmployeesController::class ,'tambah_data_employee'])->name('employees.add');
+    });
+
+    // GROUP DIVISIONS
+    Route::prefix('GroupDivisions')->group(function(){
+        Route::get('/', [GroupDivisionController::class, 'index'])->name('groupDivision.index');
+        Route::get('/trans/get/dataGroupDivisions/{cari}', [GroupDivisionController::class, 'tableGroupDivision'])->name('groupDivision.data.tableGroupDivisions');
+
+        // TRANS ON MODAL
+        // MODAL TRANS ADD
+        Route::post('/trans/store/dataGroupDivisions', [GroupDivisionController::class , 'storeDataGroupDivision'])->name('groupDivision.trans.storeDataGroupDivision');
+        // MODAL TRANS EDIT
+        Route::get('/trans/get/modalDataGroupDivisions/{cari}', [GroupDivisionController::class, 'modalGetDataGroupDivisions'])->name('groupDivision.data.modalGroupDivisions');
+        Route::post('/trans/store/modalDataGroupDivisions/{cari}', [GroupDivisionController::class, 'storeDataEditGroupDivisions'])->name('groupDivision.trans.storeDataGroupDivision');
+        Route::post('/trans/delete/modalDataGroupDivisions/{cari}', [GroupDivisionController::class, 'deleteDataGroupDivisions'])->name('groupDivision.trans.deleteDataGroupDivisions');
     });
 
 });
