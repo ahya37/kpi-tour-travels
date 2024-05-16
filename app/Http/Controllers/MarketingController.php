@@ -201,6 +201,7 @@ class MarketingController extends Controller
                 ]);
 
                 foreach ($value['list_members'] as $item) {
+                    // dd($item['id_member']);
                     foreach ($item['id_member'] as $t) {
                           $address   = $t['members']['ALAMAT'] ?? $t['members']['ALAMAT_UMRAH'];
                           $kelurahan = $t['members']['KELURAHAN'] ?? $t['members']['KELURAHAN_UMRAH'];
@@ -221,11 +222,12 @@ class MarketingController extends Controller
                                'updated_by' => Auth::user()->id,
                           ]);
 
-                           // API umhaj update member jika member tersebut sudah menjadi bahan prospek alumni
-                            $formData['id_member'] = $t['members']['ID'];
-                            $formData['status']    = 1;
-                            MarketingTargetService::updateApiIsBahanProspek($formData);
-                    }
+                          // API umhaj update member jika member tersebut sudah menjadi bahan prospek alumni
+                            //    $formData['id_member'] = $t['members']['ID'];
+                            //    $formData['status']    = 1;
+                            //    MarketingTargetService::updateApiIsBahanProspek($formData);
+                        }
+
                 }
             }
 
