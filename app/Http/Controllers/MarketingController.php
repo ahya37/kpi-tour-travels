@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class MarketingController extends Controller
 {
@@ -236,8 +237,7 @@ class MarketingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return $e->getMessage();
-            // Create LOG $e->getMessage();
+            Log::error(['file' => get_class(), 'errors' => $e->getMessage()]);
             return redirect()->back()->with(['error' => 'Gagal generate alumni jamaah umrah']);
         }
     }
