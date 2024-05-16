@@ -188,9 +188,9 @@ class MarketingTargetService
         }
     }
 
-    public static function updateApiIsBahanProspek($formData)
+    public static function updateApiIsBahanProspek($members)
     {
-        $response = Http::post(env('API_PERCIK').'/member/bahanprospek/update',$formData);
+        $response = Http::post(env('API_PERCIK').'/member/bahanprospek/update',$members);
         
         // Check if the request was successful
         if ($response->successful()) {

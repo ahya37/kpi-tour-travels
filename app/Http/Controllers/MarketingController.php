@@ -170,21 +170,21 @@ class MarketingController extends Controller
                 $job_employee_id = $customerServices[$no]->id;
                 
                 $list_id_members = [];
+                $count_members   = 0; 
                 foreach($member as $no_member => $id_member){
                     
                     $list_id_members[] = ['id_member' => $id_member];
+                    $count_members     = count($id_member);
                 }
                 
                 $results[] = [
                      'no' => $no,
                      'job_employee_id' => $job_employee_id,
-                     'jml_members' => count($list_id_members),
-                     'list_members' => $list_id_members
+                     'count_members' => $count_members,
+                     'list_members' => $list_id_members,
                 ];
                 
             }
-
-            // return $results;
 
             // simpan ke table bahan prospek 
 		    $label = 'BAHAN PROSPEK ALUMNI ('.date('m').'-'.date('Y').')';
@@ -195,7 +195,7 @@ class MarketingController extends Controller
                     'periode' => 0,
                     'label' => $label,
                     'job_employee_id' => $value['job_employee_id'],
-                    'members' => $value['jml_members'],
+                    'members' => $value['count_members'],
                     'notes' => '',
                     'created_by' => Auth::user()->id,
                     'updated_by' => Auth::user()->id,
@@ -223,13 +223,17 @@ class MarketingController extends Controller
                                'updated_by' => Auth::user()->id,
                           ]);
 
-                          // API umhaj update member jika member tersebut sudah menjadi bahan prospek alumni
-                            //    $formData['id_member'] = $t['members']['ID'];
-                            //    $formData['status']    = 1;
-                            //    MarketingTargetService::updateApiIsBahanProspek($formData);
+                         
                         }
 
+                        // API umhaj update member jika member tersebut sudah menjadi bahan prospek alumni
+                        // $formData['id_member'] = $t['members']['ID'];
+                       $formDataUpdate['data']    = $item['id_member'];
+                       MarketingTargetService::updateApiIsBahanProspek($formDataUpdate);
+                    //    return $update;
                 }
+
+
             }
 
             DB::commit();
