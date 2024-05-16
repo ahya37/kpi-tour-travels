@@ -55,10 +55,10 @@
                                     @foreach ($prospectMaterial as $item)
                                         <tr>
                                             <td>{{$no++}}</td>
-                                            <td>{{$item['cs']}}</td>
-                                            <td>{{$item['label']}}</td>
-                                            <td>{{$item['jml_members']}}</td>
-                                            <td>{{$item['created_at']}}</td>
+                                            <td>{{$item->cs}}</td>
+                                            <td>{{$item->label}}</td>
+                                            <td>{{$item->members}}</td>
+                                            <td>{{$item->created_at}}</td>
                                             <td></td>
                                         </tr>
                                     @endforeach

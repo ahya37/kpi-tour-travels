@@ -3,6 +3,8 @@
 namespace App\Services;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\ResponseFormatter;
+use App\Models\AlumniProspekMaterial;
+use App\Models\DetailAlumniProspekMaterial;
 use App\Models\DetailMarketingTarget;
 use App\Models\MarketingTarget;
 use Illuminate\Support\Facades\Auth;
@@ -186,13 +188,13 @@ class MarketingTargetService
         }
     }
 
-    public static function prospectMaterialList()
+    public static function updateApiIsBahanProspek($formData)
     {
-        $response = Http::get(env('API_PERCIK').'/member/bahanprospek/list');
+        $response = Http::post(env('API_PERCIK').'/member/bahanprospek/update',$formData);
+        
         // Check if the request was successful
         if ($response->successful()) {
             $data = $response->json();
-
             return $data;
 
         } else {
@@ -207,6 +209,12 @@ class MarketingTargetService
 
             return  response()->json($data);
         }
+    }
+
+    public static function prospectMaterialList()
+    {
+        $prospectMaterials = AlumniProspekMaterial::getProspectMaterial();
+        return $prospectMaterials;
     }
 	
 }

@@ -9,10 +9,14 @@ use App\Helpers\ResponseFormatter;
 use App\Http\Requests\DetailMarketingTargetRequests;
 use App\Models\AlumniProspekMaterial;
 use App\Models\DetailAlumniProspekMaterial;
+use App\Models\JobEmployee;
 use App\Models\Program;
+use App\Models\SubDivision;
 use App\Services\MarketingTargetService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
 
 class MarketingController extends Controller
 {
@@ -138,11 +142,11 @@ class MarketingController extends Controller
     // Bahan Prospek
     public function prospectMaterial()
     {
-        $prospectMaterial = MarketingTargetService::prospectMaterialList();
+        $prospectMaterials = MarketingTargetService::prospectMaterialList();
         $no = 1;
         return view('marketings.prospect-material',[
             'title' => 'Bahan Prospek',
-            'prospectMaterial' => $prospectMaterial['data']['data'],
+            'prospectMaterial' => $prospectMaterials,
             'no' => $no
         ]);
     }
@@ -151,49 +155,86 @@ class MarketingController extends Controller
     {
         DB::beginTransaction();
         try {
+
             $formData = $request->only(['year']);
             $response = MarketingTargetService::prospectMaterialStore($formData);
-    
-            $bahanProspekAlumni = $response['data']['listBahanProspekAlumni'];
-            foreach ($bahanProspekAlumni as  $value) {
-                AlumniProspekMaterial::create([
-                    'id' => $value['id'],
+            $response = $response['data']['members'];
+
+            // get data job divisi customer service
+            $customerServices = JobEmployee::getJobDivisionCustomerServices();
+            $results  = [];
+
+            foreach($response as $no => $member){
+			   
+                $job_employee_id = $customerServices[$no]->id;
+                
+                $list_id_members = [];
+                foreach($member as $no_member => $id_member){
+                    
+                    $list_id_members[] = ['id_member' => $id_member];
+                }
+                
+                $results[] = [
+                     'no' => $no,
+                     'job_employee_id' => $job_employee_id,
+                     'jml_members' => count($list_id_members),
+                     'list_members' => $list_id_members
+                ];
+                
+            }
+
+            // return $results;
+
+            // simpan ke table bahan prospek 
+		    $label = 'BAHAN PROSPEK ALUMNI ('.date('m').'-'.date('Y').')';
+            // $bahanProspekAlumni = $response['data']['listBahanProspekAlumni'];
+            foreach ($results as  $value) {
+               $asveAlumniProspectMaterial = AlumniProspekMaterial::create([
+                    'id' => Str::random(30),
                     'periode' => 0,
-                    'label' => $value['label'],
-                    'customer_service_id' => $value['customer_service_id'],
+                    'label' => $label,
+                    'job_employee_id' => $value['job_employee_id'],
                     'members' => $value['jml_members'],
                     'notes' => '',
                     'created_by' => Auth::user()->id,
                     'updated_by' => Auth::user()->id,
                 ]);
 
-                foreach ($value['detailBahanProspekAlumni'] as $item) {
-                   $address   = $item['ALAMAT'] ?? $item['ALAMAT_UMRAH'];
-                   $kelurahan = $item['KELURAHAN'] ?? $item['KELURAHAN_UMRAH'];
-                   $kecamatan = $item['KECAMATAN'] ?? $item['KECAMATAN_UMRAH'];
-                   $kota      = $item['KOTA'] ?? $item['KOTA_UMRAH'];
-                   $provinsi  = $item['PROPINSI'] ?? $item['PROPINSI_UMRAH'];
+                foreach ($value['list_members'] as $item) {
+                    foreach ($item['id_member'] as $t) {
+                          $address   = $t['members']['ALAMAT'] ?? $t['members']['ALAMAT_UMRAH'];
+                          $kelurahan = $t['members']['KELURAHAN'] ?? $t['members']['KELURAHAN_UMRAH'];
+                          $kecamatan = $t['members']['KECAMATAN'] ?? $t['members']['KECAMATAN_UMRAH'];
+                          $kota      = $t['members']['KOTA'] ?? $t['members']['KOTA_UMRAH'];
+                          $provinsi  = $t['members']['PROPINSI'] ?? $t['members']['PROPINSI_UMRAH'];
+       
+                          $addressFull = $address.', '.$kelurahan.', '.$kecamatan.', '.$kota.', '.$provinsi;
 
-                   $addressFull = $address.', '.$kelurahan.', '.$kecamatan.', '.$kota.', '.$provinsi;
-                   DetailAlumniProspekMaterial::create([
-                        'id' => $item['detailBahanProspekAlumni'],
-                        'alumni_prospect_material_id' => $item['bahan_prospek_alumni_id'],
-                        'id_members' => $item['ID'],
-                        'name' => $item['NAMA'],
-                        'telp' => $item['TELEPON'] ?? $item['HP'],
-                        'address' => $addressFull,
-                        'created_by' => Auth::user()->id,
-                        'updated_by' => Auth::user()->id,
-                   ]);
+                          DetailAlumniProspekMaterial::create([
+                               'id' => Str::random(30),
+                               'alumni_prospect_material_id' => $asveAlumniProspectMaterial->id,
+                               'id_members' =>  $t['members']['ID'],
+                               'name' =>  $t['members']['NAMA'],
+                               'telp' =>  $t['members']['TELEPON'] ??  $t['members']['HP'],
+                               'address' => $addressFull,
+                               'created_by' => Auth::user()->id,
+                               'updated_by' => Auth::user()->id,
+                          ]);
+
+                           // API umhaj update member jika member tersebut sudah menjadi bahan prospek alumni
+                            $formData['id_member'] = $t['members']['ID'];
+                            $formData['status']    = 1;
+                            MarketingTargetService::updateApiIsBahanProspek($formData);
+                    }
                 }
             }
-    
-            // simpan ke table alumni_prospect_material
+
             DB::commit();
             return redirect()->back()->with(['success' => 'Sukses generate alumni jamaah umrah']);
 
         } catch (\Exception $e) {
             DB::rollback();
+            return $e->getMessage();
             // Create LOG $e->getMessage();
             return redirect()->back()->with(['error' => 'Gagal generate alumni jamaah umrah']);
         }
