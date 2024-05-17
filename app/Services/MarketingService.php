@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 
-class MarketingTargetService 
+class MarketingService 
 {
 	public static function store($requestMarketingtarget)
 	{
@@ -215,6 +215,20 @@ class MarketingTargetService
     {
         $prospectMaterials = AlumniProspekMaterial::getProspectMaterial();
         return $prospectMaterials;
+    }
+
+    public static function alumniProspectMaterialByAccountCS($auth)
+    {
+       $data = AlumniProspekMaterial::alumniProspectMaterialByAccountCS($auth);
+       return $data;
+
+    }
+
+    public static function detailAlumniProspectMaterialByAccountCS($id)
+    {
+       $data = DetailAlumniProspekMaterial::where('alumni_prospect_material_id', $id)->get();
+       return $data;
+
     }
 	
 }

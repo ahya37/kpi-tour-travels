@@ -24,4 +24,14 @@ class AlumniProspekMaterial extends Model
                ->join('employees as c','b.employee_id','=','c.id')
                ->get();
     }
+
+    public static function alumniProspectMaterialByAccountCS($auth)
+    {
+        return  DB::table('employees as a')
+                 ->select('c.id','c.label','c.members','a.name as cs','c.created_at')
+                 ->join('job_employees as b','a.id','=','b.employee_id')
+                 ->join('alumni_prospect_material as c','c.job_employee_id','=','b.id')
+                 ->where('user_id', $auth)
+                 ->get();
+    }
 }

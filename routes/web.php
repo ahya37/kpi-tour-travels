@@ -44,6 +44,10 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/prospectmaterial','prospectMaterial')->name('marketing.prospectmaterial');
         Route::post('/prospectmaterial/store','prospectMaterialStore')->name('marketing.prospectmaterial.store');
 
+        // For CS
+        Route::get('/alumniprospectmaterial','alumniProspectMaterialByAccountCS')->name('marketing.alumniprospectmaterial');
+        Route::get('/alumniprospectmaterial/{id}/members','detailAlumniProspectMaterialByAccountCS')->name('marketing.alumniprospectmaterial.detail');
+
         //modal 
         Route::get('modal/target','loadModalMarketingTarget');
         Route::get('modal/target/detail','loadModalDetailMarketingTarget');

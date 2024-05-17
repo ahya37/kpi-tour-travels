@@ -12,7 +12,9 @@ use App\Models\DetailAlumniProspekMaterial;
 use App\Models\JobEmployee;
 use App\Models\Program;
 use App\Models\SubDivision;
-use App\Services\MarketingTargetService;
+use App\Services\AlumniProspectMaterialService;
+use App\Services\AlumniProspekMaterialService;
+use App\Services\MarketingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -32,7 +34,7 @@ class MarketingController extends Controller
     public function storeTarget(MarketingTargetRequest $request)
     {
             $requestMarketingtarget = $request->validated();
-            MarketingTargetService::store($requestMarketingtarget);
+            MarketingService::store($requestMarketingtarget);
             return ResponseFormatter::success([
                 'message' =>  'Save marketing target is successfuly!' 
             ]);
@@ -41,13 +43,13 @@ class MarketingController extends Controller
     public function listTarget(Request $request)
     {
         $requestDataTableMarketingtarget = $request;
-        return MarketingTargetService::listTarget($requestDataTableMarketingtarget);
+        return MarketingService::listTarget($requestDataTableMarketingtarget);
         
     }
 
     public function detailMarketingTarget($marketingTargetId)
     {
-        $detailMatketingTargets = MarketingTargetService::detailMarketingTarget($marketingTargetId);
+        $detailMatketingTargets = MarketingService::detailMarketingTarget($marketingTargetId);
 
         return view('marketings.detail-marketing-target', [
             'title' => 'Detail Target Marketing',
@@ -129,21 +131,21 @@ class MarketingController extends Controller
             $requestDetailMarketingtarget['month_name']   =  explode("-",$requestDetailMarketingtarget['month'])[1];
             $requestDetailMarketingtarget['marketing_target_id']   =  $marketingTargetId;
 
-            $results = MarketingTargetService::detailMarketingTargetStore($requestDetailMarketingtarget);
+            $results = MarketingService::detailMarketingTargetStore($requestDetailMarketingtarget);
             return ResponseFormatter::success($results);
     }
 
     public function detailListTarget(Request $request, $detailMarketingTargetId)
     {
         $requestDataTableMarketingtarget = $request;
-        return MarketingTargetService::detailListTarget($requestDataTableMarketingtarget,$detailMarketingTargetId);
+        return MarketingService::detailListTarget($requestDataTableMarketingtarget,$detailMarketingTargetId);
         
     }
 
     // Bahan Prospek
     public function prospectMaterial()
     {
-        $prospectMaterials = MarketingTargetService::prospectMaterialList();
+        $prospectMaterials = MarketingService::prospectMaterialList();
         $no = 1;
         return view('marketings.prospect-material',[
             'title' => 'Bahan Prospek',
@@ -158,7 +160,7 @@ class MarketingController extends Controller
         try {
 
             $formData = $request->only(['year']);
-            $response = MarketingTargetService::prospectMaterialStore($formData);
+            $response = MarketingService::prospectMaterialStore($formData);
             $response = $response['data']['members'];
 
             // get data job divisi customer service
@@ -229,7 +231,7 @@ class MarketingController extends Controller
                         // API umhaj update member jika member tersebut sudah menjadi bahan prospek alumni
                         // $formData['id_member'] = $t['members']['ID'];
                        $formDataUpdate['data']    = $item['id_member'];
-                       MarketingTargetService::updateApiIsBahanProspek($formDataUpdate);
+                       MarketingService::updateApiIsBahanProspek($formDataUpdate);
                     //    return $update;
                 }
 
@@ -244,5 +246,33 @@ class MarketingController extends Controller
             Log::error(['file' => get_class(), 'errors' => $e->getMessage()]);
             return redirect()->back()->with(['error' => 'Gagal generate alumni jamaah umrah']);
         }
+    }
+
+    public function alumniProspectMaterialByAccountCS()
+    {
+        // Get data prospek alumni berdasarkan login cs
+       $auth = Auth::user()->id;
+       $prospectMaterials = MarketingService::alumniProspectMaterialByAccountCS($auth);
+       $no = 1;
+
+       return view('marketings.cs.prospect-material', [
+            'title' => 'Bahan Prospek Alumni',
+            'prospectMaterials' => $prospectMaterials,
+            'no' => $no
+        ]);
+    }
+
+    public function detailAlumniProspectMaterialByAccountCS($id)
+    {
+        // Get data prospek alumni berdasarkan login cs
+       $detailProspectMaterials = MarketingService::detailAlumniProspectMaterialByAccountCS($id);
+
+       $no = 1;
+
+       return view('marketings.cs.detail-prospect-material', [
+            'title' => 'Daftar Jamaah',
+            'detailProspectMaterials' => $detailProspectMaterials,
+            'no' => $no
+        ]);
     }
 }
