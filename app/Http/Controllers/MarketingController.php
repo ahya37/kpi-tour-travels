@@ -6,11 +6,13 @@ use App\Helpers\Months;
 use App\Http\Requests\MarketingTargetRequest;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
+use App\Helpers\Years;
 use App\Http\Requests\DetailMarketingTargetRequests;
 use App\Models\AlumniProspekMaterial;
 use App\Models\DetailAlumniProspekMaterial;
 use App\Models\JobEmployee;
 use App\Models\Program;
+use App\Models\Reason;
 use App\Models\SubDivision;
 use App\Services\AlumniProspectMaterialService;
 use App\Services\AlumniProspekMaterialService;
@@ -88,7 +90,7 @@ class MarketingController extends Controller
                             <input type="hidden" name="_token" value="'.csrf_token().'">
                                 <label class="col-sm-2 col-form-label">Bulan</label>
                                 <div class="col-sm-10">
-                                    <select class="form-control select2_demo_2" name="month" id="month">';
+                                    <select class="form-control select2" name="month" id="month">';
 
                                     foreach ($months as $key => $value) {
                                         $modalContent = $modalContent.'<option value="'.$value['key'].'-'.$value['month'].'">'.$value['month'].'</option>';
@@ -273,6 +275,72 @@ class MarketingController extends Controller
             'title' => 'Daftar Jamaah',
             'detailProspectMaterials' => $detailProspectMaterials,
             'no' => $no
+        ]);
+    }
+
+    public function loadModalManageAlumniProspectMaterial()
+    {
+        // get data programs
+        $reasons = Reason::select('id','name')->get();
+        $years   = Years::list();
+        
+        $modalContent = '<form id="form" method="POST" enctype="multipart/form-data">
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label">Respon</label>
+                                <div class="col-sm-10 col-md-10 col-lg-10">
+                                    <select class="form-control select2" name="response" id="response" required>
+                                        <option value="">-Pilih respon-</option>
+                                        <option value="Y">Ya</option>
+                                        <option value="N">Tidak</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group row d-none" id="div-year">
+                                <label class="col-sm-2 col-form-label">Program</label>
+                                <div class="col-sm-5">
+                                <label class="col-form-label">Tahun</label>
+                                    <select class="form-control select2" name="year" id="year">
+                                        <option value="">-Pilih Tahun-</option>';
+
+                                        foreach ($years as $key => $year) {
+                                            $modalContent = $modalContent.'<option value="'.$year.'">'.$year.'</option>';
+                                        }
+                                        
+        $modalContent = $modalContent.'</select>
+                                </div>
+                                <div class="col-sm-5">
+                                <label class="col-form-label">Tourcode</label>
+                                    <select class="select2 form-control" name="tourcode" id="tourcode">
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group row d-none" id="div-reason">
+                            <input type="hidden" name="_token" value="'.csrf_token().'">
+                                <label class="col-sm-2 col-form-label">Alasan</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control select2" name="reason" id="reason">
+                                    <option value="">-Pilih alasan-</option>';
+
+                                    foreach ($reasons as $key => $value) {
+                                        $modalContent = $modalContent.'<option value="'.$value->id.'">'.$value->name.'</option>';
+                                    }
+                                        
+        $modalContent = $modalContent.'</select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label">Keterangan</label>
+                                <div class="col-sm-10">
+                                    <textarea class="form-control form-control-sm"></textarea>
+                                </div>
+                            </div>
+                            <div class="hr-line-dashed"></div>
+                        </form>';
+
+        return response()->json([
+            'modalContent' => $modalContent,
         ]);
     }
 }

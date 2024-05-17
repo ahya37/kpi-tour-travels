@@ -49,7 +49,8 @@
                                             <td>{{$item->reason}}</td>
                                             <td>{{$item->notes}}</td>
                                             <td>
-                                                <button  class="btn btn-sm btn-primary text-white">Kelola</button>
+                                                <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#myModal5">Kelola
+                                            </button>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -60,8 +61,32 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal inmodal fade" id="myModal5">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                                class="sr-only">Close</span></button>
+                        <h4 class="modal-title">Kelola Jama'ah</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="loading"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-white" data-dismiss="modal"
+                            onclick="closeModal()">Batal</button>
+                        <button type="button" class="btn btn-sm btn-primary ladda-button" id="saveButton">Simpan</button>
+                    </div>
+                </div>
+            </div>
+        </div> 
     </div>
 @endsection
+
+@push('prepend-script')
+   
+@endpush
 
 @push('addon-script')
     <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
@@ -75,4 +100,5 @@
     <script src="{{ asset('js/loaders.js') }}"></script>
     <script src="{{ asset('js/ladda-button.js') }}"></script>
     <script src="{{ asset('js/marketings/prospect-material.js') }}"></script>
+    <script src="{{ asset('js/marketings/modal-manage-alumni-prospect-material.js') }}"></script>
 @endpush
