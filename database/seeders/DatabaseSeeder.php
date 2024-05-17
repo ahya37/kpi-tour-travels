@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         // $this->call(ProgramSeeder::class);
         // $this->call(SubDivisionSeeder::class);
         // $this->call(EmployeeSeeder::class);
-        $this->call(JobEmployeeSeeder::class);
+        // $this->call(JobEmployeeSeeder::class);
+        $this->call(ReasonSeeder::class);
     }
 }
