@@ -58,12 +58,12 @@ function show_modal(id_modal, value)
                 // SHOW MODAL
                 $("#modal_edit_division").modal('show');
                 $("#modal_edit_division").on('shown.bs.modal', function(){
-                    $("#name_group_division_edit").focus();
+                    $("#gdName").focus();
                 });
 
                 // SHOW DATA
-                $("#id_group_division_edit").val(value);
-                $("#name_group_division_edit").val(response.data.gdName);
+                $("#gdID").val(value);
+                $("#gdName").val(response.data.gdName);
             }
         });
     } else if(id_modal == 'modal_hapus_data') {
@@ -180,8 +180,8 @@ function do_save(type)
             }
         })
     } else if(type == 'edit') {
-        var groupDivisionName     = $("#name_group_division_edit").val();
-        var groupDivisionID       = $("#id_group_division_edit").val();
+        var groupDivisionName     = $("#gdName").val();
+        var groupDivisionID       = $("#gdID").val();
 
         if(groupDivisionName == '') {
             close_modal('modal_edit_division');
@@ -192,8 +192,41 @@ function do_save(type)
             }).then((results)   => {
                 if(results.isConfirmed) {
                     show_modal('modal_edit_division', groupDivisionID);
-                    $("#name_group_division_edit").focus();
-                    $("#name_group_division_edit").addClass('is-invalid');
+                    $("#gdName").focus();
+                    $("#gdName").addClass('is-invalid');
+                }
+            })
+        } else {
+            var dataSimpan  = {
+                "group_division_name"   : groupDivisionName,
+                "group_division_id"     : groupDivisionID,
+            };
+            $.ajax({
+                cache   : false,
+                type    : "POST",
+                dataType: "json",
+                data    : {
+                    _token  : CSRF_TOKEN,
+                    dataSimpan  : dataSimpan,
+                },
+                url     : '/master/groupDivisions/trans/store/modalDataGroupDivisions',
+                beforeSend  : function(response) {
+                    Swal.fire({
+                        title   : 'Data Sedang Diproses',
+                    });
+                    Swal.showLoading();
+                },
+                success     : function(xhr) {
+                    Swal.fire({
+                        icon    : xhr.alert.icon,
+                        title   : xhr.alert.message.title,
+                        text    : xhr.alert.message.text,
+                    }).then((results)   => {
+                        if(results.isConfirmed) {
+                            close_modal('modal_edit_division');
+                            show_table('table_group_division','%');
+                        }
+                    });
                 }
             })
         }

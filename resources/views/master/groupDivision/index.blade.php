@@ -86,8 +86,8 @@
                             <h4 class="pt-0.5">Name</h4>
                         </div>
                         <div class="col-sm-8">
-                            <input type="hidden" id="id_group_division_edit">
-                            <input type="text" class="form-control" id="name_group_division_edit" placeholder="Name Group Division">
+                            <input type="hidden" id="gdID">
+                            <input type="text" class="form-control" id="gdName" placeholder="Name Group Division">
                         </div>
                     </div>
                 </div>

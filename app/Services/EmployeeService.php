@@ -26,7 +26,7 @@ class EmployeeService
                     d.name as sub_division_name
             FROM 	job_employees a
             INNER JOIN employees b ON a.employee_id = b.id
-            INNER JOIN group_divisions c ON a.division_group_id = c.id
+            INNER JOIN group_divisions c ON a.group_division_id = c.id
             INNER JOIN sub_divisions d ON a.sub_division_id = d.id
             WHERE 	(a.id LIKE '%$cari%' OR b.id LIKE '%$cari%' OR c.id LIKE '%$cari%' OR d.id LIKE '%$cari%')
             ORDER BY a.created_at DESC
@@ -83,7 +83,7 @@ class EmployeeService
                 "id"            => Str::random(30),
                 "employee_id"   => $insertEmployees->id,
                 "sub_division_id"   => explode(' | ', $data['empGDID'])[1],
-                "division_group_id" => explode(' | ', $data['empGDID'])[0],
+                "group_division_id" => explode(' | ', $data['empGDID'])[0],
                 "created_by"=> Auth::user()->id,
                 "updated_by"=> Auth::user()->id,
                 "created_at"=> date('Y-m-d H:i:s'),
