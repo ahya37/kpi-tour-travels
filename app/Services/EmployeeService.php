@@ -9,7 +9,7 @@ use App\Models\JobEmployee;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
-use Hash;
+use Illuminate\Support\Facades\Hash;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -26,7 +26,7 @@ class EmployeeService
                     d.name as sub_division_name
             FROM 	job_employees a
             INNER JOIN employees b ON a.employee_id = b.id
-            INNER JOIN group_divisions c ON a.division_group_id = c.id
+            INNER JOIN group_divisions c ON a.group_division_id = c.id
             INNER JOIN sub_divisions d ON a.sub_division_id = d.id
             WHERE 	(a.id LIKE '%$cari%' OR b.id LIKE '%$cari%' OR c.id LIKE '%$cari%' OR d.id LIKE '%$cari%')
             ORDER BY a.created_at DESC
