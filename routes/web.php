@@ -8,6 +8,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\GroupDivisionController;
+use App\Http\Controllers\SubDivisionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -72,25 +73,40 @@ Route::group(['middleware' => ['auth']], function () {
         });
     });
 
-    // EMPLOYEES
-    Route::prefix('employees')->group(function(){
-        Route::get('/', [EmployeesController::class, 'index'])->name('employees');
-        Route::get('/home', [EmployeesController::class, 'index'])->name('employees.index');
-        Route::get('/add', [EmployeesController::class ,'tambah_data_employee'])->name('employees.add');
+
+    Route::prefix('master')->group(function(){
+        // GROUP DIVISIONS
+        Route::prefix('groupDivisions')->group(function(){
+            Route::get('/', [GroupDivisionController::class, 'index'])->name('groupDivision.index');
+            Route::get('/trans/get/dataGroupDivisions/{cari}', [GroupDivisionController::class, 'tableGroupDivision'])->name('groupDivision.data.tableGroupDivisions');
+    
+            // TRANS ON MODAL
+            // MODAL TRANS ADD
+            Route::post('/trans/store/dataGroupDivisions', [GroupDivisionController::class , 'storeDataGroupDivision'])->name('groupDivision.trans.storeDataGroupDivision');
+            // MODAL TRANS EDIT
+            Route::get('/trans/get/modalDataGroupDivisions/{cari}', [GroupDivisionController::class, 'modalGetDataGroupDivisions'])->name('groupDivision.data.modalGroupDivisions');
+            Route::post('/trans/store/modalDataGroupDivisions/{cari}', [GroupDivisionController::class, 'storeDataEditGroupDivisions'])->name('groupDivision.trans.storeDataGroupDivision');
+            Route::post('/trans/delete/modalDataGroupDivisions/{cari}', [GroupDivisionController::class, 'deleteDataGroupDivisions'])->name('groupDivision.trans.deleteDataGroupDivisions');
+        });
+
+        // SUB DIVISION
+        Route::prefix('subDivisions')->group(function(){
+            Route::get('/', [SubDivisionController::class, 'index'])->name('subDivisions.index');
+            Route::get('/trans/get/tableDataGroupDivision', [SubDivisionController::class, 'getDataTableSubDivision'])->name('subDivision.trans.getTableMaster');
+            Route::post('/trans/get/selectDataGroupDivision', [SubDivisionController::class , 'getDataGroupDivision'])->name('subDivision.trans.getDataGroupDivision');
+            Route::post('/trans/store/modalDataSubDivision', [SubDivisionController::class, 'saveDataSubDivision'])->name('subDivision.trans.storeDataSubDivision');
+            // MODAL
+            Route::get('/trans/get/modalDataSubDivision', [SubDivisionController::class, 'getDataSubDivision'])->name('subDivision.trans.getDataSubDivision');
+            Route::post('/trans/store/editDataSubDivision', [SubDivisionController::class, 'saveEditDataSubDivision'])->name('subDivision.trans.storeDataSubDivisionEdit');
+        });
+
+        // EMPLOYEES
+        Route::prefix('employees')->group(function(){
+            Route::get('/', [EmployeesController::class, 'index'])->name('Employees.index');
+            Route::get('/home', [EmployeesController::class,'index'])->name('Employees.index');
+            Route::get('/trans/get/dataGroupDivision/{cari}', [EmployeesController::class, 'getDataDivisionGlobal'])->name('employee.trans.getDataDivisionGlobal');
+            Route::post('/trans/post/dataEmployeeNew', [EmployeesController::class, 'saveDataEmployee'])->name('employee.trans.postDataEmployee');
+            Route::get('/trans/get/dataTableEmployee', [EmployeesController::class, 'getDataTableEmployee'])->name('employee.trans.getDataTableEmployee');
+        });
     });
-
-    // GROUP DIVISIONS
-    Route::prefix('GroupDivisions')->group(function(){
-        Route::get('/', [GroupDivisionController::class, 'index'])->name('groupDivision.index');
-        Route::get('/trans/get/dataGroupDivisions/{cari}', [GroupDivisionController::class, 'tableGroupDivision'])->name('groupDivision.data.tableGroupDivisions');
-
-        // TRANS ON MODAL
-        // MODAL TRANS ADD
-        Route::post('/trans/store/dataGroupDivisions', [GroupDivisionController::class , 'storeDataGroupDivision'])->name('groupDivision.trans.storeDataGroupDivision');
-        // MODAL TRANS EDIT
-        Route::get('/trans/get/modalDataGroupDivisions/{cari}', [GroupDivisionController::class, 'modalGetDataGroupDivisions'])->name('groupDivision.data.modalGroupDivisions');
-        Route::post('/trans/store/modalDataGroupDivisions/{cari}', [GroupDivisionController::class, 'storeDataEditGroupDivisions'])->name('groupDivision.trans.storeDataGroupDivision');
-        Route::post('/trans/delete/modalDataGroupDivisions/{cari}', [GroupDivisionController::class, 'deleteDataGroupDivisions'])->name('groupDivision.trans.deleteDataGroupDivisions');
-    });
-
 });

@@ -14,7 +14,8 @@ class GroupDivisionController extends Controller
             'sub_title' => 'List of Group Division',
         ];
         
-        return view('group_division/index', $data);
+
+        return view('/master/groupDivision/index', $data);
     }
 
     private function getDataGroupDivisions($cari)
@@ -35,7 +36,8 @@ class GroupDivisionController extends Controller
                     $i + 1,
                     $get_data[$i]->name,
                     $get_data[$i]->created_at,
-                    "<button type='text' class='btn btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modal_edit_division`, this.value)'>Edit</button>&nbsp<button type='text' class='btn btn-danger' value='".$get_data[$i]->id."' onclick='show_modal(`modal_hapus_data`, this.value)' title='Hapus Data'>Hapus</button>",
+
+                    "<button type='text' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modal_edit_division`, this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>&nbsp<button type='text' class='btn btn-danger btn-sm' value='".$get_data[$i]->id."' onclick='show_modal(`modal_hapus_data`, this.value)' title='Hapus Data'><i class='fa fa-trash'></i></button>",
                 );
             }
         } else {

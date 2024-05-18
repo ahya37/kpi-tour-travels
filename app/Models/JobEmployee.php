@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-
 class JobEmployee extends Model
 {
     use HasFactory;
@@ -25,4 +24,5 @@ class JobEmployee extends Model
                 ->where('b.name','Customer Service')
                 ->get();
     }
+
 }
