@@ -16,7 +16,8 @@ function show_table(idTable, value)
         $("#tableEmployees").DataTable({
             language    : {
                 zeroRecords     : 'Tidak ada data yang bisa ditampilkan, silahkan masukan beberapa data..',
-                emptyTable      : 'Tidak ada data yang bisa ditampilkan, silahkan masukan beberapa data..'
+                emptyTable      : 'Tidak ada data yang bisa ditampilkan, silahkan masukan beberapa data..',
+                processing      : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
             },
             ordering    : false,
             processing  : true,
@@ -31,7 +32,7 @@ function show_table(idTable, value)
             },
             columnDefs  : [
                 { "targets" : [0, 3], "className" : "text-center", "width" : "8%"},
-                { "targets" : [1], "className" : "text-center", "width" : "20%"},
+                { "targets" : [1], "className" : "text-left", "width" : "20%"},
             ],
         });
     }
@@ -139,15 +140,15 @@ function do_simpan(jenis)
                 }).then((results)   => {
                     if(results.isConfirmed) {
                         close_modal('modalTambahData');
-                        show_table('tableEmployees');
+                        show_table('tableEmployees','%');
                     }
                 });
             },
             error       : function(xhr) {
                 Swal.fire({
-                    icon    : xhr.alert.icon,
-                    title   : xhr.alert.message.title,
-                    text    : xhr.alert.message.text,
+                    icon    : xhr.responseJSON.alert.icon,
+                    title   : xhr.responseJSON.alert.message.title,
+                    text    : xhr.responseJSON.alert.message.text,
                 })
             }
         })

@@ -111,7 +111,7 @@ class EmployeesController extends Controller
                     'success'   => true,
                     'status'    => 200,
                     'alert'     => [
-                        'icon'      => 'error',
+                        'icon'      => 'success',
                         'message'   => [
                             'title'     => 'Berhasil',
                             'text'      => 'Berhasil Menambahkan Employee Baru',

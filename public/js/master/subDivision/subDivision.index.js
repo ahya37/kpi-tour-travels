@@ -14,8 +14,9 @@ function show_table(id_table, value)
         $("#tableSubDivision").DataTable().clear().destroy();
         $("#tableSubDivision").DataTable({
            language     : {
-            zeroRecords     : 'Tidak ada data, silahkan tambahkan beberapa data',
-            emptyTable      : 'Tidak ada data, silahkan tambahkan beberapa data',
+            zeroRecords     : 'Tidak ada data yang bisa ditampilkan, silahkan masukan beberapa data..',
+            emptyTable      : 'Tidak ada data yang bisa ditampilkan, silahkan masukan beberapa data..',
+            processing      : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat",
            },
            ordering     : false,
            processing   : true,

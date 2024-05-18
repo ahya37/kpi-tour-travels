@@ -18,9 +18,9 @@ function show_table(id_table, value)
         $("#table_group_division").DataTable().clear().destroy();
         $("#table_group_division").DataTable({
             language    : {
-                zeroRecords     : 'Data is Empty, please add some..',
-                emptyTable      : 'Data is Empty, please add some..',
-                processing      : 'Please Wait..',
+                zeroRecords     : 'Tidak ada data yang bisa ditampilkan, silahkan masukan beberapa data..',
+                emptyTable      : 'Tidak ada data yang bisa ditampilkan, silahkan masukan beberapa data..',
+                processing      : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat",
             },
             ordering    : false,
             processing  : true,
@@ -31,10 +31,8 @@ function show_table(id_table, value)
                 url     : '/master/groupDivisions/trans/get/dataGroupDivisions/'+value,
             },
             columnDefs  : [
-                {
-                    "targets"   : [0, 3],
-                    "className" : "text-center",
-                }
+                { "targets":[0], "className":"text-center", "width": "5%"},
+                { "targets":[3], "className":"text-center", "width": "10%"},
             ],
         });
     }
