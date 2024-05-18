@@ -26,6 +26,27 @@
                     <a href="{{ route('dashboard') }}"><i class="fa fa-bar-chart-o"></i> <span
                             class="nav-label">Dashboard</span></a>
                 </li>
+                <li class="{{ request()->is('master/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li class="{{ request()->is('master/groupDivisions') ? 'active' : '' }}">
+                            <a href="{{ route('groupDivision.index') }}">Group Division</a>
+                        </li>
+                    </ul>
+                    <ul class="nav nav-second-level">
+                        <li class="{{ request()->is('master/subDivisions') ? 'active' : '' }}">
+                            <a href="{{ route('subDivisions.index') }}">Sub Division</a>
+                        </li>
+                    </ul>
+                    <ul class="nav nav-second-level">
+                        <li class="{{ request()->is('master/employees/*') ? 'active' : '' }}">
+                            <a href={{ route('Employees.index') }}>Employee</a>
+                        </li>
+                    </ul>
+                </li>
+
                 <li class="{{ request()->is('marketings/*') ? 'active' : '' }}">
                     <a href="#"><i class="fa fa-diamond"></i> <span class="nav-label">Marketing</span> <span
                             class="fa arrow"></span></a>
