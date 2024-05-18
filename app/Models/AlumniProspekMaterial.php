@@ -34,4 +34,5 @@ class AlumniProspekMaterial extends Model
                  ->where('user_id', $auth)
                  ->get();
     }
+
 }

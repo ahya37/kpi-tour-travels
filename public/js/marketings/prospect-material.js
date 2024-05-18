@@ -1,3 +1,3 @@
 const table = $(".data").DataTable({
-  pageLength: 10,
-});
+    pageLength: 10,
+  });

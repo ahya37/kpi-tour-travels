@@ -28,6 +28,7 @@
                             <table class="table table-striped table-bordered table-hover data">
                                 <thead>
                                     <tr>
+                                        <th>Id</th>
                                         <th  class="text-center" style="vertical-align: middle;">No</th>
                                         <th  class="text-center" style="vertical-align: middle;">Nama</th>
                                         <th  class="text-center" style="vertical-align: middle;">Telp</th>
@@ -38,23 +39,7 @@
                                         <th  class="text-center" style="vertical-align: middle;">Opsi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="dataTable">
-                                    @foreach ($detailProspectMaterials as $item)
-                                        <tr>
-                                            <td>{{$no++}}</td>
-                                            <td>{{$item->name}}</td>
-                                            <td>{{$item->telp}}</td>
-                                            <td>{{$item->address}}</td>
-                                            <td>{{$item->is_respone}}</td>
-                                            <td>{{$item->reason}}</td>
-                                            <td>{{$item->notes}}</td>
-                                            <td>
-                                                <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#myModal5">Kelola
-                                            </button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
+                                <tbody id="dataTable"></tbody>
                             </table>
                         </div>
                     </div>
@@ -99,6 +84,5 @@
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/loaders.js') }}"></script>
     <script src="{{ asset('js/ladda-button.js') }}"></script>
-    <script src="{{ asset('js/marketings/prospect-material.js') }}"></script>
-    <script src="{{ asset('js/marketings/modal-manage-alumni-prospect-material.js') }}"></script>
+    <script src="{{ asset('js/marketings/manage-alumni-prospect-material.js') }}"></script>
 @endpush

@@ -230,5 +230,77 @@ class MarketingService
        return $data;
 
     }
+
+    public static function manageAlumniProspectMaterialStore($request)
+    {
+        $update = DetailAlumniProspekMaterial::where('id', $request['idDetail'])->first();
+        $update->update([
+            'is_respone' => $request['response'],
+            'reason_id' => $request['reason'],
+            'tourcode' => $request['tourcode'],
+            'notes' => $request['notes'],
+            'remember' => $request['remember'],
+            'created_by' => $request['user'],
+            'updated_by' => '',
+        ]);
+
+        $data = [
+            'message' => 'Berhasil kelola jamaah'
+        ];
+
+        return $data;
+    }
+
+    public static function listAlumniProspectMaterial($request, $alumniprospectmaterialId)
+    {
+        // sleep(1);
+        $orderBy = 'name';
+        switch ($request->input('order.0.column')) {
+            case '1':
+                $orderBy = 'name';
+                break;
+        }
+
+       $marketingTargets =  DetailAlumniProspekMaterial::getDetailAlumniProspekMaterialByAlumniProspekMaterial($alumniprospectmaterialId);
+
+        if($request->input('search.value')!=null){
+           $marketingTargets =$marketingTargets->where(function($q)use($request){
+                $q->whereRaw('LOWER(name) like ? ',['%'.strtolower($request->input('search.value')).'%']);
+            });
+        }
+
+        // if($request->input('month') != '' AND $request->input('year') != ''){
+        //                    $marketingTargets->whereMonth('start_date', $request->month);
+        //                    $marketingTargets->whereYear('end_date', $request->year);
+        //                 }
+
+        $recordsFiltered =$marketingTargets->get()->count();
+        if($request->input('length')!=-1)$marketingTargets =$marketingTargets->skip($request->input('start'))->take($request->input('length'));
+        $marketingTargets =$marketingTargets->orderBy($orderBy,$request->input('order.0.dir'))->get();
+
+        $recordsTotal =$marketingTargets->count();
+
+        $results = [];
+        $no = 1;
+        foreach ($marketingTargets as $value) {
+            $results[] = [
+                'id' => $value->id,
+                'no' => $no++,
+                'name' => $value->name,
+                'telp' => $value->telp,
+                'address' => $value->address,
+                'is_respone' => $value->is_respone,
+                'reason' => $value->reason,
+                'notes' => $value->notes
+            ];
+        }
+
+        return response()->json([
+                'draw'=>$request->input('draw'),
+                'recordsTotal'=>$recordsTotal,
+                'recordsFiltered'=>$recordsFiltered,
+                'data'=>$results
+            ]);
+    }
 	
 }

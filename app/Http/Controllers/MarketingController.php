@@ -8,19 +8,16 @@ use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
 use App\Helpers\Years;
 use App\Http\Requests\DetailMarketingTargetRequests;
+use App\Http\Requests\ManageAlumniProspectMaterialRequest;
 use App\Models\AlumniProspekMaterial;
 use App\Models\DetailAlumniProspekMaterial;
 use App\Models\JobEmployee;
 use App\Models\Program;
 use App\Models\Reason;
-use App\Models\SubDivision;
-use App\Services\AlumniProspectMaterialService;
-use App\Services\AlumniProspekMaterialService;
 use App\Services\MarketingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class MarketingController extends Controller
@@ -278,7 +275,7 @@ class MarketingController extends Controller
         ]);
     }
 
-    public function loadModalManageAlumniProspectMaterial()
+    public function loadModalManageAlumniProspectMaterial($detailId)
     {
         // get data programs
         $reasons = Reason::select('id','name')->get();
@@ -288,6 +285,7 @@ class MarketingController extends Controller
                             <div class="form-group row">
                                 <label class="col-sm-2 col-form-label">Respon</label>
                                 <div class="col-sm-10 col-md-10 col-lg-10">
+                                <input type="hidden" name="idDetail" id="idDetail" value="'.$detailId.'">
                                     <select class="form-control select2" name="response" id="response" required>
                                         <option value="">-Pilih respon-</option>
                                         <option value="Y">Ya</option>
@@ -333,14 +331,48 @@ class MarketingController extends Controller
                             <div class="form-group row">
                                 <label class="col-sm-2 col-form-label">Keterangan</label>
                                 <div class="col-sm-10">
-                                    <textarea class="form-control form-control-sm"></textarea>
+                                    <textarea class="form-control form-control-sm" name="notes" id="notes"></textarea>
                                 </div>
                             </div>
+                            <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Ingatkan saya kembali</label>
+                            <div class="col-sm-10 col-md-10 col-lg-10">
+                               <input type="radio" value="Y" id="remember1" name="remember"> Ya
+                               <input type="radio" value="N" id="remember2" name="remember"> Tidak
+                            </div>
+                        </div>
                             <div class="hr-line-dashed"></div>
                         </form>';
 
         return response()->json([
             'modalContent' => $modalContent,
         ]);
+    }
+
+    public function listAlumniProspectMaterial(Request $request, $alumniprospectmaterialId)
+    {
+        $requestDataTableMarketingtarget = $request;
+        return MarketingService::listAlumniProspectMaterial($requestDataTableMarketingtarget, $alumniprospectmaterialId);
+        
+    }
+
+    public function manageAlumniProspectMaterialStore(ManageAlumniProspectMaterialRequest $request)
+    {
+        try {
+
+            $user = Auth::user()->id;
+            $requestAlumniProspectMaterial = $request->validated();
+            $requestAlumniProspectMaterial['user'] = $user;
+
+    
+            $results = MarketingService::manageAlumniProspectMaterialStore($requestAlumniProspectMaterial);
+            return ResponseFormatter::success($results);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal kelola jamaah'
+            ]);
+        }
     }
 }

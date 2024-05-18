@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class DetailAlumniProspekMaterial extends Model
 {
@@ -14,4 +15,13 @@ class DetailAlumniProspekMaterial extends Model
     protected $primaryKey = 'id';
     protected $keyType = 'string';
     public $incrementing = false;
+
+    public static function getDetailAlumniProspekMaterialByAlumniProspekMaterial($alumniProspectMaterialId)
+    {
+        return DB::table('detail_alumni_prospect_material as a')
+                ->select('a.id','a.name','a.telp','a.address','a.is_respone','b.name as reason','a.notes')
+                ->leftJoin('reasons as b','a.reason_id','=','b.id')
+                ->where('alumni_prospect_material_id', $alumniProspectMaterialId);
+
+    }
 }
