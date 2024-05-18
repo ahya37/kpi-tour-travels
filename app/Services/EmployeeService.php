@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -83,7 +84,7 @@ class EmployeeService
                 "id"            => Str::random(30),
                 "employee_id"   => $insertEmployees->id,
                 "sub_division_id"   => explode(' | ', $data['empGDID'])[1],
-                "division_group_id" => explode(' | ', $data['empGDID'])[0],
+                "group_division_id" => explode(' | ', $data['empGDID'])[0],
                 "created_by"=> Auth::user()->id,
                 "updated_by"=> Auth::user()->id,
                 "created_at"=> date('Y-m-d H:i:s'),
@@ -94,6 +95,7 @@ class EmployeeService
             return 'berhasil';
         } catch(\Exception $e) {
             DB::rollback();
+            Log::error($e->getMessage());
             return 'gagal';
         }
         // INSERT INTO USER
