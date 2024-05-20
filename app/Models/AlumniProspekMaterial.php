@@ -28,7 +28,18 @@ class AlumniProspekMaterial extends Model
     public static function alumniProspectMaterialByAccountCS($auth)
     {
         return  DB::table('employees as a')
-                 ->select('c.id','c.label','c.members','a.name as cs','c.created_at')
+                 ->select('c.id','c.label','c.members','a.name as cs','c.created_at',
+                    DB::raw(
+                        "
+                            (select count(a1.id) from detail_alumni_prospect_material as a1 where a1.alumni_prospect_material_id = c.id and a1.is_respone = 'Y') as yes_respone
+                        "
+                    ),
+                    DB::raw(
+                        "
+                            (select count(a1.id) from detail_alumni_prospect_material as a1 where a1.alumni_prospect_material_id = c.id and a1.is_respone = 'N') as no_respone
+                        "
+                    )
+                 )
                  ->join('job_employees as b','a.id','=','b.employee_id')
                  ->join('alumni_prospect_material as c','c.job_employee_id','=','b.id')
                  ->where('user_id', $auth)

@@ -32,6 +32,8 @@
                                         <th>CS</th>
                                         <th>Label</th>
                                         <th>Alumni</th>
+                                        <th>Respon</th>
+                                        <th>Tidak Respon</th>
                                         <th>Created At</th>
                                         <th>Opsi</th>
                                     </tr>
@@ -43,6 +45,8 @@
                                             <td>{{$item->cs}}</td>
                                             <td>{{$item->label}}</td>
                                             <td>{{$item->members}}</td>
+                                            <td>{{$item->yes_respone}}</td>
+                                            <td>{{$item->no_respone}}</td>
                                             <td>{{$item->created_at}}</td>
                                             <td>
                                                 <a href="{{route('marketing.alumniprospectmaterial.detail', $item->id)}}" class="btn btn-sm btn-primary text-white">Jama'ah</a>

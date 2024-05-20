@@ -252,6 +252,8 @@ class MarketingController extends Controller
         // Get data prospek alumni berdasarkan login cs
        $auth = Auth::user()->id;
        $prospectMaterials = MarketingService::alumniProspectMaterialByAccountCS($auth);
+
+    //    return $prospectMaterials;
        $no = 1;
 
        return view('marketings.cs.prospect-material', [
