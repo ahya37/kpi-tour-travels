@@ -9,6 +9,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\GroupDivisionController;
 use App\Http\Controllers\SubDivisionController;
+use App\Http\Controllers\WorkPlanController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -55,6 +56,11 @@ Route::group(['middleware' => ['auth']], function () {
         //modal 
         Route::get('modal/target','loadModalMarketingTarget');
         Route::get('modal/target/detail','loadModalDetailMarketingTarget');
+
+        // Rencana Kerja
+        Route::prefix('workplans')->controller(WorkPlanController::class)->group(function(){
+            Route::get('','index')->name('marketing.workplans.index');
+        });
 
     });
 

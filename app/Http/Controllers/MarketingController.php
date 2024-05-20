@@ -253,7 +253,6 @@ class MarketingController extends Controller
        $auth = Auth::user()->id;
        $prospectMaterials = MarketingService::alumniProspectMaterialByAccountCS($auth);
 
-    //    return $prospectMaterials;
        $no = 1;
 
        return view('marketings.cs.prospect-material', [
@@ -296,7 +295,7 @@ class MarketingController extends Controller
                                 </div>
                             </div>
 
-                            <div class="form-group row d-none" id="div-year">
+                            <div class="form-group row d-none div-year">
                                 <label class="col-sm-2 col-form-label">Program</label>
                                 <div class="col-sm-5">
                                 <label class="col-form-label">Tahun</label>
@@ -310,11 +309,35 @@ class MarketingController extends Controller
         $modalContent = $modalContent.'</select>
                                 </div>
                                 <div class="col-sm-5">
-                                <label class="col-form-label">Tourcode</label>
-                                    <select class="select2 form-control" name="tourcode" id="tourcode">
-                                    </select>
+                                <label class="col-form-label"></label>
                                 </div>
                             </div>
+
+                            <div class="form-group row d-none div-year">
+                                <label class="col-sm-2 col-form-label"></label>
+                                <div class="col-sm-5">
+                                <label class="col-form-label">Umrah</label>
+                                <select class="select2 form-control" name="tourcode" id="tourcode">
+                                </select>
+                                </div>
+                            </div>
+                            
+
+                            <div class="form-group row d-none div-year">
+                                <label class="col-sm-2 col-form-label"></label>
+                                <div class="col-sm-5">
+                                <label class="col-form-label">Haji</label>
+                                <select class="select2 form-control" name="tourcodeHaji" id="tourcodeHaji"></select>
+                                </div>
+                            </div>
+
+                            <div class="form-group row d-none div-year">
+                            <label class="col-sm-2 col-form-label"></label>
+                            <div class="col-sm-5">
+                            <label class="col-form-label">Tour Muslim</label>
+                            <select class="select2 form-control" name="tourcodeMuslim" id="tourcodeMuslim"></select>
+                            </div>
+                        </div>
 
                             <div class="form-group row d-none" id="div-reason">
                             <input type="hidden" name="_token" value="'.csrf_token().'">

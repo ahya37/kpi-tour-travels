@@ -105,6 +105,8 @@ $('#myModal5').on('show.bs.modal', function (e) {
 
   let year = "";
   umrahAPI(year);
+  hajiAPI(year);
+  tourMuslimAPI(year);
 
 
   $.ajax({
@@ -139,6 +141,8 @@ $('#myModal5').on('show.bs.modal', function (e) {
     $("#year").on("change", async function () {
       year = $("#year").val();
       umrahAPI(year);
+      hajiAPI(year);
+      tourMuslimAPI(year);
     });
   }
 
@@ -146,10 +150,10 @@ $('#myModal5').on('show.bs.modal', function (e) {
     $("#response").on("change", async function () {
       let response = $("#response").val();
       if (response === 'Y') {
-        $('#div-year').removeClass('d-none');
+        $('.div-year').removeClass('d-none');
         $('#div-reason').addClass('d-none');
       }else{
-        $('#div-year').addClass('d-none');
+        $('.div-year').addClass('d-none');
         $('#div-reason').removeClass('d-none');
       }
     });
@@ -180,6 +184,59 @@ $('#myModal5').on('show.bs.modal', function (e) {
       );
     });
   }
+
+  async function hajiAPI(year) {
+    const params = `?year=${year}`;
+
+    await fetch(`https://api.perciktours.com/jadwalhaji${params}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json;charset=utf-8",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const results = data.data.jadwal;
+        selectOptionHajiCode(results);
+      });
+  }
+
+  function selectOptionHajiCode(result) {
+    $("#tourcodeHaji").empty();
+    $("#tourcodeHaji").append('<option value="">-Pilih Kode-</option>');
+    return $.each(result, function (key, item) {
+      $("#tourcodeHaji").append(
+        '<option value="' + item.KODE + '">' + item.KODE + "</option>"
+      );
+    });
+  }
+
+  async function tourMuslimAPI(year) {
+    const params = `?year=${year}`;
+
+    await fetch(`https://api.perciktours.com/jadwaltourmuslim${params}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json;charset=utf-8",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const results = data.data.jadwal;
+        selectOptionTourMuslimCode(results);
+      });
+  }
+
+  function selectOptionTourMuslimCode(result) {
+    $("#tourcodeMuslim").empty();
+    $("#tourcodeMuslim").append('<option value="">-Pilih Kode-</option>');
+    return $.each(result, function (key, item) {
+      $("#tourcodeMuslim").append(
+        '<option value="' + item.KODE + '">' + item.KODE + "</option>"
+      );
+    });
+  }
+
 });
 // end modal show
 
@@ -195,6 +252,8 @@ saveButton.click(function (e) {
   formData.append('idDetail', $('#idDetail').val());
   formData.append('response', $('#response').val());
   formData.append('tourcode', $('#tourcode').val());
+  formData.append('tourcodeHaji', $('#tourcodeHaji').val());
+  formData.append('tourcodeMuslim', $('#tourcodeMuslim').val());
   formData.append('reason', $('#reason').val());
   formData.append('notes', $('#notes').val());
   formData.append('remember', $('input[name="remember"]:checked').val());

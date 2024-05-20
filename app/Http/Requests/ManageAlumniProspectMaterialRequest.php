@@ -28,6 +28,8 @@ class ManageAlumniProspectMaterialRequest extends FormRequest
             'response' => 'required',
             'remember' => 'required|string',
             'tourcode' => 'nullable|string',
+            'tourcodeHaji' => 'nullable|string',
+            'tourcodeMuslim' => 'nullable|string',
             'reason' => 'nullable|string',
             'notes' => 'nullable|string',
         ];

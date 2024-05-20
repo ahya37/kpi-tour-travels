@@ -79,6 +79,7 @@
                         class="fa arrow"></span></a>
                 <ul class="nav nav-second-level">
                     <li class="active"><a href="{{ route('marketing.alumniprospectmaterial') }}">Bahan Prospek Alumni</a></li>
+                    <li class="active"><a href="{{ route('marketing.workplans.index') }}">Rencana Kerja</a></li>
                 </ul>
             </li>
             @endif
