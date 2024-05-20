@@ -239,7 +239,7 @@ class MarketingService
             'reason_id' => $request['reason'],
             'tourcode' => $request['tourcode'],
             'tourcode_haji' => $request['tourcodeHaji'],
-            'tourcode_tourmuslim' => $request['tourcodeMuslim'],
+            'tourcode_tsourmuslim' => $request['tourcodeMuslim'],
             'notes' => $request['notes'],
             'remember' => $request['remember'],
             'created_by' => $request['user'],
