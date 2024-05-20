@@ -213,5 +213,10 @@ class MarketingTargetService
             return  response()->json($data);
         }
     }
+
+    public static function doSimpanLaporanIklan($data)
+    {
+        var_dump($data);die();
+    }
 	
 }

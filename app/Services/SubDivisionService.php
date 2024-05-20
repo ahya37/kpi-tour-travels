@@ -36,8 +36,7 @@ class SubDivisionService
         $query  = DB::select("
             SELECT  id, name
             FROM    group_divisions
-            WHERE   is_active = '1'
-            AND     (id LIKE '%$keyword%' OR lower(name) LIKE '%$keyword%')
+            WHERE   name LIKE '%".$keyword."%'
             ORDER BY name ASC
         ");
         return $query;
@@ -52,8 +51,9 @@ class SubDivisionService
             "name"              => $data['sdName'],
             "division_group_id" => $data['gdID'],
             "created_by"        => Auth::user()->id,
+            "updated_by"        => Auth::user()->id,
             "created_at"        => date('Y-m-d H:i:s'),
-            "updated_at"        => null,
+            "updated_at"        => date('Y-m-d H:i:s'),
         );
 
         try {

@@ -60,7 +60,7 @@
                             <h4 class="pt-0.5">Grup Divisi</h4>
                         </div>
                         <div class="col-sm-8">
-                            <select class="form-control" id="groupDivisionID" style="width: 100%;">
+                            <select class="form-control form-control-sm" id="groupDivisionID" style="width: 100%;">
                             </select>
                         </div>
                     </div>

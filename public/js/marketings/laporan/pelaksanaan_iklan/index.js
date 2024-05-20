@@ -15,6 +15,14 @@ function show_table(id_table, value)
             },
             ordering    : false,
         });
+    } else if(id_table == 'tableResponseUser') {
+        $("#tableResponseUser").DataTable().clear().destroy();
+        $("#tableResponseUser").DataTable({
+            ordering    : false,
+            searching   : false,
+            bInfo       : false,
+            paging      : false,
+        });
     }
 }
 
@@ -26,7 +34,7 @@ function show_modal(id_modal, value)
     if(id_modal == 'modalAdd') {
         $("#modalAdd").on('shown.bs.modal', function(){
             $("#adsNameAdd").focus();
-        })
+        });
         // UBAH KE DATEPICKER
         $("#adsStartDateAdd").daterangepicker({
             singleDatePicker : true,
@@ -34,7 +42,15 @@ function show_modal(id_modal, value)
                 format  : 'DD/MM/YYYY',
             },
             autoApply    : true,
-        }).attr('readonly','readonly').css({"cursor":"pointer", "background":"white"});;
+        }).attr('readonly','readonly').css({"cursor":"pointer", "background":"white"});
+
+        // JADI TABLE DINAMIS
+        show_table('tableResponseUser');
+            var btnDelete   = "<button type='button' class='btn btn-sm btn-danger'><i class='fa fa-trash'></button>";
+            
+            $("#tableResponseUser").DataTable().row.add([
+                btnDelete
+            ]).draw('false');
     }
 }
 
@@ -49,6 +65,25 @@ function show_select(id_select)
     });
 }
 
+function do_simpan(jenis)
+{
+    if(jenis == 'simpan')
+    {
+        var formData    = new FormData($("#formPost")[0]);
+        formData.append('adsName', $("#adsNameAdd"));
+        var data    = formData;
+        var url     = "/marketings/laporan/trans/store/reportAds";
+        var type    = "POST";
+
+        doTransaction(url, type, data).then((xhr)   => {
+            console.log(xhr);
+        }).catch((xhr)  => {
+            console.log(xhr);
+        })
+    }
+}
+
+// FUNGSI ENV
 function ubahForm(id, val, jenis)
 {
     if(jenis == 'ubah_ke_nol') {
@@ -85,4 +120,25 @@ function formatRibuan(val) {
 
     angka_hasil = split[1] != undefined ? angka_hasil + '.' + split[1] : angka_hasil;
     return angka_hasil; 
+}
+
+function doTransaction(url, type, data)
+{
+    return new Promise(function(resolve, reject){
+        $.ajax({
+            cache    : false,
+            type    : type,
+            data    : {
+                _token      : CSRF_TOKEN,
+                sendData    : data,
+            },
+            url     :url,
+            success : function(xhr) {
+                resolve(xhr);
+            },
+            error   : function(xhr) {
+                reject(xhr);
+            }
+        });
+    });
 }

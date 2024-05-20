@@ -58,109 +58,130 @@
                     </h4>
                 </div>
                 <div class="modal-body">
-                    <div class="row mb-2">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label><b>Materi Iklan</b></label>
-                                <input type="text" id="adsNameAdd" class="form-control" placeholder="Materi Iklan">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-sm-7">
-                            <div class="form-group">
-                                <label><b>Tgl. Mulai</b></label>
-                                <input type="text" id="adsStartDateAdd" class="form-control" placeholder="DD/MM/YYYY" onchange="hitungTanggal(this.value, $('#adsPeriodeAdd').val())">
-                            </div>
-                        </div>
-                        <div class="col-sm-5">
-                            <div class="form-group">
-                                <label><b>Lamanya</b></label>
-                                <div class="input-group">
-                                    <input type="number" id="adsPeriodeAdd" step="1" min="0" max="3600" placeholder="" class="form-control" value="0" onclick="this.select()" onkeyup="hitungTanggal($('#adsStartDateAdd').val(), this.value)" onblur="ubahForm(this.id, this.val, 'ubah_ke_nol')">
-                                    <span class="input-group-addon"><b>Hari</b></span>
+                    <form method="POST" id="formPost">
+                        <div class="row mb-2">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label><b>Materi Iklan</b></label>
+                                    <input type="text" id="adsNameAdd" name="adsNameAdd" class="form-control" placeholder="Materi Iklan">
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-sm-7">
-                            <div class="form-group">
-                                <label><b>Tgl. Berakhir</b></label>
-                                <input type="text" id="adsEndDateAdd" class="form-control" placeholder="DD/MM/YYYY" readonly>
+                        <div class="row mb-2">
+                            <div class="col-sm-7">
+                                <div class="form-group">
+                                    <label><b>Tgl. Mulai</b></label>
+                                    <input type="text" id="adsStartDateAdd" name="adsStartDateAdd" class="form-control" placeholder="DD/MM/YYYY" onchange="hitungTanggal(this.value, $('#adsPeriodeAdd').val())">
+                                </div>
+                            </div>
+                            <div class="col-sm-5">
+                                <div class="form-group">
+                                    <label><b>Lamanya</b></label>
+                                    <div class="input-group">
+                                        <input type="number" id="adsPeriodeAdd" name="adsPeriodeAdd" step="1" min="0" max="3600" placeholder="" class="form-control" value="0" onclick="this.select()" onkeyup="hitungTanggal($('#adsStartDateAdd').val(), this.value)" onblur="ubahForm(this.id, this.val, 'ubah_ke_nol')">
+                                        <span class="input-group-addon"><b>Hari</b></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label><b>Biaya</b></label>
-                                <input type="text" id="adsPriceAdd" class="form-control text-right" placeholder="Biaya" value="0.00" onclick="this.select()" onkeyup="ubahForm(this.id, this.value, 'ubah_ke_ribuan')" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol_1')">
+                        <div class="row mb-2">
+                            <div class="col-sm-7">
+                                <div class="form-group">
+                                    <label><b>Tgl. Berakhir</b></label>
+                                    <input type="text" id="adsEndDateAdd" name="adsEndDateAdd" class="form-control" placeholder="DD/MM/YYYY" readonly>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label><b>Status Iklan</b></label>
-                                <select id="adsStatusAdd" class="select2_demo_1 form-control" style="width: 100%;">
-                                    <option selected disabled>Pilih Status</option>
-                                    <option value="1">Aktif</option>
-                                    <option value="0">Tidak Aktif</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label><b>Total Responden</b></label>
-                                <input type="text" id="adsTotalResponseAdd" class="form-control text-right" placeholder="Total Responden" value="0.00" onclick="this.select()" onkeyup="ubahForm(this.id, this.value, 'ubah_ke_ribuan')" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol_1')">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label><b>Total Responden (Gender)</b></label>
+                        <div class="row mb-2">
+                            <div class="col-sm-12">
+                                <label><b>Penyebaran Iklan</b></label>
                                 <div class="row">
                                     <div class="col-sm-6">
-                                        Laki-Laki
-                                        <div class="input-group">
-                                            <input type="number" id="adsResponseMaleAdd" class="form-control text-right" placeholder="Response Laki-laki" value="0" step="1" min="0" max="100" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol')" onclick="this.select()">
-                                            <span class="input-group-addon"><b>%</b></span>
-                                        </div>
+                                        Jml. Jangkauan
+                                        <input type="text" id="adsScopeAdd" name="adsScopeAdd" class="form-control text-right" placeholder="Jml. Penyebaran Iklan" value="0.00" onclick="this.select()" onkeyup="ubahForm(this.id, this.value, 'ubah_ke_ribuan')" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol_1')">
                                     </div>
                                     <div class="col-sm-6">
-                                        Perempuan
-                                        <div class="input-group">
-                                            <input type="number" id="adsResponseFemaleAdd" class="form-control text-right" placeholder="Response Laki-laki" value="0" step="1" min="0" max="100" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol')" onclick="this.select()">
-                                            <span class="input-group-addon"><b>%</b></span>
+                                        Jml. Penayangan Iklan
+                                        <input type="text" id="adsShowAdd" name="adsShowAdd" class="form-control text-right" placeholder="Jml. Penayangan Iklan" value="0.00" onclick="this.select()" onkeyup="ubahForm(this.id, this.value, 'ubah_ke_ribuan')" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol_1')">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-12">
+                                <label><b>Respon Pengguna</b></label>
+                                <table class="table table-bordered" style="width: 100%;" id="tableResponseUser">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="vertical-align: middle;">Aksi</th>
+                                            <th class="text-center" style="vertical-align: middle;">Jenis</th>
+                                            <th class="text-center" style="vertical-align: middle;">Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                                <a href="#" id="btnResponseUser" value="1" style="padding-top: -100px;">
+                                    <i class="fa fa-plus-circle"></i> Tambah Data
+                                </a>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label><b>Total Responden</b></label>
+                                    <input type="text" id="adsTotalResponseAdd" name="adsTotalResponseAdd" class="form-control text-right" placeholder="Total Responden" value="0.00" onclick="this.select()" onkeyup="ubahForm(this.id, this.value, 'ubah_ke_ribuan')" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol_1')">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label><b>Total Responden (Gender)</b></label>
+                                    <div class="row">
+                                        <div class="col-sm-6">
+                                            Laki-Laki
+                                            <div class="input-group">
+                                                <input type="number" id="adsResponseMaleAdd" name="adsResponseMaleAdd" class="form-control text-right" placeholder="Response Laki-laki" value="0" step="1" min="0" max="100" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol')" onclick="this.select()">
+                                                <span class="input-group-addon"><b>%</b></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            Perempuan
+                                            <div class="input-group">
+                                                <input type="number" id="adsResponseFemaleAdd" name="adsResponseFemaleAdd" class="form-control text-right" placeholder="Response Laki-laki" value="0" step="1" min="0" max="100" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol')" onclick="this.select()">
+                                                <span class="input-group-addon"><b>%</b></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-sm-12">
-                            <label><b>Penyebaran Iklan</b></label>
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    Jml. Jangkauan
-                                    <input type="text" id="adsScopeAdd" class="form-control text-right" placeholder="Jml. Penyebaran Iklan" value="0.00" onclick="this.select()" onkeyup="ubahForm(this.id, this.value, 'ubah_ke_ribuan')" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol_1')">
-                                </div>
-                                <div class="col-sm-6">
-                                    Jml. Penayangan Iklan
-                                    <input type="text" id="adsShowAdd" class="form-control text-right" placeholder="Jml. Penayangan Iklan" value="0.00" onclick="this.select()" onkeyup="ubahForm(this.id, this.value, 'ubah_ke_ribuan')" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol_1')">
+                        <div class="row mb-2">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label><b>Status Iklan</b></label>
+                                    <select id="adsStatusAdd" name="adsStatusAdd" class="select2_demo_1 form-control" style="width: 100%;">
+                                        <option selected disabled>Pilih Status</option>
+                                        <option value="1">Aktif</option>
+                                        <option value="0">Tidak Aktif</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label><b>Biaya</b></label>
+                                    <input type="text" id="adsPriceAdd" name="adsPriceAdd" class="form-control text-right" placeholder="Biaya" value="0.00" onclick="this.select()" onkeyup="ubahForm(this.id, this.value, 'ubah_ke_ribuan')" onblur="ubahForm(this.id, this.value, 'ubah_ke_nol_1')">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" onclick="close_modal('modalAdd')">Batal</button>
-                    <button type="button" class="btn btn-primary btn-sm">Simpan</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="do_simpan('simpan')">Simpan</button>
                 </div>
             </div>
         </div>

@@ -48,7 +48,8 @@ Route::group(['middleware' => ['auth']], function () {
 
         // laporan
         Route::prefix('laporan')->controller(MarketingController::class)->group(function(){
-            Route::get('pelaksanaan_iklan',[MarketingController::class,'laporanPelaksanaanIklan'])->name('marketing.laporan.iklan');
+            Route::get('/pelaksanaan_iklan',[MarketingController::class,'laporanPelaksanaanIklan'])->name('marketing.laporan.iklan');
+            Route::post('/trans/store/reportAds', [MarketingController::class, 'simpanLaporanIklan'])->name('marketing.trans.storeDataLaporanIklan');
         });
 
         //modal 
@@ -91,7 +92,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::prefix('subDivisions')->group(function(){
             Route::get('/', [SubDivisionController::class, 'index'])->name('subDivisions.index');
             Route::get('/trans/get/tableDataGroupDivision', [SubDivisionController::class, 'getDataTableSubDivision'])->name('subDivision.trans.getTableMaster');
-            Route::post('/trans/get/selectDataGroupDivision', [SubDivisionController::class , 'getDataGroupDivision'])->name('subDivision.trans.getDataGroupDivision');
+            Route::get('/trans/get/selectDataGroupDivision', [SubDivisionController::class , 'getDataGroupDivision'])->name('subDivision.trans.getDataGroupDivision');
             Route::post('/trans/store/modalDataSubDivision', [SubDivisionController::class, 'saveDataSubDivision'])->name('subDivision.trans.storeDataSubDivision');
             // MODAL
             Route::get('/trans/get/modalDataSubDivision', [SubDivisionController::class, 'getDataSubDivision'])->name('subDivision.trans.getDataSubDivision');

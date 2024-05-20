@@ -161,4 +161,10 @@ class MarketingController extends Controller
 
         return view('marketings/laporan/pelaksanaan_iklan/index', $data);
     }
+
+    public function simpanLaporanIklan(Request $request)
+    {
+        $doSimpan   = MarketingTargetService::doSimpanLaporanIklan($request->all());
+        
+    }
 }

@@ -5,7 +5,6 @@ $.ajaxSetup({
 });
 $(document).ready(function(){
     show_table('tableSubDivision','%');
-    show_select('groupDivisionID','');
 })
 
 function show_table(id_table, value)
@@ -44,6 +43,7 @@ function show_modal(id_modal, value)
     $("#"+id_modal).modal({backdrop: 'static', keyboard: false});
     if(id_modal == 'modalSubDivisionAdd') {
         $("#modalSubDivisionAdd").modal('show');
+        show_select('groupDivisionID','');
     } else if(id_modal == 'modalSubDivisionEdit') {
         show_select('groupDivisionIDEdit', '');
         // GET DATA
@@ -93,53 +93,43 @@ function close_modal(id_modal)
 
 function show_select(id_form, value)
 {
-    $("#"+id_form).html("<option selected disabled>Pilih Grup Divisi</option>");
-    $("#"+id_form).select2({
-        placeholder     : 'Pilih Grup Divisi',
-        ajax            : {
-            url             : '/master/subDivisions/trans/get/selectDataGroupDivision',
-            data    : function(param) {
-                var data_search     = {
-                    _token  : CSRF_TOKEN,
-                    cari    : param.term,
-                }
-                return data_search;
-            },
-            type            : "POST",
-            dataType        : "json",
-            processResults  : function(data) {
-                if(data.length <= 0) {
-                    return {
-                        results     : $.map(data, function(item){
-                            return {
-                                id  : null,
-                                text : null
-                            }
-                        })
-                    }
-                } else {
-                    return {
-                        results     : $.map(data, function(item){
-                            return {
-                                id      : item['id'],
-                                text    : item['name']
-                            }
-                        })
-                    }
-                }
-            },
-        },
-    });
-
-    if(value != '') {
-        console.log(value);
-        $("#"+id_form).select2('val',value);
-    }
-
     if(id_form == 'groupDivisionID') {
-        $("#groupDivisionID").on('select2:select', function(){
-            $("#subDivisionName").focus();
+        var html    = "<option selected disabled>Pilih Grup Divisi</option>";
+        $("#"+id_form).select2({
+            placeholder     : 'Pilih Grup Divisi',
+            theme           : 'bootstrap4',
         });
+
+        $.ajax({
+            cache   : false,
+            type    : "GET",
+            dataType: "json",
+            data    : {
+                _token  : CSRF_TOKEN,
+                cari    : '%',
+            },
+            url     : "/master/subDivisions/trans/get/selectDataGroupDivision",
+            success : function(xhr) {
+                $.each(xhr, function(i,item){
+                    html    += "<option value='" + item['id'] + "'>" + item['name'] + "</option>";
+                });
+                $("#"+id_form).html(html);
+            },
+            error   : function(xhr) {
+                $("#"+id_form).html(html);
+                console.log(xhr.responseJSON);
+            }
+        });
+
+        if(value != '') {
+            $("#"+id_form).select2('val',value);
+        }
+
+        if(id_form == 'groupDivisionID') {
+            $("#groupDivisionID").on('select2:select', function(){
+                $("#subDivisionName").focus();
+            });
+        }
     }
 }
 
@@ -244,4 +234,8 @@ function do_save(jenis)
             }
         })
     }
+}
+
+function getData(url, type, data) {
+
 }

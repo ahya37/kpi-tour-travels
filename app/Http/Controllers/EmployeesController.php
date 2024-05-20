@@ -138,7 +138,7 @@ class EmployeesController extends Controller
 
     }
 
-    public function DataRoles()
+    public function getDataRoles()
     {
         $getData    = EmployeeService::getData('roles','%');
 

@@ -37,7 +37,7 @@ class GroupDivisionController extends Controller
                     $i + 1,
                     $get_data[$i]->name,
                     $get_data[$i]->created_at,
-                    "<button type='text' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modal_edit_division`, this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>&nbsp<button type='text' class='btn btn-danger btn-sm' value='".$get_data[$i]->id."' onclick='show_modal(`modal_hapus_data`, this.value)' title='Hapus Data'><i class='fa fa-trash'></i></button>",
+                    "<button type='text' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modal_edit_division`, this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>",
                 );
             }
         } else {
@@ -79,6 +79,7 @@ class GroupDivisionController extends Controller
 
         if(!empty($data)) {
             $output     = array(
+                "success"       => true,
                 "status"        => 200,
                 "message"       => "Berhasil Diambil",
                 "description"   => "Data Berhasil Dimuat",
@@ -89,14 +90,14 @@ class GroupDivisionController extends Controller
             );
         } else {
             $output     = array(
+                "success"       => false,
                 "status"        => 500,
                 "message"       => "Terjadi Kesalahan",
                 "description"   => "Data Gagal Dimuat",
                 "data"          => []
             );
         }
-
-        echo json_encode($output);
+        return Response::json($output, $output['status']);
     }
 
     public function storeDataEditGroupDivisions(Request $request)

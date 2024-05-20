@@ -199,6 +199,6 @@ function getData(url, type, data)
             error   : function(xhr) {
                 reject(xhr);
             }
-        })
+        });
     });
 }

@@ -45,7 +45,6 @@ class EmployeeService
                     b.name as sub_division_name
             FROM 	group_divisions a
             INNER JOIN sub_divisions b ON a.id = b.division_group_id
-            WHERE 	a.is_active <> '0'
             ORDER BY a.name ASC
             "
         );
