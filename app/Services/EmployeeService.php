@@ -65,6 +65,7 @@ class EmployeeService
                 "created_at"    => date('Y-m-d H:i:s'),
             );
             $insertUser         = User::create($dataUsers);
+            $insertUser->assignRole($data['empRole']);
             
             // INSERT TO EMPLOYEE
             $dataEmployees  = array(
@@ -97,5 +98,22 @@ class EmployeeService
             return 'gagal';
         }
         // INSERT INTO USER
+    }
+
+    // GET DATA
+    public static function getData($type, $value)
+    {
+        if($type == 'roles') {
+            $query  = DB::select(
+                "
+                SELECT  id as role_id,
+                        name as role_name
+                FROM    roles
+                ORDER BY id ASC
+                "
+            );
+
+            return $query;
+        }
     }
 }

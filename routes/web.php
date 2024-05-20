@@ -101,5 +101,9 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/trans/post/dataEmployeeNew', [EmployeesController::class, 'saveDataEmployee'])->name('employee.trans.postDataEmployee');
             Route::get('/trans/get/dataTableEmployee', [EmployeesController::class, 'getDataTableEmployee'])->name('employee.trans.getDataTableEmployee');
         });
+
+        Route::prefix('data')->group(function(){
+            Route::get('/trans/get/dataRoles', [EmployeesController::class, 'getDataRoles'])->name('master.data.roles');
+        });
     });
 });
