@@ -46,6 +46,11 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/prospectmaterial','prospectMaterial')->name('marketing.prospectmaterial');
         Route::post('/prospectmaterial/store','prospectMaterialStore')->name('marketing.prospectmaterial.store');
 
+        // laporan
+        Route::prefix('laporan')->controller(MarketingController::class)->group(function(){
+            Route::get('pelaksanaan_iklan',[MarketingController::class,'laporanPelaksanaanIklan'])->name('marketing.laporan.iklan');
+        });
+
         //modal 
         Route::get('modal/target','loadModalMarketingTarget');
         Route::get('modal/target/detail','loadModalDetailMarketingTarget');

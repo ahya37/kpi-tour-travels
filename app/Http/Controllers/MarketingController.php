@@ -150,4 +150,15 @@ class MarketingController extends Controller
         $response = MarketingTargetService::prospectMaterialStore($formData);
         return $response;
     }
+
+    // REPORT
+    public function laporanPelaksanaanIklan()
+    {
+        $data   = [
+            'title'     => 'Report Marketing',
+            'sub_title' => 'Laporan Pelaksanaan Iklan',
+        ];
+
+        return view('marketings/laporan/pelaksanaan_iklan/index', $data);
+    }
 }
