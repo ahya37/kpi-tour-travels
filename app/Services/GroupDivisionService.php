@@ -14,8 +14,7 @@ class GroupDivisionService
     public static function ListGroupDivision($cari)
     {
         $data_where     = [
-            ['id','LIKE','%'.$cari.'%'],
-            ['is_active','=','1']
+            ['id','LIKE','%'.$cari.'%']
         ];
         $get_data   = DB::table('group_divisions')
                         ->where($data_where)
@@ -34,7 +33,6 @@ class GroupDivisionService
             "name"  => $data['group_division_name'],
             "created_by"    => Auth::user()->id,
             "created_at"    => date('Y-m-d H:i:s'),
-            "is_active"     => '1',
         );
 
         try {

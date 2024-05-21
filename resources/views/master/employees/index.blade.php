@@ -72,6 +72,14 @@
                     </div>
                     <div class="form-row mb-2">
                         <div class="col-sm-4">
+                            <h4>Role User</h4>
+                        </div>
+                        <div class="col-sm-8">
+                            <select id="empRoleAdd" class="form-control form-control-sm" style="width: 100%;"></select>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
+                        <div class="col-sm-4">
                             <h4>ETA Username</h4>
                         </div>
                         <div class="col-sm-8">

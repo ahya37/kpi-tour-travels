@@ -400,4 +400,21 @@ class MarketingController extends Controller
             ]);
         }
     }
+
+    // REPORT
+    public function laporanPelaksanaanIklan()
+    {
+        $data   = [
+            'title'     => 'Report Marketing',
+            'sub_title' => 'Laporan Pelaksanaan Iklan',
+        ];
+
+        return view('marketings/laporan/pelaksanaan_iklan/index', $data);
+    }
+
+    public function simpanLaporanIklan(Request $request)
+    {
+        $doSimpan   = MarketingTargetService::doSimpanLaporanIklan($request->all());
+        
+    }
 }

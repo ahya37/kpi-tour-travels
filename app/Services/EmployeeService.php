@@ -46,7 +46,6 @@ class EmployeeService
                     b.name as sub_division_name
             FROM 	group_divisions a
             INNER JOIN sub_divisions b ON a.id = b.division_group_id
-            WHERE 	a.is_active <> '0'
             ORDER BY a.name ASC
             "
         );
@@ -66,6 +65,7 @@ class EmployeeService
                 "created_at"    => date('Y-m-d H:i:s'),
             );
             $insertUser         = User::create($dataUsers);
+            $insertUser->assignRole($data['empRole']);
             
             // INSERT TO EMPLOYEE
             $dataEmployees  = array(
@@ -99,5 +99,22 @@ class EmployeeService
             return 'gagal';
         }
         // INSERT INTO USER
+    }
+
+    // GET DATA
+    public static function getData($type, $value)
+    {
+        if($type == 'roles') {
+            $query  = DB::select(
+                "
+                SELECT  id as role_id,
+                        name as role_name
+                FROM    roles
+                ORDER BY id ASC
+                "
+            );
+
+            return $query;
+        }
     }
 }

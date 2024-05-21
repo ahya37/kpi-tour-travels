@@ -89,6 +89,7 @@ class EmployeesController extends Controller
         $rules  = [
             "empNama"   => 'required',
             "empGDID"   => 'required',
+            "empRole"   => 'required'
         ];
         $validator  = Validator::make($request->all()['sendData'], $rules);
 
@@ -138,4 +139,28 @@ class EmployeesController extends Controller
 
     }
 
+    public function getDataRoles()
+    {
+        $getData    = EmployeeService::getData('roles','%');
+
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil",
+                "description"   => "Berhasil Ambil Data",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "message"   => "Terjadi Kesalahan",
+                "description"   => "Gagal ambil data",
+                "data"          => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

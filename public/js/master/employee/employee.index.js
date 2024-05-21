@@ -44,26 +44,49 @@ function show_select(idSelect, value)
         $("#empGdIDAdd").select2({
             placeholder     : 'Pilih Grup Divisi',
         });
+        
+        var url     = "/master/employees/trans/get/dataGroupDivision/%";
+        var type    = "GET";
+        var sendData= "%";
 
         var html    = "<option selected disabled>Pilih Grup Divisi</option>";
 
-        $.ajax({
-            cache   : false,
-            type    : "GET",
-            dataType: "json",
-            data    : {
-                _token  : CSRF_TOKEN
-            },
-            url     : "/master/employees/trans/get/dataGroupDivision/%",
-            success : function(xhr) {
-                if(xhr.status == 200) {
-                    var data    = xhr.data;
-                    $.each(data, function(i,item){
-                        html    += "<option value='"+item['group_division_id']+" | "+ item['sub_division_id'] +"'>"+item['group_division_name']+" > " + item['sub_division_name'] + "</option>";
-                    });
-                }
-                $("#empGdIDAdd").html(html);
-            }
+        getData(url, type, sendData).then(function(xhr){
+            var data    = xhr.data;
+            $.each(data, function(i,item){
+                var gdID    = item['group_division_id'];
+                var gdName  = item['group_division_name'];
+                var sdID    = item['sub_division_id'];
+                var sdName  = item['sub_division_name'];
+
+                html    += "<option value='" +gdID+ " | " + sdID + "'>" + gdName + " > " + sdName + "</option>";
+            });
+            $("#empGdIDAdd").html(html);
+        }).catch(function(xhr){
+            $("#empGdIDAdd").html(html);
+            console.log(xhr.responseJSON);
+        })
+
+    } else if(idSelect == 'empRoleAdd') {
+        var url     = "/master/data/trans/get/dataRoles";
+        var type    = "GET";
+        var sendData= "%";
+
+        $("#empRoleAdd").select2({
+            placeholder     : 'Pilih Role User',
+        });
+
+        var html    = "<option selected disabled>Pilih Role User</option>";
+        getData(url, type, sendData).then(function(xhr){
+            var data    = xhr.data;
+            $.each(data, function(i,item){
+                var roleID      = item['role_id'];
+                var roleName    = item['role_name'];
+                html    += "<option value='" + roleName + "'>" + roleName + "</option>";
+            });
+            $("#empRoleAdd").html(html);
+        }).catch(function(xhr){
+            $("#empRoleAdd").html(html);
         })
     }
 }
@@ -76,6 +99,7 @@ function show_modal(idModal, value) {
         $("#empNameAdd").val(null);
         $("#empUsernameAdd").val(null);
         show_select('empGdIDAdd');
+        show_select('empRoleAdd');
 
         // FOCUS ON FORM
         $("#modalTambahData").on('shown.bs.modal', function(){
@@ -110,14 +134,17 @@ function do_simpan(jenis)
         var empNama     = $("#empNameAdd");
         var empGDID     = $("#empGdIDAdd");
         var empUserName = $("#empUsernameAdd");
+        var empRoles    = $("#empRoleAdd");
 
         var data        = {
             "empNama"       : empNama.val(),
             "empGDID"       : empGDID.val(),
             "empUserName"   : empUserName.val(),
-        }
+            "empRole"       : empRoles.val(),
+        };
 
         $.ajax({
+            aysnc   : true,
             cache   : false,
             type    : "POST",
             dataType: "json",
@@ -153,4 +180,25 @@ function do_simpan(jenis)
             }
         })
     }
+}
+
+function getData(url, type, data)
+{
+    return new Promise(function(resolve, reject){
+        $.ajax({
+            cache    : false,
+            type    : type,
+            data    : {
+                _token      : CSRF_TOKEN,
+                sendData    : data,
+            },
+            url     :url,
+            success : function(xhr) {
+                resolve(xhr);
+            },
+            error   : function(xhr) {
+                reject(xhr);
+            }
+        });
+    });
 }

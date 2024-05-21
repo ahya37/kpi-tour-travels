@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\GroupDivisionService;
 use App\Http\Requests\GroupDivisionRequest;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Response;
 
 class GroupDivisionController extends Controller
 {
@@ -36,7 +38,6 @@ class GroupDivisionController extends Controller
                     $i + 1,
                     $get_data[$i]->name,
                     $get_data[$i]->created_at,
-
                     "<button type='text' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modal_edit_division`, this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>&nbsp<button type='text' class='btn btn-danger btn-sm' value='".$get_data[$i]->id."' onclick='show_modal(`modal_hapus_data`, this.value)' title='Hapus Data'><i class='fa fa-trash'></i></button>",
                 );
             }
@@ -48,8 +49,7 @@ class GroupDivisionController extends Controller
             "draw"  => $draw,
             "data"  => $data,
         );
-        
-        echo json_encode($output);
+        return Response::json($output, 200);
     }
 
     public function storeDataGroupDivision(Request $request)
@@ -71,7 +71,7 @@ class GroupDivisionController extends Controller
             );
         }
 
-        echo json_encode($output);
+        return Response::json($output, $output['status']);
     }
 
     public function modalGetDataGroupDivisions($cari)
@@ -80,6 +80,7 @@ class GroupDivisionController extends Controller
 
         if(!empty($data)) {
             $output     = array(
+                "success"       => true,
                 "status"        => 200,
                 "message"       => "Berhasil Diambil",
                 "description"   => "Data Berhasil Dimuat",
@@ -90,41 +91,71 @@ class GroupDivisionController extends Controller
             );
         } else {
             $output     = array(
+                "success"       => false,
                 "status"        => 500,
                 "message"       => "Terjadi Kesalahan",
                 "description"   => "Data Gagal Dimuat",
                 "data"          => []
             );
         }
-
-        echo json_encode($output);
+        return Response::json($output, $output['status']);
     }
 
-    public function storeDataEditGroupDivisions(GroupDivisionRequest $request, $id)
+    public function storeDataEditGroupDivisions(Request $request)
     {
-        $data   = array(
-            "gdID"      => $id,
-            "gdName"    => $request->validated()['group_division_name'],
-        );
+        $rules  = [
+            "group_division_name"   => "required",
+            "group_division_id"     => "required",
+        ];
+        $validator  = Validator::make($request->all()['dataSimpan'], $rules);
 
-        $doUpdate   = GroupDivisionService::doUpdateGroupDivisions($data);
-
-        if($doUpdate == 'berhasil') {
+        if($validator->fails()) {
             $output     = array(
-                "status"        => 200,
-                "message"       => "Berhasil",
-                "description"   => "Berhasil Update Data Group Division",
+                'success'   => false,
+                'status'    => 404,
+                'alert'     => [
+                    'icon'  => 'error',
+                    'message'   => [
+                        'title'     => 'Terjadi Kesalahan',
+                        'text'      => 'Silahkan cek kembali inputan yang ada',
+                        'errMsg'    => $validator->getMessageBag()->toArray(),
+                    ],
+                ],  
             );
         } else {
-            $output     = array(
-                "status"        => 500,
-                "message"       => "Terjadi Kesalahan",
-                "description"   => "Gagal Update Data Group Division"
-
-            );
+            $dataUpdate = [
+                "gdID"      => $request->all()['dataSimpan']['group_division_id'],
+                "gdName"    => $request->all()['dataSimpan']['group_division_name'],
+            ];
+            $doSimpan   = GroupDivisionService::doUpdateGroupDivisions($dataUpdate);
+            if($doSimpan == 'berhasil') {
+                $output     = array(
+                    'success'       => true,
+                    'status'        => 200,
+                    'alert'         => [
+                        'icon'      => 'success',
+                        'message'   => [
+                            'title' => 'Berhasil',
+                            'text'  => 'Berhasil Update Data Grup Divisi',
+                        ],
+                    ],
+                );
+            } else {
+                $output     = array(
+                    'success'       => false,
+                    'status'        => 500,
+                    'alert'         => [
+                        'icon'      => 'error',
+                        'message'   => [
+                            'title' => 'Terjadi Kesalahan',
+                            'text'  => 'Gagal Update Data Grup Divisi',
+                        ],
+                    ],
+                );
+            }
+            
+            return Response::json($output, $output['status']);
         }
-
-        echo json_encode($output);
     }
 
     public function deleteDataGroupDivisions($id)

@@ -304,5 +304,10 @@ class MarketingService
                 'data'=>$results
             ]);
     }
+
+    public static function doSimpanLaporanIklan($data)
+    {
+        var_dump($data);die();
+    }
 	
 }
