@@ -57,10 +57,13 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('modal/target','loadModalMarketingTarget');
         Route::get('modal/target/detail','loadModalDetailMarketingTarget');
 
-        // Rencana Kerja
-        Route::prefix('workplans')->controller(WorkPlanController::class)->group(function(){
-            Route::get('','index')->name('marketing.workplans.index');
-        });
+
+    });
+
+     // Rencana Kerja
+     Route::prefix('workplans')->controller(WorkPlanController::class)->group(function(){
+        Route::get('','index')->name('marketing.workplans.index');
+        Route::get('modal/create','loadModalWorkPlans');
 
     });
 

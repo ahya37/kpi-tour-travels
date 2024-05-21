@@ -23,9 +23,9 @@
                 @include('layouts.notification')
                 <div class="ibox ">
                     <div class="ibox-title">
-                        <a href="{{route('users.create')}}" class="btn btn-sm btn-primary" ><i
-                                class="fa fa-plus"></i> Tambah Rencana Kerja
-                        </a>
+                        <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#myModal5"><i
+                            class="fa fa-plus"></i> Tambah Rencana Kerja
+                    </button>
                     </div>
                     <div class="ibox-content">
                         <div class="table-responsive">
@@ -48,6 +48,28 @@
                 </div>
             </div>
         </div>
+
+
+        <div class="modal inmodal fade" id="myModal5">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span
+                                aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">Tambah Rencana Kerja</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="loading"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-white" data-dismiss="modal"
+                            onclick="closeModal()">Batal</button>
+                        <button type="button" class="btn btn-sm btn-primary ladda-button" id="saveButton">Simpan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 @endsection
 @push('addon-script')
@@ -55,4 +77,6 @@
     <script src="{{ asset('assets/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
+    <script src="{{ asset('js/initial-select2.js') }}"></script>
+    <script src="{{ asset('js/workplans/index.js') }}"></script>
 @endpush
