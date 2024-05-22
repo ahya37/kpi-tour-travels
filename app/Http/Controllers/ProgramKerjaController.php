@@ -35,7 +35,12 @@ class ProgramKerjaController extends Controller
 
     public function ambilDataProkerTahunan($id)
     {
-        $getData    = ProgramKerjaService::getDataProkerTahunan($id);
+        return $getData    = ProgramKerjaService::getDataProkerTahunan($id);
+    }
+
+    public function ambilListDataProkerTahunan($id)
+    {
+        $getData    = $this->ambilDataProkerTahunan($id);
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
                 $data[]     = array(
@@ -43,7 +48,7 @@ class ProgramKerjaController extends Controller
                     $getData[$i]->pkt_title,
                     $getData[$i]->pkt_year,
                     $getData[$i]->total_program,
-                    "<button type='button' class='btn btn-sm btn-primary' value='" . $getData[$i]->uid . "' title='Edit Program Kerja'><i class='fa fa-edit'></i></button>"
+                    "<button type='button' class='btn btn-sm btn-primary' value='" . $getData[$i]->uid . "' title='Edit Program Kerja' onclick='show_modal(`modalTambahDataProkerTahunan`, this.value)'><i class='fa fa-edit'></i></button>"
                 );
             }
         } else {
@@ -58,6 +63,56 @@ class ProgramKerjaController extends Controller
         );
 
         return Response::json($output, 200);
+    }
+
+    public function ambilDataProkerTahunanDetail(Request $request)
+    {
+        $getData    = ProgramKerjaService::getDataProkerTahunanDetail($request->all()['sendData']);
+        if(!empty($getData['header'])) {
+            $data_header    = array(
+                "program_kerja_title"       => $getData['header'][0]->pkt_title,
+                "program_kerja_description" => $getData['header'][0]->pkt_description,
+                "program_kerja_periode"     => $getData['header'][0]->pkt_year,
+                "program_kerja_pic_id"      => $getData['header'][0]->pkt_pic_job_employee_id,
+                "program_kerja_group_div_id"=> $getData['header'][0]->division_group_id,
+            );
+        } else {
+            $data_header    = [];
+        }
+        if(!empty($getData['detail'])) {
+            for($i = 0; $i < count($getData['detail']); $i++) {
+                $data_detail[]  = array(
+                    "sub_program_kerja_seq"     => $i + 1,
+                    "sub_program_kerja_title"   => $getData['detail'][$i]->pkt_title,
+                );
+            }
+        } else {
+            $data_detail    = [];
+        }
+
+        if(!empty($getData['header'])) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => [
+                    "header"    => $data_header,
+                    "detail"    => $data_detail,
+                ],
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data yang dipilih tidak ditemukan",
+                "data"      => [
+                    "header"    => null,
+                    "detail"    => null,
+                ],
+            );
+        }
+
+        return Response::json($output, $output['status']);
     }
 
     public function simpanDataProkerTahunan($jenis, Request $request)

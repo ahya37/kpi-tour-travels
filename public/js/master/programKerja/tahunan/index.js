@@ -24,7 +24,7 @@ function show_table(id_table)
             ajax        : {
                 type    : "GET",
                 dataType: "json",
-                url     : "/master/programkerja/tahunan/trans/get/dataProkerTahunan/%",
+                url     : "/master/programkerja/tahunan/trans/get/listDataProkerTahunan/%",
             },
             columnDefs  : [
                 { "targets" : [0, 4], "width":"5%", "className":"text-center" },
@@ -48,13 +48,13 @@ function show_table(id_table)
     }
 }
 
-function show_modal(id_modal)
+function show_modal(id_modal, value)
 {
     $("#"+id_modal).modal('show');
     if(id_modal == 'modalTambahDataProkerTahunan')
     {
         show_select('prokTahunanGroupDivision','');
-        show_select('prokTahunanPIC','');
+        show_select('prokTahunanPIC','','');
 
         $("#"+id_modal).on('shown.bs.modal', function(){
             $("#prokTahunanTitle").focus();
@@ -72,6 +72,40 @@ function show_modal(id_modal)
                 table.row(row).remove().draw('false');
             }
         });
+
+        if(value != '') {
+            var url         = "/master/programkerja/tahunan/trans/get/getDataProkerTahunanDetail/"+value;
+            var type        = "GET";
+            var data        = value;
+            var customMessage   =   Swal.fire({
+                                        title   : 'Data Sedang Dimuat',
+                                    });
+                                    Swal.showLoading();
+            getData(url, type, data, customMessage)
+                .then((xhr) => {
+                    var header  = xhr.data.header;
+                    var detail  = xhr.data.detail;
+
+                    // HEADER
+                    $("#prokTahunanTitle").val(header['program_kerja_title']);
+                    $("#prokTahunanDesc").val(header['program_kerja_description']);
+                    $("#prokTahunanTime").val(header['program_kerja_periode']);
+                    show_select('prokTahunanGroupDivision',header['program_kerja_group_div_id'],'');
+                    show_select('prokTahunanPIC',header['program_kerja_group_div_id'], header['program_kerja_pic_id'])
+                    
+                    // DETAIL
+                    for(var i = 0; i < detail.length; i++) {
+                        var ke  = i + 1;
+                        $("#subProkTitle"+ke).val(detail[i]['sub_program_kerja_title']);
+                        tambahBaris('tblSubProk');
+                    }
+                    $("#btnTambahData").hide();
+                    $("#btnEditData").show();
+                })
+                .catch((xhr) => {
+                    // console.log(xhr);
+                });
+        }
     }
 }
 
@@ -82,11 +116,14 @@ function close_modal(id_modal)
         $("#modalTambahDataProkerTahunan").on('hidden.bs.modal', function(){
             $("#formProkerAdd").trigger('reset');
             $("#btnTambahBarisSubProk").val(1);
+
+            $("#btnTambahData").show();
+            $("#btnEditData").hide();
         });
     }
 }
 
-function show_select(id_select, value)
+function show_select(id_select, value, value2)
 {
     $("#"+id_select).select2({
         theme   : 'bootstrap4',
@@ -109,6 +146,10 @@ function show_select(id_select, value)
                     html    += "<option value='" + gdID + "'>" + gdName + "</option>";
                 });
                 $("#"+id_select).html(html);
+
+                if(value != '') {
+                    $("#"+id_select).val(value);
+                }
             })
             .catch(function(xhr){
                 console.log(xhr);
@@ -125,10 +166,14 @@ function show_select(id_select, value)
                 "groupDivisionID"   : value,
             };
             var type    =  "GET";
-            var customMessage   =   Swal.fire({
-                                        title   : 'Data Sedang Dimuat',
-                                    });
-                                    Swal.showLoading();
+            if(value2 == '') {
+                var customMessage   =   Swal.fire({
+                                            title   : 'Data Sedang Dimuat',
+                                        });
+                                        Swal.showLoading();
+            } else {
+                var customMessage   = "";
+            }
             getData(url, type, data, customMessage)
                 .then(function(xhr){
                     var data    = xhr.data;
@@ -136,7 +181,12 @@ function show_select(id_select, value)
                         html    += "<option value='" + item['employee_id'] + "'>" + item['employee_name'] + "</option>";
                     });
                     $("#"+id_select).html(html);
-                    $("#"+id_select).select2('open');
+                    if(value2 == '') {
+                        $("#"+id_select).select2('open');
+                    } else {
+                        $("#"+id_select).val(value2).trigger('change');
+                    }
+                    Swal.close();
                 }).catch(function(xhr){
                     $("#"+id_select).html(html);
                 });
@@ -176,7 +226,7 @@ function do_simpan(jenis)
     {
         var DataSubProkerTahunan    = [];
         var tblSubProkCount         = $("#tblSubProk").DataTable().rows().count();
-        console.log(tblSubProkCount);
+        
         for(var i = 0; i < tblSubProkCount; i++) {
             var ke      = i + 1;
             var subProk     = {
@@ -242,7 +292,6 @@ function getData(url, type, sendData, beforeSendRules)
                 beforeSendRules
             },
             success : function(xhr) {
-                Swal.close();
                 resolve(xhr);
             },
             error   : function(xhr) {

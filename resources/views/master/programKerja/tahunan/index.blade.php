@@ -30,7 +30,7 @@
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
-                        <button type="button" class="btn btn-primary" onclick="show_modal('modalTambahDataProkerTahunan')">Tambah Data</button>
+                        <button type="button" class="btn btn-primary" onclick="show_modal('modalTambahDataProkerTahunan','', 'tambah_data')">Tambah Data</button>
                     </div>
                     <div class="ibox-content">
                         <div class="row">
@@ -96,7 +96,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="prokTahunanPIC"><b>PIC / Penanggung Jawab</b></label>
-                                            <select name="prokTahunanGroupDivision" id="prokTahunanGroupDivision" style="width: 100%;" onchange="show_select('prokTahunanPIC', this.value)"></select> <br/>
+                                            <select name="prokTahunanGroupDivision" id="prokTahunanGroupDivision" style="width: 100%;" onchange="show_select('prokTahunanPIC', this.value,'')"></select> <br/>
                                             <select name="prokTahunanPIC" id="prokTahunanPIC" style="width: 100%;"></select>
                                         </div>
                                     </div>
@@ -134,7 +134,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="close_modal('modalTambahDataProkerTahunan')">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="do_simpan('add')">Simpan</button>
+                    <button type="button" class="btn btn-primary" id="btnTambahData" onclick="do_simpan('add')">Simpan</button>
+                    <button type="button" class="btn btn-primary" id="btnEditData" onclick="do_simpan('edit')" style="display: none;">Simpan</button>
                 </div>
             </div>
         </div>

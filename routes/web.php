@@ -112,9 +112,12 @@ Route::group(['middleware' => ['auth']], function () {
 
         Route::prefix('programkerja')->group(function(){
             Route::get('/', [ProgramKerjaController::class,'index'])->name('programKerja.index');
-            Route::get('/tahunan', [ProgramKerjaController::class,'indexTahunan'])->name('programKerja.tahunan.index');
-            Route::post('/tahunan/trans/store/dataProkerTahunan/{jenis}', [ProgramKerjaController::class, 'simpanDataProkerTahunan'])->name('programKerja.tahunan.simpan');
-            Route::get('/tahunan/trans/get/dataProkerTahunan/{uid}', [ProgramKerjaController::class, 'ambilDataProkerTahunan'])->name('programKerja.tahunan.datatable.all');
+            Route::prefix('tahunan')->group(function(){
+                Route::get('/', [ProgramKerjaController::class,'indexTahunan'])->name('programKerja.tahunan.index');
+                Route::post('/trans/store/dataProkerTahunan/{jenis}', [ProgramKerjaController::class, 'simpanDataProkerTahunan'])->name('programKerja.tahunan.simpan');
+                Route::get('/trans/get/listDataProkerTahunan/{uid}', [ProgramKerjaController::class, 'ambilListDataProkerTahunan'])->name('programKerja.tahunan.listDataProkerTahunan');
+                Route::get('/trans/get/getDataProkerTahunanDetail/{uid}', [ProgramKerjaController::class, 'ambilDataProkerTahunanDetail'])->name('programKerja.tahunan.getDataProkerTahunanDetail');
+            });
             Route::get('/bulanan', [ProgramKerjaController::class,'indexBulanan'])->name('programKerja.bulanan.index');
             Route::get('/harian', [ProgramKerjaController::class,'indexHarian'])->name('programKerja.harian.index');
             // GLOBAL

@@ -83,4 +83,33 @@ class ProgramKerjaService
 
         return $output;
     }
+
+    public static function getDataProkerTahunanDetail($id)
+    {
+        $get_header     = DB::select(
+            "
+            SELECT 	pt.*
+            FROM 	proker_tahunan pt
+            WHERE 	pt.uid = '".$id."'
+            "
+        );
+
+        $proker_tahunan_id  = !empty($get_header) ? $get_header[0]->id : "";
+
+        $get_detail     = DB::select(
+            "
+            SELECT  pt.pkt_title
+            FROM    proker_tahunan pt
+            WHERE   pt.parent_id LIKE '".$proker_tahunan_id."'
+            ORDER BY pt.id ASC
+            "
+        );
+
+        $output     = array(
+            "header"    => !empty($get_header) ? $get_header : null,
+            "detail"    => !empty($get_detail) ? $get_detail : [],
+        );
+
+        return $output;
+    }
 }
