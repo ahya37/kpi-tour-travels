@@ -11,6 +11,7 @@
     <style>
     .dataTables_wrapper {
         padding-bottom: 0px;
+        margin-top: -6px;
     }
     </style>
 @endpush
@@ -55,7 +56,7 @@
     
     <!-- Modal -->
     <div class="modal fade" id="modalTambahDataProkerTahunan">
-        <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Tambah Data Program Kerja</h5>
@@ -65,57 +66,67 @@
                 </div>
                 <div class="modal-body">
                     <form method="POST" id="formProkerAdd">
-                        <div class="form-row mb-2">
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="prokTahunanTitle"><b>Judul</b></label>
-                                    <input type="text" class="form-control form-control-sm" id="prokTahunanTitle" name="prokTahunanTitle" placeholder="Judul Program Kerja" autocomplete="off">
+                        <div class="row">
+                            <div class="col-sm-6 border-right">
+                                <div class="form-row mb-2">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="prokTahunanTitle"><b>Judul</b></label>
+                                            <input type="text" class="form-control form-control-sm" id="prokTahunanTitle" name="prokTahunanTitle" placeholder="Judul Program Kerja" autocomplete="off">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row mb-2">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="prokTahunanDesc"><b>Deskripsi</b></label>
+                                            <textarea name="prokTahunanDesc" id="prokTahunanDesc" class="form-control form-control-sm" rows="4" placeholder="Tulis Deskripsi"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row mb-2">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="prokTahunanTime"><b>Masa Kerja</b></label>
+                                            <input type="text" id="prokTahunanTime" name="prokTahunanTime" class="form-control form-control-sm" placeholder="YYYY" value="@php echo date('Y') @endphp" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row mb-2">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="prokTahunanPIC"><b>PIC / Penanggung Jawab</b></label>
+                                            <select name="prokTahunanGroupDivision" id="prokTahunanGroupDivision" style="width: 100%;" onchange="show_select('prokTahunanPIC', this.value)"></select> <br/>
+                                            <select name="prokTahunanPIC" id="prokTahunanPIC" style="width: 100%;"></select>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-row mb-2">
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="prokTahunanDesc"><b>Deskripsi</b></label>
-                                    <textarea name="prokTahunanDesc" id="prokTahunanDesc" class="form-control form-control-sm" rows="4" placeholder="Tulis Deskripsi"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-row mb-2">
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="prokTahunanTime"><b>Masa Kerja</b></label>
-                                    <input type="text" id="prokTahunanTime" name="prokTahunanTime" class="form-control form-control-sm" placeholder="YYYY" value="@php echo date('Y') @endphp" readonly>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-row mb-2">
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="prokTahunanPIC"><b>PIC / Penanggung Jawab</b></label>
-                                    <select name="prokTahunanGroupDivision" id="prokTahunanGroupDivision" style="width: 100%;" onchange="show_select('prokTahunanPIC', this.value)"></select> <br/>
-                                    <select name="prokTahunanPIC" id="prokTahunanPIC" style="width: 100%;"></select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="prokTahunanList"><b>Sub Program Kerja</b></label>
-                                    <table class="table table-sm table-bordered" id="tblSubProk" style="width: 100%;">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center" style="vertical-align: middle;">&nbsp;</th>
-                                                <th class="text-center" style="vertical-align: middle;">Judul</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-
-                                        </tbody>
-                                    </table>
-                                    <button type="button" class="btn btn-sm btn-primary" id="btnTambahBarisSubProk" value="1" onclick="tambahBaris('tblSubProk')">
-                                        <i class="fa fa-plus"></i> Tambah Data
-                                    </button>
+                            <div class="col-sm-6">
+                                <div class="form-row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="prokTahunanList"><b>Detail Program Kerja</b></label>
+                                            <table class="table table-sm table-bordered" id="tblSubProk" style="width: 100%; margin-top: -6px;">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="text-center" style="vertical-align: middle;">&nbsp;</th>
+                                                        <th class="text-center" style="vertical-align: middle;">No</th>
+                                                        <th class="text-center" style="vertical-align: middle;">Judul</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-12 text-right">
+                                                <button type="button" class="btn btn-sm btn-primary" id="btnTambahBarisSubProk" value="1" onclick="tambahBaris('tblSubProk')">
+                                                <i class="fa fa-plus"></i> Tambah Data
+                                            </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

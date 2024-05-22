@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('proker_tahunan', function (Blueprint $table) {
             $table->id();
             $table->uuid('uid')->unique();
-            $table->unsignedBigInteger('parent_id');
+            $table->unsignedBigInteger('parent_id')->nullable();
             $table->string('pkt_title')->nullable();
             $table->string('pkt_description')->nullable();
-            $table->date('pkt_year');
+            $table->string('pkt_year');
             $table->string('pkt_pic_job_employee_id', 30);
             $table->string('division_group_id', 30);
             $table->string('created_by',30);

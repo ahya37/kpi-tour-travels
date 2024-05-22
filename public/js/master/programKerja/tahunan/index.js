@@ -18,6 +18,18 @@ function show_table(id_table)
                 "emptyTable"    : "Tidak ada program kerja, silahkan buat terlebih dahulu..",
                 "processing"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang diproses",
             },
+            serverSide  : false,
+            processing  : true,
+            autoWidth   : false,
+            ajax        : {
+                type    : "GET",
+                dataType: "json",
+                url     : "/master/programkerja/tahunan/trans/get/dataProkerTahunan/%",
+            },
+            columnDefs  : [
+                { "targets" : [0, 4], "width":"5%", "className":"text-center" },
+                { "targets" : [2, 3], "width":"20%"},
+            ],
         });
     } else if(id_table == 'tblSubProk') {
         $("#tblSubProk").DataTable().clear().destroy();
@@ -30,6 +42,7 @@ function show_table(id_table)
             bInfo       : false,
             columnDefs  : [
                 { "targets":[0], "width":"5%", "className":"text-center" },
+                { "targets":[1], "width":"15%","className":"text-center" },
             ],
         });
     }
@@ -49,6 +62,16 @@ function show_modal(id_modal)
         
         show_table('tblSubProk');
         tambahBaris('tblSubProk');
+
+        var table   = $("#tblSubProk").DataTable();
+        $("#tblSubProk").on('click', '#btnHapus', function(){
+            var row         = $(this).closest('tr');
+            var barisKe     = table.row(row).index();
+            
+            if(barisKe > 0) {
+                table.row(row).remove().draw('false');
+            }
+        });
     }
 }
 
@@ -102,8 +125,11 @@ function show_select(id_select, value)
                 "groupDivisionID"   : value,
             };
             var type    =  "GET";
-
-            getData(url, type, data)
+            var customMessage   =   Swal.fire({
+                                        title   : 'Data Sedang Dimuat',
+                                    });
+                                    Swal.showLoading();
+            getData(url, type, data, customMessage)
                 .then(function(xhr){
                     var data    = xhr.data;
                     $.each(data, function(i,item){
@@ -121,23 +147,25 @@ function show_select(id_select, value)
 function tambahBaris(id_table, data)
 {
     if(id_table == 'tblSubProk') {
-        var seq     = $("#btnTambahBarisSubProk").val();
-        var button  = "<button type='button' class='btn btn-danger btn-sm' onclick='hapusBaris(`tblSubProk`)'><i class='fa fa-trash'></i></button>";
-        var inputJudul  = "<input type='text' class='form-control form-control-sm' name='subProkTitle"+seq+"' id='subProkTitle"+seq+"' placeholder='Sub. Program Kerja'>";
+        var barisKe     = $("#tblSubProk").DataTable().rows().count();
+        var seq         = barisKe + 1;
+        var button      = "<button type='button' class='btn btn-danger btn-sm' id='btnHapus'><i class='fa fa-trash'></i></button>";
+        var inputJudul  = "<input type='text' class='form-control form-control-sm' name='subProkTitle"+seq+"' id='subProkTitle"+seq+"' placeholder='Sub. Program Kerja' autocomplete='off'>";
+        var inputSeq    = "<input type='text' class='form-control form-control-sm text-center' name='subProkSeq"+seq+"' id='subProkSeq"+seq+"' readonly placeholder='Seq'>";
         $("#tblSubProk").DataTable().row.add([
             button,
+            inputSeq,
             inputJudul
         ]).draw('false');
-        var tempData    = {
-            "seq"   : seq,
-            "subProkerTitle"    :$("#subProkTitle"+seq).val(),
-        };
+        
+        $("#subProkSeq"+seq).val(seq);
         $("#subProkTitle"+seq).focus();
         $("#subProkTitle"+seq).on('keyup', function(e){
             if(e.which == 13) {
                 tambahBaris('tblSubProk');
             }
         });
+
         $("#btnTambahBarisSubProk").val(parseInt(seq) + 1);
     }
 }
@@ -147,7 +175,8 @@ function do_simpan(jenis)
     if(jenis == 'add')
     {
         var DataSubProkerTahunan    = [];
-        var tblSubProkCount         = $("#tblSubProk").DataTable().row().count();
+        var tblSubProkCount         = $("#tblSubProk").DataTable().rows().count();
+        console.log(tblSubProkCount);
         for(var i = 0; i < tblSubProkCount; i++) {
             var ke      = i + 1;
             var subProk     = {
@@ -170,19 +199,33 @@ function do_simpan(jenis)
         var url     = "/master/programkerja/tahunan/trans/store/dataProkerTahunan/add";
         var type    = "POST";
         var sendData    = dataKirim;
+        var customMessage   = Swal.fire({title:'Data Sedang Diproses'});Swal.showLoading();;
 
-        getData(url, type, sendData)
+        getData(url, type, sendData, customMessage)
             .then(function(xhr){
-                console.log(xhr);
+                Swal.fire({
+                    icon    : xhr.alert.icon,
+                    title   : xhr.alert.message.title,
+                    text    : xhr.alert.message.text+" "+xhr.alert.message.errMsg
+                }).then((results)   => {
+                    if(results.isConfirmed) {
+                        close_modal('modalTambahDataProkerTahunan');
+                        show_table('tableProgramKerjaTahunan');
+                    }
+                });
             })
             .catch(function(xhr){
-                console.log(xhr);
+                Swal.fire({
+                    icon    : xhr.responseJSON.alert.icon,
+                    title   : xhr.responseJSON.alert.message.title,
+                    text    : xhr.responseJSON.alert.message.text
+                });
             });
     }
 }
 
 
-function getData(url, type, sendData)
+function getData(url, type, sendData, beforeSendRules)
 {
     return new Promise(function(resolve, reject){
         $.ajax({
@@ -195,7 +238,11 @@ function getData(url, type, sendData)
                 sendData: sendData,
             },
             url     : url,
+            beforeSend  : function(){
+                beforeSendRules
+            },
             success : function(xhr) {
+                Swal.close();
                 resolve(xhr);
             },
             error   : function(xhr) {

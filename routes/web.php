@@ -114,6 +114,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/', [ProgramKerjaController::class,'index'])->name('programKerja.index');
             Route::get('/tahunan', [ProgramKerjaController::class,'indexTahunan'])->name('programKerja.tahunan.index');
             Route::post('/tahunan/trans/store/dataProkerTahunan/{jenis}', [ProgramKerjaController::class, 'simpanDataProkerTahunan'])->name('programKerja.tahunan.simpan');
+            Route::get('/tahunan/trans/get/dataProkerTahunan/{uid}', [ProgramKerjaController::class, 'ambilDataProkerTahunan'])->name('programKerja.tahunan.datatable.all');
             Route::get('/bulanan', [ProgramKerjaController::class,'indexBulanan'])->name('programKerja.bulanan.index');
             Route::get('/harian', [ProgramKerjaController::class,'indexHarian'])->name('programKerja.harian.index');
             // GLOBAL
