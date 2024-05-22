@@ -11,9 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sub_divisions', function (Blueprint $table) {
-            $table->string('id', 30)->unique();
-            $table->string('name', 100);
+        Schema::create('proker_tahunan', function (Blueprint $table) {
+            $table->id();
+            $table->uuid('uid')->unique();
+            $table->unsignedBigInteger('parent_id');
+            $table->string('pkt_title')->nullable();
+            $table->string('pkt_description')->nullable();
+            $table->date('pkt_year');
+            $table->string('pkt_pic_job_employee_id', 30);
             $table->string('division_group_id', 30);
             $table->string('created_by',30);
             $table->string('updated_by',30);
@@ -26,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sub_divisions');
+        Schema::dropIfExists('proker_tahunan');
     }
 };

@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         // $this->call(SubDivisionSeeder::class);
         // $this->call(EmployeeSeeder::class);
         // $this->call(JobEmployeeSeeder::class);
-        $this->call(ReasonSeeder::class);
+        // $this->call(ReasonSeeder::class);
+        $this->call(ProkerTahunanSeeder::class);
     }
 }
