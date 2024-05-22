@@ -9,6 +9,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\GroupDivisionController;
 use App\Http\Controllers\SubDivisionController;
+use App\Http\Controllers\ProgramKerjaController;
+use App\Http\Controllers\BaseController;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Contracts\Permission;
 
@@ -108,8 +110,23 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/trans/get/dataTableEmployee', [EmployeesController::class, 'getDataTableEmployee'])->name('employee.trans.getDataTableEmployee');
         });
 
+        Route::prefix('programkerja')->group(function(){
+            Route::get('/', [ProgramKerjaController::class,'index'])->name('programKerja.index');
+            Route::prefix('tahunan')->group(function(){
+                Route::get('/', [ProgramKerjaController::class,'indexTahunan'])->name('programKerja.tahunan.index');
+                Route::post('/trans/store/dataProkerTahunan/{jenis}', [ProgramKerjaController::class, 'simpanDataProkerTahunan'])->name('programKerja.tahunan.simpan');
+                Route::get('/trans/get/listDataProkerTahunan/{uid}', [ProgramKerjaController::class, 'ambilListDataProkerTahunan'])->name('programKerja.tahunan.listDataProkerTahunan');
+                Route::get('/trans/get/getDataProkerTahunanDetail/{uid}', [ProgramKerjaController::class, 'ambilDataProkerTahunanDetail'])->name('programKerja.tahunan.getDataProkerTahunanDetail');
+            });
+            Route::get('/bulanan', [ProgramKerjaController::class,'indexBulanan'])->name('programKerja.bulanan.index');
+            Route::get('/harian', [ProgramKerjaController::class,'indexHarian'])->name('programKerja.harian.index');
+            // GLOBAL
+            Route::get('/get/data/PIC', [ProgramKerjaController::class, 'getDataPIC'])->name('programKerja.get.data.pic');
+        });
+
         Route::prefix('data')->group(function(){
             Route::get('/trans/get/dataRoles', [EmployeesController::class, 'getDataRoles'])->name('master.data.roles');
+            Route::get('/trans/get/groupDivision', [BaseController::class, 'getGroupDivision'])->name('master.data.groupDivision');
         });
     });
 });

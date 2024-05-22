@@ -119,6 +119,18 @@ class EmployeesController extends Controller
                         ],
                     ],
                 );
+            } else if($simpanData == 'akun_ada') {
+                $output     = array(
+                    'success'       => false,
+                    'status'        => 500,
+                    'alert'         => [
+                        'icon'      => 'error',
+                        'message'   => [
+                            'title' => 'Terjadi Kesalahan',
+                            'text'  => 'Akun ['.$request->all()['sendData']['empNama'].'] sudah tersedia di sistem..',
+                        ],
+                    ],
+                );
             } else {
                 $output     = array(
                     'success'       => false,
