@@ -7,6 +7,7 @@
     <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
     <style>
     .dataTables_wrapper {
@@ -56,7 +57,7 @@
     
     <!-- Modal -->
     <div class="modal fade" id="modalTambahDataProkerTahunan">
-        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Tambah Data Program Kerja</h5>
@@ -72,6 +73,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="prokTahunanTitle"><b>Judul</b></label>
+                                            <input type="hidden" class="form-control form-control-sm" id="prokTahunanID" name="prokTahunanID" placeholder="ID Program Kerja">
                                             <input type="text" class="form-control form-control-sm" id="prokTahunanTitle" name="prokTahunanTitle" placeholder="Judul Program Kerja" autocomplete="off">
                                         </div>
                                     </div>
@@ -88,7 +90,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="prokTahunanTime"><b>Masa Kerja</b></label>
-                                            <input type="text" id="prokTahunanTime" name="prokTahunanTime" class="form-control form-control-sm" placeholder="YYYY" value="@php echo date('Y') @endphp" readonly>
+                                            <input type="text" id="prokTahunanTime" name="prokTahunanTime" class="form-control form-control-sm" placeholder="YYYY">
                                         </div>
                                     </div>
                                 </div>
@@ -134,8 +136,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="close_modal('modalTambahDataProkerTahunan')">Close</button>
-                    <button type="button" class="btn btn-primary" id="btnTambahData" onclick="do_simpan('add')">Simpan</button>
-                    <button type="button" class="btn btn-primary" id="btnEditData" onclick="do_simpan('edit')" style="display: none;">Simpan</button>
+                    <button type="button" class="btn btn-primary" id="btnTambahData" onclick="do_simpan(this.value)">Simpan</button>
                 </div>
             </div>
         </div>

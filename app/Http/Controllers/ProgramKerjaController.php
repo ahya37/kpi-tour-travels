@@ -45,8 +45,8 @@ class ProgramKerjaController extends Controller
             for($i = 0; $i < count($getData); $i++) {
                 $data[]     = array(
                     $i + 1,
-                    $getData[$i]->pkt_title,
-                    $getData[$i]->pkt_year,
+                    $getData[$i]->title,
+                    $getData[$i]->periode,
                     $getData[$i]->total_program,
                     "<button type='button' class='btn btn-sm btn-primary' value='" . $getData[$i]->uid . "' title='Edit Program Kerja' onclick='show_modal(`modalTambahDataProkerTahunan`, this.value)'><i class='fa fa-edit'></i></button>"
                 );
@@ -82,8 +82,8 @@ class ProgramKerjaController extends Controller
         if(!empty($getData['detail'])) {
             for($i = 0; $i < count($getData['detail']); $i++) {
                 $data_detail[]  = array(
-                    "sub_program_kerja_seq"     => $i + 1,
-                    "sub_program_kerja_title"   => $getData['detail'][$i]->pkt_title,
+                    "sub_program_kerja_seq"     => $getData['detail'][$i]->detail_seq,
+                    "sub_program_kerja_title"   => $getData['detail'][$i]->detail_title,
                 );
             }
         } else {
@@ -117,62 +117,60 @@ class ProgramKerjaController extends Controller
 
     public function simpanDataProkerTahunan($jenis, Request $request)
     {
-        if($jenis == 'add') {
-            $rulesProkerHeader  = [
-                "prtTitle"              => 'required',
-                "prtPeriode"            => 'required',
-                "prtGroupDivisionID"    => 'required',
-                "prtPICEmployeeID"      => 'required',
-            ];
+        $rulesProkerHeader  = [
+            "prtTitle"              => 'required',
+            "prtPeriode"            => 'required',
+            "prtGroupDivisionID"    => 'required',
+            "prtPICEmployeeID"      => 'required',
+        ];
 
-            $doValidate     = Validator::make($request->all()['sendData'], $rulesProkerHeader);
+        $doValidate     = Validator::make($request->all()['sendData'], $rulesProkerHeader);
 
-            if($doValidate->fails())
-            {
+        if($doValidate->fails())
+        {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"  => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Data Gagal Disimpan",
+                        "errMsg"    => $doValidate->getMessageBag()->toArray()
+                    ],
+                ],
+            );
+        } else {
+            $doSimpan   = ProgramKerjaService::doSimpanProkerTahunan($request->all()['sendData'], $jenis);
+            if($doSimpan['transStatus'] == 'berhasil') {
                 $output     = array(
-                    "success"   => false,
-                    "status"    => 500,
+                    "success"   => true,
+                    "status"    => 200,
                     "alert"     => [
-                        "icon"  => "error",
+                        "icon"  => "success",
                         "message"   => [
-                            "title"     => "Terjadi Kesalahan",
-                            "text"      => "Data Gagal Disimpan",
-                            "errMsg"    => $doValidate->getMessageBag()->toArray()
+                            "title"     => "Berhasil",
+                            "text"      => "Data Program Kerja Tahunan Berhasil Disimpan",
+                            "errMsg"    => "",
                         ],
                     ],
                 );
             } else {
-                $doSimpan   = ProgramKerjaService::doSimpanProkerTahunan($request->all()['sendData']);
-                if($doSimpan['transStatus'] == 'berhasil') {
-                    $output     = array(
-                        "success"   => true,
-                        "status"    => 200,
-                        "alert"     => [
-                            "icon"  => "success",
-                            "message"   => [
-                                "title"     => "Berhasil",
-                                "text"      => "Data Program Kerja Tahunan Berhasil Disimpan",
-                                "errMsg"    => "",
-                            ],
+                $output     = array(
+                    "success"   => false,
+                    "status"    => 500,
+                    "alert"     => [
+                        "icon"      => "error",
+                        "message"   => [
+                            "title"     => "Terjadi Kesalahan",
+                            "text"      => "Data Program Kerja Tahunan Gagal Disimpan",
+                            "errMsg"    => $doSimpan['errMsg'],
                         ],
-                    );
-                } else {
-                    $output     = array(
-                        "success"   => false,
-                        "status"    => 500,
-                        "alert"     => [
-                            "icon"      => "error",
-                            "message"   => [
-                                "title"     => "Terjadi Kesalahan",
-                                "text"      => "Data Program Kerja Tahunan Gagal Disimpan",
-                                "errMsg"    => $doSimpan['errMsg'],
-                            ],
-                        ],
-                    );
-                }
+                    ],
+                );
             }
-            return Response::json($output, $output['status']);
         }
+        return Response::json($output, $output['status']);
     }
     // BULANAN
     public function indexBulanan()

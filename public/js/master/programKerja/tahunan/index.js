@@ -55,10 +55,6 @@ function show_modal(id_modal, value)
     {
         show_select('prokTahunanGroupDivision','');
         show_select('prokTahunanPIC','','');
-
-        $("#"+id_modal).on('shown.bs.modal', function(){
-            $("#prokTahunanTitle").focus();
-        });
         
         show_table('tblSubProk');
         tambahBaris('tblSubProk');
@@ -73,7 +69,9 @@ function show_modal(id_modal, value)
             }
         });
 
+        $("#btnTambahData").val('add');
         if(value != '') {
+            $("#btnTambahData").val('edit');
             var url         = "/master/programkerja/tahunan/trans/get/getDataProkerTahunanDetail/"+value;
             var type        = "GET";
             var data        = value;
@@ -87,6 +85,7 @@ function show_modal(id_modal, value)
                     var detail  = xhr.data.detail;
 
                     // HEADER
+                    $("#prokTahunanID").val(value);
                     $("#prokTahunanTitle").val(header['program_kerja_title']);
                     $("#prokTahunanDesc").val(header['program_kerja_description']);
                     $("#prokTahunanTime").val(header['program_kerja_periode']);
@@ -99,13 +98,15 @@ function show_modal(id_modal, value)
                         $("#subProkTitle"+ke).val(detail[i]['sub_program_kerja_title']);
                         tambahBaris('tblSubProk');
                     }
-                    $("#btnTambahData").hide();
-                    $("#btnEditData").show();
+                    $("#btnTambahData").show();
                 })
                 .catch((xhr) => {
                     // console.log(xhr);
                 });
         }
+        $("#"+id_modal).on('shown.bs.modal', function(){
+            $("#prokTahunanTitle").focus();
+        });
     }
 }
 
@@ -118,7 +119,8 @@ function close_modal(id_modal)
             $("#btnTambahBarisSubProk").val(1);
 
             $("#btnTambahData").show();
-            $("#btnEditData").hide();
+            $("#btnTambahData").val('');
+            $("#prokTahunanID").val(null)
         });
     }
 }
@@ -157,7 +159,8 @@ function show_select(id_select, value, value2)
             });
     } else if(id_select == 'prokTahunanPIC') {
         var html    = "<option selected disabled>Pilih Penanggung Jawab</option>";
-        
+
+        console.log({id_select, value, value2});
         if(value == '') {
             $("#"+id_select).html(html);
         } else {
@@ -181,12 +184,12 @@ function show_select(id_select, value, value2)
                         html    += "<option value='" + item['employee_id'] + "'>" + item['employee_name'] + "</option>";
                     });
                     $("#"+id_select).html(html);
+                    Swal.close();
                     if(value2 == '') {
                         $("#"+id_select).select2('open');
                     } else {
                         $("#"+id_select).val(value2).trigger('change');
                     }
-                    Swal.close();
                 }).catch(function(xhr){
                     $("#"+id_select).html(html);
                 });
@@ -222,56 +225,54 @@ function tambahBaris(id_table, data)
 
 function do_simpan(jenis)
 {
-    if(jenis == 'add')
-    {
-        var DataSubProkerTahunan    = [];
-        var tblSubProkCount         = $("#tblSubProk").DataTable().rows().count();
-        
-        for(var i = 0; i < tblSubProkCount; i++) {
-            var ke      = i + 1;
-            var subProk     = {
-                "subProkSeq"    : ke,
-                "subProkTitle"  : $("#subProkTitle"+ke).val(),
-            };
-
-            DataSubProkerTahunan.push(subProk);
-        }
-
-        var dataKirim     = {
-            "prtTitle"          : $("#prokTahunanTitle").val(),
-            "prtDescription"    : $("#prokTahunanDesc").val(),
-            "prtPeriode"        : $("#prokTahunanTime").val(),
-            "prtGroupDivisionID": $("#prokTahunanGroupDivision").val(),
-            "prtPICEmployeeID"  : $("#prokTahunanPIC").val(),
-            "prtSub"            : DataSubProkerTahunan,
+    var DataSubProkerTahunan    = [];
+    var tblSubProkCount         = $("#tblSubProk").DataTable().rows().count();
+    
+    for(var i = 0; i < tblSubProkCount; i++) {
+        var ke      = i + 1;
+        var subProk     = {
+            "subProkSeq"    : ke,
+            "subProkTitle"  : $("#subProkTitle"+ke).val(),
         };
 
-        var url     = "/master/programkerja/tahunan/trans/store/dataProkerTahunan/add";
-        var type    = "POST";
-        var sendData    = dataKirim;
-        var customMessage   = Swal.fire({title:'Data Sedang Diproses'});Swal.showLoading();;
-
-        getData(url, type, sendData, customMessage)
-            .then(function(xhr){
-                Swal.fire({
-                    icon    : xhr.alert.icon,
-                    title   : xhr.alert.message.title,
-                    text    : xhr.alert.message.text+" "+xhr.alert.message.errMsg
-                }).then((results)   => {
-                    if(results.isConfirmed) {
-                        close_modal('modalTambahDataProkerTahunan');
-                        show_table('tableProgramKerjaTahunan');
-                    }
-                });
-            })
-            .catch(function(xhr){
-                Swal.fire({
-                    icon    : xhr.responseJSON.alert.icon,
-                    title   : xhr.responseJSON.alert.message.title,
-                    text    : xhr.responseJSON.alert.message.text
-                });
-            });
+        DataSubProkerTahunan.push(subProk);
     }
+
+    var dataKirim     = {
+        "prtID"             : $("#prokTahunanID").val(),
+        "prtTitle"          : $("#prokTahunanTitle").val(),
+        "prtDescription"    : $("#prokTahunanDesc").val(),
+        "prtPeriode"        : $("#prokTahunanTime").val(),
+        "prtGroupDivisionID": $("#prokTahunanGroupDivision").val(),
+        "prtPICEmployeeID"  : $("#prokTahunanPIC").val(),
+        "prtSub"            : DataSubProkerTahunan,
+    };
+
+    var url     = "/master/programkerja/tahunan/trans/store/dataProkerTahunan/"+jenis;
+    var type    = "POST";
+    var sendData    = dataKirim;
+    var customMessage   = Swal.fire({title:'Data Sedang Diproses'});Swal.showLoading();;
+
+    getData(url, type, sendData, customMessage)
+        .then(function(xhr){
+            Swal.fire({
+                icon    : xhr.alert.icon,
+                title   : xhr.alert.message.title,
+                text    : xhr.alert.message.text+" "+xhr.alert.message.errMsg
+            }).then((results)   => {
+                if(results.isConfirmed) {
+                    close_modal('modalTambahDataProkerTahunan');
+                    show_table('tableProgramKerjaTahunan');
+                }
+            });
+        })
+        .catch(function(xhr){
+            Swal.fire({
+                icon    : xhr.responseJSON.alert.icon,
+                title   : xhr.responseJSON.alert.message.title,
+                text    : xhr.responseJSON.alert.message.text
+            });
+        });
 }
 
 
