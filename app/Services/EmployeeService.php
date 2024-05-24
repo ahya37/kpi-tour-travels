@@ -61,7 +61,10 @@ class EmployeeService
                                 ->where('name','=', $data['empNama'])
                                 ->get()->toArray();
         if(count($queryGetEmployee) > 0) {
-            return 'akun_ada';
+            $output = [
+                "status"    => "ada_akun",
+                "errMsg"    => $queryGetEmployee,
+            ];
         } else {
             try {
                 // INSERT AND GET USERS ID
@@ -99,11 +102,19 @@ class EmployeeService
                 );
                 $insertJobEmployee  = JobEmployee::create($dataJobEmployees);
                 DB::commit();
-                return 'berhasil';
+                $output     = array(
+                    "status"    => "berhasil",
+                    "errMsg"    => "",
+                );
             } catch(\Exception $e) {
                 DB::rollback();
-                return 'gagal';
+                $output     = array(
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                );
             }
+
+            return $output;
         }
     }
 

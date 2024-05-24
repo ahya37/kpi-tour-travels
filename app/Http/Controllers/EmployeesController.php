@@ -107,7 +107,7 @@ class EmployeesController extends Controller
             );
         } else {
             $simpanData     = EmployeeService::doSaveDataEmployee($request->all()['sendData']);
-            if($simpanData == 'berhasil') {
+            if($simpanData['status'] == 'berhasil') {
                 $output     = array(
                     'success'   => true,
                     'status'    => 200,
@@ -116,10 +116,11 @@ class EmployeesController extends Controller
                         'message'   => [
                             'title'     => 'Berhasil',
                             'text'      => 'Berhasil Menambahkan Employee Baru',
+                            'errMsg'    => $simpanData['errMsg'],
                         ],
                     ],
                 );
-            } else if($simpanData == 'akun_ada') {
+            } else if($simpanData['status'] == 'akun_ada') {
                 $output     = array(
                     'success'       => false,
                     'status'        => 500,
@@ -128,10 +129,11 @@ class EmployeesController extends Controller
                         'message'   => [
                             'title' => 'Terjadi Kesalahan',
                             'text'  => 'Akun ['.$request->all()['sendData']['empNama'].'] sudah tersedia di sistem..',
+                            'errMsg'=> $simpanData['errMsg'],
                         ],
                     ],
                 );
-            } else {
+            } else if($simpanData['status']){
                 $output     = array(
                     'success'       => false,
                     'status'        => 500,
@@ -139,7 +141,8 @@ class EmployeesController extends Controller
                         'icon'      => 'error',
                         'message'   => [
                             'title' => 'Terjadi Kesalahan',
-                            'text'  => 'Sistem sednag gangguan, silahkan tunggu dan coba lagi..'
+                            'text'  => 'Sistem sednag gangguan, silahkan tunggu dan coba lagi..',
+                            'errMsg'=> $simpanData['errMsg'],
                         ],
                     ],
                 );

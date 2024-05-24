@@ -40,11 +40,10 @@ function show_table(idTable, value)
 
 function show_select(idSelect, value)
 {
+    $("#"+idSelect).select2({
+        theme   : 'bootstrap4',
+    });
     if(idSelect == 'empGdIDAdd') {
-        $("#empGdIDAdd").select2({
-            placeholder     : 'Pilih Grup Divisi',
-        });
-        
         var url     = "/master/employees/trans/get/dataGroupDivision/%";
         var type    = "GET";
         var sendData= "%";
@@ -71,10 +70,6 @@ function show_select(idSelect, value)
         var url     = "/master/data/trans/get/dataRoles";
         var type    = "GET";
         var sendData= "%";
-
-        $("#empRoleAdd").select2({
-            placeholder     : 'Pilih Role User',
-        });
 
         var html    = "<option selected disabled>Pilih Role User</option>";
         getData(url, type, sendData).then(function(xhr){
@@ -186,6 +181,7 @@ function getData(url, type, data)
 {
     return new Promise(function(resolve, reject){
         $.ajax({
+            async   : false,
             cache    : false,
             type    : type,
             data    : {

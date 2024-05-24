@@ -31,17 +31,51 @@ class SubDivisionService
         return $query;
     }
 
-    public static function getDataGroupDivision($keyword)
+    public static function doSimpanDataSubDivision($data, $jenis)
     {
-        $query  = DB::select("
-            SELECT  id, name
-            FROM    group_divisions
-            WHERE   name LIKE '%".$keyword."%'
-            ORDER BY name ASC
-        ");
-        return $query;
-    }
+        DB::beginTransaction();
+        if($jenis == 'add') {
+            $data_simpan    = array(
+                "id"                => Str::random(30),
+                "name"              => $data['subDivisionName'],
+                "division_group_id" => $data['groupDivisionID'],
+                "created_by"        => Auth::user()->id,
+                "updated_by"        => Auth::user()->id,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_at"        => date('Y-m-d H:i:s'),
+            );
+            // SubDivision::create($data_simpan);
+            DB::table('sub_divisions')->insert($data_simpan);
+        } else if($jenis == 'edit') {
+            $data_where     = array(
+                "id"    => $data['subDivisionID'],
+            );
+            
+            $data_update    = array(
+                "name"              => $data['subDivisionName'],
+                "division_group_id" => $data['groupDivisionID'],
+            );
 
+            DB::table('sub_divisions')->where($data_where)->update($data_update);
+        }
+        
+        try {
+            DB::commit();
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => null,
+            ];
+        } catch(\Exection $e) {
+            DB::rollback();
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
+    
     public static function postDataSubDivisionNew($data)
     {
         DB::beginTransaction();

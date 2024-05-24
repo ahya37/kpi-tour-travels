@@ -83,7 +83,7 @@ Route::group(['middleware' => ['auth']], function () {
     
             // TRANS ON MODAL
             // MODAL TRANS ADD
-            Route::post('/trans/store/dataGroupDivisions', [GroupDivisionController::class , 'storeDataGroupDivision'])->name('groupDivision.trans.storeDataGroupDivision');
+            Route::post('/trans/store/dataGroupDivisions/{jenis}', [GroupDivisionController::class , 'storeDataGroupDivision'])->name('groupDivision.trans.storeDataGroupDivision');
             // MODAL TRANS EDIT
             Route::get('/trans/get/modalDataGroupDivisions/{cari}', [GroupDivisionController::class, 'modalGetDataGroupDivisions'])->name('groupDivision.data.modalGroupDivisions');
             Route::post('/trans/store/modalDataGroupDivisions', [GroupDivisionController::class, 'storeDataEditGroupDivisions'])->name('groupDivision.trans.storeDataGroupDivision');
@@ -96,9 +96,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/trans/get/tableDataGroupDivision', [SubDivisionController::class, 'getDataTableSubDivision'])->name('subDivision.trans.getTableMaster');
             Route::get('/trans/get/selectDataGroupDivision', [SubDivisionController::class , 'getDataGroupDivision'])->name('subDivision.trans.getDataGroupDivision');
             Route::post('/trans/store/modalDataSubDivision', [SubDivisionController::class, 'saveDataSubDivision'])->name('subDivision.trans.storeDataSubDivision');
-            // MODAL
-            Route::get('/trans/get/modalDataSubDivision', [SubDivisionController::class, 'getDataSubDivision'])->name('subDivision.trans.getDataSubDivision');
-            Route::post('/trans/store/editDataSubDivision', [SubDivisionController::class, 'saveEditDataSubDivision'])->name('subDivision.trans.storeDataSubDivisionEdit');
+            Route::post('/simpanDataSubDivision/{jenis}', [SubDivisionController::class,'simpanDataSubDivision'])->name('subDivision.simpanDataSubDivision');
         });
 
         // EMPLOYEES
