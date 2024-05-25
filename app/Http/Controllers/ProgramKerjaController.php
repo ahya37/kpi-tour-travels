@@ -27,25 +27,30 @@ class ProgramKerjaController extends Controller
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'Dashboard Program Kerja Tahunan'
+            'sub_title' => 'List Program Kerja - Tahunan'
         ];
 
         return view('master/programKerja/tahunan/index', $data);
     }
 
-    public function ambilDataProkerTahunan($id)
+    public function ambilDataProkerTahunan($data)
     {
-        return $getData    = ProgramKerjaService::getDataProkerTahunan($id);
+        return $getData    = ProgramKerjaService::getDataProkerTahunan($data);
     }
 
-    public function ambilListDataProkerTahunan($id)
+    public function ambilListDataProkerTahunan($id, Request $request)
     {
-        $getData    = $this->ambilDataProkerTahunan($id);
+        $filter     = [
+            "uid"               => $id,
+            "groupDivisionID"   => $request->all()['groupDivisionID'],
+        ];
+        $getData    = $this->ambilDataProkerTahunan($filter);
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
                 $data[]     = array(
                     $i + 1,
                     $getData[$i]->title,
+                    $getData[$i]->division_group_name,
                     $getData[$i]->periode,
                     $getData[$i]->total_program,
                     "<button type='button' class='btn btn-sm btn-primary' value='" . $getData[$i]->uid . "' title='Edit Program Kerja' onclick='show_modal(`modalTambahDataProkerTahunan`, this.value)'><i class='fa fa-edit'></i></button>"
@@ -82,7 +87,7 @@ class ProgramKerjaController extends Controller
         if(!empty($getData['detail'])) {
             for($i = 0; $i < count($getData['detail']); $i++) {
                 $data_detail[]  = array(
-                    "sub_program_kerja_seq"     => $getData['detail'][$i]->detail_seq,
+                    "sub_program_kerja_seq"     => $i + 1,
                     "sub_program_kerja_title"   => $getData['detail'][$i]->detail_title,
                 );
             }

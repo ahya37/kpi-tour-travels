@@ -11,6 +11,7 @@ $(document).ready(function(){
 function show_table(id_table)
 {
     if(id_table == 'tableProgramKerjaTahunan') {
+        var groupDivision     = "%";
         $("#tableProgramKerjaTahunan").DataTable().clear().destroy();
         $("#tableProgramKerjaTahunan").DataTable({
             language    : {
@@ -24,11 +25,14 @@ function show_table(id_table)
             ajax        : {
                 type    : "GET",
                 dataType: "json",
+                data    : {
+                    groupDivisionID     : groupDivision,
+                },
                 url     : "/master/programkerja/tahunan/trans/get/listDataProkerTahunan/%",
             },
             columnDefs  : [
-                { "targets" : [0, 4], "width":"5%", "className":"text-center" },
-                { "targets" : [2, 3], "width":"20%"},
+                { "targets" : [0, 5], "width":"5%", "className":"text-center" },
+                { "targets" : [2, 3, 4], "width":"15%"},
             ],
         });
     } else if(id_table == 'tblSubProk') {
@@ -50,6 +54,7 @@ function show_table(id_table)
 
 function show_modal(id_modal, value)
 {
+    $("#"+id_modal).modal({backdrop: 'static', keyboard: false});
     $("#"+id_modal).modal('show');
     if(id_modal == 'modalTambahDataProkerTahunan')
     {
@@ -57,17 +62,22 @@ function show_modal(id_modal, value)
         show_select('prokTahunanPIC','','');
         
         show_table('tblSubProk');
-        tambahBaris('tblSubProk');
+        tambahBaris('tblSubProk','');
 
-        var table   = $("#tblSubProk").DataTable();
-        $("#tblSubProk").on('click', '#btnHapus', function(){
-            var row         = $(this).closest('tr');
-            var barisKe     = table.row(row).index();
-            
-            if(barisKe > 0) {
-                table.row(row).remove().draw('false');
-            }
-        });
+        $("#prokTahunanTime").yearpicker();
+        $("#prokTahunanTime").val(2024);
+
+        // var table   = $("#tblSubProk").DataTable();
+        // $("#tblSubProk").on('click', '#btnHapus', function(){
+        //     var row         = $(this).closest('tr');
+        //     var barisKe     = table.row(row).index();
+        //     var hitungBaris     = table.rows().count();
+
+        //     if(barisKe > 0) {
+        //         var hitung  = parseInt(hitungBaris) - parseInt(barisKe);
+        //         table.row(row).remove().draw('false');
+        //     }
+        // });
 
         $("#btnTambahData").val('add');
         if(value != '') {
@@ -94,9 +104,7 @@ function show_modal(id_modal, value)
                     
                     // DETAIL
                     for(var i = 0; i < detail.length; i++) {
-                        var ke  = i + 1;
-                        $("#subProkTitle"+ke).val(detail[i]['sub_program_kerja_title']);
-                        tambahBaris('tblSubProk');
+                        tambahBaris('tblSubProk', detail[i]);
                     }
                     $("#btnTambahData").show();
                 })
@@ -159,8 +167,6 @@ function show_select(id_select, value, value2)
             });
     } else if(id_select == 'prokTahunanPIC') {
         var html    = "<option selected disabled>Pilih Penanggung Jawab</option>";
-
-        console.log({id_select, value, value2});
         if(value == '') {
             $("#"+id_select).html(html);
         } else {
@@ -200,26 +206,46 @@ function show_select(id_select, value, value2)
 function tambahBaris(id_table, data)
 {
     if(id_table == 'tblSubProk') {
-        var barisKe     = $("#tblSubProk").DataTable().rows().count();
-        var seq         = barisKe + 1;
-        var button      = "<button type='button' class='btn btn-danger btn-sm' id='btnHapus'><i class='fa fa-trash'></i></button>";
-        var inputJudul  = "<input type='text' class='form-control form-control-sm' name='subProkTitle"+seq+"' id='subProkTitle"+seq+"' placeholder='Sub. Program Kerja' autocomplete='off'>";
+        // var barisKe     = $("#tblSubProk").DataTable().rows().count();
+        var barisKe     = $("#btnTambahBarisSubProk").val();
+        var seq         = parseInt(barisKe);
+        var button      = "<button type='button' class='btn btn-danger btn-sm' id='btnHapus' value="+seq+" onclick='hapusBaris(`tblSubProk`, this.value)'><i class='fa fa-trash'></i></button>";
         var inputSeq    = "<input type='text' class='form-control form-control-sm text-center' name='subProkSeq"+seq+"' id='subProkSeq"+seq+"' readonly placeholder='Seq'>";
+        var inputJudul  = "<input type='text' class='form-control form-control-sm' name='subProkTitle"+seq+"' id='subProkTitle"+seq+"' placeholder='Sub. Program Kerja' autocomplete='off'>";
         $("#tblSubProk").DataTable().row.add([
             button,
             inputSeq,
             inputJudul
         ]).draw('false');
-        
-        $("#subProkSeq"+seq).val(seq);
-        $("#subProkTitle"+seq).focus();
+
         $("#subProkTitle"+seq).on('keyup', function(e){
             if(e.which == 13) {
-                tambahBaris('tblSubProk');
+                tambahBaris('tblSubProk','');
             }
         });
 
+        if(data != '') {
+            var newSeq  = data['sub_program_kerja_seq'];
+            $("#subProkSeq"+newSeq).val(data['sub_program_kerja_seq']);
+            $("#subProkTitle"+newSeq).val(data['sub_program_kerja_title']);
+        } else {
+            $("#subProkTitle"+seq).focus();
+        }
+        $("#subProkSeq"+seq).val(seq);
         $("#btnTambahBarisSubProk").val(parseInt(seq) + 1);
+    }
+}
+
+function hapusBaris(id_table, seq)
+{
+    var current_seq     = $("#btnTambahBarisSubProk").val();
+    if(seq > 1) {
+        if(current_seq - seq == 1) {
+            // REMOVE ROW PADA DATATABLE
+            $("#"+id_table).DataTable().row(seq - 1).remove().draw('false')
+
+            $("#btnTambahBarisSubProk").val(current_seq  - 1);
+        }
     }
 }
 
