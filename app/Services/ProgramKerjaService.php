@@ -12,21 +12,45 @@ date_default_timezone_set('Asia/Jakarta');
 
 class ProgramKerjaService
 {
-    public static function getDataProkerTahunan($id)
+    public static function getDataProkerTahunan($data)
     {
+        $uid                = $data['uid'];
+        $groupDivisionID    = $data['groupDivisionID'];
         $query  = DB::select(
             "
-            SELECT 	pt.uid as uid,
+            SELECT  pt.uid as uid,
                     pt.pkt_title as title,
+                    gd.name as division_group_name,
                     pt.pkt_description as description,
                     pt.pkt_year as periode,
+                    pt.created_at,
                     count(*) as total_program
             FROM 	proker_tahunan pt
             INNER JOIN proker_tahunan_detail ptd ON pt.id = ptd.pkt_id
-            WHERE 	pt.uid LIKE '%".$id."%'
-            GROUP BY uid, title, description, periode
+            INNER JOIN group_divisions gd ON pt.division_group_id = gd.id
+            WHERE 	pt.uid LIKE '%".$uid."%'
+            AND 	gd.id LIKE '".$groupDivisionID."'
+            GROUP BY uid, title, description, periode, created_at
+            ORDER BY pt.created_at DESC
             "
         );
+
+        // $query  = DB::select(
+        //     "
+        //     SELECT 	pt.uid as uid,
+        //             pt.pkt_title as title,
+        //             pt.pkt_description as description,
+        //             pt.pkt_year as periode,
+        //             gd.name as division_group_name,
+        //             (SELECT count(*) FROM proker_tahunan WHERE parent_id = pt.id) AS total_program
+        //     FROM 	proker_tahunan pt
+        //     JOIN group_divisions gd ON pt.division_group_id = gd.id
+        //     WHERE 	pt.uid LIKE '".$uid."'
+        //     AND 	pt.division_group_id LIKE '".$groupDivisionID."'
+        //     AND 	pt.parent_id IS NULL
+        //     ORDER BY pt.created_at DESC
+        //     "
+        // );
 
         return $query;
     }
@@ -60,7 +84,21 @@ class ProgramKerjaService
                     "pktd_title"    => $data['prtSub'][$i]['subProkTitle'],
                 );
 
+                // $data_sub   = array(
+                //     "uid"                       => Str::uuid(),
+                //     "parent_id"                 => $idHeader,
+                //     "pkt_title"                 => $data['prtSub'][$i]['subProkTitle'],
+                //     "pkt_year"                  => $data['prtPeriode'],
+                //     "pkt_pic_job_employee_id"   => $data['prtPICEmployeeID'],
+                //     "division_group_id"         => $data['prtGroupDivisionID'],
+                //     "created_by"                => Auth::user()->id,
+                //     "updated_by"                => Auth::user()->id,
+                //     "created_at"                => date('Y-m-d H:i:s'),
+                //     "updated_at"                => date('Y-m-d H:i:s'),
+                // );
+
                 DB::table('proker_tahunan_detail')->insert($data_sub);
+                // DB::table('proker_tahunan')->insert($data_sub);
             }
         } else if($jenis == 'edit') {
             // UPDATE DULU HEADER
@@ -69,12 +107,12 @@ class ProgramKerjaService
             );
 
             $header_update  = array(
-                "pkt_title"         => $data['prtTitle'],
-                "pkt_description"   => $data['prtDescription'],
+                "pkt_title"                 => $data['prtTitle'],
+                "pkt_description"           => $data['prtDescription'],
                 "pkt_pic_job_employee_id"   => $data['prtPICEmployeeID'],
                 "division_group_id"         => $data['prtGroupDivisionID'],
-                "updated_by"        => Auth::user()->id,
-                "updated_at"        => date('Y-m-d H:i:s'),
+                "updated_by"                => Auth::user()->id,
+                "updated_at"                => date('Y-m-d H:i:s'),
             );
 
             DB::table('proker_tahunan')->where($header_where)->update($header_update);
@@ -86,6 +124,9 @@ class ProgramKerjaService
             DB::table('proker_tahunan_detail')
                 ->where('pkt_id', $query_get_data_id)
                 ->delete();
+            // DB::table('proker_tahunan')
+            //     ->where('parent_id', $query_get_data_id)
+            //     ->delete();
             
             // REINSERT DETAIL
             // DIGUNAKAN KETIKA DATA PADA ARRAY TERDAPAT VALUE YANG NULL
@@ -106,8 +147,21 @@ class ProgramKerjaService
                     "pktd_seq"      => $dataDetail[$j]['subProkSeq'],
                     "pktd_title"    => $dataDetail[$j]['subProkTitle'],
                 );
+                // $data_detail    = array(
+                //     "uid"                       => Str::uuid(),
+                //     "parent_id"                 => $query_get_data_id,
+                //     "pkt_title"                 => $dataDetail[$j]['subProkTitle'],
+                //     "pkt_year"                  => $data['prtPeriode'],
+                //     "pkt_pic_job_employee_id"   => $data['prtPICEmployeeID'],
+                //     "division_group_id"         => $data['prtGroupDivisionID'],
+                //     "created_by"                => Auth::user()->id,
+                //     "updated_by"                => Auth::user()->id,
+                //     "created_at"                => date('Y-m-d H:i:s'),
+                //     "updated_at"                => date('Y-m-d H:i:s'),
+                // );
 
                 DB::table('proker_tahunan_detail')->insert($data_detail);
+                // DB::table('proker_tahunan')->insert($data_detail);
             }
         }
 
@@ -139,6 +193,7 @@ class ProgramKerjaService
         );
 
         $proker_tahunan_id  = !empty($get_header) ? $get_header[0]->id : "";
+        // QUERY PENGAMBILAN DATA BARU
         $get_detail     = DB::select(
             "
             SELECT 	b.pktd_seq as detail_seq,
@@ -146,9 +201,19 @@ class ProgramKerjaService
             FROM 	proker_tahunan a
             JOIN proker_tahunan_detail b ON a.id = b.pkt_id
             WHERE 	a.uid = '".$id."'
-            ORDER BY b.pktd_seq ASC
+            ORDER BY CAST(b.pktd_seq AS SIGNED) ASC
             "
         );
+
+        // QUERY PENGAMBILAN DATA LAMA
+        // $get_detail     = DB::select(
+        //     "
+        //     SELECT 	pt.pkt_title as detail_title
+        //     FROM 	proker_tahunan pt
+        //     WHERE 	pt.parent_id = (SELECT id FROM proker_tahunan WHERE uid = 'cee5315b-9c3d-4e53-bf0f-3b7c24b55e08')
+        //     ORDER BY pt.id ASC
+        //     "
+        // );
 
         $output     = array(
             "header"    => !empty($get_header) ? $get_header : null,

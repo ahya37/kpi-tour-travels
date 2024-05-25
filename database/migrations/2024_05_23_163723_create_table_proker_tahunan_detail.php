@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('proker_tahunan_detail', function (Blueprint $table) {
             $table->bigInteger('pkt_id');
-            $table->integer('pktd_seq', 3);
+            $table->string('pktd_seq', 3)->default(0);
             $table->longText('pktd_title')->nullable();
         });
     }
