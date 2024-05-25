@@ -56,49 +56,57 @@ class EmployeeService
     public static function doSaveDataEmployee($data)
     {
         DB::beginTransaction();
-        try {
-            // INSERT AND GET USERS ID
-            $dataUsers  = array(
-                "name"          => $data['empNama'],
-                "email"         => $data['empUserName'],
-                "password"      => Hash::make('rahasia'),
-                "created_at"    => date('Y-m-d H:i:s'),
-            );
-            $insertUser         = User::create($dataUsers);
-            $insertUser->assignRole($data['empRole']);
-            
-            // INSERT TO EMPLOYEE
-            $dataEmployees  = array(
-                "id"        => Str::random(30),
-                "user_id"   => $insertUser->id,
-                "name"      => $data['empNama'],
-                "created_by"=> Auth::user()->id,
-                "updated_by"=> Auth::user()->id,
-                "created_at"=> date('Y-m-d H:i:s'),
-                "updated_at"=> date('Y-m-d H:i:s'),
-            );
-            $insertEmployees    = Employee::create($dataEmployees);
 
-            // INSERT TO JOB EMPLOYEES
-            $dataJobEmployees   = array(
-                "id"            => Str::random(30),
-                "employee_id"   => $insertEmployees->id,
-                "sub_division_id"   => explode(' | ', $data['empGDID'])[1],
-                "group_division_id" => explode(' | ', $data['empGDID'])[0],
-                "created_by"=> Auth::user()->id,
-                "updated_by"=> Auth::user()->id,
-                "created_at"=> date('Y-m-d H:i:s'),
-                "updated_at"=> date('Y-m-d H:i:s'),
-            );
-            $insertJobEmployee  = JobEmployee::create($dataJobEmployees);
-            DB::commit();
-            return 'berhasil';
-        } catch(\Exception $e) {
-            DB::rollback();
-            Log::error($e->getMessage());
-            return 'gagal';
+        // CHECK
+        $queryGetEmployee   = DB::table('employees')
+                                ->select('name', 'user_id')
+                                ->where('name','=', $data['empNama'])
+                                ->get()->toArray();
+        if(count($queryGetEmployee) > 0) {
+            return 'akun_ada';
+        } else {
+            try {
+                // INSERT AND GET USERS ID
+                $dataUsers  = array(
+                    "name"          => $data['empNama'],
+                    "email"         => $data['empUserName'],
+                    "password"      => Hash::make('rahasia'),
+                    "created_at"    => date('Y-m-d H:i:s'),
+                );
+                $insertUser         = User::create($dataUsers);
+                $insertUser->assignRole($data['empRole']);
+                
+                // INSERT TO EMPLOYEE
+                $dataEmployees  = array(
+                    "id"        => Str::random(30),
+                    "user_id"   => $insertUser->id,
+                    "name"      => $data['empNama'],
+                    "created_by"=> Auth::user()->id,
+                    "updated_by"=> Auth::user()->id,
+                    "created_at"=> date('Y-m-d H:i:s'),
+                    "updated_at"=> date('Y-m-d H:i:s'),
+                );
+                $insertEmployees    = Employee::create($dataEmployees);
+    
+                // INSERT TO JOB EMPLOYEES
+                $dataJobEmployees   = array(
+                    "id"            => Str::random(30),
+                    "employee_id"   => $insertEmployees->id,
+                    "sub_division_id"   => explode(' | ', $data['empGDID'])[1],
+                    "group_division_id" => explode(' | ', $data['empGDID'])[0],
+                    "created_by"=> Auth::user()->id,
+                    "updated_by"=> Auth::user()->id,
+                    "created_at"=> date('Y-m-d H:i:s'),
+                    "updated_at"=> date('Y-m-d H:i:s'),
+                );
+                $insertJobEmployee  = JobEmployee::create($dataJobEmployees);
+                DB::commit();
+                return 'berhasil';
+            } catch(\Exception $e) {
+                DB::rollback();
+                return 'gagal';
+            }
         }
-        // INSERT INTO USER
     }
 
     // GET DATA
