@@ -9,6 +9,11 @@ $.ajaxSetup({
     }
 });
 
+function getURL()
+{
+    return $(location).attr('pathname');
+}
+
 function show_table(idTable, value)
 {
     if(idTable == 'tableEmployees') {
@@ -61,6 +66,7 @@ function show_select(idSelect, value)
                 html    += "<option value='" +gdID+ " | " + sdID + "'>" + gdName + " > " + sdName + "</option>";
             });
             $("#empGdIDAdd").html(html);
+            console.log(html);
         }).catch(function(xhr){
             $("#empGdIDAdd").html(html);
             console.log(xhr.responseJSON);
@@ -86,30 +92,63 @@ function show_select(idSelect, value)
     }
 }
 
-function show_modal(idModal, value) {
+function show_modal(idModal, jenis, value) {
     $("#"+idModal).modal({backdrop: 'static', keyboard: false});
     $("#"+idModal).modal('show');
-    if(idModal == 'modalTambahData') {
-        // RESET FORM
+    show_select('empGdIDAdd');
+    show_select('empRoleAdd');
+
+    if(jenis == 'add') {
         $("#empNameAdd").val(null);
         $("#empUsernameAdd").val(null);
-        show_select('empGdIDAdd');
-        show_select('empRoleAdd');
+        
 
         // FOCUS ON FORM
-        $("#modalTambahData").on('shown.bs.modal', function(){
+        $("#"+idModal).on('shown.bs.modal', function(){
             $("#empNameAdd").focus();
         })
 
         // GENERATE EMAIL AFTER USER TYPING
         $("#empNameAdd").on('keyup', function(){
             generateEmailUser(this.value);
-        })
+        });
+
+        $("#btnSimpan").val(jenis);
+    } else if(jenis == 'edit') {
+        // GET DATA
+        var url         = getURL()+"/getDataEmployeesDetail";
+        var sendData    = {
+            "idEmployee"    : value,
+        };
+        var type        = "GET";
+
+        $("#empNameAdd").attr('readonly', 'readonly');
+
+        getData(url, type, sendData)
+            .then(function(xhr){
+                var getData     = xhr.data;
+                $("#empIDAdd").val(value);
+                $("#empNameAdd").val(getData['employee_name']);
+                $("#empGdIDAdd").val(getData['group_division_id']+" | "+getData['sub_division_id']).trigger('change');
+                $("#empRoleAdd").val(getData['roles_name']);
+
+                $("#"+idModal).on('shown.bs.modal', function(){
+                    $("#empNameAdd").focus();
+                })
+            })
+            .catch(function(xhr){
+                console.log(xhr);
+            });
+        $("#btnSimpan").val(jenis);
     }
 }
 
 function close_modal(idModal) {
     $("#"+idModal).modal('hide');
+    $("#"+idModal).on('hidden.bs.modal', function(){
+        $("#btnSimpan").removeAttr('value');
+        $("#empNameAdd").removeAttr('readonly');
+    })
 }
 
 // GENERATE EMAIL U/ USER
@@ -124,67 +163,94 @@ function generateEmailUser(value)
 
 function do_simpan(jenis)
 {
-    if(jenis == 'add') {
-        // GET FORM
-        var empNama     = $("#empNameAdd");
-        var empGDID     = $("#empGdIDAdd");
-        var empUserName = $("#empUsernameAdd");
-        var empRoles    = $("#empRoleAdd");
+    // GET FORM
+    var empNama     = $("#empNameAdd");
+    var empGDID     = $("#empGdIDAdd");
+    var empUserName = $("#empUsernameAdd");
+    var empRoles    = $("#empRoleAdd");
+    var empID       = $("#empIDAdd");
 
-        var data        = {
-            "empNama"       : empNama.val(),
-            "empGDID"       : empGDID.val(),
-            "empUserName"   : empUserName.val(),
-            "empRole"       : empRoles.val(),
-        };
+    var url         = getURL() + "/trans/post/dataEmployeeNew";
+    var type        = "POST";
+    var sendData    = {
+        "empID"         : empID.val(),
+        "empNama"       : empNama.val(),
+        "empGDID"       : empGDID.val(),
+        "empUserName"   : empUserName.val(),
+        "empRole"       : empRoles.val(),
+        "transJenis"    : jenis,
+    };
+    var customMessage   = Swal.fire({title : 'Data Sedang Diproses'});Swal.showLoading();
 
-        $.ajax({
-            aysnc   : true,
-            cache   : false,
-            type    : "POST",
-            dataType: "json",
-            data    : {
-                _token      : CSRF_TOKEN,
-                sendData    : data,
-            },
-            url     : "/master/employees/trans/post/dataEmployeeNew",
-            beforeSend  : function() {
-                Swal.fire({
-                    title   : 'Data Sedang Diproses',
-                })
-                Swal.showLoading();
-            },
-            success     : function(xhr) {
-                Swal.fire({
-                    icon    : xhr.alert.icon,
-                    title   : xhr.alert.message.title,
-                    text    : xhr.alert.message.text,
-                }).then((results)   => {
-                    if(results.isConfirmed) {
-                        close_modal('modalTambahData');
-                        show_table('tableEmployees','%');
-                    }
-                });
-            },
-            error       : function(xhr) {
-                Swal.fire({
-                    icon    : xhr.responseJSON.alert.icon,
-                    title   : xhr.responseJSON.alert.message.title,
-                    text    : xhr.responseJSON.alert.message.text,
-                })
-            }
+    getData(url, type, sendData, customMessage)
+        .then(function(xhr){
+            Swal.fire({
+                icon    : xhr.alert.icon,
+                title   : xhr.alert.message.title,
+                text    : xhr.alert.message.text,
+            }).then((results)   => {
+                if(results.isConfirmed) {
+                    close_modal('modalForm');
+                    show_table('tableEmployees','%');
+                }
+            })
         })
-    }
+        .catch(function(xhr){
+            Swal.fire({
+                icon    : xhr.responseJSON.alert.icon,
+                title   : xhr.responseJSON.alert.message.title,
+                text    : xhr.responseJSON.alert.message.text,
+            });
+        });
+    // $.ajax({
+    //     aysnc   : true,
+    //     cache   : false,
+    //     type    : "POST",
+    //     dataType: "json",
+    //     data    : {
+    //         _token      : CSRF_TOKEN,
+    //         sendData    : data,
+    //     },
+    //     url     : "/master/employees/trans/post/dataEmployeeNew",
+    //     beforeSend  : function() {
+    //         Swal.fire({
+    //             title   : 'Data Sedang Diproses',
+    //         })
+    //         Swal.showLoading();
+    //     },
+    //     success     : function(xhr) {
+    //         Swal.fire({
+    //             icon    : xhr.alert.icon,
+    //             title   : xhr.alert.message.title,
+    //             text    : xhr.alert.message.text,
+    //         }).then((results)   => {
+    //             if(results.isConfirmed) {
+    //                 close_modal('modalTambahData');
+    //                 show_table('tableEmployees','%');
+    //             }
+    //         });
+    //     },
+    //     error       : function(xhr) {
+    //         Swal.fire({
+    //             icon    : xhr.responseJSON.alert.icon,
+    //             title   : xhr.responseJSON.alert.message.title,
+    //             text    : xhr.responseJSON.alert.message.text,
+    //         })
+    //     }
+    // });
 }
 
-function getData(url, type, data)
+function getData(url, type, data, customMessage)
 {
     return new Promise(function(resolve, reject){
         $.ajax({
-            async   : false,
-            cache    : false,
-            type    : type,
-            data    : {
+            async       : false,
+            cache       : false,
+            type        : type,
+            beforeSend  : function() {
+                customMessage
+            },
+            data        : {
                 _token      : CSRF_TOKEN,
                 sendData    : data,
             },

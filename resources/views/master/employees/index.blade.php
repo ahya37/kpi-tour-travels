@@ -25,7 +25,7 @@
                 <div class="ibox ">
                     <div class="ibox-title">
                         {{-- <a href="{{ route('employees.add') }}" class="btn btn-primary">Add Data</a> --}}
-                        <button type="button" class="btn btn-primary" title='Menambahkan Data Baru' onclick="show_modal('modalTambahData','')">Tambah Data</button>
+                        <button type="button" class="btn btn-primary" title='Menambahkan Data Baru' onclick="show_modal('modalForm','add','')">Tambah Data</button>
                     </div>
                     <div class="ibox-content">
                         <div class="table-responsive">
@@ -48,13 +48,21 @@
     </div>   
 
     <!-- Modal -->
-    <div class="modal fade" id="modalTambahData">
+    <div class="modal fade" id="modalForm">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Tambah Data Employee</h5>
                 </div>
                 <div class="modal-body">
+                    <div class="form-row mb-2" style="display: none;">
+                        <div class="col-sm-4">
+                            <h4>ID</h4>
+                        </div>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control form-control-sm" placeholder="ID Employee" id="empIDAdd" readonly>
+                        </div>
+                    </div>
                     <div class="form-row mb-2">
                         <div class="col-sm-4">
                             <h4>Nama Lengkap</h4>
@@ -89,8 +97,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="close_modal('modalTambahData')">Batal</button>
-                    <button type="button" class="btn btn-primary" onclick="do_simpan('add')">Simpan</button>
+                    <button type="button" class="btn btn-secondary" onclick="close_modal('modalForm')">Batal</button>
+                    <button type="button" class="btn btn-primary" id="btnSimpan" onclick="do_simpan(this.value)">Simpan</button>
                 </div>
             </div>
         </div>

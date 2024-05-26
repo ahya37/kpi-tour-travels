@@ -41,7 +41,7 @@
                         </li>
                     </ul>
                     <ul class="nav nav-second-level">
-                        <li class="{{ request()->is('master/employees/*') ? 'active' : '' }}">
+                        <li class="{{ request()->is('master/employees') ? 'active' : '' }}">
                             <a href={{ route('Employees.index') }}>Employee</a>
                         </li>
                     </ul>

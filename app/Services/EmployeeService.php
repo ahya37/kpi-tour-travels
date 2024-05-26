@@ -22,7 +22,9 @@ class EmployeeService
             "
             SELECT 	b.id as employee_id,
                     b.name as employee_name,
+                    c.id as group_division_id,
                     c.name as group_division_name,
+                    d.id as sub_division_id,
                     d.name as sub_division_name
             FROM 	job_employees a
             INNER JOIN employees b ON a.employee_id = b.id
@@ -66,56 +68,62 @@ class EmployeeService
                 "errMsg"    => $queryGetEmployee,
             ];
         } else {
-            try {
-                // INSERT AND GET USERS ID
-                $dataUsers  = array(
-                    "name"          => $data['empNama'],
-                    "email"         => $data['empUserName'],
-                    "password"      => Hash::make('rahasia'),
-                    "created_at"    => date('Y-m-d H:i:s'),
-                );
-                $insertUser         = User::create($dataUsers);
-                $insertUser->assignRole($data['empRole']);
-                
-                // INSERT TO EMPLOYEE
-                $dataEmployees  = array(
-                    "id"        => Str::random(30),
-                    "user_id"   => $insertUser->id,
-                    "name"      => $data['empNama'],
-                    "created_by"=> Auth::user()->id,
-                    "updated_by"=> Auth::user()->id,
-                    "created_at"=> date('Y-m-d H:i:s'),
-                    "updated_at"=> date('Y-m-d H:i:s'),
-                );
-                $insertEmployees    = Employee::create($dataEmployees);
-    
-                // INSERT TO JOB EMPLOYEES
-                $dataJobEmployees   = array(
-                    "id"            => Str::random(30),
-                    "employee_id"   => $insertEmployees->id,
-                    "sub_division_id"   => explode(' | ', $data['empGDID'])[1],
-                    "group_division_id" => explode(' | ', $data['empGDID'])[0],
-                    "created_by"=> Auth::user()->id,
-                    "updated_by"=> Auth::user()->id,
-                    "created_at"=> date('Y-m-d H:i:s'),
-                    "updated_at"=> date('Y-m-d H:i:s'),
-                );
-                $insertJobEmployee  = JobEmployee::create($dataJobEmployees);
-                DB::commit();
+            if($data['transJenis'] == 'add') {
+                try {
+                    // INSERT AND GET USERS ID
+                    $dataUsers  = array(
+                        "name"          => $data['empNama'],
+                        "email"         => $data['empUserName'],
+                        "password"      => Hash::make('rahasia'),
+                        "created_at"    => date('Y-m-d H:i:s'),
+                    );
+                    $insertUser         = User::create($dataUsers);
+                    $insertUser->assignRole($data['empRole']);
+                    
+                    // INSERT TO EMPLOYEE
+                    $dataEmployees  = array(
+                        "id"        => Str::random(30),
+                        "user_id"   => $insertUser->id,
+                        "name"      => $data['empNama'],
+                        "created_by"=> Auth::user()->id,
+                        "updated_by"=> Auth::user()->id,
+                        "created_at"=> date('Y-m-d H:i:s'),
+                        "updated_at"=> date('Y-m-d H:i:s'),
+                    );
+                    $insertEmployees    = Employee::create($dataEmployees);
+        
+                    // INSERT TO JOB EMPLOYEES
+                    $dataJobEmployees   = array(
+                        "id"            => Str::random(30),
+                        "employee_id"   => $insertEmployees->id,
+                        "sub_division_id"   => explode(' | ', $data['empGDID'])[1],
+                        "group_division_id" => explode(' | ', $data['empGDID'])[0],
+                        "created_by"=> Auth::user()->id,
+                        "updated_by"=> Auth::user()->id,
+                        "created_at"=> date('Y-m-d H:i:s'),
+                        "updated_at"=> date('Y-m-d H:i:s'),
+                    );
+                    $insertJobEmployee  = JobEmployee::create($dataJobEmployees);
+                    DB::commit();
+                    $output     = array(
+                        "status"    => "berhasil",
+                        "errMsg"    => "",
+                    );
+                } catch(\Exception $e) {
+                    DB::rollback();
+                    $output     = array(
+                        "status"    => "gagal",
+                        "errMsg"    => $e->getMessage(),
+                    );
+                }
+            } else {
                 $output     = array(
                     "status"    => "berhasil",
                     "errMsg"    => "",
                 );
-            } catch(\Exception $e) {
-                DB::rollback();
-                $output     = array(
-                    "status"    => "gagal",
-                    "errMsg"    => $e->getMessage(),
-                );
             }
-
-            return $output;
         }
+        return $output;
     }
 
     // GET DATA
