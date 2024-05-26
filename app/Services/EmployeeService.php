@@ -25,11 +25,17 @@ class EmployeeService
                     c.id as group_division_id,
                     c.name as group_division_name,
                     d.id as sub_division_id,
-                    d.name as sub_division_name
+                    d.name as sub_division_name,
+                    e.email as employee_email,
+                    f.role_id,
+				    g.name as role_name
             FROM 	job_employees a
             INNER JOIN employees b ON a.employee_id = b.id
             INNER JOIN group_divisions c ON a.group_division_id = c.id
             INNER JOIN sub_divisions d ON a.sub_division_id = d.id
+            INNER JOIN users e ON b.user_id = e.id
+            INNER JOIN model_has_roles f ON b.user_id = f.model_id
+            INNER JOIN roles g ON f.role_id = g.id
             WHERE 	(a.id LIKE '%$cari%' OR b.id LIKE '%$cari%' OR c.id LIKE '%$cari%' OR d.id LIKE '%$cari%')
             ORDER BY a.created_at DESC
             "
@@ -62,7 +68,7 @@ class EmployeeService
                                 ->select('name', 'user_id')
                                 ->where('name','=', $data['empNama'])
                                 ->get()->toArray();
-        if(count($queryGetEmployee) > 0) {
+        if((count($queryGetEmployee) > 0) && ($data['transJenis'] == 'add')) {
             $output = [
                 "status"    => "ada_akun",
                 "errMsg"    => $queryGetEmployee,
@@ -116,11 +122,56 @@ class EmployeeService
                         "errMsg"    => $e->getMessage(),
                     );
                 }
-            } else {
-                $output     = array(
-                    "status"    => "berhasil",
-                    "errMsg"    => "",
-                );
+            } else if($data['transJenis'] == 'edit') {
+                // GET USER ID
+                try {
+                    // UBAH ROLES
+                    $employeeID     = $data['empID'];
+                    $roleName       = $data['empRole'];
+                    $query_user_id  = DB::select(
+                        "
+                        SELECT  *
+                        FROM    employees 
+                        WHERE   id = '".$employeeID."'
+                        "
+                    );
+                    $query_role_id  = DB::select(
+                        "
+                        SELECT  *
+                        FROM    roles
+                        WHERE   name = '$roleName'
+                        "
+                    );
+                    $userID     = $query_user_id[0]->user_id;
+                    $roleID     = $query_role_id[0]->id;
+                    $user       = User::find($userID);
+                    $user->roles()->detach();
+                    $user->roles()->attach($roleID);
+
+                    // UBAH DATA USERS
+                    $data_where     = array(
+                        "employee_id"   => $data['empID'],
+                    );
+
+                    $data_update    = array(
+                        "group_division_id"     => explode(" | ", $data['empGDID'])[0],
+                        "sub_division_id"       => explode(" | ", $data['empGDID'])[1],
+                    );
+
+                    DB::table('job_employees')->where($data_where)->update($data_update);
+
+                    DB::commit();
+                    $output     = array(
+                        "status"    => "berhasil",
+                        "errMsg"    => "",
+                    );
+                } catch(\Exception $e) {
+                    DB::rollback();
+                    $output     = array(
+                        "status"    => "gagal",
+                        "errMsg"    => $e->getMessage(),
+                    );
+                }
             }
         }
         return $output;

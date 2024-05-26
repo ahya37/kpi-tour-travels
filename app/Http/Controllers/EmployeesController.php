@@ -59,8 +59,9 @@ class EmployeesController extends Controller
                 "employee_name"         => $getData[0]->employee_name,
                 "group_division_id"     => $getData[0]->group_division_id,
                 "sub_division_id"       => $getData[0]->sub_division_id,
-                "roles_id"              => Auth::user()->roles[0]->id,
-                "roles_name"            => Auth::user()->roles[0]->name,
+                "roles_id"              => $getData[0]->role_id,
+                "roles_name"            => $getData[0]->role_name,
+                "employee_email"        => $getData[0]->employee_email,
             ];
 
             $output     = array(

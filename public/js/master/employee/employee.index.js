@@ -131,6 +131,7 @@ function show_modal(idModal, jenis, value) {
                 $("#empNameAdd").val(getData['employee_name']);
                 $("#empGdIDAdd").val(getData['group_division_id']+" | "+getData['sub_division_id']).trigger('change');
                 $("#empRoleAdd").val(getData['roles_name']);
+                $("#empUsernameAdd").val(getData['employee_email']);
 
                 $("#"+idModal).on('shown.bs.modal', function(){
                     $("#empNameAdd").focus();
@@ -202,42 +203,6 @@ function do_simpan(jenis)
                 text    : xhr.responseJSON.alert.message.text,
             });
         });
-    // $.ajax({
-    //     aysnc   : true,
-    //     cache   : false,
-    //     type    : "POST",
-    //     dataType: "json",
-    //     data    : {
-    //         _token      : CSRF_TOKEN,
-    //         sendData    : data,
-    //     },
-    //     url     : "/master/employees/trans/post/dataEmployeeNew",
-    //     beforeSend  : function() {
-    //         Swal.fire({
-    //             title   : 'Data Sedang Diproses',
-    //         })
-    //         Swal.showLoading();
-    //     },
-    //     success     : function(xhr) {
-    //         Swal.fire({
-    //             icon    : xhr.alert.icon,
-    //             title   : xhr.alert.message.title,
-    //             text    : xhr.alert.message.text,
-    //         }).then((results)   => {
-    //             if(results.isConfirmed) {
-    //                 close_modal('modalTambahData');
-    //                 show_table('tableEmployees','%');
-    //             }
-    //         });
-    //     },
-    //     error       : function(xhr) {
-    //         Swal.fire({
-    //             icon    : xhr.responseJSON.alert.icon,
-    //             title   : xhr.responseJSON.alert.message.title,
-    //             text    : xhr.responseJSON.alert.message.text,
-    //         })
-    //     }
-    // });
 }
 
 function getData(url, type, data, customMessage)
