@@ -116,7 +116,9 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/trans/get/listDataProkerTahunan/{uid}', [ProgramKerjaController::class, 'ambilListDataProkerTahunan'])->name('programKerja.tahunan.listDataProkerTahunan');
                 Route::get('/trans/get/getDataProkerTahunanDetail/{uid}', [ProgramKerjaController::class, 'ambilDataProkerTahunanDetail'])->name('programKerja.tahunan.getDataProkerTahunanDetail');
             });
-            Route::get('/bulanan', [ProgramKerjaController::class,'indexBulanan'])->name('programKerja.bulanan.index');
+            Route::prefix('bulanan')->group(function(){
+                Route::get('/', [ProgramKerjaController::class, 'indexBulanan'])->name('programKerja.bulanan.index');
+            });
             Route::get('/harian', [ProgramKerjaController::class,'indexHarian'])->name('programKerja.harian.index');
             // GLOBAL
             Route::get('/get/data/PIC', [ProgramKerjaController::class, 'getDataPIC'])->name('programKerja.get.data.pic');
