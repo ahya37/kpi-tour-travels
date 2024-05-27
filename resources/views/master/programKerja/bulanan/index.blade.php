@@ -10,11 +10,6 @@
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
     <style>
-    .dataTables_wrapper {
-        padding-bottom: 0px;
-        margin-top: -6px;
-    }
-
     .fc-daygrid-event-dot {
         border: 4px solid #1de5bd;
     }
@@ -37,6 +32,13 @@
         /* text-decoration: underline; */
         background-color: #159178;
         border-color: #159178;
+    }
+
+    .fc-day:hover {
+        cursor: pointer;
+    }
+    label {
+        font-weight: bold;
     }
     </style>
 @endpush
@@ -65,20 +67,49 @@
         </div>
     </div>
     <div class="modal fade" id="modalForm">
-        <div class="modal-dialog modal-dialog-lg modal-centered">
+        <div class="modal-dialog modal-lg modal-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title" id="modalTitle"></h4>
                     <button class="close" onclick="closeModal('modalForm')">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-row form-group mb-2">
-                        <label><b>Judul Kegiatan Bulanan</b></label>
-                        <input type="text" class="form-control form-control-sm" id="monthlyTitle" placeholder="Title">
+                    <div class="form-row mb-2">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Proram Kerja Tahunan</label>
+                                <select name="prokerTahunanID" id="prokerTahunanID" class="form-control form-control-sm select2"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Group Division</label>
+                                <input type="hidden" class="form-control form-control-sm" id="prokerTahunanGroupDivisionID" name="prokerTahunanGroupDivisionID">
+                                <input type="text" class="form-control form-control-sm" id="prokerTahunanGroupDivisionName" name="prokerTahunanGroupDivisionName" readonly placeholder="Group Division">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Sub Division</label>
+                                <input type="hidden" class="form-control form-control-sm" id="prokerTahunanSubDivisionID" name="prokerTahunanSubDivisionID">
+                                <input type="text" class="form-control form-control-sm" id="prokerTahunanSubDivisionName" name="prokerTahunanSubDivisionName" readonly placeholder="Sub Division">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Judul Program Kerja</label>
+                                <input type="text" name="prokerBulananTitle" id="prokerBulananTitle" class="form-control form-control-sm" placeholder="Judul Program">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-primary" id="btnSimpan">Simpan</button>
+                    <button type="button" class="btn btn-secondary" id="btnCancel" onclick="closeModal('modalForm')">Batal</button>
+                    <button type="button" class="btn btn-primary" id="btnSimpan">Simpan</button>
                 </div>
             </div>
         </div>
