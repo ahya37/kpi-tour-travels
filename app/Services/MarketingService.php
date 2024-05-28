@@ -3,13 +3,15 @@
 namespace App\Services;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\ResponseFormatter;
+use App\Models\AlumniProspekMaterial;
+use App\Models\DetailAlumniProspekMaterial;
 use App\Models\DetailMarketingTarget;
 use App\Models\MarketingTarget;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 
-class MarketingTargetService 
+class MarketingService 
 {
 	public static function store($requestMarketingtarget)
 	{
@@ -170,12 +172,30 @@ class MarketingTargetService
         // Check if the request was successful
         if ($response->successful()) {
             $data = $response->json();
+            return $data;
+
+        } else {
+
+            $errorCode    = $response->status();
+            $errorMessage = $response->body();
 
             $data = [
-                'message' => $data
+                'error' => $errorCode,
+                'message' => $errorMessage
             ];
 
-            return response()->json($data);
+            return  response()->json($data);
+        }
+    }
+
+    public static function updateApiIsBahanProspek($members)
+    {
+        $response = Http::post(env('API_PERCIK').'/member/bahanprospek/update',$members);
+        
+        // Check if the request was successful
+        if ($response->successful()) {
+            $data = $response->json();
+            return $data;
 
         } else {
 
@@ -193,25 +213,96 @@ class MarketingTargetService
 
     public static function prospectMaterialList()
     {
-        $response = Http::get(env('API_PERCIK').'/member/bahanprospek/list');
-        // Check if the request was successful
-        if ($response->successful()) {
-            $data = $response->json();
+        $prospectMaterials = AlumniProspekMaterial::getProspectMaterial();
+        return $prospectMaterials;
+    }
 
-            return $data;
+    public static function alumniProspectMaterialByAccountCS($auth)
+    {
+       $data = AlumniProspekMaterial::alumniProspectMaterialByAccountCS($auth);
+       return $data;
 
-        } else {
+    }
 
-            $errorCode    = $response->status();
-            $errorMessage = $response->body();
+    public static function detailAlumniProspectMaterialByAccountCS($id)
+    {
+       $data = DetailAlumniProspekMaterial::where('alumni_prospect_material_id', $id)->get();
+       return $data;
 
-            $data = [
-                'error' => $errorCode,
-                'message' => $errorMessage
-            ];
+    }
 
-            return  response()->json($data);
+    public static function manageAlumniProspectMaterialStore($request)
+    {
+        $update = DetailAlumniProspekMaterial::where('id', $request['idDetail'])->first();
+        $update->update([
+            'is_respone' => $request['response'],
+            'reason_id' => $request['reason'],
+            'tourcode' => $request['tourcode'],
+            'tourcode_haji' => $request['tourcodeHaji'],
+            'tourcode_tsourmuslim' => $request['tourcodeMuslim'],
+            'notes' => $request['notes'],
+            'remember' => $request['remember'],
+            'created_by' => $request['user'],
+            'updated_by' => '',
+        ]);
+
+        $data = [
+            'message' => 'Berhasil kelola jamaah'
+        ];
+
+        return $data;
+    }
+
+    public static function listAlumniProspectMaterial($request, $alumniprospectmaterialId)
+    {
+        // sleep(1);
+        $orderBy = 'name';
+        switch ($request->input('order.0.column')) {
+            case '1':
+                $orderBy = 'name';
+                break;
         }
+
+       $marketingTargets =  DetailAlumniProspekMaterial::getDetailAlumniProspekMaterialByAlumniProspekMaterial($alumniprospectmaterialId);
+
+        if($request->input('search.value')!=null){
+           $marketingTargets =$marketingTargets->where(function($q)use($request){
+                $q->whereRaw('LOWER(name) like ? ',['%'.strtolower($request->input('search.value')).'%']);
+            });
+        }
+
+        // if($request->input('month') != '' AND $request->input('year') != ''){
+        //                    $marketingTargets->whereMonth('start_date', $request->month);
+        //                    $marketingTargets->whereYear('end_date', $request->year);
+        //                 }
+
+        $recordsFiltered =$marketingTargets->get()->count();
+        if($request->input('length')!=-1)$marketingTargets =$marketingTargets->skip($request->input('start'))->take($request->input('length'));
+        $marketingTargets =$marketingTargets->orderBy($orderBy,$request->input('order.0.dir'))->get();
+
+        $recordsTotal =$marketingTargets->count();
+
+        $results = [];
+        $no = 1;
+        foreach ($marketingTargets as $value) {
+            $results[] = [
+                'id' => $value->id,
+                'no' => $no++,
+                'name' => $value->name,
+                'telp' => $value->telp,
+                'address' => $value->address,
+                'is_respone' => $value->is_respone,
+                'reason' => $value->reason,
+                'notes' => $value->notes
+            ];
+        }
+
+        return response()->json([
+                'draw'=>$request->input('draw'),
+                'recordsTotal'=>$recordsTotal,
+                'recordsFiltered'=>$recordsFiltered,
+                'data'=>$results
+            ]);
     }
 
     public static function doSimpanLaporanIklan($data)

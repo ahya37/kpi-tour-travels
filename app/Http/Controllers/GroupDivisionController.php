@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\GroupDivisionService;
 use App\Http\Requests\GroupDivisionRequest;
 use Illuminate\Support\Facades\Validator;
-use Response;
+use Illuminate\Support\Facades\Response;
 
 class GroupDivisionController extends Controller
 {
@@ -16,6 +16,7 @@ class GroupDivisionController extends Controller
             'sub_title' => 'List of Group Division',
         ];
         
+
         return view('/master/groupDivision/index', $data);
     }
 
@@ -25,8 +26,9 @@ class GroupDivisionController extends Controller
         return $get_data;
     }
 
-    public function tableGroupDivision($cari)
+    public function tableGroupDivision()
     {
+        $cari = request()->q;
         $draw   = "1";
 
         $get_data   = $this->getDataGroupDivisions($cari);
@@ -37,6 +39,7 @@ class GroupDivisionController extends Controller
                     $i + 1,
                     $get_data[$i]->name,
                     $get_data[$i]->created_at,
+                    "<button type='text' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modal_edit_division`, this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>&nbsp<button type='text' class='btn btn-danger btn-sm' value='".$get_data[$i]->id."' onclick='show_modal(`modal_hapus_data`, this.value)' title='Hapus Data'><i class='fa fa-trash'></i></button>",
                     "<button type='text' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modalForm`,`edit`,this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>",
                 );
             }

@@ -9,10 +9,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\EmployeesController;
 use App\Http\Controllers\GroupDivisionController;
 use App\Http\Controllers\SubDivisionController;
+use App\Http\Controllers\WorkPlanController;
 use App\Http\Controllers\ProgramKerjaController;
 use App\Http\Controllers\BaseController;
 use Illuminate\Support\Facades\Route;
-use Spatie\Permission\Contracts\Permission;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -48,6 +48,12 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/prospectmaterial','prospectMaterial')->name('marketing.prospectmaterial');
         Route::post('/prospectmaterial/store','prospectMaterialStore')->name('marketing.prospectmaterial.store');
 
+        // For CS
+        Route::get('/alumniprospectmaterial','alumniProspectMaterialByAccountCS')->name('marketing.alumniprospectmaterial');
+        Route::get('/alumniprospectmaterial/{id}','detailAlumniProspectMaterialByAccountCS')->name('marketing.alumniprospectmaterial.detail');
+        Route::get('/alumniprospectmaterial/detail/manage/modal/{detailId}','loadModalManageAlumniProspectMaterial');
+        Route::post('/alumniprospectmaterial/detail/manage/store','manageAlumniProspectMaterialStore')->name('marketing.alumniprospectmaterial.store');
+        Route::post('/alumniprospectmaterial/detail/list/{alumniprospectmaterialId}','listAlumniProspectMaterial');
         // laporan
         Route::prefix('laporan')->controller(MarketingController::class)->group(function(){
             Route::get('/pelaksanaan_iklan',[MarketingController::class,'laporanPelaksanaanIklan'])->name('marketing.laporan.iklan');
@@ -57,6 +63,14 @@ Route::group(['middleware' => ['auth']], function () {
         //modal 
         Route::get('modal/target','loadModalMarketingTarget');
         Route::get('modal/target/detail','loadModalDetailMarketingTarget');
+
+
+    });
+
+     // Rencana Kerja
+     Route::prefix('workplans')->controller(WorkPlanController::class)->group(function(){
+        Route::get('','index')->name('marketing.workplans.index');
+        Route::get('modal/create','loadModalWorkPlans');
 
     });
 
@@ -75,11 +89,12 @@ Route::group(['middleware' => ['auth']], function () {
         });
     });
 
+
     Route::prefix('master')->group(function(){
         // GROUP DIVISIONS
         Route::prefix('groupDivisions')->group(function(){
             Route::get('/', [GroupDivisionController::class, 'index'])->name('groupDivision.index');
-            Route::get('/trans/get/dataGroupDivisions/{cari}', [GroupDivisionController::class, 'tableGroupDivision'])->name('groupDivision.data.tableGroupDivisions');
+            Route::get('/trans/get/dataGroupDivisions', [GroupDivisionController::class, 'tableGroupDivision'])->name('groupDivision.data.tableGroupDivisions');
     
             // TRANS ON MODAL
             // MODAL TRANS ADD
@@ -113,7 +128,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::prefix('tahunan')->group(function(){
                 Route::get('/', [ProgramKerjaController::class,'indexTahunan'])->name('programKerja.tahunan.index');
                 Route::post('/trans/store/dataProkerTahunan/{jenis}', [ProgramKerjaController::class, 'simpanDataProkerTahunan'])->name('programKerja.tahunan.simpan');
-                Route::get('/trans/get/listDataProkerTahunan/{uid}', [ProgramKerjaController::class, 'ambilListDataProkerTahunan'])->name('programKerja.tahunan.listDataProkerTahunan');
+                Route::get('/trans/get/listDataProkerTahunan', [ProgramKerjaController::class, 'ambilListDataProkerTahunan'])->name('programKerja.tahunan.listDataProkerTahunan');
                 Route::get('/trans/get/getDataProkerTahunanDetail/{uid}', [ProgramKerjaController::class, 'ambilDataProkerTahunanDetail'])->name('programKerja.tahunan.getDataProkerTahunanDetail');
             });
             Route::prefix('bulanan')->group(function(){

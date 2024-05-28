@@ -28,7 +28,8 @@
                 </li>
                 <li class="{{ request()->is('master/*') ? 'active' : '' }}">
                     <a href="#">
-                        <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span class="fa arrow"></span>
+                        <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span
+                            class="fa arrow"></span>
                     </a>
                     <ul class="nav nav-second-level">
                         <li class="{{ request()->is('master/groupDivisions') ? 'active' : '' }}">
@@ -78,27 +79,29 @@
                     </ul>
                 </li>
             @endif
-
-            @if(Auth::user()->hasRole('customer service'))
+            @if (Auth::user()->hasRole('customer service'))
                 <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
                     <a href="{{ route('dashboard') }}"><i class="fa fa-bar-chart-o"></i> <span
                             class="nav-label">Dashboard</span></a>
                 </li>
 
                 <li class="{{ request()->is('marketings/*') ? 'active' : '' }}">
-                    <a href="#">
-                        <i class="fa fa-diamond"></i> 
-                        <span class="nav-label">Marketing</span> 
-                        <span class="fa arrow"></span>
-                    </a>
+                    <a href="#"><i class="fa fa-diamond"></i> <span class="nav-label">Marketing</span> <span
+                            class="fa arrow"></span></a>
+                    <ul class="nav nav-second-level">
+                        <li class="active"><a href="{{ route('marketing.alumniprospectmaterial') }}">Bahan Prospek
+                                Alumni</a></li>
+                        <li class="active"><a href="{{ route('marketing.workplans.index') }}">Rencana Kerja</a></li>
+                    </ul>
                     <ul class="nav nav-second-level">
                         <li class="{{ request()->is('marketings/laporan/*') ? 'active' : '' }}">
                             <a href="#">
                                 <span class="nav-label">Laporan</span>
-                                <span class="fa arrow"></span>  
+                                <span class="fa arrow"></span>
                             </a>
                             <ul class="nav nav-third-level">
-                                <li class="{{ request()->is('marketings/laporan/pelaksanaan_iklan') ? 'active' : '' }}">
+                                <li
+                                    class="{{ request()->is('marketings/laporan/pelaksanaan_iklan') ? 'active' : '' }}">
                                     <a href="{{ route('marketing.laporan.iklan') }}">
                                         <span class="nav-label">Laporan Iklan</span>
                                     </a>
@@ -107,7 +110,6 @@
                         </li>
                     </ul>
                 </li>
-                
             @endif
         </ul>
 

@@ -23,21 +23,6 @@
             <div class="col-lg-12">
                 @include('layouts.notification')
                 <div class="ibox ">
-                    <div class="ibox-title">
-                       <form action="{{route('marketing.prospectmaterial.store')}}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="form-group row">
-                            <div class="col-sm-2 col-md-2 col-lg-2">
-                                <input type="text" name="year" class="form-control form-control-sm" placeholder="Tahun" required>
-                            </div>
-                            <div class="col-sm-5 col-md-5 col-lg-5">
-                                <button type="submit" class="btn btn-sm btn-primary"><i
-                                       class="fa fa-download"></i> Generate Alumni Umrah
-                               </button>
-                            </div>
-                        </div>
-                        </form>
-                    </div>
                     <div class="ibox-content">
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered table-hover data">
@@ -47,19 +32,25 @@
                                         <th>CS</th>
                                         <th>Label</th>
                                         <th>Alumni</th>
+                                        <th>Respon</th>
+                                        <th>Tidak Respon</th>
                                         <th>Created At</th>
                                         <th>Opsi</th>
                                     </tr>
                                 </thead>
                                 <tbody id="dataTable">
-                                    @foreach ($prospectMaterial as $item)
+                                    @foreach ($prospectMaterials as $item)
                                         <tr>
                                             <td>{{$no++}}</td>
                                             <td>{{$item->cs}}</td>
                                             <td>{{$item->label}}</td>
                                             <td>{{$item->members}}</td>
+                                            <td>{{$item->yes_respone}}</td>
+                                            <td>{{$item->no_respone}}</td>
                                             <td>{{$item->created_at}}</td>
-                                            <td></td>
+                                            <td>
+                                                <a href="{{route('marketing.alumniprospectmaterial.detail', $item->id)}}" class="btn btn-sm btn-primary text-white">Jama'ah</a>
+                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>

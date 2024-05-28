@@ -27,8 +27,9 @@ function show_table(id_table)
                 dataType: "json",
                 data    : {
                     groupDivisionID     : groupDivision,
+                    id: '%'
                 },
-                url     : "/master/programkerja/tahunan/trans/get/listDataProkerTahunan/%",
+                url     : "/master/programkerja/tahunan/trans/get/listDataProkerTahunan",
             },
             columnDefs  : [
                 { "targets" : [0, 5], "width":"5%", "className":"text-center" },

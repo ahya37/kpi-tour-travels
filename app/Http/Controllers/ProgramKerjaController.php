@@ -38,10 +38,10 @@ class ProgramKerjaController extends Controller
         return $getData    = ProgramKerjaService::getDataProkerTahunan($data);
     }
 
-    public function ambilListDataProkerTahunan($id, Request $request)
+    public function ambilListDataProkerTahunan(Request $request)
     {
         $filter     = [
-            "uid"               => $id,
+            "uid"               => request()->id,
             "groupDivisionID"   => $request->all()['groupDivisionID'],
         ];
         $getData    = $this->ambilDataProkerTahunan($filter);

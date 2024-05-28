@@ -9,7 +9,8 @@ use App\Models\JobEmployee;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
-use Hash;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -63,6 +64,7 @@ class EmployeeService
     public static function doSaveDataEmployee($data)
     {
         DB::beginTransaction();
+
         // CHECK
         $queryGetEmployee   = DB::table('employees')
                                 ->select('name', 'user_id')

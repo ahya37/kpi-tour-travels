@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use Hash;
+use Illuminate\Support\Facades\Log;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -30,7 +31,7 @@ class ProgramKerjaService
             INNER JOIN group_divisions gd ON pt.division_group_id = gd.id
             WHERE 	pt.uid LIKE '%".$uid."%'
             AND 	gd.id LIKE '".$groupDivisionID."'
-            GROUP BY uid, title, description, periode, created_at
+            GROUP BY uid, pkt_title, pkt_description, pkt_year, name, created_at
             ORDER BY pt.created_at DESC
             "
         );
@@ -127,7 +128,7 @@ class ProgramKerjaService
             // DB::table('proker_tahunan')
             //     ->where('parent_id', $query_get_data_id)
             //     ->delete();
-            
+
             // REINSERT DETAIL
             // DIGUNAKAN KETIKA DATA PADA ARRAY TERDAPAT VALUE YANG NULL
             $dataDetail     = [];
@@ -173,6 +174,7 @@ class ProgramKerjaService
             );
         } catch(\Exception $e) {
             DB::rollback();
+            Log::channel('daily')->error($e->getMessage());
             $output     = array(
                 'transStatus'   => 'gagal',
                 'errMsg'        => $e->getMessage(),

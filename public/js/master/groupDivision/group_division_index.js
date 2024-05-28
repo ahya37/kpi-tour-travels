@@ -28,7 +28,10 @@ function show_table(id_table, value)
             ajax        : {
                 type    : "GET",
                 dataType: "json",
-                url     : '/master/groupDivisions/trans/get/dataGroupDivisions/'+value,
+                data:{
+                    q: value
+                },
+                url     : '/master/groupDivisions/trans/get/dataGroupDivisions/',
             },
             columnDefs  : [
                 { "targets":[0], "className":"text-center", "width": "5%"},
