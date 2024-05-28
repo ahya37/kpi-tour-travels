@@ -221,4 +221,46 @@ class ProgramKerjaService
         );
         return $output;
     }
+
+    // BULANAN
+    public static function doGetProkerTahunan($data)
+    {
+        $prokerID   = $data['prokerID'];
+        $query      = DB::select(
+            "
+            SELECT 	a.uid as pkt_uid,
+                    a.pkt_title as pkt_title,
+                    b.group_division_id,
+                    c.name as group_division_name,
+                    b.sub_division_id,
+                    d.name as sub_division_name,
+                    a.created_at as created_date
+            FROM 	proker_tahunan a
+            JOIN 	job_employees b ON a.pkt_pic_job_employee_id = b.employee_id
+            JOIN 	group_divisions c ON b.group_division_id = c.id
+            JOIN 	sub_divisions d ON b.sub_division_id = d.id
+            WHERE 	a.parent_id IS NULL
+            AND 	a.uid LIKE '$prokerID'
+            ORDER BY a.created_at DESC
+            "
+        );
+
+        return $query;
+    }
+
+    public static function getDataPIC($groupDivisionID)
+    {
+        $query  = DB::select(
+            "
+            SELECT 	a.employee_id,
+                    b.name as employee_name
+            FROM 	job_employees a
+            INNER JOIN employees b ON a.employee_id = b.id
+            WHERE 	group_division_id = '$groupDivisionID'
+            ORDER BY b.name ASC
+            "
+        );
+
+        return $query;
+    }
 }
