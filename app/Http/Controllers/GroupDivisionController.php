@@ -26,8 +26,9 @@ class GroupDivisionController extends Controller
         return $get_data;
     }
 
-    public function tableGroupDivision($cari)
+    public function tableGroupDivision()
     {
+        $cari = request()->q;
         $draw   = "1";
 
         $get_data   = $this->getDataGroupDivisions($cari);
@@ -39,6 +40,7 @@ class GroupDivisionController extends Controller
                     $get_data[$i]->name,
                     $get_data[$i]->created_at,
                     "<button type='text' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modal_edit_division`, this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>&nbsp<button type='text' class='btn btn-danger btn-sm' value='".$get_data[$i]->id."' onclick='show_modal(`modal_hapus_data`, this.value)' title='Hapus Data'><i class='fa fa-trash'></i></button>",
+                    "<button type='text' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modalForm`,`edit`,this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>",
                 );
             }
         } else {
@@ -52,26 +54,56 @@ class GroupDivisionController extends Controller
         return Response::json($output, 200);
     }
 
-    public function storeDataGroupDivision(Request $request)
+    public function storeDataGroupDivision($jenis, Request $request)
     {
-        $request->validate(['group_division_name'   => 'required']);
-        $data_simpan    = GroupDivisionService::doSimpanGroupDivisions($request->all());
-
-        if($data_simpan == 'berhasil') {
-            $output     = array(
-                "status"    => 200,
-                "message"   => "Berhasil",
-                "description"   => "Berhasil Menambahkan Group Division Baru",
-            );
+        $rules  = array(
+            'groupDivisionName'   => 'required'
+        );
+        $doValidate  = Validator::make($request->all()['sendData'], $rules);
+        if($doValidate->fails()) {
+            $output     = [
+                "success"   => false,
+                "status"    => 400,
+                "alert"     => [
+                    "icon"  => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "message"   => "Tidak bisa melanjutkan proses, silahkan cek kembali form",
+                        "errMsg"    => $doValidate->getMessageBag()->toArray()
+                    ],
+                ],
+            ];
         } else {
-            $output     = array(
-                "status"    => 500,
-                "message"   => "Terjadi Kesalahan",
-                "description"   => "Sistem sedang gangguan, silahkan tunggu beberapa saat.."
-            );
-        }
+            $data_simpan    = GroupDivisionService::doSimpanGroupDivisions($jenis, $request->all()['sendData']);
+            if($data_simpan['status'] == 'berhasil') {
+                $output     = array(
+                    "success"   => true,
+                    "status"    => 200,
+                    "alert"     => [
+                        "icon"  => "success",
+                        "message"   => [
+                            "title" => "Berhasil",
+                            "text"  => $jenis == 'add' ? "Berhasil Menyimpan Data Group Division Baru" : "Berhasil Mengubah Data Group Division",
+                        ],
+                    ],
+                );
+            } else {
+                $output     = array(
+                    "success"   => false,
+                    "status"    => 500,
+                    "alert"     => [
+                        "icon"      => "error",
+                        "message"   => [
+                            "title"     => "Terjadi Kesalahan",
+                            "message"   => "Sistem sedang gangguan, silahkan coba lagi",
+                            "errMsg"    => $data_simpan['errMsg'],
+                        ],
+                    ],
+                );
+            }
 
-        return Response::json($output, $output['status']);
+            return Response::json($output, $output['status']);
+        }
     }
 
     public function modalGetDataGroupDivisions($cari)

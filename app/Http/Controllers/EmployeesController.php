@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Services\EmployeeService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
+use Auth;
 
 class EmployeesController extends Controller
 {
@@ -34,7 +35,7 @@ class EmployeesController extends Controller
                     $i + 1,
                     $getData[$i]->employee_name,
                     $getData[$i]->group_division_name." (".$getData[$i]->sub_division_name.")",
-                    "<button type='button' class='btn btn-sm btn-primary' title='Info'><i class='fa fa-info-circle'></i></button>"
+                    "<button type='button' class='btn btn-sm btn-primary' title='Info' value=".$getData[$i]->employee_id." onclick='show_modal(`modalForm`, `edit`, this.value)'><i class='fa fa-info-circle'></i></button>"
                 );
             }
         } else {
@@ -46,6 +47,41 @@ class EmployeesController extends Controller
         );
 
         return Response::json($output, 200);
+    }
+
+    public function getDataEmployeesDetail(Request $request)
+    {
+        $idEmployee     = $request->all()['sendData']['idEmployee'];
+        $getData        = $this->getDataEmployeeAll($idEmployee);
+
+        if(!empty($getData)) {
+            $data   = [
+                "employee_id"           => $getData[0]->employee_id,
+                "employee_name"         => $getData[0]->employee_name,
+                "group_division_id"     => $getData[0]->group_division_id,
+                "sub_division_id"       => $getData[0]->sub_division_id,
+                "roles_id"              => $getData[0]->role_id,
+                "roles_name"            => $getData[0]->role_name,
+                "employee_email"        => $getData[0]->employee_email,
+            ];
+
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data Employees",
+                "data"      => $data,
+            );
+        } else {
+            $data   = [];
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data Employee Gagal Diambil",
+                "data"      => $data,
+            );
+        }
+
+        return Response::json($output, $output['status']);
     }
 
     public function getDataDivisionGlobal($cari)
@@ -108,7 +144,7 @@ class EmployeesController extends Controller
             );
         } else {
             $simpanData     = EmployeeService::doSaveDataEmployee($request->all()['sendData']);
-            if($simpanData == 'berhasil') {
+            if($simpanData['status'] == 'berhasil') {
                 $output     = array(
                     'success'   => true,
                     'status'    => 200,
@@ -116,11 +152,12 @@ class EmployeesController extends Controller
                         'icon'      => 'success',
                         'message'   => [
                             'title'     => 'Berhasil',
-                            'text'      => 'Berhasil Menambahkan Employee Baru',
+                            'text'      => $request->all()['sendData']['transJenis'] == 'add' ? 'Berhasil Menambahkan Employees Baru' : 'Berhasil Update Data Employees',
+                            'errMsg'    => $simpanData['errMsg'],
                         ],
                     ],
                 );
-            } else if($simpanData == 'akun_ada') {
+            } else if($simpanData['status'] == 'ada_akun') {
                 $output     = array(
                     'success'       => false,
                     'status'        => 500,
@@ -128,11 +165,12 @@ class EmployeesController extends Controller
                         'icon'      => 'error',
                         'message'   => [
                             'title' => 'Terjadi Kesalahan',
-                            'text'  => 'Akun ['.$request->all()['sendData']['empNama'].'] sudah tersedia di sistem..',
+                            'text'  => 'Akun ['.$request->all()['sendData']['empNama'].'] sudah tersedia pada sistem..',
+                            'errMsg'=> $simpanData['errMsg'],
                         ],
                     ],
                 );
-            } else {
+            } else if($simpanData['status'] == 'gagal'){
                 $output     = array(
                     'success'       => false,
                     'status'        => 500,
@@ -140,7 +178,8 @@ class EmployeesController extends Controller
                         'icon'      => 'error',
                         'message'   => [
                             'title' => 'Terjadi Kesalahan',
-                            'text'  => 'Sistem sednag gangguan, silahkan tunggu dan coba lagi..'
+                            'text'  => 'Sistem sednag gangguan, silahkan tunggu dan coba lagi..',
+                            'errMsg'=> $simpanData['errMsg'],
                         ],
                     ],
                 );

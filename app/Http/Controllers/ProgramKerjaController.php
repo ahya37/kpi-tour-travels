@@ -27,23 +27,33 @@ class ProgramKerjaController extends Controller
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'Dashboard Program Kerja Tahunan'
+            'sub_title' => 'List Program Kerja - Tahunan'
         ];
 
         return view('master/programKerja/tahunan/index', $data);
     }
 
-    public function ambilDataProkerTahunan($id)
+    public function ambilDataProkerTahunan($data)
     {
-        $getData    = ProgramKerjaService::getDataProkerTahunan($id);
+        return $getData    = ProgramKerjaService::getDataProkerTahunan($data);
+    }
+
+    public function ambilListDataProkerTahunan($id, Request $request)
+    {
+        $filter     = [
+            "uid"               => $id,
+            "groupDivisionID"   => $request->all()['groupDivisionID'],
+        ];
+        $getData    = $this->ambilDataProkerTahunan($filter);
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
                 $data[]     = array(
                     $i + 1,
-                    $getData[$i]->pkt_title,
-                    $getData[$i]->pkt_year,
+                    $getData[$i]->title,
+                    $getData[$i]->division_group_name,
+                    $getData[$i]->periode,
                     $getData[$i]->total_program,
-                    "<button type='button' class='btn btn-sm btn-primary' value='" . $getData[$i]->uid . "' title='Edit Program Kerja'><i class='fa fa-edit'></i></button>"
+                    "<button type='button' class='btn btn-sm btn-primary' value='" . $getData[$i]->uid . "' title='Edit Program Kerja' onclick='show_modal(`modalTambahDataProkerTahunan`, this.value)'><i class='fa fa-edit'></i></button>"
                 );
             }
         } else {
@@ -60,64 +70,112 @@ class ProgramKerjaController extends Controller
         return Response::json($output, 200);
     }
 
+    public function ambilDataProkerTahunanDetail(Request $request)
+    {
+        $getData    = ProgramKerjaService::getDataProkerTahunanDetail($request->all()['sendData']);
+        if(!empty($getData['header'])) {
+            $data_header    = array(
+                "program_kerja_title"       => $getData['header'][0]->pkt_title,
+                "program_kerja_description" => $getData['header'][0]->pkt_description,
+                "program_kerja_periode"     => $getData['header'][0]->pkt_year,
+                "program_kerja_pic_id"      => $getData['header'][0]->pkt_pic_job_employee_id,
+                "program_kerja_group_div_id"=> $getData['header'][0]->division_group_id,
+            );
+        } else {
+            $data_header    = [];
+        }
+        if(!empty($getData['detail'])) {
+            for($i = 0; $i < count($getData['detail']); $i++) {
+                $data_detail[]  = array(
+                    "sub_program_kerja_seq"     => $i + 1,
+                    "sub_program_kerja_title"   => $getData['detail'][$i]->detail_title,
+                );
+            }
+        } else {
+            $data_detail    = [];
+        }
+
+        if(!empty($getData['header'])) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => [
+                    "header"    => $data_header,
+                    "detail"    => $data_detail,
+                ],
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data yang dipilih tidak ditemukan",
+                "data"      => [
+                    "header"    => null,
+                    "detail"    => null,
+                ],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     public function simpanDataProkerTahunan($jenis, Request $request)
     {
-        if($jenis == 'add') {
-            $rulesProkerHeader  = [
-                "prtTitle"              => 'required',
-                "prtPeriode"            => 'required',
-                "prtGroupDivisionID"    => 'required',
-                "prtPICEmployeeID"      => 'required',
-            ];
+        $rulesProkerHeader  = [
+            "prtTitle"              => 'required',
+            "prtPeriode"            => 'required',
+            "prtGroupDivisionID"    => 'required',
+            "prtPICEmployeeID"      => 'required',
+        ];
 
-            $doValidate     = Validator::make($request->all()['sendData'], $rulesProkerHeader);
+        $doValidate     = Validator::make($request->all()['sendData'], $rulesProkerHeader);
 
-            if($doValidate->fails())
-            {
+        if($doValidate->fails())
+        {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"  => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Data Gagal Disimpan",
+                        "errMsg"    => $doValidate->getMessageBag()->toArray()
+                    ],
+                ],
+            );
+        } else {
+            $doSimpan   = ProgramKerjaService::doSimpanProkerTahunan($request->all()['sendData'], $jenis);
+            if($doSimpan['transStatus'] == 'berhasil') {
                 $output     = array(
-                    "success"   => false,
-                    "status"    => 500,
+                    "success"   => true,
+                    "status"    => 200,
                     "alert"     => [
-                        "icon"  => "error",
+                        "icon"  => "success",
                         "message"   => [
-                            "title"     => "Terjadi Kesalahan",
-                            "text"      => "Data Gagal Disimpan",
-                            "errMsg"    => $doValidate->getMessageBag()->toArray()
+                            "title"     => "Berhasil",
+                            "text"      => "Data Program Kerja Tahunan Berhasil Disimpan",
+                            "errMsg"    => "",
                         ],
                     ],
                 );
             } else {
-                $doSimpan   = ProgramKerjaService::doSimpanProkerTahunan($request->all()['sendData']);
-                if($doSimpan['transStatus'] == 'berhasil') {
-                    $output     = array(
-                        "success"   => true,
-                        "status"    => 200,
-                        "alert"     => [
-                            "icon"  => "success",
-                            "message"   => [
-                                "title"     => "Berhasil",
-                                "text"      => "Data Program Kerja Tahunan Berhasil Disimpan",
-                                "errMsg"    => "",
-                            ],
+                $output     = array(
+                    "success"   => false,
+                    "status"    => 500,
+                    "alert"     => [
+                        "icon"      => "error",
+                        "message"   => [
+                            "title"     => "Terjadi Kesalahan",
+                            "text"      => "Data Program Kerja Tahunan Gagal Disimpan",
+                            "errMsg"    => $doSimpan['errMsg'],
                         ],
-                    );
-                } else {
-                    $output     = array(
-                        "success"   => false,
-                        "status"    => 500,
-                        "alert"     => [
-                            "icon"      => "error",
-                            "message"   => [
-                                "title"     => "Terjadi Kesalahan",
-                                "text"      => "Data Program Kerja Tahunan Gagal Disimpan",
-                                "errMsg"    => $doSimpan['errMsg'],
-                            ],
-                        ],
-                    );
-                }
+                    ],
+                );
             }
-            return Response::json($output, $output['status']);
         }
+        return Response::json($output, $output['status']);
     }
     // BULANAN
     public function indexBulanan()

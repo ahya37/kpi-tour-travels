@@ -1,5 +1,5 @@
 $(document).ready(function(){
-    show_table('table_group_division','%');
+    show_table('tableGroupDivision','%');
 
     $("#name_group_division_edit").on('keyup', function(){
         $(this).removeClass('is-invalid');
@@ -14,9 +14,9 @@ $.ajaxSetup({
 
 function show_table(id_table, value)
 {
-    if(id_table == 'table_group_division') {
-        $("#table_group_division").DataTable().clear().destroy();
-        $("#table_group_division").DataTable({
+    if(id_table == 'tableGroupDivision') {
+        $("#tableGroupDivision").DataTable().clear().destroy();
+        $("#tableGroupDivision").DataTable({
             language    : {
                 zeroRecords     : 'Tidak ada data yang bisa ditampilkan, silahkan masukan beberapa data..',
                 emptyTable      : 'Tidak ada data yang bisa ditampilkan, silahkan masukan beberapa data..',
@@ -28,7 +28,10 @@ function show_table(id_table, value)
             ajax        : {
                 type    : "GET",
                 dataType: "json",
-                url     : '/master/groupDivisions/trans/get/dataGroupDivisions/'+value,
+                data:{
+                    q: value
+                },
+                url     : '/master/groupDivisions/trans/get/dataGroupDivisions/',
             },
             columnDefs  : [
                 { "targets":[0], "className":"text-center", "width": "5%"},
@@ -38,197 +41,103 @@ function show_table(id_table, value)
     }
 }
 
-function show_modal(id_modal, value)
+function show_modal(id_modal, jenis, value)
 {
     $("#"+id_modal).modal({backdrop: 'static', keyboard: false});
-    if(id_modal == 'modal_add_division') {
-        $("#"+id_modal).modal('show');
+    $("#"+id_modal).modal('show');
+    if(jenis == 'add') {
         $("#"+id_modal).on('shown.bs.modal', function(){
-            $("#name_group_division_add").focus();
-        })
-    } else if(id_modal == 'modal_edit_division') {
-        // AMBIL DATA GROUP DIVISION
-        $.ajax({
-            async   : false,
-            cache   : false,
-            type    : "GET",
-            dataType: "json",
-            url     : "/master/groupDivisions/trans/get/modalDataGroupDivisions/"+value,
-            success     : function(response) {
-                // SHOW MODAL
-                $("#modal_edit_division").modal('show');
-                $("#modal_edit_division").on('shown.bs.modal', function(){
-                    $("#gdName").focus();
-                });
-
-                // SHOW DATA
-                $("#gdID").val(value);
-                $("#gdName").val(response.data.gdName);
-            }
+            $("#groupDivisionName").focus();
         });
-    } else if(id_modal == 'modal_hapus_data') {
-        var gdID    = value;
-
-        Swal.fire({
-            icon    : 'question',
-            title   : 'Hapus Data',
-            text    : 'Anda yakin ingin menghapus data ini?',
-            showConfirmButton   : true,
-            showCancelButton    : true,
-            confirmButtonText   : 'Ya, Hapus',
-            cancelButtonText    : 'Tidak',
-        }).then(function(results){
-            if(results.isConfirmed) {
-                // RUNNING AJAX UPDATE
-                $.ajax({
-                    cache   : false,
-                    type    : "POST",
-                    dataType: "json",
-                    url     : "/master/groupDivisions/trans/delete/modalDataGroupDivisions/"+value,
-                    beforeSend  : function() {
-                        Swal.fire({
-                            title   : 'Data Sedang diproses',
-                        })
+        $("#btnSimpan").val('add');
+    } else if(jenis == 'edit') {
+        var url     = "/master/groupDivisions/trans/get/modalDataGroupDivisions/"+value;
+        var type    = "GET";
+        var messag  =   Swal.fire({
+                            title   : 'Data Sedang Dimuat',
+                        });
                         Swal.showLoading();
-                    },
-                    success : function(response) {
-                        if(response.status == 200) {
-                            Swal.fire({
-                                icon    : 'success',
-                                title   : 'Berhasil',
-                                text    : 'Data Berhasil Dihapus',
-                            }).then(function(results){
-                                if(results.isConfirmed) {
-                                    show_table('table_group_division','%');
-                                }
-                            })
-                        } else {
-                            Swal.fire({
-                                icon    : 'error',
-                                title   : 'Terjadi Kesalahan',
-                                text    : 'Data Gagal Disimpan'
-                            });
-                        }
-                    },
-                    error   : function(xhr) {
-                        Swal.fire({
-                            icon    : 'error',
-                            title   : 'Terjadi Kesalahan',
-                            text    : 'Sistem sedang bermasalah, silahkan tunggu..',
-                        })
-                    }
-                });
-            }
-        });
+        showData(url, type, '')
+            .then((xhr) => {
+                var data    = xhr.data;
+                $("#groupDivisionID").val(data['gdID']);
+                $("#groupDivisionName").val(data['gdName']);
+                Swal.close();
+            })
+            .catch((xhr)    => {
+                console.log(xhr.responseJSON);
+            });
+        $("#btnSimpan").val('edit');
     }
 }
 
 function close_modal(id_modal) {
-    if(id_modal == 'modal_add_division') {
-        $("#"+id_modal).modal('hide');
+    $("#"+id_modal).modal('hide');
+    var jenis = $("#btnSimpan").val();
+    if((jenis == 'add') || (jenis == 'edit')) {
         $("#"+id_modal).on('hidden.bs.modal', function(){
-            $("#name_group_division_add").val('');
+            $("#groupDivisionID").val(null);
+            $("#groupDivisionName").val(null);
         });
-    } else if(id_modal == 'modal_edit_division') {
-        $("#"+id_modal).modal('hide');
     }
 }
 
-function do_save(type)
+function do_save(jenis)
 {
-    if(type == 'save') {
-        var group_division_name = $("#name_group_division_add").val();
+    var sendData    = {
+        "groupDivisionID"   : $("#groupDivisionID").val(),
+        "groupDivisionName" : $("#groupDivisionName").val(),
+    };
+    var type       = "POST";
+    var url         = "/master/groupDivisions/trans/store/dataGroupDivisions/"+jenis;
+    var customMessage   =   Swal.fire({
+                                title   : 'Data Sedang Diproses',
+                            });
+                            Swal.showLoading();
+    showData(url, type, sendData, customMessage)
+        .then((xhr) => {
+            Swal.fire({
+                icon    : xhr.alert.icon,
+                title   : xhr.alert.message.title,
+                text    : xhr.alert.message.text,
+            }).then(function(results){
+                if(results.isConfirmed) {
+                    close_modal('modalForm');
+                    show_table('tableGroupDivision','%');
+                }
+            })
+        })
+        .catch((xhr) => {
+            console.log(xhr.responseJSON);
+        });
+}
+
+function showData(url, type, sendData, customMessage)
+{
+    return new Promise(function(resolve, reject){
         $.ajax({
-            type    : "POST",
+            async   : true,
+            cache   : false,
+            type    : type,
             dataType: "json",
             data    : {
-                "group_division_name"   : group_division_name,
-                "test_input"            : "test_input",
-                "test"                  : "test",
+                _token  : CSRF_TOKEN,
+                sendData: sendData,
             },
-            url     : '/master/groupDivisions/trans/store/dataGroupDivisions',
-            beforeSend  : function() {
-                close_modal('modal_add_division');
-                Swal.fire({
-                    title   : 'Data sedang diproses',
-                });
-                Swal.showLoading();
+            url     : url,
+            beforeSend  : function(){
+                customMessage
             },
-            success     : function(response) {
-                Swal.fire({
-                    icon    : 'success',
-                    title   : response.message,
-                    text    : response.description,
-                }).then((results)   => {
-                    if(results.isConfirmed) {
-                        show_table('table_group_division','%');
-                    }
-                });
+            success : function(xhr) {
+                resolve(xhr);
             },
-            error   : function(xhr)
-            {
+            error   : function(xhr) {
                 Swal.fire({
-                    icon    : 'error',
-                    title   : xhr.status,
+                    icon     : 'error',
                     text    : xhr.statusText,
-                }).then((results)   => {
-                    if(results.isConfirmed) {
-                        show_modal('modal_add_division');
-                        $("#name_group_division_add").val(group_division_name);
-                    }
                 });
+                reject(xhr);
             }
         })
-    } else if(type == 'edit') {
-        var groupDivisionName     = $("#gdName").val();
-        var groupDivisionID       = $("#gdID").val();
-
-        if(groupDivisionName == '') {
-            close_modal('modal_edit_division');
-            Swal.fire({
-                icon    : 'error',
-                title   : 'Terjadi Kesalahan',
-                text    : 'Nama Tidak Boleh Kosong',
-            }).then((results)   => {
-                if(results.isConfirmed) {
-                    show_modal('modal_edit_division', groupDivisionID);
-                    $("#gdName").focus();
-                    $("#gdName").addClass('is-invalid');
-                }
-            })
-        } else {
-            var dataSimpan  = {
-                "group_division_name"   : groupDivisionName,
-                "group_division_id"     : groupDivisionID,
-            };
-            $.ajax({
-                cache   : false,
-                type    : "POST",
-                dataType: "json",
-                data    : {
-                    _token  : CSRF_TOKEN,
-                    dataSimpan  : dataSimpan,
-                },
-                url     : '/master/groupDivisions/trans/store/modalDataGroupDivisions',
-                beforeSend  : function(response) {
-                    Swal.fire({
-                        title   : 'Data Sedang Diproses',
-                    });
-                    Swal.showLoading();
-                },
-                success     : function(xhr) {
-                    Swal.fire({
-                        icon    : xhr.alert.icon,
-                        title   : xhr.alert.message.title,
-                        text    : xhr.alert.message.text,
-                    }).then((results)   => {
-                        if(results.isConfirmed) {
-                            close_modal('modal_edit_division');
-                            show_table('table_group_division','%');
-                        }
-                    });
-                }
-            })
-        }
-    }
+    });
 }

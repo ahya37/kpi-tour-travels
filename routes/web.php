@@ -94,11 +94,11 @@ Route::group(['middleware' => ['auth']], function () {
         // GROUP DIVISIONS
         Route::prefix('groupDivisions')->group(function(){
             Route::get('/', [GroupDivisionController::class, 'index'])->name('groupDivision.index');
-            Route::get('/trans/get/dataGroupDivisions/{cari}', [GroupDivisionController::class, 'tableGroupDivision'])->name('groupDivision.data.tableGroupDivisions');
+            Route::get('/trans/get/dataGroupDivisions', [GroupDivisionController::class, 'tableGroupDivision'])->name('groupDivision.data.tableGroupDivisions');
     
             // TRANS ON MODAL
             // MODAL TRANS ADD
-            Route::post('/trans/store/dataGroupDivisions', [GroupDivisionController::class , 'storeDataGroupDivision'])->name('groupDivision.trans.storeDataGroupDivision');
+            Route::post('/trans/store/dataGroupDivisions/{jenis}', [GroupDivisionController::class , 'storeDataGroupDivision'])->name('groupDivision.trans.storeDataGroupDivision');
             // MODAL TRANS EDIT
             Route::get('/trans/get/modalDataGroupDivisions/{cari}', [GroupDivisionController::class, 'modalGetDataGroupDivisions'])->name('groupDivision.data.modalGroupDivisions');
             Route::post('/trans/store/modalDataGroupDivisions', [GroupDivisionController::class, 'storeDataEditGroupDivisions'])->name('groupDivision.trans.storeDataGroupDivision');
@@ -111,26 +111,29 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/trans/get/tableDataGroupDivision', [SubDivisionController::class, 'getDataTableSubDivision'])->name('subDivision.trans.getTableMaster');
             Route::get('/trans/get/selectDataGroupDivision', [SubDivisionController::class , 'getDataGroupDivision'])->name('subDivision.trans.getDataGroupDivision');
             Route::post('/trans/store/modalDataSubDivision', [SubDivisionController::class, 'saveDataSubDivision'])->name('subDivision.trans.storeDataSubDivision');
-            // MODAL
-            Route::get('/trans/get/modalDataSubDivision', [SubDivisionController::class, 'getDataSubDivision'])->name('subDivision.trans.getDataSubDivision');
-            Route::post('/trans/store/editDataSubDivision', [SubDivisionController::class, 'saveEditDataSubDivision'])->name('subDivision.trans.storeDataSubDivisionEdit');
+            Route::post('/simpanDataSubDivision/{jenis}', [SubDivisionController::class,'simpanDataSubDivision'])->name('subDivision.simpanDataSubDivision');
         });
 
         // EMPLOYEES
         Route::prefix('employees')->group(function(){
             Route::get('/', [EmployeesController::class, 'index'])->name('Employees.index');
-            Route::get('/home', [EmployeesController::class,'index'])->name('Employees.index');
             Route::get('/trans/get/dataGroupDivision/{cari}', [EmployeesController::class, 'getDataDivisionGlobal'])->name('employee.trans.getDataDivisionGlobal');
             Route::post('/trans/post/dataEmployeeNew', [EmployeesController::class, 'saveDataEmployee'])->name('employee.trans.postDataEmployee');
             Route::get('/trans/get/dataTableEmployee', [EmployeesController::class, 'getDataTableEmployee'])->name('employee.trans.getDataTableEmployee');
+            Route::get('/getDataEmployeesDetail', [EmployeesController::class, 'getDataEmployeesDetail'])->name('employee.trans.getDataEmployeesDetail');
         });
 
         Route::prefix('programkerja')->group(function(){
             Route::get('/', [ProgramKerjaController::class,'index'])->name('programKerja.index');
-            Route::get('/tahunan', [ProgramKerjaController::class,'indexTahunan'])->name('programKerja.tahunan.index');
-            Route::post('/tahunan/trans/store/dataProkerTahunan/{jenis}', [ProgramKerjaController::class, 'simpanDataProkerTahunan'])->name('programKerja.tahunan.simpan');
-            Route::get('/tahunan/trans/get/dataProkerTahunan/{uid}', [ProgramKerjaController::class, 'ambilDataProkerTahunan'])->name('programKerja.tahunan.datatable.all');
-            Route::get('/bulanan', [ProgramKerjaController::class,'indexBulanan'])->name('programKerja.bulanan.index');
+            Route::prefix('tahunan')->group(function(){
+                Route::get('/', [ProgramKerjaController::class,'indexTahunan'])->name('programKerja.tahunan.index');
+                Route::post('/trans/store/dataProkerTahunan/{jenis}', [ProgramKerjaController::class, 'simpanDataProkerTahunan'])->name('programKerja.tahunan.simpan');
+                Route::get('/trans/get/listDataProkerTahunan/{uid}', [ProgramKerjaController::class, 'ambilListDataProkerTahunan'])->name('programKerja.tahunan.listDataProkerTahunan');
+                Route::get('/trans/get/getDataProkerTahunanDetail/{uid}', [ProgramKerjaController::class, 'ambilDataProkerTahunanDetail'])->name('programKerja.tahunan.getDataProkerTahunanDetail');
+            });
+            Route::prefix('bulanan')->group(function(){
+                Route::get('/', [ProgramKerjaController::class, 'indexBulanan'])->name('programKerja.bulanan.index');
+            });
             Route::get('/harian', [ProgramKerjaController::class,'indexHarian'])->name('programKerja.harian.index');
             // GLOBAL
             Route::get('/get/data/PIC', [ProgramKerjaController::class, 'getDataPIC'])->name('programKerja.get.data.pic');
