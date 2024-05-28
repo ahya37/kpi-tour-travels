@@ -42,12 +42,42 @@ function showCalendar()
             var jenis       = "edit";
             var value       = sendData;
 
+            console.log(sendData);
+
             showModal(idModal, jenis, value);
         },
         editable: true,
         fixedMirrorParent: document.body,
         dayMaxEvents: true, // allow "more" link when too many events
-        events: [
+        events: function(fetchInfo, successCallback, failureCallback) {
+            var url         = "/master/programkerja/bulanan/getDataAllProkerBulanan";
+            var type        = "GET";
+            var data        = {
+                "cari"      : "%",
+            };
+
+            transData(url, type, data,'')
+                .then(function(xhr){
+                    var tempData    = [];
+                    for(var i = 0; i < xhr.data.length; i++) {
+                        tempData.push({
+                            title   : xhr.data[i]['pkb_title'],
+                            start   : xhr.data[i]['pkb_start_date'], 
+                            end     : null,
+                            allDay  : true,
+                        });
+                    }
+                    successCallback(tempData);
+                })
+                .catch(function(xhr){
+                    var tempData    = [];
+                    tempData.push({
+                        title   : null,
+                        start   : null,
+                    });
+                });
+                
+        }
             // {
             //     title: 'All Day Event',
             //     start: '2023-01-01'
@@ -102,7 +132,7 @@ function showCalendar()
             //     url: 'http://google.com/',
             //     start: '2023-01-28'
             // },
-        ]
+        // ]
     });
 
     calendar.render();
@@ -361,24 +391,47 @@ function do_save(jenis, arg, calendar)
             "prokerBulanan_prokerTahunanID"     : prokerTahunanID,
             "prokerBulanan_groupDivisionID"     : groupDivisionID,
             "prokerBulanan_groupDivisionName"   : groupDivisionName,
-            "prokerBulanan_SubDivisionID"       : subDivisionID,
-            "prokerBulanan_SubDivisionName"     : subDivisionName,
+            "prokerBulanan_subDivisionID"       : subDivisionID,
+            "prokerBulanan_subDivisionName"     : subDivisionName,
             "prokerBulanan_employeeID"          : prokerBulananPIC,
             "prokerBulanan_title"               : prokerBulananTitle,
-            "prokerBulanan_Description"         : prokerBulananDesc,
-            "prokerBulanan_Detail"              : prokerBulananDetail
+            "prokerBulanan_description"         : prokerBulananDesc,
+            "prokerBulanan_detail"              : prokerBulananDetail,
+            "prokerBulanan_startDate"           : arg.startStr,
+            "prokerBulanan_typeTrans"           : jenis,
         };
 
-        
+        var url     = "/master/programkerja/bulanan/postDataProkerBulanan";
+        var type    = "POST";
+        var data    = dataSimpan;
 
-        calendar.addEvent({
-            title   : dataSimpan['prokerBulanan_title'],
-            start   : arg.startStr,
-            end     : arg.endStr,
-            allDay  : arg.allDay,
-            customValue     : dataSimpan,
-        });
-        closeModal('modalForm');
+        transData(url, type, data)
+            .then(function(xhr){
+                Swal.fire({
+                    icon    : xhr.alert.icon,
+                    title   : xhr.alert.message.title,
+                    text    : xhr.alert.message.text,
+                }).then(function(results){
+                    if(results.isConfirmed) {
+                        calendar.addEvent({
+                            title   : dataSimpan['prokerBulanan_title'],
+                            start   : arg.startStr,
+                            end     : arg.endStr,
+                            allDay  : arg.allDay,
+                            customValue     : dataSimpan,
+                        });
+                        closeModal('modalForm');
+                        showCalendar();
+                    }
+                })
+            })
+            .catch(function(xhr){
+                Swal.fire({
+                    icon    : xhr.responseJSON.alert.icon,
+                    title   : xhr.responseJSON.alert.message.title,
+                    text    : xhr.responseJSON.alert.message.text,
+                });
+            });
     }
 }
 

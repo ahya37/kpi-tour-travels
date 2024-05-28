@@ -188,6 +188,27 @@ class ProgramKerjaController extends Controller
         return view('master/programKerja/bulanan/index', $data);
     }
 
+    public function getProkerBulananAll(Request $request)
+    {
+        $getData    = ProgramKerjaService::getProkerBulananAll($request->all()['sendData']['cari']);
+        
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "data"      => []
+            );
+        }
+
+        return Response::json($output);
+    }
+
     public function getProkerTahunan(Request $request)
     {
         $getData    = ProgramKerjaService::doGetProkerTahunan($request->all()['sendData']);
@@ -235,6 +256,36 @@ class ProgramKerjaController extends Controller
 
     public function simpanProkerBulanan(Request $request)
     {
+        $doSimpan   = ProgramKerjaService::doSimpanProkerBulanan($request->all()['sendData']);
+        if($doSimpan['status'] == 'berhasil') {
+            $output     = array(
+                "success"       => true,
+                "status"        => 200,
+                "alert"         => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "message"   => "Berhasil Menyimpan Program Kerja Baru",
+                        "errMsg"    => null,
+                    ],
+                ],
+            );
+        } else if($doSimpan['status'] == 'gagal') {
+            $output     = array(
+                "success"       => gagal,
+                "status"        => 500,
+                "alert"         => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "message"   => "Gagal Menyimpan Program Kerja Baru",
+                        "errMsg"    => null,
+                    ],
+                ],
+            );
+        }
+        
+        return Response::json($output, $output['status']);
     }
 
     // HARIAN

@@ -129,7 +129,7 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Detail Uraian Tugas</label>
-                                <table class="table table-sm table-bordered" id="tableDetailProkerBulanan">
+                                <table class="table table-sm" id="tableDetailProkerBulanan">
                                     <thead>
                                         <tr>
                                             <th class="text-center" style="vertical-align: middle;">Aksi</th>

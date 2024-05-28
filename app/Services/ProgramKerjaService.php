@@ -36,23 +36,6 @@ class ProgramKerjaService
             "
         );
 
-        // $query  = DB::select(
-        //     "
-        //     SELECT 	pt.uid as uid,
-        //             pt.pkt_title as title,
-        //             pt.pkt_description as description,
-        //             pt.pkt_year as periode,
-        //             gd.name as division_group_name,
-        //             (SELECT count(*) FROM proker_tahunan WHERE parent_id = pt.id) AS total_program
-        //     FROM 	proker_tahunan pt
-        //     JOIN group_divisions gd ON pt.division_group_id = gd.id
-        //     WHERE 	pt.uid LIKE '".$uid."'
-        //     AND 	pt.division_group_id LIKE '".$groupDivisionID."'
-        //     AND 	pt.parent_id IS NULL
-        //     ORDER BY pt.created_at DESC
-        //     "
-        // );
-
         return $query;
     }
 
@@ -85,21 +68,7 @@ class ProgramKerjaService
                     "pktd_title"    => $data['prtSub'][$i]['subProkTitle'],
                 );
 
-                // $data_sub   = array(
-                //     "uid"                       => Str::uuid(),
-                //     "parent_id"                 => $idHeader,
-                //     "pkt_title"                 => $data['prtSub'][$i]['subProkTitle'],
-                //     "pkt_year"                  => $data['prtPeriode'],
-                //     "pkt_pic_job_employee_id"   => $data['prtPICEmployeeID'],
-                //     "division_group_id"         => $data['prtGroupDivisionID'],
-                //     "created_by"                => Auth::user()->id,
-                //     "updated_by"                => Auth::user()->id,
-                //     "created_at"                => date('Y-m-d H:i:s'),
-                //     "updated_at"                => date('Y-m-d H:i:s'),
-                // );
-
                 DB::table('proker_tahunan_detail')->insert($data_sub);
-                // DB::table('proker_tahunan')->insert($data_sub);
             }
         } else if($jenis == 'edit') {
             // UPDATE DULU HEADER
@@ -125,9 +94,6 @@ class ProgramKerjaService
             DB::table('proker_tahunan_detail')
                 ->where('pkt_id', $query_get_data_id)
                 ->delete();
-            // DB::table('proker_tahunan')
-            //     ->where('parent_id', $query_get_data_id)
-            //     ->delete();
 
             // REINSERT DETAIL
             // DIGUNAKAN KETIKA DATA PADA ARRAY TERDAPAT VALUE YANG NULL
@@ -148,21 +114,8 @@ class ProgramKerjaService
                     "pktd_seq"      => $dataDetail[$j]['subProkSeq'],
                     "pktd_title"    => $dataDetail[$j]['subProkTitle'],
                 );
-                // $data_detail    = array(
-                //     "uid"                       => Str::uuid(),
-                //     "parent_id"                 => $query_get_data_id,
-                //     "pkt_title"                 => $dataDetail[$j]['subProkTitle'],
-                //     "pkt_year"                  => $data['prtPeriode'],
-                //     "pkt_pic_job_employee_id"   => $data['prtPICEmployeeID'],
-                //     "division_group_id"         => $data['prtGroupDivisionID'],
-                //     "created_by"                => Auth::user()->id,
-                //     "updated_by"                => Auth::user()->id,
-                //     "created_at"                => date('Y-m-d H:i:s'),
-                //     "updated_at"                => date('Y-m-d H:i:s'),
-                // );
 
                 DB::table('proker_tahunan_detail')->insert($data_detail);
-                // DB::table('proker_tahunan')->insert($data_detail);
             }
         }
 
@@ -207,16 +160,6 @@ class ProgramKerjaService
             "
         );
 
-        // QUERY PENGAMBILAN DATA LAMA
-        // $get_detail     = DB::select(
-        //     "
-        //     SELECT 	pt.pkt_title as detail_title
-        //     FROM 	proker_tahunan pt
-        //     WHERE 	pt.parent_id = (SELECT id FROM proker_tahunan WHERE uid = 'cee5315b-9c3d-4e53-bf0f-3b7c24b55e08')
-        //     ORDER BY pt.id ASC
-        //     "
-        // );
-
         $output     = array(
             "header"    => !empty($get_header) ? $get_header : null,
             "detail"    => !empty($get_detail) ? $get_detail : [],
@@ -225,6 +168,20 @@ class ProgramKerjaService
     }
 
     // BULANAN
+    public static function getProkerBulananAll($cari)
+    {
+        $query  = DB::select(
+            "
+            SELECT  *
+            FROM    proker_bulanan
+            WHERE   id LIKE '%$cari%'
+            ORDER BY pkb_start_date ASC
+            "
+        );
+
+        return $query;
+    }
+
     public static function doGetProkerTahunan($data)
     {
         $prokerID   = $data['prokerID'];
@@ -264,5 +221,45 @@ class ProgramKerjaService
         );
 
         return $query;
+    }
+    
+    public static function doSimpanProkerBulanan($dataProkerBulanan)
+    {
+        DB::beginTransaction();
+        
+        if($dataProkerBulanan['prokerBulanan_typeTrans'] == 'add') {
+            $data_insert    = array(
+                "uuid"                  => Str::uuid(),
+                "pkb_title"             => $dataProkerBulanan['prokerBulanan_title'],
+                "pkb_start_date"        => date('Y-m-d', strtotime($dataProkerBulanan['prokerBulanan_startDate'])),
+                "pkb_description"       => $dataProkerBulanan['prokerBulanan_description'],
+                "pkb_pkt_id"            => $dataProkerBulanan['prokerBulanan_prokerTahunanID'],
+                "pkb_employee_id"       => $dataProkerBulanan['prokerBulanan_employeeID'],
+                "created_by"            => Auth::user()->id,
+                "updated_by"            => Auth::user()->id,
+                "created_at"            => date('Y-m-d H:i:s'),
+                "updated_at"            => date('Y-m-d H:i:s'),
+            );
+
+            DB::table('proker_bulanan')
+                ->insert($data_insert);
+        }
+
+        try {
+            DB::commit();
+            $output     = array(
+                "status"    => "berhasil",
+                "errMsg"    => null
+            );
+        } catch(\Exception $e) {
+            DB::rollback();
+            Log::channel('daily')->error($e->getMessage());
+            $output     = array(
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            );
+        }
+
+        return $output;
     }
 }
