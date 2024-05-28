@@ -118,6 +118,9 @@ Route::group(['middleware' => ['auth']], function () {
             });
             Route::prefix('bulanan')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'indexBulanan'])->name('programKerja.bulanan.index');
+                Route::get('/getDataProkerTahunan', [ProgramKerjaController::class, 'getProkerTahunan'])->name('programKerja.bulanan.dataProkerTahunan');
+                Route::get('/getDataPICByGroupDivisionID',[ProgramKerjaController::class,'getDataPICbyGroupDivisionID'])->name('programKerja.bulanan.dataPIC');
+                Route::post('/postDataProkerBulanan', [ProgramKerjaController::class,'simpanProkerBulanan'])->name('programKerja.bulanan.simpanData');
             });
             Route::get('/harian', [ProgramKerjaController::class,'indexHarian'])->name('programKerja.harian.index');
             // GLOBAL

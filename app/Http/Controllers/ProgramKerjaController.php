@@ -188,6 +188,55 @@ class ProgramKerjaController extends Controller
         return view('master/programKerja/bulanan/index', $data);
     }
 
+    public function getProkerTahunan(Request $request)
+    {
+        $getData    = ProgramKerjaService::doGetProkerTahunan($request->all()['sendData']);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data Proker Tahunan",
+                "data"      => $getData
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Terjadi Kesalahan",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function getDataPICbyGroupDivisionID(Request $request)
+    {
+        $getData    = ProgramKerjaService::getDataPIC($request->all()['sendData']['GroupDivisionID']);
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data PIC",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data PIC",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function simpanProkerBulanan(Request $request)
+    {
+    }
+
     // HARIAN
     public function indexHarian()
     {

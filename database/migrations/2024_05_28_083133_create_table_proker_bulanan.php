@@ -13,11 +13,14 @@ return new class extends Migration
     {
         Schema::create('proker_bulanan', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uid')->unique();
+            $table->uuid('uid', 30)->unique();
+            $table->string('pkb_title', 255);
+            $table->longText('pkb_description')->nullable();
             $table->date('date');
-            $table->string('created_by',30);
-            $table->string('updated_by',30);
-            $table->unsignedBigInteger('proker_tahunan_id');
+            $table->string('pkb_pkt_id', 30);
+            $table->string('pkb_employee_id', 30);
+            $table->string('created_by', 30);
+            $table->string('updated_by', 30);
             $table->timestamps();
         });
     }
