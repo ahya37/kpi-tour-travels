@@ -45,6 +45,10 @@
         padding-bottom: 0px;
         margin-top: -6px;
     }
+
+    .ibox-title {
+        padding: 15px;
+    }
     </style>
 @endpush
 
@@ -62,7 +66,11 @@
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
-                        
+                        <div class="row text-right">
+                            <div class="col-sm-12">
+                                <button type="button" class="btn btn-secondary" title="Filter Tanggal"><i class="fa fa-filter"></i></button>
+                            </div>
+                        </div>
                     </div>
                     <div class="ibox-content">
                         <div id="calendar"></div>
