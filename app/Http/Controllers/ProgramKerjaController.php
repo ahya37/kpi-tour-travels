@@ -182,7 +182,7 @@ class ProgramKerjaController extends Controller
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'Dashboard Program Kerja Bulanan'
+            'sub_title' => 'Program Kerja Bulanan'
         ];
 
         return view('master/programKerja/bulanan/index', $data);
