@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\GroupDivision;
 use App\Models\ProkerBulanan;
+use Illuminate\Support\Facades\Auth;
 
 class ActivityController extends Controller
 {
@@ -18,21 +19,25 @@ class ActivityController extends Controller
 
     public function loadModalFormDailyActivities()
     {
-        $groupDivisions = GroupDivision::select('id', 'name')->get();
-
         #get data proker bulanan berdasarkan divisi
         #divisi yg di get berdasarkan user login di sebagai divisi
-        $proker_bulanan = ProkerBulanan::select('id','pkb_title')->get();
+        $user = Auth::user()->id;
+        $proker_bulanan = ProkerBulanan::getProkerBulananByDivisiUser($user);
+
+        #get data uraian tugas bulanan berdasarkan divisi user login
+        
 
         $modalContent = '<form id="form" method="POST" enctype="multipart/form-data">
                             <div class="form-group row">
                             <input type="hidden" name="_token" value="' . csrf_token() . '">
-                            <label class="col-sm-2 col-form-label">Divisi</label>
+                            <label class="col-sm-2 col-form-label">Klasifikasi</label>
                                 <div class="col-sm-10">
-                                <select class="form-control select2" name="month" id="month">';
+                                <select class="form-control select2" name="month" id="month"> 
+                                <option value="">-Pilih Klasifikasi-</option>
+                                ';
 
-        foreach ($groupDivisions as $key => $value) {
-            $modalContent = $modalContent . '<option value="' . $value->id . '">' . $value->name . '</option>';
+        foreach ($proker_bulanan as $key => $value) {
+            $modalContent = $modalContent . '<option value="' . $value->id . '">' . $value->pkt_title . '</option>';
         }
 
         $modalContent = $modalContent . '</select>
