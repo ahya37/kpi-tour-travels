@@ -155,7 +155,7 @@ class ProgramKerjaService
                     b.pktd_title as detail_title
             FROM 	proker_tahunan a
             JOIN proker_tahunan_detail b ON a.id = b.pkt_id
-            WHERE 	a.uid = '".$id."'
+            WHERE 	a.uid = '$id'
             ORDER BY CAST(b.pktd_seq AS SIGNED) ASC
             "
         );
@@ -176,14 +176,15 @@ class ProgramKerjaService
                     a.pkb_title,
                     a.pkb_description,
                     a.pkb_start_date,
-                    a.pkb_pkt_id,
+                    SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_id,
+                    SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
                     d.id as pkb_gd_id,
                     d.name as pkb_gd_name,
                     e.id as pkb_sd_id,
                     e.name as pkb_sd_name,
                     a.pkb_employee_id
             FROM 	proker_bulanan a
-            JOIN 	proker_tahunan b ON a.pkb_pkt_id = b.uid
+            JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
             JOIN 	job_employees c ON b.pkt_pic_job_employee_id = c.employee_id
             JOIN 	group_divisions d ON c.group_division_id = d.id
             JOIN 	sub_divisions e ON c.sub_division_id = e.id
@@ -270,7 +271,7 @@ class ProgramKerjaService
                 "pkb_title"             => $dataProkerBulanan['prokerBulanan_title'],
                 "pkb_start_date"        => date('Y-m-d', strtotime($dataProkerBulanan['prokerBulanan_startDate'])),
                 "pkb_description"       => $dataProkerBulanan['prokerBulanan_description'],
-                "pkb_pkt_id"            => $dataProkerBulanan['prokerBulanan_prokerTahunanID'],
+                "pkb_pkt_id"            => !empty($dataProkerBulanan['prokerBulanan_subProkerTahunan']) ? $dataProkerBulanan['prokerBulanan_prokerTahunanID']." | ".$dataProkerBulanan['prokerBulanan_subProkerTahunan'] : $dataProkerBulanan['prokerBulanan_prokerTahunanID'],
                 "pkb_employee_id"       => $dataProkerBulanan['prokerBulanan_employeeID'],
                 "created_by"            => Auth::user()->id,
                 "updated_by"            => Auth::user()->id,
@@ -306,6 +307,7 @@ class ProgramKerjaService
             );
 
             $data_header_update = array(
+                "pkb_pkt_id"            => $dataProkerBulanan['prokerBulanan_prokerTahunanID']." | ".$dataProkerBulanan['prokerBulanan_subProkerTahunan'],
                 "pkb_title"             => $dataProkerBulanan['prokerBulanan_title'],
                 "pkb_description"       => $dataProkerBulanan['prokerBulanan_description'],
                 "pkb_employee_id"       => $dataProkerBulanan['prokerBulanan_employeeID'],

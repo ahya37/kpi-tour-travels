@@ -235,6 +235,29 @@ class ProgramKerjaController extends Controller
         return Response::json($output, $output['status']);
     }
 
+    public function getSubProkerTahunan(Request $request)
+    {
+        $getData    = ProgramKerjaService::getDataProkerTahunanDetail($request->all()['sendData']['prokerTahunan_ID']);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Load Data",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Tidak ada data yang dimuat",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     public function getDataPICbyGroupDivisionID(Request $request)
     {
         $getData    = ProgramKerjaService::getDataPIC($request->all()['sendData']['GroupDivisionID']);
