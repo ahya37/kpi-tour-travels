@@ -87,6 +87,14 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-row mb-2" style="display:none;">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Proker Bulanan ID</label>
+                                <input type="text" class="form-control form-control-sm" name="prokerBulananID" id="prokerBulananID" placeholder="Proker Bulanan" readonly>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-row mb-2">
                         <div class="col-md-6">
                             <div class="form-group">

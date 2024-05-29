@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('proker_bulanan', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->unique();
+            $table->uuid('uuid')->default(DB::raw('(UUID())'));
             $table->string('pkb_title', 100);
             $table->date('pkb_start_date');
             $table->date('pkb_end_date')->nullable();

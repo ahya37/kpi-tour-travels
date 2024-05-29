@@ -196,7 +196,10 @@ class ProgramKerjaController extends Controller
             $output     = array(
                 "success"   => true,
                 "status"    => 200,
-                "data"      => $getData,
+                "data"      => [
+                    "header"    => $getData['header'],
+                    "detail"    => $getData['detail'],
+                ],
             );
         } else {
             $output     = array(
@@ -265,7 +268,7 @@ class ProgramKerjaController extends Controller
                     "icon"      => "success",
                     "message"   => [
                         "title"     => "Berhasil",
-                        "message"   => "Berhasil Menyimpan Program Kerja Baru",
+                        "text"      => "Berhasil Menyimpan Program Kerja Baru",
                         "errMsg"    => null,
                     ],
                 ],
@@ -278,7 +281,7 @@ class ProgramKerjaController extends Controller
                     "icon"      => "success",
                     "message"   => [
                         "title"     => "Terjadi Kesalahan",
-                        "message"   => "Gagal Menyimpan Program Kerja Baru",
+                        "text"      => "Gagal Menyimpan Program Kerja Baru",
                         "errMsg"    => null,
                     ],
                 ],
