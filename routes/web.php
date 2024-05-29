@@ -117,7 +117,7 @@ Route::group(['middleware' => ['auth']], function () {
         // EMPLOYEES
         Route::prefix('employees')->group(function(){
             Route::get('/', [EmployeesController::class, 'index'])->name('Employees.index');
-            Route::get('/trans/get/dataGroupDivision/{cari}', [EmployeesController::class, 'getDataDivisionGlobal'])->name('employee.trans.getDataDivisionGlobal');
+            Route::get('/trans/get/dataGroupDivision', [EmployeesController::class, 'getDataDivisionGlobal'])->name('employee.trans.getDataDivisionGlobal');
             Route::post('/trans/post/dataEmployeeNew', [EmployeesController::class, 'saveDataEmployee'])->name('employee.trans.postDataEmployee');
             Route::get('/trans/get/dataTableEmployee', [EmployeesController::class, 'getDataTableEmployee'])->name('employee.trans.getDataTableEmployee');
             Route::get('/getDataEmployeesDetail', [EmployeesController::class, 'getDataEmployeesDetail'])->name('employee.trans.getDataEmployeesDetail');
