@@ -40,6 +40,11 @@
     label {
         font-weight: bold;
     }
+
+    .dataTables_wrapper {
+        padding-bottom: 0px;
+        margin-top: -6px;
+    }
     </style>
 @endpush
 
@@ -67,7 +72,7 @@
         </div>
     </div>
     <div class="modal fade" id="modalForm">
-        <div class="modal-dialog modal-lg modal-centered">
+        <div class="modal-dialog modal-xl modal-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title" id="modalTitle"></h4>
@@ -77,8 +82,16 @@
                     <div class="form-row mb-2">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label>Proram Kerja Tahunan</label>
-                                <select name="prokerTahunanID" id="prokerTahunanID" class="form-control form-control-sm select2"></select>
+                                <label>Program Kerja Tahunan</label>
+                                <select name="prokerTahunanID" id="prokerTahunanID" onchange="show_select_detail(this.id, this.value)" style="width:100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2" style="display:none;">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Proker Bulanan ID</label>
+                                <input type="text" class="form-control form-control-sm" name="prokerBulananID" id="prokerBulananID" placeholder="Proker Bulanan" readonly>
                             </div>
                         </div>
                     </div>
@@ -86,11 +99,17 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Group Division</label>
-                                <input type="hidden" class="form-control form-control-sm" id="prokerTahunanGroupDivisionID" name="prokerTahunanGroupDivisionID">
-                                <input type="text" class="form-control form-control-sm" id="prokerTahunanGroupDivisionName" name="prokerTahunanGroupDivisionName" readonly placeholder="Group Division">
+                                <input type="hidden" class="form-control" id="prokerTahunanGroupDivisionID" name="prokerTahunanGroupDivisionID">
+                                <input type="text" class="form-control form-control-sm" id="prokerTahunanGroupDivisionName" name="prokerTahunanGroupDivisionName" readonly placeholder="Group Division" style="height: 37.5px;">
                             </div>
                         </div>
                         <div class="col-md-6">
+                            <div class="form-group">
+                                <label>PIC / Penanggung Jawab</label>
+                                <select name="prokerBulananPIC" id="prokerBulananPIC" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                        <div class="col-md-6" style="display: none;">
                             <div class="form-group">
                                 <label>Sub Division</label>
                                 <input type="hidden" class="form-control form-control-sm" id="prokerTahunanSubDivisionID" name="prokerTahunanSubDivisionID">
@@ -101,9 +120,40 @@
                     <div class="form-row mb-2">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label>Judul Program Kerja</label>
-                                <input type="text" name="prokerBulananTitle" id="prokerBulananTitle" class="form-control form-control-sm" placeholder="Judul Program">
+                                <label>Uraian Pekerjaan</label>
+                                <input type="text" name="prokerBulananTitle" id="prokerBulananTitle" class="form-control form-control-sm" placeholder="Uraian Pekerjaan" style="height: 37.5px;" autocomplete="off">
                             </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Deskripsi</label>
+                                <textarea name="prokerBulananDesc" id="prokerBulananDesc" class="form-control form-control-sm" rows="4" placeholder="Tulis keterangan jika ada.."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Detail Uraian Tugas</label>
+                                <table class="table table-sm" id="tableDetailProkerBulanan">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="vertical-align: middle;">Aksi</th>
+                                            <th class="text-center" style="vertical-align: middle;">Jenis Pekerjaan</th>
+                                            <th class="text-center" style="vertical-align: middle;">Target / Sasaran</th>
+                                            <th class="text-center" style="vertical-align: middle;">Hasil</th>
+                                            <th class="text-center" style="vertical-align: middle;">Evaluasi</th>
+                                            <th class="text-center" style="vertical-align: middle;">Keterangan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-12 text-right">
+                            <button class="btn btn-primary" id="btnTambahBaris" onclick="tambah_baris('tableDetailProkerBulanan','')" value="1">Tambah Baris</button>
                         </div>
                     </div>
                 </div>
