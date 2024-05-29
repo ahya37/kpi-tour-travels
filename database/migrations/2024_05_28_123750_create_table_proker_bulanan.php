@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('pkb_start_date');
             $table->date('pkb_end_date')->nullable();
             $table->longText('pkb_description')->nullable();
-            $table->string('pkb_pkt_id', 36);
+            $table->string('pkb_pkt_id', 45);
             $table->string('pkb_employee_id', 30);
             $table->string('created_by', 30);
             $table->string('updated_by', 30);

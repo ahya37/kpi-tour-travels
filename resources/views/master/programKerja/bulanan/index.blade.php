@@ -87,6 +87,14 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-row mb-2">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Sub-Program Kerja Tahunan</label>
+                                <select name="subProkerTahunanSeq" id="subProkerTahunanSeq" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-row mb-2" style="display:none;">
                         <div class="col-md-12">
                             <div class="form-group">
@@ -98,9 +106,9 @@
                     <div class="form-row mb-2">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Group Division</label>
+                                <label>Grup Divisi</label>
                                 <input type="hidden" class="form-control" id="prokerTahunanGroupDivisionID" name="prokerTahunanGroupDivisionID">
-                                <input type="text" class="form-control form-control-sm" id="prokerTahunanGroupDivisionName" name="prokerTahunanGroupDivisionName" readonly placeholder="Group Division" style="height: 37.5px;">
+                                <input type="text" class="form-control form-control-sm" id="prokerTahunanGroupDivisionName" name="prokerTahunanGroupDivisionName" readonly placeholder="Grup Divisi" style="height: 37.5px;">
                             </div>
                         </div>
                         <div class="col-md-6">

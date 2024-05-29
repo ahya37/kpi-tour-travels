@@ -1,21 +1,23 @@
 $(document).ready(function(){
     console.log('test');
-    showCalendar();
+    var current_date    = moment().tz('Asia/Jakarta').format('YYYY-MM-DD');
+    showCalendar(current_date);
 });
 
-function showCalendar()
+function showCalendar(tanggalCari)
 {
     var idCalendar  = document.getElementById('calendar');
 
     var calendar    = new FullCalendar.Calendar(idCalendar, {
         themeSystem: 'bootstrap',
         headerToolbar: {
-            left    : 'prev,next today',
+            left    : 'prev next',
             center  : 'title',
             right   : 'dayGridMonth',
         },
-        initialDate: moment().tz('Asia/Jakarta').format('YYYY-MM-DD'), // GET CURRENT DATE
-        navLinks: true, // can click day/week names to navigate views
+        locale  : 'id',
+        initialDate     : tanggalCari,
+        navLinks: false, // can click day/week names to navigate views
         selectable: true,
         selectMirror: true,
         contentHeight: 600,
@@ -77,71 +79,10 @@ function showCalendar()
                 });
                 
         }
-            // {
-            //     title: 'All Day Event',
-            //     start: '2023-01-01'
-            // },
-            // {
-            //     title: 'Long Event',
-            //     start: '2023-01-07',
-            //     end: '2023-01-10'
-            // },
-            // {
-            //     groupId: 999,
-            //     title: 'Repeating Event',
-            //     start: '2023-01-09T16:00:00'
-            // },
-            // {
-            //     groupId: 999,
-            //     title: 'Repeating Event',
-            //     start: '2023-01-16T16:00:00'
-            // },
-            // {
-            //     title: 'Conference',
-            //     start: '2023-01-11',
-            //     end: '2023-01-13'
-            // },
-            // {
-            //     title: 'Meeting',
-            //     start: '2023-01-12T10:30:00',
-            //     end: '2023-01-12T12:30:00'
-            // },
-            // {
-            //     title: 'Lunch',
-            //     start: '2023-01-12T12:00:00'
-            // },
-            // {
-            //     title: 'Meeting',
-            //     start: '2023-01-12T14:30:00'
-            // },
-            // {
-            //     title: 'Happy Hour',
-            //     start: '2023-01-12T17:30:00'
-            // },
-            // {
-            //     title: 'Dinner',
-            //     start: '2023-01-12T20:00:00'
-            // },
-            // {
-            //     title: 'Birthday Party',
-            //     start: '2023-01-13T07:00:00'
-            // },
-            // {
-            //     title: 'Click for Google',
-            //     url: 'http://google.com/',
-            //     start: '2023-01-28'
-            // },
-        // ]
     });
 
     calendar.render();
-    // calendar.on('select', handleEvent);
 }
-
-// function handleEvent(info)
-// {
-//     console.log(info);
-// }
 
 function showModal(idModal, jenis, value)
 {
@@ -151,6 +92,7 @@ function showModal(idModal, jenis, value)
     $("#btnSimpan").val(jenis);
 
     if(jenis == 'add') {
+        $("#prokerTahunanID").prop('disabled',false);
         $("#"+idModal).on('shown.bs.modal', function(){
             $("#prokerBulananTitle").focus();
         });
@@ -158,14 +100,13 @@ function showModal(idModal, jenis, value)
         
         show_select('prokerTahunanID','%','');
         show_select('prokerBulananPIC','','');
+        show_select('subProkerTahunanSeq','','');
         tambah_baris('tableDetailProkerBulanan','');
 
         var title   = "Tambah Uraian Pekerjaan Tgl. "+moment(value.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY');
         $("#modalTitle").html(title);
     } else if(jenis == 'edit') {
-        $("#"+idModal).on('shown.bs.modal', function(){
-            $("#prokerTahunanID").prop('disabled',true);
-        });
+        $("#prokerTahunanID").prop('disabled',true);
         
         var url     = "/master/programkerja/bulanan/getDataAllProkerBulanan";
         var type    = "GET";
@@ -186,6 +127,7 @@ function showModal(idModal, jenis, value)
 
                 show_select('prokerTahunanID','%', resultData['pkb_pkt_id']);
                 show_select('prokerBulananPIC', resultData['pkb_gd_id'], resultData['pkb_employee_id']);
+                show_select('subProkerTahunanSeq',resultData['pkb_pkt_id'], resultData['pkb_pkt_id_seq']);
                 
                 if(xhr.data.detail.length > 0) {
                     for(var  i = 0; i < xhr.data.detail.length; i++) {
@@ -198,6 +140,8 @@ function showModal(idModal, jenis, value)
             .catch(function(xhr){
                 console.log(xhr);
             })
+        var title   = "Preview Uraian Pekerjaan Tgl. "+moment(value.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY');
+        $("#modalTitle").html(title);
     }
 }
 
@@ -211,7 +155,6 @@ function closeModal(idModal) {
         $("#btnSimpan").val(null);
         $("#prokerBulananID").val(null);
         $("#btnTambahBaris").val(1);
-        $("#prokerTahunanID").prop('disabled', false);
     });
 }
 
@@ -278,6 +221,32 @@ function show_select(idSelect, valueCari, valueSelect)
         $("#"+idSelect).on('select2:select', function(){
             $("#prokerBulananTitle").focus();
         })
+    } else if(idSelect == 'subProkerTahunanSeq') {
+        var html    = "<option selected disabled>Sub-Program Kerja Tahunan</option>";
+        var url     = "/master/programkerja/bulanan/getDataSubProkerTahunan";
+        var type    = "GET";
+        var data    = {
+            "prokerTahunan_ID"  : valueCari,
+        };
+        var isAsync = false;
+
+        if(valueCari != '') {
+            transData(url, type, data, '', isAsync)
+            .then((xhr) => {
+                $.each(xhr.data['detail'], function(i,item){
+                    html    += "<option value='"+ item['detail_seq'] +"'>" + item['detail_title'] + "</option>";
+                })
+                $("#"+idSelect).html(html);
+                if(valueSelect != '') {
+                    $("#"+idSelect).val(valueSelect).trigger('change');
+                }
+            })
+            .catch((xhr) => {
+                console.log(xhr);
+                $("#"+idSelect).html(html);
+            })
+        }
+        $("#"+idSelect).html(html);
     }
 }
 
@@ -301,6 +270,8 @@ function show_select_detail(idSelect, valueCari) {
             .catch(function(xhr){
                 console.log(xhr);
             });
+
+        show_select('subProkerTahunanSeq', valueCari, '');
     }
 }
 
@@ -379,6 +350,7 @@ function do_save(jenis, arg, calendar)
 {
     var prokerBulananID     = $("#prokerBulananID").val();
     var prokerTahunanID     = $("#prokerTahunanID").val();
+    var prokerSubTahunanID  = $("#subProkerTahunanSeq").val();
     var groupDivisionID     = $("#prokerTahunanGroupDivisionID").val();
     var groupDivisionName   = $("#prokerTahunanGroupDivisionName").val();
     var subDivisionID       = $("#prokerTahunanSubDivisionID").val();
@@ -402,6 +374,7 @@ function do_save(jenis, arg, calendar)
     var dataSimpan  = {
         "prokerBulanan_ID"                  : prokerBulananID,
         "prokerBulanan_prokerTahunanID"     : prokerTahunanID,
+        "prokerBulanan_subProkerTahunan"    : prokerSubTahunanID,
         "prokerBulanan_groupDivisionID"     : groupDivisionID,
         "prokerBulanan_groupDivisionName"   : groupDivisionName,
         "prokerBulanan_subDivisionID"       : subDivisionID,
@@ -414,42 +387,85 @@ function do_save(jenis, arg, calendar)
         "prokerBulanan_detail"              : prokerBulananDetail,
     };
 
-    var url     = "/master/programkerja/bulanan/postDataProkerBulanan";
-    var type    = "POST";
-    var data    = dataSimpan;
-    var message =   Swal.fire({
-                        title   : 'Data Sedang Diproses',
-                    });
-                    Swal.showLoading();
-
-    transData(url, type, data, message, true)
-        .then(function(xhr){
-            console.log(xhr);
-            Swal.fire({
-                icon    : xhr.alert.icon,
-                title   : xhr.alert.message.title,
-                text    : xhr.alert.message.text,
-            }).then(function(results){
-                if(results.isConfirmed) {
-                    calendar.addEvent({
-                        title   : dataSimpan['prokerBulanan_title'],
-                        start   : arg.startStr,
-                        end     : arg.endStr,
-                        allDay  : arg.allDay,
-                        customValue     : dataSimpan,
-                    });
-                    closeModal('modalForm');
-                    showCalendar();
-                }
-            })
-        })
-        .catch(function(xhr){
-            Swal.fire({
-                icon    : xhr.responseJSON.alert.icon,
-                title   : xhr.responseJSON.alert.message.title,
-                text    : xhr.responseJSON.alert.message.text,
-            });
+    // CREATE VALIDATE
+    if(prokerTahunanID == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Program Kerja Tahunan Harus Dipilih',
+        }).then((results)   => {
+            if(results.isConfirmed) {
+                $("#prokerTahunanID").select2('open');
+            }
         });
+    } else if(prokerSubTahunanID == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Sub-Program Kerta Tahunan Harus Dipilih',
+        }).then((results)   => {
+            if(results.isConfirmed) {
+                $("#subProkerTahunanSeq").select2('open');
+            }
+        })
+    } else if(prokerBulananPIC == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'PIC / Penanggung Jawab Harus Dipilih',
+        }).then((results)   => {
+            if(results.isConfirmed) {
+                $("#prokerBulananPIC").select2('open');
+            }
+        })
+    } else if(prokerBulananTitle == '') {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Uraian Pekerjaan Tidak Boleh Kosong',
+        }).then((results)   => {
+            if(results.isConfirmed) {
+                $("#prokerBulananTitle").focus();
+            }
+        })
+    } else {
+        var url     = "/master/programkerja/bulanan/postDataProkerBulanan";
+        var type    = "POST";
+        var data    = dataSimpan;
+        var message =   Swal.fire({
+                            title   : 'Data Sedang Diproses',
+                        });
+                        Swal.showLoading();
+
+        transData(url, type, data, message, true)
+            .then(function(xhr){
+                console.log(xhr);
+                Swal.fire({
+                    icon    : xhr.alert.icon,
+                    title   : xhr.alert.message.title,
+                    text    : xhr.alert.message.text,
+                }).then(function(results){
+                    if(results.isConfirmed) {
+                        calendar.addEvent({
+                            title   : dataSimpan['prokerBulanan_title'],
+                            start   : arg.startStr,
+                            end     : arg.endStr,
+                            allDay  : arg.allDay,
+                            customValue     : dataSimpan,
+                        });
+                        closeModal('modalForm');
+                        showCalendar();
+                    }
+                })
+            })
+            .catch(function(xhr){
+                Swal.fire({
+                    icon    : xhr.responseJSON.alert.icon,
+                    title   : xhr.responseJSON.alert.message.title,
+                    text    : xhr.responseJSON.alert.message.text,
+                });
+            });
+    }
 }
 
 function transData(url, type, data, customBeforeSend, isAsync)
