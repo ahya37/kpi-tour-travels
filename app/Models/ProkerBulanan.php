@@ -11,4 +11,9 @@ class ProkerBulanan extends Model
 
     protected $table = 'proker_bulanan';
 	protected $guarded = [];
+
+    public static function getProkerBulananByDivisiUser()
+    {
+        
+    }
 }

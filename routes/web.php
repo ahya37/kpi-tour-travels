@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MarketingController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\SubDivisionController;
 use App\Http\Controllers\WorkPlanController;
 use App\Http\Controllers\ProgramKerjaController;
 use App\Http\Controllers\BaseController;
+use App\Http\Controllers\DailyActivityController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -147,5 +149,10 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/trans/get/dataRoles', [EmployeesController::class, 'getDataRoles'])->name('master.data.roles');
             Route::get('/trans/get/groupDivision', [BaseController::class, 'getGroupDivision'])->name('master.data.groupDivision');
         });
+    });
+
+    Route::prefix('activities')->controller(ActivityController::class)->group(function(){
+        Route::get('/daily','daily')->name('aktivitas.daily.index');
+        Route::get('modal/create','loadModalFormDailyActivities');
     });
 });
