@@ -125,6 +125,9 @@ function showModal(idModal, jenis, value)
                 $("#prokerBulananTitle").val(resultData['pkb_title']);
                 $("#prokerBulananDesc").val(resultData['pkb_description']);
 
+                var title   = "Preview Uraian Pekerjaan Tgl. "+moment(resultData['pkb_start_date'],'YYYY-MM-DD').format('DD/MM/YYYY');
+                $("#modalTitle").html(title);
+
                 show_select('prokerTahunanID','%', resultData['pkb_pkt_id']);
                 show_select('prokerBulananPIC', resultData['pkb_gd_id'], resultData['pkb_employee_id']);
                 show_select('subProkerTahunanSeq',resultData['pkb_pkt_id'], resultData['pkb_pkt_id_seq']);
@@ -140,8 +143,6 @@ function showModal(idModal, jenis, value)
             .catch(function(xhr){
                 console.log(xhr);
             })
-        var title   = "Preview Uraian Pekerjaan Tgl. "+moment(value.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY');
-        $("#modalTitle").html(title);
     }
 }
 
