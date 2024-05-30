@@ -144,6 +144,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::prefix('harian')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('programKerja.harian.index');
                 Route::post('/fileUpload', [ProgramKerjaController::class, 'testUpload'])->name('programKerja.harian.upload');
+                Route::post('/deleteUpload', [ProgramKerjaController::class, 'deleteUpload'])->name('programKerja.harian.deleteUpload');
                 Route::get('/cariDataProkerBulanan', [ProgramKerjaController::class,'dataProkerBulanan'])->name('programKerja.harian.dataProkerBulanan');
             });
             Route::get('/harian', [ProgramKerjaController::class,'indexHarian'])->name('programKerja.harian.index');

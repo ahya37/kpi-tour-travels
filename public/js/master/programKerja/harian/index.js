@@ -15,6 +15,56 @@ function getURL()
     return window.location.pathname;
 }
 
+var penampung       = [];
+var uploadSize      = 25; // megabyte
+var jenisFile       = ".jpg, .jpeg, .png, .docx, .doc, .xls, .xlsx, .pdf"; 
+var showDropzone    = new Dropzone("#myDropzone", {
+    url             : getURL() + "/fileUpload",
+    headers         : {
+        "X-CSRF-TOKEN"  : CSRF_TOKEN,
+    },
+    beforeSend  : function() {
+        Swal.fire({
+            title : 'Data Sedang Diunggah',
+        });
+        Swal.showLoading();
+    },
+    addRemoveLinks  : true,
+    maxFileSize     : uploadSize,
+    parallelUploads : 5,
+    acceptedFiles   : jenisFile,
+    dictDefaultMessage  : "Tarik dan Lepaskan file disini atau klik untuk mencari data yang akan diunggah",
+    dictFileTooBig      : "Ukuran file melebihi batas maksimal unaggah. Batas maksimal ukuran untuk unggh adalah "+uploadSize+"MegaByte",
+    init            : function() {
+        var dropzone    = this;
+        this.on("success", function(file, response){
+            penampung.push({"originalName":response['originalName'], "systemName":response['systeName'], "path":response['path']});
+            // penampung.push(response['originalName']);
+        });
+
+        this.on('removedfile', function(file){
+            // var index   = penampung.indexOf(file.name);
+            for(var i = 0; i < penampung.length; i++) {
+                if(penampung[i].originalName === file.name) {
+                    var url     = getURL() + "/deleteUpload";
+                    var data    = {
+                        "path_files"    : penampung[i].path,
+                    };
+                    var type    = "POST";
+                    transData(url, type, data, '','')
+                        .then(function(xhr){
+                            penampung.splice(i, 1);
+                        })
+                        .catch(function(xhr){
+                            console.log(xhr);
+                        });
+                    break;
+                }
+            }
+        });
+    }
+})
+
 function showTable(idTable)
 {
     if(idTable == 'tableListHarian') {
@@ -29,50 +79,6 @@ function showTable(idTable)
             serverSide  : false,
         });
     }
-}
-
-var penampung    = [];
-
-function showDropzone(idDropzone)
-{
-    var uploadSize      = 25; // megabyte
-    var jenisFile       = ".jpg, .jpeg, .png, .docx, .doc, .xls, .xlsx, .pdf"; 
-    $("#"+idDropzone).dropzone({
-        url             : getURL() + "/fileUpload",
-        headers         : {
-            "X-CSRF-TOKEN"  : CSRF_TOKEN,
-        },
-        beforeSend  : function() {
-            Swal.fire({
-                title : 'Data Sedang Diunggah',
-            });
-            Swal.showLoading();
-        },
-        addRemoveLinks  : true,
-        maxFileSize     : uploadSize,
-        parallelUploads : 5,
-        acceptedFiles   : jenisFile,
-        dictDefaultMessage  : "Tarik dan Lepaskan file disini atau klik untuk mencari data yang akan diunggah",
-        dictFileTooBig      : "Ukuran file melebihi batas maksimal unaggah. Batas maksimal ukuran untuk unggh adalah "+uploadSize+"MegaByte",
-        init            : function() {
-            this.on("success", function(file, response){
-                penampung.push(response);
-            });
-
-            this.on('removedfile', function(file){
-                var fileName    = file.name;
-                penampung   = penampung.filter(function(response){
-                    return response.filename !== fileName;
-                });
-            });
-        }
-        // success     : function(xhr) {
-        //     console.log(xhr);
-        // },
-        // error   : function(file, errorMessage) {
-        //     console.log(file, errorMessage);
-        // }
-    });
 }
 
 function showModal(idModal)
@@ -95,7 +101,7 @@ function showModal(idModal)
         });
         showSelect('programKerjaBulananID','%','', true);
         showSelect('programKerjaBulananAktivitas','','');
-        showDropzone('myDropzone');
+        showDropzone;
 
         // $("#btnSimpan").on('click', function(){
         //     doSimpan('add', myDropZone);
@@ -120,10 +126,9 @@ function closeModal(idModal)
 {
     $("#"+idModal).modal('hide');
     $("#"+idModal).on('hidden.bs.modal', function(){
-        $("div.dropzone").removeAttr('id');
         penampung = [];
+        showDropzone.removeAllFiles(true);
     });
-    $("#myDropzone").dropzone().removeAllFiles();
 }
 
 function showSelect(idSelect, valueCari, valueSelect, isAsync)
@@ -253,6 +258,7 @@ function transData(url, type, data, customMessage, isAsync)
             cache   : false,
             type    : type,
             url     : url,
+            dataType: "json",
             beforeSend  : function() {
                 customMessage;
             },

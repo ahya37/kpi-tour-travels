@@ -44,7 +44,7 @@ function showCalendar(tanggalCari)
                 do_save(this.value, arg, calendar);
             });
         },
-        editable: true,
+        editable: false,
         fixedMirrorParent: document.body,
         dayMaxEvents: true, // allow "more" link when too many events
         events: function(fetchInfo, successCallback, failureCallback) {

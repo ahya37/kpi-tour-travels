@@ -8,6 +8,8 @@ use App\Services\ProgramKerjaService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Response;
+use Illuminate\Support\Facades\Storage;
+use File;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -351,13 +353,37 @@ class ProgramKerjaController extends Controller
 
         // menyimpan data file yang diupload ke variabel $file
 		$file = $request->file('file');
-        // $namaFile       = time()."_".$file->getClientOriginalName();
-        // $tujuanUpload   = 'storage/data-files';
-        // $path           = $tujuanUpload."/".$namaFile;
-        $path       = $file->getClientOriginalName();
-        // $file->move($tujuanUpload, $namaFile);
+        $namaFile       = time()."_".$file->getClientOriginalName();
+        $tujuanUpload   = 'posts';
+        $fileStorage           = $tujuanUpload."/".$namaFile;
+        $file->move($tujuanUpload, $namaFile);
+        $path       = array(
+            "originalName"  => $file->getClientOriginalName(),
+            "systemName"    => $namaFile,
+            "path"          => $fileStorage,
+        );
 
         return $path;
+    }
+
+    public function deleteUpload(Request $request)
+    {
+        $path   = $request->all()['sendData']['path_files'];
+        if(File::delete($path)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Hapus Data",
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "message"   => "Gagal Hapus Data",
+            );
+        }
+
+        return Response::json($output, $output['status']);
     }
 
     public function dataProkerBulanan(Request $request)
