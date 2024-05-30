@@ -167,7 +167,8 @@ class MarketingService
 
     public static function prospectMaterialStore($formData)
     {
-        $response = Http::post(env('API_PERCIK').'/member/bahanprospek/store',$formData);
+       
+        $response = Http::post(env('API_PERCIK').'/member/umrah/alumni',$formData);
         
         // Check if the request was successful
         if ($response->successful()) {
@@ -239,7 +240,7 @@ class MarketingService
             'reason_id' => $request['reason'],
             'tourcode' => $request['tourcode'],
             'tourcode_haji' => $request['tourcodeHaji'],
-            'tourcode_tsourmuslim' => $request['tourcodeMuslim'],
+            'tourcode_tourmuslim' => $request['tourcodeMuslim'],
             'notes' => $request['notes'],
             'remember' => $request['remember'],
             'created_by' => $request['user'],
@@ -291,7 +292,7 @@ class MarketingService
                 'name' => $value->name,
                 'telp' => $value->telp,
                 'address' => $value->address,
-                'is_respone' => $value->is_respone,
+                'is_respone' => $value->is_respone == 'Y' ? 'Ya' : 'Tidak',
                 'reason' => $value->reason,
                 'notes' => $value->notes
             ];
