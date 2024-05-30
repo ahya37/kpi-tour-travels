@@ -49,9 +49,9 @@ function show_select(idSelect, value)
         theme   : 'bootstrap4',
     });
     if(idSelect == 'empGdIDAdd') {
-        var url     = "/master/employees/trans/get/dataGroupDivision/%";
+        var url     = "/master/employees/trans/get/dataGroupDivision/";
         var type    = "GET";
-        var sendData= "%";
+        var sendData= "";
 
         var html    = "<option selected disabled>Pilih Grup Divisi</option>";
 
