@@ -59,7 +59,7 @@
                                         <h2>0 Program Kerja</h2>
                                     </div>
                                     <div class="card-footer">
-                                        <a href="#">Lihat Detail</a>
+                                        <a href="{{ Route('programKerja.harian.index') }}">Lihat Detail</a>
                                     </div>
                                 </div>
                             </div>

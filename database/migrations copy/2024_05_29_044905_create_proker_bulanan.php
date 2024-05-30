@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -13,12 +14,12 @@ return new class extends Migration
     {
         Schema::create('proker_bulanan', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->default(DB::raw('(UUID())'));
+            $table->uuid('uuid')->unique()->default(DB::raw('UUID()'));
             $table->string('pkb_title', 100);
             $table->date('pkb_start_date');
             $table->date('pkb_end_date')->nullable();
             $table->longText('pkb_description')->nullable();
-            $table->string('pkb_pkt_id', 45);
+            $table->string('pkb_pkt_id', 36);
             $table->string('pkb_employee_id', 30);
             $table->string('created_by', 30);
             $table->string('updated_by', 30);

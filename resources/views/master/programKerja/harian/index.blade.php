@@ -1,0 +1,143 @@
+@extends('layouts.app')
+@section('title', $title ?? '')
+
+@push('addon-style')
+    <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <link href="{{ asset('assets/css/plugins/dropzone/basic.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+    <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+
+    <style>
+    label {
+        font-weight: bold;
+    }
+
+    .dataTables_wrapper {
+        padding-bottom: 0px;
+        margin-top: -6px;
+    }
+    </style>
+@endpush
+
+@section('breadcrumb')
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-lg-10">
+            <h2>{{ $sub_title ?? '' }}</h2>
+        </div>
+    </div>
+@endsection
+
+@section('content')
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <button class="btn btn-primary" id="btnTambahData" onclick="showModal('modalForm')">Tambah Data</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <table class="table table-sm table-bordered table-striped" id="tableListHarian">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="vertical-align: middle;">No</th>
+                                            <th class="text-center" style="vertical-align: middle;">Uraian</th>
+                                            <th class="text-center" style="vertical-align: middle;">Tgl. Aktivitas</th>
+                                            <th class="text-center" style="vertical-align: middle;">Divisi</th>
+                                            <th class="text-center" style="vertical-align: middle;">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {{-- MODAL CREATE DATA --}}
+    <!-- Modal -->
+    <div class="modal fade" id="modalForm">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg" >
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Tambah Aktivitas Harian</h4>
+                        <button type="button" class="close" onclick="closeModal('modalForm')">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Tanggal Aktivitas</label>
+                                <input type="text" class="form-control form-control-sm" style="height: 37.5px; cursor: pointer; background:white;" readonly placeholder="DD/MM/YYYY" name="programKerjaHarianTanggal" id="programKerjaHarianTanggal">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Program Bulanan</label>
+                                <select name="programKerjaBulananID" id="programKerjaBulananID" style="width: 100%;" onchange="showSelect('programKerjaBulananAktivitas', this.value, '', true)"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Jenis Pekerjaan</label>
+                                <select name="programKerjaBulananAktivitas" id="programKerjaBulananAktivitas" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Uraian Tugas</label>
+                                <textarea name="programKerjaHarianJudul" id="programKerjaHarianJudul" class="form-control form-control-sm" rows="4" placeholder="Tulis Uraian Pekerjaan Disini.."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>File Dokumen / Gambar Aktivitas <small class="text-danger">* Jika ada</small></label>
+                                <div class="dropzone" id="myDropzone"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modalForm')">Batal</button>
+                    <button type="button" class="btn btn-primary" id="btnSimpan" onclick="doSimpan(this.value)">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+
+@push('addon-script')
+    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
+    <script src="{{ asset('js/csrf-token.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="{{ asset('js/master/programKerja/harian/index.js') }}"></script>
+@endpush

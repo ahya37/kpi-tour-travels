@@ -84,8 +84,9 @@ class EmployeesController extends Controller
         return Response::json($output, $output['status']);
     }
 
-    public function getDataDivisionGlobal($cari)
+    public function getDataDivisionGlobal()
     {
+        $cari       = request()->sendData; 
         $getData    = EmployeeService::ambilDataDivisionGlobal($cari);
         
         if(!empty($getData))

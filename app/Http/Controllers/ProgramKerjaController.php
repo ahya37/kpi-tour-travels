@@ -6,7 +6,10 @@ use Illuminate\Http\Request;
 use App\Services\BaseService;
 use App\Services\ProgramKerjaService;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Response;
+
+date_default_timezone_set('Asia/Jakarta');
 
 class ProgramKerjaController extends Controller
 {
@@ -182,7 +185,7 @@ class ProgramKerjaController extends Controller
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'Dashboard Program Kerja Bulanan'
+            'sub_title' => 'Program Kerja Bulanan'
         ];
 
         return view('master/programKerja/bulanan/index', $data);
@@ -196,7 +199,10 @@ class ProgramKerjaController extends Controller
             $output     = array(
                 "success"   => true,
                 "status"    => 200,
-                "data"      => $getData,
+                "data"      => [
+                    "header"    => $getData['header'],
+                    "detail"    => $getData['detail'],
+                ],
             );
         } else {
             $output     = array(
@@ -225,6 +231,29 @@ class ProgramKerjaController extends Controller
                 "success"   => false,
                 "status"    => 404,
                 "message"   => "Terjadi Kesalahan",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function getSubProkerTahunan(Request $request)
+    {
+        $getData    = ProgramKerjaService::getDataProkerTahunanDetail($request->all()['sendData']['prokerTahunan_ID']);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Load Data",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Tidak ada data yang dimuat",
                 "data"      => [],
             );
         }
@@ -265,7 +294,7 @@ class ProgramKerjaController extends Controller
                     "icon"      => "success",
                     "message"   => [
                         "title"     => "Berhasil",
-                        "message"   => "Berhasil Menyimpan Program Kerja Baru",
+                        "text"      => "Berhasil Menyimpan Program Kerja Baru",
                         "errMsg"    => null,
                     ],
                 ],
@@ -278,7 +307,7 @@ class ProgramKerjaController extends Controller
                     "icon"      => "success",
                     "message"   => [
                         "title"     => "Terjadi Kesalahan",
-                        "message"   => "Gagal Menyimpan Program Kerja Baru",
+                        "text"      => "Gagal Menyimpan Program Kerja Baru",
                         "errMsg"    => null,
                     ],
                 ],
@@ -297,6 +326,100 @@ class ProgramKerjaController extends Controller
         ];
 
         return view('master/programKerja/harian/index', $data);
+    }
+
+    public function testUpload(Request $request)
+    {
+        // // nama file
+        // echo 'File Name: '.$file->getClientOriginalName();
+        // echo '<br>';
+
+        //         // ekstensi file
+        // echo 'File Extension: '.$file->getClientOriginalExtension();
+        // echo '<br>';
+
+        //         // real path
+        // echo 'File Real Path: '.$file->getRealPath();
+        // echo '<br>';
+
+        //         // ukuran file
+        // echo 'File Size: '.$file->getSize();
+        // echo '<br>';
+
+        //         // tipe mime
+        // echo 'File Mime Type: '.$file->getMimeType();
+
+        // menyimpan data file yang diupload ke variabel $file
+		$file = $request->file('file');
+        // $namaFile       = time()."_".$file->getClientOriginalName();
+        // $tujuanUpload   = 'storage/data-files';
+        // $path           = $tujuanUpload."/".$namaFile;
+        $path       = $file->getClientOriginalName();
+        // $file->move($tujuanUpload, $namaFile);
+
+        return $path;
+    }
+
+    public function dataProkerBulanan(Request $request)
+    {
+        $sendData   = [
+            "rolesName"     => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0],
+            "currentDate"   => date('Y-m-d'),
+            "pkb_uuid"      => $request->all()['sendData']['pkb_uuid'],
+        ];
+        $getData    = ProgramKerjaService::getProkerBulanan($sendData);
+        if(!empty($getData))
+        {
+            $header     = [];
+            $detail     = [];
+
+            // PISAHIN ARRAY
+            $keyArray   = [];
+            $tempArray  = [];
+            for($i = 0; $i < count($getData); $i++) {
+                if(!in_array($getData[$i]->pkb_uuid, $keyArray)) {
+                    $keyArray[$i]   = $getData[$i]->pkb_uuid;
+                    $tempArray[]  = $getData[$i];
+                }
+            }
+
+            // INSERT KE HEADER
+            // print("<pre>".print_r($tempArray, true)."</pre>");die();
+            for($j = 0; $j < count($tempArray); $j++) {
+                $header[]   = array(
+                    "pkb_uuid"  => $tempArray[$j]->pkb_uuid,
+                    "pkb_title" => $tempArray[$j]->pkb_title,
+                    "pkb_date"  => $tempArray[$j]->pkb_date,
+                );
+            }
+
+            // INSERT KE DETAIL
+            for($k = 0; $k < count($getData); $k++) {
+                $detail[]   = array(
+                    "pkb_detail"=> $getData[$k]->pkb_type_detail,
+                );
+            }
+
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "data"      => [
+                    "header"    => $header,
+                    "detail"    => $sendData['pkb_uuid'] == '%' ? [] : $detail
+                ],
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "data"      => [
+                    "header"    => [],
+                    "detail"    => [],
+                ],
+            );
+        }
+
+        return Response::json($output, $output['status']);
     }
 
     // GLOBAL

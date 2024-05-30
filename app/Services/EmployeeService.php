@@ -119,6 +119,7 @@ class EmployeeService
                     );
                 } catch(\Exception $e) {
                     DB::rollback();
+                    Log::channel('daily')->error($e->getMessage());
                     $output     = array(
                         "status"    => "gagal",
                         "errMsg"    => $e->getMessage(),

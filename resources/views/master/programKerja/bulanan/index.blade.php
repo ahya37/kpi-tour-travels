@@ -45,6 +45,10 @@
         padding-bottom: 0px;
         margin-top: -6px;
     }
+
+    .ibox-title {
+        padding: 15px;
+    }
     </style>
 @endpush
 
@@ -62,7 +66,11 @@
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
-                        
+                        <div class="row text-right">
+                            <div class="col-sm-12">
+                                <button type="button" class="btn btn-secondary" title="Filter Tanggal"><i class="fa fa-filter"></i></button>
+                            </div>
+                        </div>
                     </div>
                     <div class="ibox-content">
                         <div id="calendar"></div>
@@ -88,11 +96,27 @@
                         </div>
                     </div>
                     <div class="form-row mb-2">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Sub-Program Kerja Tahunan</label>
+                                <select name="subProkerTahunanSeq" id="subProkerTahunanSeq" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2" style="display:none;">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Proker Bulanan ID</label>
+                                <input type="text" class="form-control form-control-sm" name="prokerBulananID" id="prokerBulananID" placeholder="Proker Bulanan" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>Group Division</label>
+                                <label>Grup Divisi</label>
                                 <input type="hidden" class="form-control" id="prokerTahunanGroupDivisionID" name="prokerTahunanGroupDivisionID">
-                                <input type="text" class="form-control form-control-sm" id="prokerTahunanGroupDivisionName" name="prokerTahunanGroupDivisionName" readonly placeholder="Group Division" style="height: 37.5px;">
+                                <input type="text" class="form-control form-control-sm" id="prokerTahunanGroupDivisionName" name="prokerTahunanGroupDivisionName" readonly placeholder="Grup Divisi" style="height: 37.5px;">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -164,7 +188,9 @@
     <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/fullcalendar/moment.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/index.global.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/index.global.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/bootstrap4.index.global.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.36/moment-timezone-with-data.min.js"></script>
     <script src="{{ asset('js/master/programKerja/bulanan/index.js') }}"></script>
