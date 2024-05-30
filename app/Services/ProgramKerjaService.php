@@ -375,4 +375,36 @@ class ProgramKerjaService
 
         return $output;
     }
+
+    // HARIAN
+    public static function getProkerBulanan($data)
+    {
+        $currentDate    = $data['currentDate'];
+        $roles          = $data['rolesName'];
+        $pkb_uuid       = $data['pkb_uuid'];
+
+        $query          = DB::select(
+            "
+            SELECT 	a.uuid as pkb_uuid,
+                    a.pkb_title,
+                    a.pkb_start_date as pkb_date,
+                    b.pkbd_type as pkb_type_detail,
+                    e.model_id as role_id,
+                    f.name as role_name
+            FROM 	proker_bulanan a
+            JOIN  	proker_bulanan_detail b ON a.id = b.pkb_id
+            JOIN  	proker_tahunan c ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = c.uid
+            JOIN 	employees d ON d.id = c.pkt_pic_job_employee_id
+            JOIN 	model_has_roles e ON d.user_id = e.model_id
+            JOIN 	roles f ON e.role_id = f.id
+            WHERE 	EXTRACT(MONTH FROM a.pkb_start_date) = EXTRACT(MONTH FROM '$currentDate')
+            AND 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM '$currentDate')
+            AND 	(e.model_id LIKE '$roles' OR f.name LIKE '$roles')
+            AND     a.uuid LIKE '$pkb_uuid'
+            ORDER BY a.pkb_start_date, a.created_at ASC
+            "
+        );
+
+        return $query;
+    }
 }

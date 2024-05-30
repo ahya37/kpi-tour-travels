@@ -34,12 +34,15 @@ function showCalendar(tanggalCari)
             calendar.unselect();
         },
         eventClick: function(arg) {
-            showModal('modalForm','edit', arg.event.id);
+            var idModal     = "modalForm";
+            var jenis       = "edit";
+            var value       = arg.event.id;
 
-            var jenis   = "edit";
+            showModal(idModal, jenis, value);
+            
             $("#btnSimpan").click(function(){
                 do_save(this.value, arg, calendar);
-            })
+            });
         },
         editable: true,
         fixedMirrorParent: document.body,
@@ -90,6 +93,7 @@ function showModal(idModal, jenis, value)
     $("#"+idModal).modal('show');
     show_table('tableDetailProkerBulanan');
     $("#btnSimpan").val(jenis);
+    $(".fc .fc-popover").hide();
 
     if(jenis == 'add') {
         $("#prokerTahunanID").prop('disabled',false);

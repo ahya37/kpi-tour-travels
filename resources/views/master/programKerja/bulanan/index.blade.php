@@ -188,7 +188,9 @@
     <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/fullcalendar/moment.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/index.global.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/index.global.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/bootstrap4.index.global.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.36/moment-timezone-with-data.min.js"></script>
     <script src="{{ asset('js/master/programKerja/bulanan/index.js') }}"></script>
