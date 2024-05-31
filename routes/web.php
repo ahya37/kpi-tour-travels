@@ -53,6 +53,7 @@ Route::group(['middleware' => ['auth']], function () {
 
         // For CS
         Route::get('/alumniprospectmaterial','alumniProspectMaterialByAccountCS')->name('marketing.alumniprospectmaterial');
+        Route::get('/alumniprospectmaterial/singkronisasi/{id}','singkronisasiDataAlumniUmrah')->name('marketing.singkronisasi');
         Route::get('/alumniprospectmaterial/{id}','detailAlumniProspectMaterialByAccountCS')->name('marketing.alumniprospectmaterial.detail');
         Route::get('/alumniprospectmaterial/detail/manage/modal/{detailId}','loadModalManageAlumniProspectMaterial');
         Route::post('/alumniprospectmaterial/detail/manage/store','manageAlumniProspectMaterialStore')->name('marketing.alumniprospectmaterial.store');

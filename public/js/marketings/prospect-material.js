@@ -57,6 +57,7 @@ saveButton.click(function (e) {
   $.ajax({
     method: 'POST',
     url: `/marketings/prospectmaterial/store`,
+    async:true,
     data: formData,
     contentType: false,
     processData: false,

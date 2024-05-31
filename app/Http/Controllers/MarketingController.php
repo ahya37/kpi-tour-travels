@@ -22,6 +22,8 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 
+use function Laravel\Prompts\select;
+
 class MarketingController extends Controller
 {
     public function target()
@@ -211,7 +213,6 @@ class MarketingController extends Controller
 
             #simpan ke table bahan prospek 
             $label = 'BAHAN PROSPEK ALUMNI ('.date('m').'-'.date('Y').')';
-            $test = [];
             foreach ($results as $value) {
                 foreach ($value['cs'] as $cs) {
                     $asveAlumniProspectMaterial = AlumniProspekMaterial::create([
@@ -244,18 +245,15 @@ class MarketingController extends Controller
                                'created_by' => Auth::user()->id,
                                'updated_by' => Auth::user()->id,
                           ]);
-
-                        // API umhaj update member jika member tersebut sudah menjadi bahan prospek alumni
-                    //    $formDataUpdate['data']    = $member['ID_MEMBER'];
-                    //    MarketingService::updateApiIsBahanProspek($formDataUpdate);
                     }
                     
                 }
             }
 
             DB::commit();
+
             return ResponseFormatter::success([
-                'message' => 'Berhasil generate alumni'
+                'message' => 'Berhasil generate alumni',
             ]);
 
         } catch (\Exception $e) {
@@ -265,6 +263,48 @@ class MarketingController extends Controller
                 'message' => 'Gagal generate alumni'
             ]);
         }
+    }
+
+    public function singkronisasiDataAlumniUmrah($id)
+    {
+        DB::beginTransaction();
+        try {
+
+            # get data detail_alumni_prospect_material where alumni_prospect_material where id
+            $detailProspectMaterials = DetailAlumniProspekMaterial::select('id_members','id')->where('alumni_prospect_material_id',$id)->get();
+            $id_members = [];
+            foreach ($detailProspectMaterials as  $value) {
+                $id_members[] =  [
+                    'id_members' => $value->id_members
+                ];
+                // if ($updateMember) {
+                //     DB::table('detail_alumni_prospect_material')->where('id_members', $updateMember)->update(['is_sinkronisasi' => '1']);
+                // }
+            }
+
+            #Update is_bahan_prospek_di API / db utama
+            $res_update_data=  MarketingService::updateApiIsBahanProspek($id_members);
+            foreach ($res_update_data as $key => $value) {
+                    DB::table('detail_alumni_prospect_material')->where('id_members', $value)->update(['is_sinkronisasi' => '1']);
+
+            }
+
+            AlumniProspekMaterial::where('id', $id)->update(['is_sinkronisasi' => 1]);
+
+            DB::commit();
+            return ResponseFormatter::success([
+                'message' => 'Berhasil Singkronkan data'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal Singkronkan data!'
+            ]);
+        }
+
+        // API umhaj update member jika member tersebut sudah menjadi bahan prospek alumni
+        //  $formDataUpdate['id_member']    = $member['ID_MEMBER'];
     }
 
     public function alumniProspectMaterialByAccountCS()

@@ -49,7 +49,12 @@
                                             <td>{{$item->no_respone}}</td>
                                             <td>{{$item->created_at}}</td>
                                             <td>
-                                                <a href="{{route('marketing.alumniprospectmaterial.detail', $item->id)}}" class="btn btn-sm btn-primary text-white">Jama'ah</a>
+                                                @if ($item->is_sinkronisasi == '0')
+                                                    <button class="btn btn-sm btn-primary text-white" data-id="{{$item->id}}" id="saveButton"><i class="fa fa-refresh" aria-hidden="true"></i>
+                                                        Singkronkan</button>
+                                                @else
+                                                    <a href="{{route('marketing.alumniprospectmaterial.detail', $item->id)}}" class="btn btn-sm btn-primary text-white">Jama'ah</a>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach
@@ -74,5 +79,5 @@
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/loaders.js') }}"></script>
     <script src="{{ asset('js/ladda-button.js') }}"></script>
-    <script src="{{ asset('js/marketings/prospect-material.js') }}"></script>
+    <script src="{{ asset('js/marketings/cs/prospect-material.js') }}"></script>
 @endpush
