@@ -1,6 +1,5 @@
 Dropzone.autoDiscover = false;
 $(document).ready(function(){
-    console.log('test');
     showTable('tableListHarian');
 });
 
@@ -14,6 +13,8 @@ function getURL()
 {
     return window.location.pathname;
 }
+
+var isClick         = 0;
 
 var penampung       = [];
 var uploadSize      = 25; // megabyte
@@ -182,14 +183,15 @@ function showModal(idModal, jenis, value)
                 if( detail.length > 0 ) {
                     for(var i = 0; i < detail.length; i++) {
                         var seq         = i + 1;
-                        var namaFile    = detail[i]['pkhf_name'];
+                        var namaFile    = detail[i]['pkhf_name'].length > 80 ? detail[i]['pkhf_name'].substring(0, 80) + "..." : detail[i]['pkhf_name'];
                         var pathFile    = detail[i]['pkhf_path'];
                         var dataFile    = value + " | " + seq;
                         var button      = "<button class='btn btn-sm btn-danger' type='button' value='"+dataFile+"'><i class='fa fa-trash'></i></button>";
+                        var url         = getURL() + "/downloadFile/" + pathFile;
 
                         $("#tableListFile").DataTable().row.add([
                             seq,
-                            "<a href='#'>" + namaFile + "</a>",
+                            "<a href='"+url+"' title='"+detail[i]['pkhf_name']+"'>" + namaFile + "</a>",
                             button
                         ]).draw('false');
                     }
@@ -213,10 +215,16 @@ function closeModal(idModal)
     {
         $("#"+idModal).on('hidden.bs.modal', function(){
             penampung = [];
-            showDropzone.removeAllFiles(true);
+            if(isClick == 1) {
+                showDropzone.removeAllFiles(true);
+            } 
             $(".waktu").val("00:00:00");
             $("#programKerjaHarianJudul").val(null);
         });
+
+        if(isClick == 0) {
+            showDropzone.removeAllFiles(true);
+        }
     } else if(jenis == 'edit') {
         $("#"+idModal).on('hidden.bs.modal', function(){
             $("#programKerjaHarianID").val(null);
@@ -389,6 +397,7 @@ function doSimpan(jenis)
         var customMessage       = Swal.fire({title:'Data Sedang Diproses'});Swal.showLoading();
         transData(url, type, dataSimpan, customMessage, isAsync)
             .then(function(xhr){
+                isClick = 1;
                 Swal.fire({
                     icon    : xhr.alert.icon,
                     title   : xhr.alert.message.title,
@@ -396,10 +405,12 @@ function doSimpan(jenis)
                 }).then(function(results){
                     if(results.isConfirmed) {
                         closeModal('modalForm')
+                        isClick = 0;
                     }
                 })
             })
             .catch(function(xhr){
+                isClick     = 0;
                 Swal.fire({
                     icon    : xhr.responseJSON.alert.icon,
                     title   : xhr.responseJSON.alert.message.title,
