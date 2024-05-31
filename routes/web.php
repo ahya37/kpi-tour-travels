@@ -162,7 +162,7 @@ Route::group(['middleware' => ['auth']], function () {
         });
     });
 
-    Route::prefix('aktivitas')->controller(ActivityController::class)->group(function(){
+    Route::prefix('aktivitas')->group(function(){
         // Route::get('/daily','daily')->name('aktivitas.daily.index');
         // Route::get('modal/create','loadModalFormDailyActivities');
         Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('programKerja.harian.index');
