@@ -258,7 +258,7 @@ class MarketingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            Log::error(['file' => get_class(), 'errors' => $e->getMessage()]);
+            Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
                 'message' => 'Gagal generate alumni'
             ]);
