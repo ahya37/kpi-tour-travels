@@ -62,10 +62,14 @@ saveButton.click(function (e) {
     contentType: false,
     processData: false,
     beforeSend: () => {
+      Swal.fire({
+        title   : 'Data Sedang Diproses',
+    });
+    Swal.showLoading();
     },
     success: (response) => {
       if (response.data.status === 2) {
-        swal({
+        Swal.fire({
           title: "Gagal!",
           text: `${response.data.message}`,
           type: "warning",
@@ -76,7 +80,7 @@ saveButton.click(function (e) {
         });
 
       }else{
-        swal({
+        Swal.fire({
           title: "Good job!",
           text: `${response.data.message}`,
           type: "success",
@@ -91,7 +95,7 @@ saveButton.click(function (e) {
       }
     },
     error: function (error) {
-      swal({
+      Swal.fire({
         title: "Gagal!",
         position: "center",
         type: "danger",

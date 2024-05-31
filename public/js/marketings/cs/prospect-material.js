@@ -20,19 +20,15 @@ saveButton.click(function (e) {
     contentType: false,
     processData: false,
     beforeSend: () => {
-      swal({
-        title: 'Proses singkron..',
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        onBeforeOpen: () => {
-          swal.showLoading();
-        }
-      });
+      Swal.fire({
+                                title   : 'Data Sedang Diproses',
+                            });
+                            Swal.showLoading();
     },
 
     success: (response) => {
       if (response) {
-          swal({
+          Swal.fire({
             title: "Good Job!",
             text: `${response.data.message}`,
             type: "success",
@@ -46,7 +42,7 @@ saveButton.click(function (e) {
       }
     },
     error: function (error) {
-      swal({
+      Swal.fire({
         title: "Gagal!",
         position: "center",
         type: "danger",
@@ -55,9 +51,6 @@ saveButton.click(function (e) {
         width: 500,
         timer: 900,
       });
-
-      swal.stopLoading();
-      swal.close();
     }
   });
 });
