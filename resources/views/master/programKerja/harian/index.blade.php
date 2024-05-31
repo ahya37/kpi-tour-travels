@@ -40,7 +40,7 @@
                     <div class="ibox-title">
                         <div class="row">
                             <div class="col-sm-12">
-                                <button class="btn btn-primary" id="btnTambahData" onclick="showModal('modalForm')">Tambah Data</button>
+                                <button class="btn btn-primary" id="btnTambahData" onclick="showModal('modalForm', 'add', '')">Tambah Data</button>
                             </div>
                         </div>
                     </div>
@@ -79,11 +79,33 @@
                         </button>
                 </div>
                 <div class="modal-body">
+                    <div class="form-row mb-2" style="display: none;">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Proker Harian ID</label>
+                                <input type="text" class="form-control form-control-sm" style="height: 37.5px;" readonly placeholder="ID" id="programKerjaHarianID" name="programKerjaHarianID">
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-row mb-2">
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Tanggal Aktivitas</label>
                                 <input type="text" class="form-control form-control-sm" style="height: 37.5px; cursor: pointer; background:white;" readonly placeholder="DD/MM/YYYY" name="programKerjaHarianTanggal" id="programKerjaHarianTanggal">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Waktu Awal Aktivitas</label>
+                                <input type="text" class="form-control form-control-sm waktu" placeholder="HH:mm:ss" name="programKerjaHarianWaktuMulai" id="programKerjaHarianWaktuMulai" onclick="this.setSelectionRange(0, 2)" onfocus="this.setSelectionRange(0, 2)">
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Waktu Akhir Aktivitas</label>
+                                <input type="text" class="form-control form-control-sm waktu" placeholder="HH:mm:ss" name="programKerjaHarianWaktuAkhir" id="programKerjaHarianWaktuAkhir" onclick="this.setSelectionRange(0, 2)" onfocus="this.setSelectionRange(0, 2)">
                             </div>
                         </div>
                     </div>
@@ -112,7 +134,23 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-row mb-2">
+                    <div class="form-row mb-2" id="formListUpload">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>List File</label>
+                                <table class="table table-sm" style="width: 100%;" id="tableListFile">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" style="vertical-align: middle;">No</th>
+                                            <th class="text-center" style="vertical-align: middle;">Nama File</th>
+                                            <th class="text-center" style="vertical-align: middle;">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2" id="formUpload">
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>File Dokumen / Gambar Aktivitas <small class="text-danger">* Jika ada</small></label>
