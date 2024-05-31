@@ -375,4 +375,149 @@ class ProgramKerjaService
 
         return $output;
     }
+
+    // HARIAN
+    public static function listProkerHarian($data)
+    {
+        $query  = DB::select(
+            "
+            SELECT 	a.uuid as pkh_id,
+                    a.pkh_title,
+                    a.pkh_date,
+                    d.id as group_division_id,
+                    d.name as group_division
+            FROM 	proker_harian a
+            JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id,' | ', 1) = b.uuid
+            JOIN  	job_employees c ON c.employee_id = b.pkb_employee_id
+            JOIN 	group_divisions d ON c.group_division_id = d.id
+            WHERE 	group_division_id LIKE '%'
+            ORDER BY a.id DESC
+            "
+        );
+        
+        return $query;
+    }
+
+    public static function getProkerBulanan($data)
+    {
+        $currentDate    = $data['currentDate'];
+        $roles          = $data['rolesName'];
+        $pkb_uuid       = $data['pkb_uuid'];
+
+        $query          = DB::select(
+            "
+            SELECT 	a.uuid as pkb_uuid,
+                    b.id as pkbd_id,
+                    a.pkb_title,
+                    a.pkb_start_date as pkb_date,
+                    b.pkbd_type as pkb_type_detail,
+                    e.model_id as role_id,
+                    f.name as role_name
+            FROM 	proker_bulanan a
+            JOIN  	proker_bulanan_detail b ON a.id = b.pkb_id
+            JOIN  	proker_tahunan c ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = c.uid
+            JOIN 	employees d ON d.id = c.pkt_pic_job_employee_id
+            JOIN 	model_has_roles e ON d.user_id = e.model_id
+            JOIN 	roles f ON e.role_id = f.id
+            WHERE 	EXTRACT(MONTH FROM a.pkb_start_date) = EXTRACT(MONTH FROM '$currentDate')
+            AND 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM '$currentDate')
+            AND 	(e.model_id LIKE '$roles' OR f.name LIKE '$roles')
+            AND     a.uuid LIKE '$pkb_uuid'
+            ORDER BY a.pkb_start_date, a.created_at ASC
+            "
+        );
+
+        return $query;
+    }
+
+    public static function getProkerHarianDetail($uuid)
+    {
+        $query_header   = DB::select(
+            "
+            SELECT 	a.uuid as pkh_id,
+                    a.pkh_title,
+                    a.pkh_date,
+                    SUBSTRING_INDEX(a.pkh_start_time,' ', -1) as pkh_start_time,
+                    SUBSTRING_INDEX(a.pkh_end_time,' ', -1) as pkh_end_time,
+                    SUBSTRING_INDEX(a.pkh_pkb_id,' ', 1) as pkb_id,
+                    SUBSTRING_INDEX(a.pkh_pkb_id,' ', -1) as pkbd_id
+            FROM 	proker_harian a
+            WHERE 	a.uuid = '$uuid'
+            "
+        );
+
+        $query_detail   = DB::select(
+            "            
+            SELECT 	a.uuid as pkh_id,
+                    b.pkhf_seq,
+                    b.pkhf_name,
+                    b.pkhf_path
+            FROM 	proker_harian a
+            JOIN    proker_harian_file b ON a.id = b.pkh_id
+            WHERE 	a.uuid = '$uuid'
+            ORDER BY CAST(b.pkhf_seq as signed) ASC
+            "
+        );
+
+        $header     = !empty($query_header) ? $query_header : [];
+        $detail     = !empty($query_detail) ? $query_detail : [];
+
+        $output     = array(
+            "header"    => $header,
+            "detail"    => $detail,
+        );
+
+        return $output;
+    }
+    
+    public static function simpanDataHarian($data)
+    {
+        DB::beginTransaction();
+        if($data['programKerjaHarian_jenisTrans'] == 'add') {
+            $dataSimpan_header  = array(
+                "pkh_title"         => $data['programKerjaHarian_description'],
+                "pkh_date"          => $data['programKerjaHarian_startDate'],
+                "pkh_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
+                "pkh_end_time"      => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_endTime'],
+                "pkh_pkb_id"        => $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'],
+                "created_by"        => Auth::user()->id,
+                "updated_by"        => Auth::user()->id,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_at"        => date('Y-m-d H:i:s'),
+            );
+            DB::table('proker_harian')->insert($dataSimpan_header);
+
+            $getIDHeader = DB::getPdo()->lastInsertId();
+            
+            if(!empty($data['programKerjaHarian_file'])) {
+                for($i = 0; $i < count($data['programKerjaHarian_file']); $i++) {
+                    $dataSimpan_file    = array(
+                        "pkh_id"        => $getIDHeader,
+                        "pkhf_seq"      => $i + 1,
+                        "pkhf_name"     => str_replace(" ","_", $data['programKerjaHarian_file'][$i]['originalName']),
+                        "pkhf_path"     => str_replace(" ","_", $data['programKerjaHarian_file'][$i]['path']),
+                    );
+
+                    DB::table('proker_harian_file')->insert($dataSimpan_file);
+                }
+            }
+        }
+        
+        try {
+            DB::commit();
+            $output     = array(
+                "status"    => "berhasil",
+                "errMsg"    => null
+            );
+        } catch(\Exception $e) {
+            DB::rollback();
+            Log::channel('daily')->error($e->getMessage());
+            $output     = array(
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            );
+        }
+
+        return $output;
+    }
 }

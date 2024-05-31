@@ -6,7 +6,12 @@ use Illuminate\Http\Request;
 use App\Services\BaseService;
 use App\Services\ProgramKerjaService;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Response;
+use Illuminate\Support\Facades\Storage;
+use File;
+
+date_default_timezone_set('Asia/Jakarta');
 
 class ProgramKerjaController extends Controller
 {
@@ -323,6 +328,195 @@ class ProgramKerjaController extends Controller
         ];
 
         return view('master/programKerja/harian/index', $data);
+    }
+
+    public function listTableProkerHarian(Request $request)
+    {
+        $getData    = ProgramKerjaService::listProkerHarian($request->all());
+        if(!empty($getData)) {
+            
+            for($i = 0; $i < count($getData); $i++) {
+                $data[]     = array(
+                    $i + 1,
+                    $getData[$i]->pkh_title,
+                    $getData[$i]->pkh_date,
+                    $getData[$i]->group_division,
+                    "<button type='button' class='btn btn-sm btn-primary' value='".$getData[$i]->pkh_id."' title='Preview' onclick='showModal(`modalForm`, `edit`, this.value)'><i class='fa fa-eye'></i></button>"
+                );
+            }
+            
+            $output     = array(
+                "draw"  => 1,
+                "data"  => $data,
+            );
+        } else {
+            $output     = array(
+                "draw"  => 1,
+                "data"  => [],
+            );
+        }
+
+        return Response::json($output);
+    }
+
+    public function detailDataProkerHarian(Request $request)
+    {
+        $uuid   = $request->all()['sendData']['pkh_id'];
+        $getData    = ProgramKerjaService::getProkerHarianDetail($uuid);
+
+        if(!empty($getData['header']) || !empty($getData['detail']))
+        {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function testUpload(Request $request)
+    {
+		$file = $request->file('file');
+        $namaFile       = time()."_".str_replace(' ','_',$file->getClientOriginalName());
+        $tujuanUpload   = 'user_data';
+        $fileStorage           = $tujuanUpload."/".$namaFile;
+        // $file->move($tujuanUpload, $namaFile);
+        Storage::disk('local')->makeDirectory($tujuanUpload);
+        $file->storeAs($tujuanUpload, $namaFile);
+        $path       = array(
+            "originalName"  => $file->getClientOriginalName(),
+            "systemName"    => $namaFile,
+            "path"          => $fileStorage,
+        );
+
+        return $path;
+    }
+
+    public function deleteUpload(Request $request)
+    {
+        $path   = $request->all()['sendData']['path_files'];
+        // if(File::delete($path)) {
+            if(Storage::disk('local')->delete($path)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Hapus Data",
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "message"   => "Gagal Hapus Data",
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function dataProkerBulanan(Request $request)
+    {
+        $sendData   = [
+            "rolesName"     => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0],
+            "currentDate"   => date('Y-m-d'),
+            "pkb_uuid"      => $request->all()['sendData']['pkb_uuid'],
+        ];
+        $getData    = ProgramKerjaService::getProkerBulanan($sendData);
+        if(!empty($getData))
+        {
+            $header     = [];
+            $detail     = [];
+
+            // PISAHIN ARRAY
+            $keyArray   = [];
+            $tempArray  = [];
+            for($i = 0; $i < count($getData); $i++) {
+                if(!in_array($getData[$i]->pkb_uuid, $keyArray)) {
+                    $keyArray[$i]   = $getData[$i]->pkb_uuid;
+                    $tempArray[]  = $getData[$i];
+                }
+            }
+
+            // INSERT KE HEADER
+            // print("<pre>".print_r($tempArray, true)."</pre>");die();
+            for($j = 0; $j < count($tempArray); $j++) {
+                $header[]   = array(
+                    "pkb_uuid"  => $tempArray[$j]->pkb_uuid,
+                    "pkb_title" => $tempArray[$j]->pkb_title,
+                    "pkb_date"  => $tempArray[$j]->pkb_date,
+                );
+            }
+
+            // INSERT KE DETAIL
+            for($k = 0; $k < count($getData); $k++) {
+                $detail[]   = array(
+                    "pkbd_id"   => $getData[$k]->pkbd_id,
+                    "pkb_detail"=> $getData[$k]->pkb_type_detail,
+                );
+            }
+
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "data"      => [
+                    "header"    => $header,
+                    "detail"    => $sendData['pkb_uuid'] == '%' ? [] : $detail
+                ],
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "data"      => [
+                    "header"    => [],
+                    "detail"    => [],
+                ],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function simpanDataHarian(Request $request)
+    {
+        $doSimpan   = ProgramKerjaService::simpanDataHarian($request->all()['sendData']);
+        if($doSimpan['status'] == "berhasil") {
+            $output     = array(
+                "sucess"    => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"  => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Aktivitas Harian Baru Telah Ditambahkan",
+                        "errMsg"    => null,
+                    ],
+                ],
+            );
+        } else {
+            $output     = array(
+                "sucess"    => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"  => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Aktivitas Harian Baru Telah Ditambahkan",
+                        "errMsg"    => $data['errMsg'],
+                    ],
+                ],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+        
     }
 
     // GLOBAL
