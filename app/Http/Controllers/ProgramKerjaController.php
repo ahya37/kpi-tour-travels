@@ -330,33 +330,67 @@ class ProgramKerjaController extends Controller
         return view('master/programKerja/harian/index', $data);
     }
 
+    public function listTableProkerHarian(Request $request)
+    {
+        $getData    = ProgramKerjaService::listProkerHarian($request->all());
+        if(!empty($getData)) {
+            
+            for($i = 0; $i < count($getData); $i++) {
+                $data[]     = array(
+                    $i + 1,
+                    $getData[$i]->pkh_title,
+                    $getData[$i]->pkh_date,
+                    $getData[$i]->group_division,
+                    "<button type='button' class='btn btn-sm btn-primary' value='".$getData[$i]->pkh_id."' title='Preview' onclick='showModal(`modalForm`, `edit`, this.value)'><i class='fa fa-eye'></i></button>"
+                );
+            }
+            
+            $output     = array(
+                "draw"  => 1,
+                "data"  => $data,
+            );
+        } else {
+            $output     = array(
+                "draw"  => 1,
+                "data"  => [],
+            );
+        }
+
+        return Response::json($output);
+    }
+
+    public function detailDataProkerHarian(Request $request)
+    {
+        $uuid   = $request->all()['sendData']['pkh_id'];
+        $getData    = ProgramKerjaService::getProkerHarianDetail($uuid);
+
+        if(!empty($getData['header']) || !empty($getData['detail']))
+        {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     public function testUpload(Request $request)
     {
-        // // nama file
-        // echo 'File Name: '.$file->getClientOriginalName();
-        // echo '<br>';
-
-        //         // ekstensi file
-        // echo 'File Extension: '.$file->getClientOriginalExtension();
-        // echo '<br>';
-
-        //         // real path
-        // echo 'File Real Path: '.$file->getRealPath();
-        // echo '<br>';
-
-        //         // ukuran file
-        // echo 'File Size: '.$file->getSize();
-        // echo '<br>';
-
-        //         // tipe mime
-        // echo 'File Mime Type: '.$file->getMimeType();
-
-        // menyimpan data file yang diupload ke variabel $file
 		$file = $request->file('file');
-        $namaFile       = time()."_".$file->getClientOriginalName();
-        $tujuanUpload   = 'posts';
+        $namaFile       = time()."_".str_replace(' ','_',$file->getClientOriginalName());
+        $tujuanUpload   = 'user_data';
         $fileStorage           = $tujuanUpload."/".$namaFile;
-        $file->move($tujuanUpload, $namaFile);
+        // $file->move($tujuanUpload, $namaFile);
+        Storage::disk('local')->makeDirectory($tujuanUpload);
+        $file->storeAs($tujuanUpload, $namaFile);
         $path       = array(
             "originalName"  => $file->getClientOriginalName(),
             "systemName"    => $namaFile,
@@ -369,7 +403,8 @@ class ProgramKerjaController extends Controller
     public function deleteUpload(Request $request)
     {
         $path   = $request->all()['sendData']['path_files'];
-        if(File::delete($path)) {
+        // if(File::delete($path)) {
+            if(Storage::disk('local')->delete($path)) {
             $output     = array(
                 "success"   => true,
                 "status"    => 200,
@@ -422,6 +457,7 @@ class ProgramKerjaController extends Controller
             // INSERT KE DETAIL
             for($k = 0; $k < count($getData); $k++) {
                 $detail[]   = array(
+                    "pkbd_id"   => $getData[$k]->pkbd_id,
                     "pkb_detail"=> $getData[$k]->pkb_type_detail,
                 );
             }
@@ -446,6 +482,41 @@ class ProgramKerjaController extends Controller
         }
 
         return Response::json($output, $output['status']);
+    }
+
+    public function simpanDataHarian(Request $request)
+    {
+        $doSimpan   = ProgramKerjaService::simpanDataHarian($request->all()['sendData']);
+        if($doSimpan['status'] == "berhasil") {
+            $output     = array(
+                "sucess"    => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"  => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Aktivitas Harian Baru Telah Ditambahkan",
+                        "errMsg"    => null,
+                    ],
+                ],
+            );
+        } else {
+            $output     = array(
+                "sucess"    => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"  => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Aktivitas Harian Baru Telah Ditambahkan",
+                        "errMsg"    => $data['errMsg'],
+                    ],
+                ],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+        
     }
 
     // GLOBAL
