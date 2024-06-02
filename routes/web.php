@@ -163,7 +163,7 @@ Route::group(['middleware' => ['auth']], function () {
     Route::prefix('aktivitas')->controller(ActivityController::class)->group(function(){
         // Route::get('/daily','daily')->name('aktivitas.daily.index');
         // Route::get('modal/create','loadModalFormDailyActivities');
-        Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('programKerja.harian.index');
+        Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('aktivitas.harian.index');
         Route::get('/listTableProkerHarian', [ProgramKerjaController::class,'listTableProkerHarian'])->name('programKerja.harian.listTable');
         Route::get('/detailDataProkerHarian', [ProgramKerjaController::class,'detailDataProkerHarian'])->name('programKerja.harian.detailprokerharian');
         Route::post('/fileUpload', [ProgramKerjaController::class, 'testUpload'])->name('programKerja.harian.upload');
