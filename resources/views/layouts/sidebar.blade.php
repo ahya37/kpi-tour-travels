@@ -119,7 +119,7 @@
                 </li>
 
                 <li class="{{ request()->is('aktivitas') ? 'active' : '' }}">
-                    <a href="{{ route('programKerja.harian.index') }}"><i class="fa fa-pencil"></i> <span
+                    <a href="{{ route('aktivitas.harian.index') }}"><i class="fa fa-pencil"></i> <span
                             class="nav-label">Aktivitas Harian</span></a>
                 </li>
             @endif

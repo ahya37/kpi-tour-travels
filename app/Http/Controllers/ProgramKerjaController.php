@@ -7,8 +7,8 @@ use App\Services\BaseService;
 use App\Services\ProgramKerjaService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
-use Response;
 use Illuminate\Support\Facades\Storage;
+use Response;
 use File;
 
 date_default_timezone_set('Asia/Jakarta');
@@ -151,7 +151,8 @@ class ProgramKerjaController extends Controller
                 ],
             );
         } else {
-            $doSimpan   = ProgramKerjaService::doSimpanProkerTahunan($request->all()['sendData'], $jenis);
+            $ip         = $request->ip();
+            $doSimpan   = ProgramKerjaService::doSimpanProkerTahunan($request->all()['sendData'], $jenis, $ip);
             if($doSimpan['transStatus'] == 'berhasil') {
                 $output     = array(
                     "success"   => true,
@@ -429,7 +430,7 @@ class ProgramKerjaController extends Controller
             "pkb_uuid"      => $request->all()['sendData']['pkb_uuid'],
         ];
         $getData    = ProgramKerjaService::getProkerBulanan($sendData);
-        if(!empty($getData))
+        if(count($getData) > 0)
         {
             $header     = [];
             $detail     = [];
@@ -474,10 +475,7 @@ class ProgramKerjaController extends Controller
             $output     = array(
                 "success"   => false,
                 "status"    => 404,
-                "data"      => [
-                    "header"    => [],
-                    "detail"    => [],
-                ],
+                "data"      => null,
             );
         }
 

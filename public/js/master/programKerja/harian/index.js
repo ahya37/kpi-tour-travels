@@ -237,7 +237,7 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
     $("#"+idSelect).select2({
         theme   : 'bootstrap4',
     });
-    
+
     if(idSelect == 'programKerjaBulananID') {
         var html    = "<option selected disabled>Pilih Program Bulanan</option>";
         
@@ -247,7 +247,6 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
             "pkb_uuid"  : valueCari,
         };
         var type    = "GET";
-        var isAsync = isAsync;
         if(isAsync === true) {
             var message     =   Swal.fire({
                                     title    : 'Data Sedang Dimuat..',
@@ -261,29 +260,17 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                 var getDataHeader     = xhr.data.header;
                 $.each(getDataHeader, function(i,item){
                     html    += "<option value='" + item['pkb_uuid'] + "'>  [" + moment(item['pkb_date'], 'YYYY-MM-DD').format('DD-MM-YYYY') + "] "+ item['pkb_title'] +"</option>";
-                    
                 })
                 $("#"+idSelect).html(html);
-                if(isAsync === true) {
-                    Swal.close();
-                }
 
                 if(valueSelect != '') {
-                    // $("#"+idSelect).html(valueSelect).trigger('change');
                     $("#"+idSelect).val(valueSelect);
                 }
             })
             .catch(function(xhr){
-                if(isAsync === true) {
-                    Swal.fire({
-                        icon    : 'error',
-                        title   : 'Terjadi Kesalahan',
-                        text    : xhr.statusText,
-                    });
-                }
+                Swal.close();
                 $("#"+idSelect).html(html);
             });
-            $("#"+idSelect).html(html);
     } else if(idSelect == 'programKerjaBulananAktivitas') {
         var html    = "<option selected disabled>Jenis Pekerjaan</option>";
 
@@ -303,31 +290,24 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                 var message     = "";
             }
             transData(url, type, data, message, isAsync)
-            .then(function(xhr){
-                var getDataDetail     = xhr.data.detail;
-                $.each(getDataDetail, function(i,item){
-                    html    += "<option value='"+item['pkbd_id']+"'>" + item['pkb_detail'] + "</option>";
-                })
-                $("#"+idSelect).html(html);
-                if(isAsync === true) {
-                    Swal.close();
-                }
+                .then(function(xhr){
+                    var getDataDetail     = xhr.data.detail;
+                    $.each(getDataDetail, function(i,item){
+                        html    += "<option value='"+item['pkbd_id']+"'>" + item['pkb_detail'] + "</option>";
+                    })
+                    $("#"+idSelect).html(html);
+                    if(isAsync === true) {
+                        Swal.close();
+                    }
 
-                if(valueSelect != '') {
-                    $("#"+idSelect).val(valueSelect);
-                }
-            })
-            .catch(function(xhr){
-                console.log(xhr);
-                if(isAsync === true) {
-                    Swal.fire({
-                        icon    : 'error',
-                        title   : 'Terjadi Kesalahan',
-                        text    : xhr.statusText,
-                    });
-                }
-                $("#"+idSelect).html(html);
-            });
+                    if(valueSelect != '') {
+                        $("#"+idSelect).val(valueSelect);
+                    }
+                })
+                .catch(function(xhr){
+                    Swal.close();
+                    console.log(xhr);
+                });
             $("#"+idSelect).html(html);
             $("#"+idSelect).on('select2:select', function(){
                 $("#programKerjaHarianJudul").focus();
@@ -439,8 +419,9 @@ function transData(url, type, data, customMessage, isAsync)
             success : function(xhr) {
                 resolve(xhr);
             },
-            reject  : function(xhr) {
+            error   : function(xhr) {
                 reject(xhr);
+                console.log(xhr);
             }
         });
     })

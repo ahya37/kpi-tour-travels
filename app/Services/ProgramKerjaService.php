@@ -1,13 +1,15 @@
 <?php 
 
 namespace App\Services;
-use Illuminate\Support\Facades\DB;
 use App\Helpers\ResponseFormatter;
+use App\Helpers\LogHelper;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
-use Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
+use Hash;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -39,7 +41,7 @@ class ProgramKerjaService
         return $query;
     }
 
-    public static function doSimpanProkerTahunan($data, $jenis)
+    public static function doSimpanProkerTahunan($data, $jenis, $ip)
     {
         DB::beginTransaction();
 
@@ -125,6 +127,7 @@ class ProgramKerjaService
                 'transStatus'   => 'berhasil',
                 'errMsg'        => '',
             );
+            LogHelper::create("add", "Berhasil Menambahkan Program Kerja Tahunan", $ip);
         } catch(\Exception $e) {
             DB::rollback();
             Log::channel('daily')->error($e->getMessage());
@@ -132,6 +135,7 @@ class ProgramKerjaService
                 'transStatus'   => 'gagal',
                 'errMsg'        => $e->getMessage(),
             );
+            LogHelper::create("error_system", $e->getMessage(), $ip);
         }
 
         return $output;
