@@ -430,7 +430,7 @@ class ProgramKerjaController extends Controller
             "pkb_uuid"      => $request->all()['sendData']['pkb_uuid'],
         ];
         $getData    = ProgramKerjaService::getProkerBulanan($sendData);
-        if(!empty($getData))
+        if(count($getData) > 0)
         {
             $header     = [];
             $detail     = [];
@@ -474,11 +474,8 @@ class ProgramKerjaController extends Controller
         } else {
             $output     = array(
                 "success"   => false,
-                "status"    => 500,
-                "data"      => [
-                    "header"    => [],
-                    "detail"    => [],
-                ],
+                "status"    => 404,
+                "data"      => null,
             );
         }
 

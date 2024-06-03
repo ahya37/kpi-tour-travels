@@ -264,15 +264,13 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                 $("#"+idSelect).html(html);
 
                 if(valueSelect != '') {
-                    // $("#"+idSelect).html(valueSelect).trigger('change');
                     $("#"+idSelect).val(valueSelect);
                 }
             })
             .catch(function(xhr){
                 Swal.close();
-                console.log(xhr);
+                $("#"+idSelect).html(html);
             });
-            $("#"+idSelect).html(html);
     } else if(idSelect == 'programKerjaBulananAktivitas') {
         var html    = "<option selected disabled>Jenis Pekerjaan</option>";
 
@@ -421,7 +419,7 @@ function transData(url, type, data, customMessage, isAsync)
             success : function(xhr) {
                 resolve(xhr);
             },
-            reject  : function(xhr) {
+            error   : function(xhr) {
                 reject(xhr);
                 console.log(xhr);
             }
