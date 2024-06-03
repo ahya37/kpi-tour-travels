@@ -65,10 +65,10 @@
                     </ul>
                 </li>
 
-                <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
+                {{-- <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
                     <a href="{{ route('programKerja.bulanan.index') }}"><i class="fa fa-pencil"></i> <span
                             class="nav-label">Aktivitas Harian</span></a>
-                </li>
+                </li> --}}
 
                 <li class="{{ request()->is('accounts/*') ? 'active' : '' }}">
                     <a href="#"><i class="fa fa-users"></i><span class="nav-label">Accounts</span> <span
@@ -86,7 +86,7 @@
 
 
             @endif
-            @if (Auth::user()->hasRole('customer service'))
+            @if (Auth::user()->hasRole('marketing'))
                 <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
                     <a href="{{ route('dashboard') }}"><i class="fa fa-bar-chart-o"></i> <span
                             class="nav-label">Dashboard</span></a>
