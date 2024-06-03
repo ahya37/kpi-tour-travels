@@ -18,10 +18,10 @@ class ProgramKerjaService
     public static function getDataProkerTahunan($data)
     {
         $uid                = $data['uid'];
-        $groupDivisionID    = $data['groupDivisionID'];
+        $roleName           = $data['roleName'];
         $query  = DB::select(
             "
-            SELECT  pt.uid as uid,
+            SELECT 	pt.uid as uid,
                     pt.pkt_title as title,
                     gd.name as division_group_name,
                     pt.pkt_description as description,
@@ -29,11 +29,12 @@ class ProgramKerjaService
                     pt.created_at,
                     count(*) as total_program
             FROM 	proker_tahunan pt
-            INNER JOIN proker_tahunan_detail ptd ON pt.id = ptd.pkt_id
-            INNER JOIN group_divisions gd ON pt.division_group_id = gd.id
-            WHERE 	pt.uid LIKE '%".$uid."%'
-            AND 	gd.id LIKE '".$groupDivisionID."'
-            GROUP BY uid, pkt_title, pkt_description, pkt_year, name, created_at
+            JOIN 	proker_tahunan_detail ptd ON pt.id = ptd.pkt_id
+            JOIN 	group_divisions gd ON pt.division_group_id = gd.id
+            JOIN 	roles r ON gd.roles_id = r.id
+            WHERE 	pt.uid LIKE '$uid'
+            AND 	r.name LIKE '$roleName'
+            GROUP BY uid, pkt_title, pkt_description, pkt_year, gd.name, created_at
             ORDER BY pt.created_at DESC
             "
         );
@@ -174,6 +175,8 @@ class ProgramKerjaService
     // BULANAN
     public static function getProkerBulananAll($cari)
     {
+        $uuid       = $cari['uuid'];
+        $roleName   = $cari['role_name'];
         $query_header  = DB::select(
             "
             SELECT 	a.uuid as pkb_uuid,
@@ -184,6 +187,8 @@ class ProgramKerjaService
                     SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
                     d.id as pkb_gd_id,
                     d.name as pkb_gd_name,
+                    d.roles_id as role_id,
+                    f.name as role_name,
                     e.id as pkb_sd_id,
                     e.name as pkb_sd_name,
                     a.pkb_employee_id
@@ -192,22 +197,25 @@ class ProgramKerjaService
             JOIN 	job_employees c ON b.pkt_pic_job_employee_id = c.employee_id
             JOIN 	group_divisions d ON c.group_division_id = d.id
             JOIN 	sub_divisions e ON c.sub_division_id = e.id
-            WHERE 	a.uuid LIKE '%$cari%'
+            JOIN 	roles f ON d.roles_id = f.id
+            WHERE 	a.uuid LIKE '$uuid'
+            AND 	f.name LIKE '$roleName'
             ORDER BY a.pkb_start_date, a.created_at ASC
             "
         );
 
-        if(($cari != '%') || (!empty($cari))) {
+        if(($cari['uuid'] != '%') || (!empty($cari['uuid']))) {
             $query_detail   = DB::select(
                 "
-                SELECT 	b.pkbd_type as jenis_pekerjaan,
+                SELECT 	b.id as detail_id,
+                        b.pkbd_type as jenis_pekerjaan,
                         b.pkbd_target as target_sasaran,
                         b.pkbd_result as hasil,
                         b.pkbd_evaluation as evaluasi,
                         b.pkbd_description as keterangan
                 FROM 	proker_bulanan a
                 JOIN 	proker_bulanan_detail b ON a.id = b.pkb_id
-                WHERE 	a.uuid = '$cari'
+                WHERE 	a.uuid = '$uuid'
                 ORDER BY a.created_at, b.id ASC
                 "
             );
@@ -225,6 +233,7 @@ class ProgramKerjaService
 
     public static function doGetProkerTahunan($data)
     {
+        $roleName   = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
         $prokerID   = $data['prokerID'];
         $query      = DB::select(
             "
@@ -239,8 +248,10 @@ class ProgramKerjaService
             JOIN 	job_employees b ON a.pkt_pic_job_employee_id = b.employee_id
             JOIN 	group_divisions c ON b.group_division_id = c.id
             JOIN 	sub_divisions d ON b.sub_division_id = d.id
+            JOIN    roles e ON c.roles_id = e.id
             WHERE 	a.parent_id IS NULL
             AND 	a.uid LIKE '$prokerID'
+            AND     e.name LIKE '$roleName'
             ORDER BY a.created_at DESC
             "
         );
@@ -380,9 +391,56 @@ class ProgramKerjaService
         return $output;
     }
 
+    public static function doGetListDataHarian($request)
+    {
+        $pkb_id     = $request->all()['sendData']['pkb_id'];
+        $pkbd_id    = $request->all()['sendData']['pkbd_id'];
+
+        $pkb_header = DB::select(
+            "
+            SELECT 	a.uuid as pkh_id,
+                    a.pkh_title,
+                    a.pkh_date,
+                    SUBSTRING_INDEX(a.pkh_start_time,' ',-1) as pkh_start_time,
+                    SUBSTRING_INDEX(a.pkh_end_time,' ', -1) as pkh_end_time,
+                    b.name as pkh_create_by
+            FROM 	proker_harian a
+            JOIN 	users b ON a.created_by = b.id
+            WHERE 	SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = '$pkb_id'
+            AND 	SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', -1) = '$pkbd_id'
+            ORDER BY a.created_at DESC
+            "
+        );
+
+        $pkb_detail     = DB::select(
+            "
+            SELECT 	a.uuid as file_header_id,
+                    b.pkhf_seq as file_seq,
+                    b.pkhf_name as file_name,
+                    b.pkhf_path as file_path
+            FROM 	proker_harian a
+            JOIN 	proker_harian_file b ON a.id = b.pkh_id
+            WHERE 	SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = '$pkb_id'
+            AND 	SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', -1) = '$pkbd_id'
+            GROUP BY a.uuid, b.pkhf_seq, b.pkhf_name, b.pkhf_path
+            ORDER BY b.pkhf_seq ASC
+            "
+        );
+        
+        $output     = array(
+            "header"    => $pkb_header,
+            "file"      => $pkb_detail
+        );
+
+        return $output;
+    }
+
     // HARIAN
     public static function listProkerHarian($data)
     {
+        $rolesName  = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
+        $currentDate    = date('Y-m-d');
+        $getMonth       = date('m', strtotime($currentDate));
         $query  = DB::select(
             "
             SELECT 	a.uuid as pkh_id,
@@ -394,7 +452,9 @@ class ProgramKerjaService
             JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id,' | ', 1) = b.uuid
             JOIN  	job_employees c ON c.employee_id = b.pkb_employee_id
             JOIN 	group_divisions d ON c.group_division_id = d.id
-            WHERE 	group_division_id LIKE '%'
+            JOIN    roles e ON d.roles_id = e.id
+            WHERE   e.name LIKE '$rolesName'
+            AND     EXTRACT(MONTH FROM a.pkh_date) = '$getMonth'
             ORDER BY a.id DESC
             "
         );
@@ -474,7 +534,7 @@ class ProgramKerjaService
         return $output;
     }
     
-    public static function simpanDataHarian($data)
+    public static function simpanDataHarian($data, $ip)
     {
         DB::beginTransaction();
         if($data['programKerjaHarian_jenisTrans'] == 'add') {
@@ -513,6 +573,7 @@ class ProgramKerjaService
                 "status"    => "berhasil",
                 "errMsg"    => null
             );
+            LogHelper::create("add", "Berhasil Menambahkan Program Kerja Harian", $ip);
         } catch(\Exception $e) {
             DB::rollback();
             Log::channel('daily')->error($e->getMessage());
@@ -520,6 +581,7 @@ class ProgramKerjaService
                 "status"    => "gagal",
                 "errMsg"    => $e->getMessage(),
             );
+            LogHelper::create("error_system", $e->getMessage(), $ip);
         }
 
         return $output;

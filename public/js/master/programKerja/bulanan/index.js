@@ -1,3 +1,5 @@
+var getUrl  = window.location.pathname;
+
 $(document).ready(function(){
     console.log('test');
     var current_date    = moment().tz('Asia/Jakarta').format('YYYY-MM-DD');
@@ -74,6 +76,7 @@ function showCalendar(tanggalCari)
                     successCallback(tempData);
                 })
                 .catch(function(xhr){
+                    Swal.close();
                     var tempData    = [];
                     tempData.push({
                         title   : null,
@@ -91,76 +94,127 @@ function showModal(idModal, jenis, value)
 {
     $("#"+idModal).modal({backdrop: 'static', keyboard: false});
     $("#"+idModal).modal('show');
-    show_table('tableDetailProkerBulanan');
-    $("#btnSimpan").val(jenis);
-    $(".fc .fc-popover").hide();
+    if(idModal == 'modalForm') {
+        show_table('tableDetailProkerBulanan');
+        $("#btnSimpan").val(jenis);
+        $(".fc .fc-popover").hide();
 
-    if(jenis == 'add') {
-        $("#prokerTahunanID").prop('disabled',false);
-        $("#"+idModal).on('shown.bs.modal', function(){
-            $("#prokerBulananTitle").focus();
-        });
+        if(jenis == 'add') {
+            $("#prokerTahunanID").prop('disabled',false);
+            $("#"+idModal).on('shown.bs.modal', function(){
+                $("#prokerBulananTitle").focus();
+            });
 
+            
+            show_select('prokerTahunanID','%','');
+            show_select('prokerBulananPIC','','');
+            show_select('subProkerTahunanSeq','','');
+            tambah_baris('tableDetailProkerBulanan','');
+
+            var title   = "Tambah Uraian Pekerjaan Tgl. "+moment(value.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY');
+            $("#modalTitle").html(title);
+        } else if(jenis == 'edit') {
+            $("#prokerTahunanID").prop('disabled',true);
+            
+            var url     = "/master/programkerja/bulanan/getDataAllProkerBulanan";
+            var type    = "GET";
+            var data    = {
+                "cari"  : value,
+            }
+
+            transData(url, type, data,'', false)
+                .then(function(xhr){
+                    var resultData  = xhr.data.header[0];
+                    $("#prokerBulananID").val(resultData['pkb_uuid']);
+                    $("#prokerTahunanGroupDivisionID").val(resultData['pkb_gd_id']);
+                    $("#prokerTahunanGroupDivisionName").val(resultData['pkb_gd_name']);
+                    $("#prokerTahunanSubDivisionID").val(resultData['pkb_sd_id']);
+                    $("#prokerTahunanSubDivisionName").val(resultData['pkb_sd_name']);
+                    $("#prokerBulananTitle").val(resultData['pkb_title']);
+                    $("#prokerBulananDesc").val(resultData['pkb_description']);
+
+                    var title   = "Preview Uraian Pekerjaan Tgl. "+moment(resultData['pkb_start_date'],'YYYY-MM-DD').format('DD/MM/YYYY');
+                    $("#modalTitle").html(title);
+
+                    show_select('prokerTahunanID','%', resultData['pkb_pkt_id']);
+                    show_select('prokerBulananPIC', resultData['pkb_gd_id'], resultData['pkb_employee_id']);
+                    show_select('subProkerTahunanSeq',resultData['pkb_pkt_id'], resultData['pkb_pkt_id_seq']);
+                    
+                    if(xhr.data.detail.length > 0) {
+                        for(var  i = 0; i < xhr.data.detail.length; i++) {
+                            tambah_baris('tableDetailProkerBulanan', xhr.data.detail[i]);
+                        }
+                    }
+
+                    tambah_baris('tableDetailProkerBulanan','');
+                })
+                .catch(function(xhr){
+                    console.log(xhr);
+                })
+        }
+    } else if(idModal == 'modalAktivitas') {
+        show_table('tableActivityUser');
+        var prokerBulananHeaderID   = $("#prokerBulananID").val();
+        var prokerBulananDetailID   = $("#idDetail"+value).val();
         
-        show_select('prokerTahunanID','%','');
-        show_select('prokerBulananPIC','','');
-        show_select('subProkerTahunanSeq','','');
-        tambah_baris('tableDetailProkerBulanan','');
-
-        var title   = "Tambah Uraian Pekerjaan Tgl. "+moment(value.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY');
-        $("#modalTitle").html(title);
-    } else if(jenis == 'edit') {
-        $("#prokerTahunanID").prop('disabled',true);
-        
-        var url     = "/master/programkerja/bulanan/getDataAllProkerBulanan";
+        var url     = getUrl+ "/getListDataHarian";
         var type    = "GET";
         var data    = {
-            "cari"  : value,
+            "pkb_id"    : prokerBulananHeaderID,
+            "pkbd_id"   : prokerBulananDetailID,
         }
 
-        transData(url, type, data,'', false)
+        var isAsync = true;
+
+        transData(url, type, data, '', isAsync)
             .then(function(xhr){
-                var resultData  = xhr.data.header[0];
-                $("#prokerBulananID").val(resultData['pkb_uuid']);
-                $("#prokerTahunanGroupDivisionID").val(resultData['pkb_gd_id']);
-                $("#prokerTahunanGroupDivisionName").val(resultData['pkb_gd_name']);
-                $("#prokerTahunanSubDivisionID").val(resultData['pkb_sd_id']);
-                $("#prokerTahunanSubDivisionName").val(resultData['pkb_sd_name']);
-                $("#prokerBulananTitle").val(resultData['pkb_title']);
-                $("#prokerBulananDesc").val(resultData['pkb_description']);
+                var getData     = xhr.data.header;
+                var getFile     = xhr.data.file;
 
-                var title   = "Preview Uraian Pekerjaan Tgl. "+moment(resultData['pkb_start_date'],'YYYY-MM-DD').format('DD/MM/YYYY');
-                $("#modalTitle").html(title);
+                if(getData.length > 0) {
+                    for(var i = 0; i < getData.length; i++) {
+                        var pkhd_seq        = i + 1;
+                        var pkhd_title      = getData[i]['pkh_title'];
+                        var pkhd_pic        = getData[i]['pkh_create_by'];
+                        var pkhd_duration   = moment(getData[i]['pkh_date'], 'YYYY-MM-DD').format('DD/MM/YYYY')+" ("+getData[i]['pkh_start_time']+' s/d '+getData[i]['pkh_end_time']+")";
+                        var pkhd_bukti      = "<ul>";
+                        for(var j = 0; j < getFile.length; j++) {
+                            var file_name   = getFile[j]['file_name'].length > 25 ? getFile[j]['file_name'].substring(0, 25) + '...' : getFile[j]['file_name'];
+                            pkhd_bukti      += "<li><a href='#'>" + file_name + "</a></li>";
+                        }
+                        pkhd_bukti += "</ul>";
 
-                show_select('prokerTahunanID','%', resultData['pkb_pkt_id']);
-                show_select('prokerBulananPIC', resultData['pkb_gd_id'], resultData['pkb_employee_id']);
-                show_select('subProkerTahunanSeq',resultData['pkb_pkt_id'], resultData['pkb_pkt_id_seq']);
-                
-                if(xhr.data.detail.length > 0) {
-                    for(var  i = 0; i < xhr.data.detail.length; i++) {
-                        tambah_baris('tableDetailProkerBulanan', xhr.data.detail[i]);
+                        $("#tableActivityUser").DataTable().row.add([
+                            pkhd_seq,
+                            pkhd_title,
+                            pkhd_pic,
+                            pkhd_duration,
+                            pkhd_bukti
+                        ]).draw('false');
                     }
                 }
-
-                tambah_baris('tableDetailProkerBulanan','');
             })
             .catch(function(xhr){
                 console.log(xhr);
-            })
+            });
     }
 }
 
 function closeModal(idModal) {
     $("#"+idModal).modal('hide');
-    $("#"+idModal).on('hidden.bs.modal', function(){
-        $("#btnSimpan").off('click');
-        $("#prokerBulananTitle").val(null);
-        $("#prokerBulananDesc").val(null);
-        $("#prokerTahunanGroupDivisionName").val(null);
-        $("#btnSimpan").val(null);
-        $("#prokerBulananID").val(null);
-        $("#btnTambahBaris").val(1);
-    });
+    if(idModal == 'modalForm') {
+        $("#"+idModal).on('hidden.bs.modal', function(){
+            $("#btnSimpan").off('click');
+            $("#prokerBulananTitle").val(null);
+            $("#prokerBulananDesc").val(null);
+            $("#prokerTahunanGroupDivisionName").val(null);
+            $("#btnSimpan").val(null);
+            $("#prokerBulananID").val(null);
+            $("#btnTambahBaris").val(1);
+        });
+    } else if(idModal == 'modalAktivitas') {
+
+    }
 }
 
 function show_select(idSelect, valueCari, valueSelect)
@@ -291,10 +345,22 @@ function show_table(idTable)
             ordering    : false,
             autoWidth   : false,
             columnDefs  : [
-                { "targets": [0], "className":"text-center", "width":"5%" },
+                { "targets": [0], "className":"text-center", "width":"8%" },
                 { "targets":[1, 2, 3, 4], "width":"17%" },
             ],
         })
+    } else if(idTable == 'tableActivityUser') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            autoWidth    : false,
+            columnDefs   : [
+                { "targets" : [0], "className":"text-center","width":"7%" },
+                { "targets" : [1], "className":"text-left", "width":"35%" },
+                { "targets" : [3], "className":"text-left", "width":"15%" },
+                { "targets" : [4], "className":"text-left", "width":"25%" },
+                
+            ],
+        });
     }
 } 
 
@@ -303,7 +369,9 @@ function tambah_baris(idTable, value)
     if(idTable == 'tableDetailProkerBulanan')
     {
         var currentSeq          = $("#btnTambahBaris").val();
-        var inputBtnDelete      = "<button type='button' class='btn btn-sm btn-danger' value='" +currentSeq+ "' title='Hapus Baris' onclick='hapus_baris(`tableDetailProkerBulanan`, "+currentSeq+")'><i class='fa fa-trash'></i></button>";
+        var inputBtnDelete      = "<button type='button' class='btn btn-sm btn-danger' value='" +currentSeq+ "' title='Hapus Baris' onclick='hapus_baris(`tableDetaislProkerBulanan`, "+currentSeq+")'><i class='fa fa-trash'></i></button>";
+        var inputBtnPreview     = "<button type='button' class='btn btn-sm btn-primary' value='"+currentSeq+"' title='Lihat Aktivitas' onclick='showModal(`modalAktivitas`,``, this.value)'><i class='fa fa-eye'></i></button>";
+        var inputDetailID       = "<input type='hidden' id='idDetail"+currentSeq+"'>";
         var inputJenisPekerjaan = "<input type='text' class='form-control form-control-sm' id='pkbJenisPekerjaan"+currentSeq+"' placeholder='Jenis Pekerjaan' autocomplete='off'>";
         var inputTargetSasaran  = "<input type='text' class='form-control form-control-sm' id='pkbTargetSasaran"+currentSeq+"' placeholder='Target Sasaran' autocomplete='off'>";
         var inputHasil          = "<input type='text' class='form-control form-control-sm' id='pkbHasil"+currentSeq+"' placeholder='Hasil' autocomplete='off'>";
@@ -311,8 +379,8 @@ function tambah_baris(idTable, value)
         var inputKeterangan     = "<input type='text' class='form-control form-control-sm' id='pkbKeterangan"+currentSeq+"' placeholder='Keterangan' autocomplete='off'>";
 
         $("#"+idTable).DataTable().row.add([
-            inputBtnDelete,
-            inputJenisPekerjaan,
+            inputBtnDelete+" "+inputBtnPreview,
+            inputJenisPekerjaan+""+inputDetailID,
             inputTargetSasaran,
             inputHasil,
             inputEvaluasi,
@@ -327,6 +395,7 @@ function tambah_baris(idTable, value)
         });
 
         if(value != '') {
+            $("#idDetail"+currentSeq).val(value.detail_id);
             $("#pkbJenisPekerjaan"+currentSeq).val(value.jenis_pekerjaan);
             $("#pkbTargetSasaran"+currentSeq).val(value.target_sasaran);
             $("#pkbHasil"+currentSeq).val(value.hasil);

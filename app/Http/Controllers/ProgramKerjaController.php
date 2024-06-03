@@ -46,8 +46,8 @@ class ProgramKerjaController extends Controller
     public function ambilListDataProkerTahunan(Request $request)
     {
         $filter     = [
-            "uid"               => request()->id,
-            "groupDivisionID"   => $request->all()['groupDivisionID'],
+            "uid"       => request()->id,
+            "roleName"  => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0],
         ];
         $getData    = $this->ambilDataProkerTahunan($filter);
         if(!empty($getData)) {
@@ -196,7 +196,11 @@ class ProgramKerjaController extends Controller
 
     public function getProkerBulananAll(Request $request)
     {
-        $getData    = ProgramKerjaService::getProkerBulananAll($request->all()['sendData']['cari']);
+        $data_cari  = [
+            "uuid"      => $request->all()['sendData']['cari'],
+            "role_name" => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0],
+        ];
+        $getData    = ProgramKerjaService::getProkerBulananAll($data_cari);
         
         if(!empty($getData)) {
             $output     = array(
@@ -320,12 +324,33 @@ class ProgramKerjaController extends Controller
         return Response::json($output, $output['status']);
     }
 
+    public function getListDataHarian(Request $request)
+    {
+        $getData     = ProgramKerjaService::doGetListDataHarian($request);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "data"      => $getData,
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     // HARIAN
     public function indexHarian()
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'Dashboard Program Kerja Harian'
+            'sub_title' => 'Dashboard Program Kerja Harian ('.date('F Y').')',
         ];
 
         return view('master/programKerja/harian/index', $data);
@@ -484,7 +509,8 @@ class ProgramKerjaController extends Controller
 
     public function simpanDataHarian(Request $request)
     {
-        $doSimpan   = ProgramKerjaService::simpanDataHarian($request->all()['sendData']);
+        $ip         = $request->ip();
+        $doSimpan   = ProgramKerjaService::simpanDataHarian($request->all()['sendData'], $ip);
         if($doSimpan['status'] == "berhasil") {
             $output     = array(
                 "sucess"    => true,
