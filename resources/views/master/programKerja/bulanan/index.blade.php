@@ -184,10 +184,10 @@
     <div class="modal fade" id="modalAktivitas">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header bg-primary">
                     <h4 class="modal-title">Lihat Aktivitas User</h4>
                     <button type="button" class="close" onclick="closeModal('modalAktivitas')">
-                        <span aria-hidden="true">&times;</span>
+                        <span aria-hidden="true" >&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
