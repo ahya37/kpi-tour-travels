@@ -65,6 +65,11 @@
                     </ul>
                 </li>
 
+                <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
+                    <a href="{{ route('programKerja.bulanan.index') }}"><i class="fa fa-pencil"></i> <span
+                            class="nav-label">Aktivitas Harian</span></a>
+                </li>
+
                 <li class="{{ request()->is('accounts/*') ? 'active' : '' }}">
                     <a href="#"><i class="fa fa-users"></i><span class="nav-label">Accounts</span> <span
                             class="fa arrow"></span></a>
@@ -78,6 +83,8 @@
                         <li class="active"><a href="{{ route('roles.index') }}">Roles</a></li>
                     </ul>
                 </li>
+
+
             @endif
             @if (Auth::user()->hasRole('customer service'))
                 <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
