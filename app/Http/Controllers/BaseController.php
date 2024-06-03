@@ -11,7 +11,7 @@ class BaseController extends Controller
     public function getGroupDivision()
     {
         $getData    = BaseService::getDataGroupDivision();
-        if(count($getData) > 1) {
+        if(!empty($getData)) {
             $output     = array(
                 "success"   => true,
                 "status"    => 200,

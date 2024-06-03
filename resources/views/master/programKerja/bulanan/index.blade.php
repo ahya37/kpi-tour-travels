@@ -80,7 +80,7 @@
         </div>
     </div>
     <div class="modal fade" id="modalForm">
-        <div class="modal-dialog modal-xl modal-centered">
+        <div class="modal-dialog modal-xl modal-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title" id="modalTitle"></h4>
@@ -176,6 +176,39 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="btnCancel" onclick="closeModal('modalForm')">Batal</button>
                     <button type="button" class="btn btn-primary" id="btnSimpan">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAktivitas">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Lihat Aktivitas User</h4>
+                    <button type="button" class="close" onclick="closeModal('modalAktivitas')">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table class="table table-sm table-striped table-bordered" id="tableActivityUser">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center" style="vertical-align: center;">No</th>
+                                        <th class="text-center" style="vertical-align: center;">Uraian Pekerjaan</th>
+                                        <th class="text-center" style="vertical-align: center;">Penanggung Jawab</th>
+                                        <th class="text-center" style="vertical-align: center;">Waktu Pengerjaan</th>
+                                        <th class="text-center" style="vertical-align: center;">Bukti</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modalAktivitas')">Kembali</button>
                 </div>
             </div>
         </div>

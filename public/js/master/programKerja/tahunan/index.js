@@ -11,7 +11,6 @@ $(document).ready(function(){
 function show_table(id_table)
 {
     if(id_table == 'tableProgramKerjaTahunan') {
-        var groupDivision     = "%";
         $("#tableProgramKerjaTahunan").DataTable().clear().destroy();
         $("#tableProgramKerjaTahunan").DataTable({
             language    : {
@@ -26,7 +25,6 @@ function show_table(id_table)
                 type    : "GET",
                 dataType: "json",
                 data    : {
-                    groupDivisionID     : groupDivision,
                     id: '%'
                 },
                 url     : "/master/programkerja/tahunan/trans/get/listDataProkerTahunan",

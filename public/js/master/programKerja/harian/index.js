@@ -257,6 +257,7 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
         }
         transData(url, type, data, message, isAsync)
             .then(function(xhr){
+                Swal.close();
                 var getDataHeader     = xhr.data.header;
                 $.each(getDataHeader, function(i,item){
                     html    += "<option value='" + item['pkb_uuid'] + "'>  [" + moment(item['pkb_date'], 'YYYY-MM-DD').format('DD-MM-YYYY') + "] "+ item['pkb_title'] +"</option>";
@@ -386,6 +387,7 @@ function doSimpan(jenis)
                     if(results.isConfirmed) {
                         closeModal('modalForm')
                         isClick = 0;
+                        showTable('tableListHarian');
                     }
                 })
             })

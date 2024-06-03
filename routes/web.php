@@ -140,6 +140,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/getDataSubProkerTahunan', [ProgramKerjaController::class, 'getSubProkerTahunan'])->name('programKerja.bulanan.dataSubProkerTahunan');
                 Route::get('/getDataPICByGroupDivisionID',[ProgramKerjaController::class,'getDataPICbyGroupDivisionID'])->name('programKerja.bulanan.dataPIC');
                 Route::post('/postDataProkerBulanan', [ProgramKerjaController::class,'simpanProkerBulanan'])->name('programKerja.bulanan.simpanData');
+                Route::get('/getListDataHarian', [ProgramKerjaController::class, 'getListDataHarian'])->name('programKerja.bulanan.getListDataHarian');
             });
             Route::prefix('harian')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('programKerja.harian.index');
