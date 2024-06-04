@@ -49,9 +49,11 @@ Route::group(['middleware' => ['auth']], function () {
         // bahan prospek
         Route::get('/prospectmaterial','prospectMaterial')->name('marketing.prospectmaterial');
         Route::post('/prospectmaterial/store','prospectMaterialStore')->name('marketing.prospectmaterial.store');
+        Route::get('/prospectmaterial/modal/create','loadModalGenerateAlumni');
 
         // For CS
         Route::get('/alumniprospectmaterial','alumniProspectMaterialByAccountCS')->name('marketing.alumniprospectmaterial');
+        Route::get('/alumniprospectmaterial/singkronisasi/{id}','singkronisasiDataAlumniUmrah')->name('marketing.singkronisasi');
         Route::get('/alumniprospectmaterial/{id}','detailAlumniProspectMaterialByAccountCS')->name('marketing.alumniprospectmaterial.detail');
         Route::get('/alumniprospectmaterial/detail/manage/modal/{detailId}','loadModalManageAlumniProspectMaterial');
         Route::post('/alumniprospectmaterial/detail/manage/store','manageAlumniProspectMaterialStore')->name('marketing.alumniprospectmaterial.store');
@@ -162,7 +164,7 @@ Route::group(['middleware' => ['auth']], function () {
         });
     });
 
-    Route::prefix('aktivitas')->controller(ActivityController::class)->group(function(){
+    Route::prefix('aktivitas')->group(function(){
         // Route::get('/daily','daily')->name('aktivitas.daily.index');
         // Route::get('modal/create','loadModalFormDailyActivities');
         Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('aktivitas.harian.index');

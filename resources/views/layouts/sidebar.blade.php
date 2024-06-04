@@ -65,6 +65,11 @@
                     </ul>
                 </li>
 
+                {{-- <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
+                    <a href="{{ route('programKerja.bulanan.index') }}"><i class="fa fa-pencil"></i> <span
+                            class="nav-label">Aktivitas Harian</span></a>
+                </li> --}}
+
                 <li class="{{ request()->is('accounts/*') ? 'active' : '' }}">
                     <a href="#"><i class="fa fa-users"></i><span class="nav-label">Accounts</span> <span
                             class="fa arrow"></span></a>
@@ -78,6 +83,8 @@
                         <li class="active"><a href="{{ route('roles.index') }}">Roles</a></li>
                     </ul>
                 </li>
+
+
             @endif
             @if (Auth::user()->hasRole('marketing'))
                 <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
@@ -149,11 +156,11 @@
                 <li class="{{ request()->is('marketings/*') ? 'active' : '' }}">
                     <a href="#"><i class="fa fa-diamond"></i> <span class="nav-label">Marketing</span> <span
                             class="fa arrow"></span></a>
-                    {{-- <ul class="nav nav-second-level">
+                    <ul class="nav nav-second-level">
                         <li class="active"><a href="{{ route('marketing.alumniprospectmaterial') }}">Bahan Prospek
                                 Alumni</a></li>
-                        <li class="active"><a href="{{ route('marketing.workplans.index') }}">Rencana Kerja</a></li>
-                    </ul> --}}
+                        {{-- <li class="active"><a href="{{ route('marketing.workplans.index') }}">Rencana Kerja</a></li> --}}
+                    </ul>
                     <ul class="nav nav-second-level">
                         <li class="{{ request()->is('marketings/laporan/*') ? 'active' : '' }}">
                             <a href="#">

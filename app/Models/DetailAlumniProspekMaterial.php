@@ -19,9 +19,9 @@ class DetailAlumniProspekMaterial extends Model
     public static function getDetailAlumniProspekMaterialByAlumniProspekMaterial($alumniProspectMaterialId)
     {
         return DB::table('detail_alumni_prospect_material as a')
-                ->select('a.id','a.name','a.telp','a.address','a.is_respone','b.name as reason','a.notes')
+                ->select('a.id','a.id_members','a.name','a.telp','a.address','a.is_respone','b.name as reason','a.notes')
                 ->leftJoin('reasons as b','a.reason_id','=','b.id')
-                ->where('alumni_prospect_material_id', $alumniProspectMaterialId);
+                ->where('a.alumni_prospect_material_id', $alumniProspectMaterialId);
 
     }
 }

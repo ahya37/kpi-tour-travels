@@ -25,4 +25,15 @@ class JobEmployee extends Model
                 ->get();
     }
 
+    public static function getCsByEmployeeId($employeeId)
+    {
+        return DB::table('job_employees as a')
+                ->select('a.id','c.name')
+                ->join('sub_divisions as b','a.sub_division_id','=','b.id')
+                ->join('employees as c','a.employee_id','=','c.id')
+                ->where('b.name','Customer Service')
+                ->where('c.id', $employeeId)
+                ->first();
+    }
+
 }
