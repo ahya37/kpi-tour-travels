@@ -177,7 +177,10 @@ class ProgramKerjaService
     {
         $uuid       = $cari['uuid'];
         $roleName   = $cari['role_name'];
-        $query_header  = DB::select(
+        $tgl_awal   = $cari['tgl_awal'];
+        $tgl_akhir  = $cari['tgl_akhir'];
+
+        $query_list  = DB::select(
             "
             SELECT 	a.uuid as pkb_uuid,
                     a.pkb_title,
@@ -200,11 +203,39 @@ class ProgramKerjaService
             JOIN 	roles f ON d.roles_id = f.id
             WHERE 	a.uuid LIKE '$uuid'
             AND 	f.name LIKE '$roleName'
+            AND     a.pkb_start_date BETWEEN '$tgl_awal' AND '$tgl_akhir'
             ORDER BY a.pkb_start_date, a.created_at ASC
             "
         );
 
         if(($cari['uuid'] != '%') || (!empty($cari['uuid']))) {
+            $query_header   = DB::select(
+                "
+                SELECT 	a.uuid as pkb_uuid,
+                        a.pkb_title,
+                        a.pkb_description,
+                        a.pkb_start_date,
+                        SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_id,
+                        SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
+                        d.id as pkb_gd_id,
+                        d.name as pkb_gd_name,
+                        d.roles_id as role_id,
+                        f.name as role_name,
+                        e.id as pkb_sd_id,
+                        e.name as pkb_sd_name,
+                        a.pkb_employee_id
+                FROM 	proker_bulanan a
+                JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
+                JOIN 	job_employees c ON b.pkt_pic_job_employee_id = c.employee_id
+                JOIN 	group_divisions d ON c.group_division_id = d.id
+                JOIN 	sub_divisions e ON c.sub_division_id = e.id
+                JOIN 	roles f ON d.roles_id = f.id
+                WHERE 	a.uuid LIKE '$uuid'
+                AND 	f.name LIKE '$roleName'
+                ORDER BY a.pkb_start_date, a.created_at ASC
+                "
+            );
+            
             $query_detail   = DB::select(
                 "
                 SELECT 	b.id as detail_id,
@@ -221,9 +252,11 @@ class ProgramKerjaService
             );
         } else {
             $query_detail   = null;
+            $query_header   = null;
         }
         
         $output     = array(
+            "list"      => $query_list,
             "header"    => $query_header,
             "detail"    => $query_detail,
         );

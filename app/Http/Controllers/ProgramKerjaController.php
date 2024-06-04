@@ -197,8 +197,10 @@ class ProgramKerjaController extends Controller
     public function getProkerBulananAll(Request $request)
     {
         $data_cari  = [
-            "uuid"      => $request->all()['sendData']['cari'],
-            "role_name" => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0],
+            "uuid"          => $request->all()['sendData']['cari'],
+            "role_name"     => !empty($request->all()['sendData']['divisi']) ? $request->all()['sendData']['divisi'] : '%',
+            "tgl_awal"      => !empty($request->all()['sendData']['tgl_awal']) ? $request->all()['sendData']['tgl_awal'] : date('Y')."-".date('m')."-01",
+            "tgl_akhir"     => !empty($request->all()['sendData']['tgl_akhir']) ? $request->all()['sendData']['tgl_akhir'] : date('Y-m-d')
         ];
         $getData    = ProgramKerjaService::getProkerBulananAll($data_cari);
         
@@ -207,6 +209,7 @@ class ProgramKerjaController extends Controller
                 "success"   => true,
                 "status"    => 200,
                 "data"      => [
+                    "list"      => $getData['list'],
                     "header"    => $getData['header'],
                     "detail"    => $getData['detail'],
                 ],

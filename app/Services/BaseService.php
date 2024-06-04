@@ -35,4 +35,21 @@ class BaseService
                     ->toArray();
         return $query;
     }
+
+    public static function doGetGroupDivisionWRole()
+    {
+        $query = DB::select(
+            "
+            SELECT 	a.id as gd_id,
+                    a.name as gd_name,
+                    b.id as role_id,
+                    b.name as role_name
+            FROM 	group_divisions a
+            JOIN 	roles b ON a.roles_id = b.id
+            ORDER BY a.name ASC
+            "
+        );
+        
+        return $query;
+    }
 }
