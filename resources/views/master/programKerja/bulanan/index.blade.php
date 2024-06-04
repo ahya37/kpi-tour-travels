@@ -182,7 +182,7 @@
     </div>
 
     <div class="modal fade" id="modalAktivitas">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-primary">
                     <h4 class="modal-title">Lihat Aktivitas User</h4>
@@ -191,6 +191,14 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <div class="row" style="display: none;">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>ID Program Kerja Bulanan</label>
+                                <input type="text" class="form-control" id="prokerBulananID_Activity" readonly>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-sm-12">
                             <table class="table table-sm table-striped table-bordered" id="tableActivityUser">
@@ -198,7 +206,7 @@
                                     <tr>
                                         <th class="text-center" style="vertical-align: center;">No</th>
                                         <th class="text-center" style="vertical-align: center;">Uraian Pekerjaan</th>
-                                        <th class="text-center" style="vertical-align: center;">Penanggung Jawab</th>
+                                        <th class="text-center" style="vertical-align: center;">Dibuat Oleh</th>
                                         <th class="text-center" style="vertical-align: center;">Waktu Pengerjaan</th>
                                         <th class="text-center" style="vertical-align: center;">Bukti</th>
                                     </tr>
@@ -208,7 +216,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modalAktivitas')">Kembali</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modalAktivitas')" title='Tutup Form'>Tutup</button>
                 </div>
             </div>
         </div>

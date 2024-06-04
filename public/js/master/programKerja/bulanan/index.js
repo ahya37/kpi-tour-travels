@@ -1,7 +1,6 @@
 var getUrl  = window.location.pathname;
 
 $(document).ready(function(){
-    console.log('test');
     var current_date    = moment().tz('Asia/Jakarta').format('YYYY-MM-DD');
     showCalendar(current_date);
 });
@@ -41,6 +40,7 @@ function showCalendar(tanggalCari)
             var value       = arg.event.id;
 
             showModal(idModal, jenis, value);
+            console.log({idModal, jenis, value});
             
             $("#btnSimpan").click(function(){
                 do_save(this.value, arg, calendar);
@@ -105,7 +105,6 @@ function showModal(idModal, jenis, value)
                 $("#prokerBulananTitle").focus();
             });
 
-            
             show_select('prokerTahunanID','%','');
             show_select('prokerBulananPIC','','');
             show_select('subProkerTahunanSeq','','');
@@ -121,8 +120,14 @@ function showModal(idModal, jenis, value)
             var data    = {
                 "cari"  : value,
             }
+            var isAsync = true;
 
-            transData(url, type, data,'', false)
+            // SHOW MESSAGE
+            if(isAsync == true) {
+                var customMessage   = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
+            }
+
+            transData(url, type, data, customMessage, isAsync)
                 .then(function(xhr){
                     var resultData  = xhr.data.header[0];
                     $("#prokerBulananID").val(resultData['pkb_uuid']);
@@ -147,16 +152,28 @@ function showModal(idModal, jenis, value)
                     }
 
                     tambah_baris('tableDetailProkerBulanan','');
+                    $("#prokerTahunanID").select2('open');
+                    // KETIKA SUDAH KELUAR SEMUA MAKA CLOSE MESSAGE
+                    Swal.close();
                 })
                 .catch(function(xhr){
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : xhr.status,
+                        text    : xhr.statusText,
+                    });
                     console.log(xhr);
                 })
         }
     } else if(idModal == 'modalAktivitas') {
+        // TUTUP MODAL SEBELUMNYA
+        closeModal('modalForm');
+        // OPEN MODAL SELANJUTNYA
         show_table('tableActivityUser');
         var prokerBulananHeaderID   = $("#prokerBulananID").val();
         var prokerBulananDetailID   = $("#idDetail"+value).val();
-        
+        $("#prokerBulananID_Activity").val(prokerBulananHeaderID);
+
         var url     = getUrl+ "/getListDataHarian";
         var type    = "GET";
         var data    = {
@@ -165,22 +182,30 @@ function showModal(idModal, jenis, value)
         }
 
         var isAsync = true;
+        var customMessage   = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
 
-        transData(url, type, data, '', isAsync)
+        transData(url, type, data, customMessage, isAsync)
             .then(function(xhr){
                 var getData     = xhr.data.header;
                 var getFile     = xhr.data.file;
 
                 if(getData.length > 0) {
+                    // console.log(getData, getFile);
                     for(var i = 0; i < getData.length; i++) {
                         var pkhd_seq        = i + 1;
                         var pkhd_title      = getData[i]['pkh_title'];
                         var pkhd_pic        = getData[i]['pkh_create_by'];
                         var pkhd_duration   = moment(getData[i]['pkh_date'], 'YYYY-MM-DD').format('DD/MM/YYYY')+" ("+getData[i]['pkh_start_time']+' s/d '+getData[i]['pkh_end_time']+")";
+
+                        // KOLOM BUKTI
                         var pkhd_bukti      = "<ul>";
                         for(var j = 0; j < getFile.length; j++) {
-                            var file_name   = getFile[j]['file_name'].length > 25 ? getFile[j]['file_name'].substring(0, 25) + '...' : getFile[j]['file_name'];
-                            pkhd_bukti      += "<li><a href='#'>" + file_name + "</a></li>";
+                            if(getData[i]['pkh_id'] == getFile[j]['file_header_id']) {
+                                var file_name   = getFile[j]['file_name'].length > 25 ? getFile[j]['file_name'].substring(0, 25) + '...' : getFile[j]['file_name'];
+                                pkhd_bukti      += "<li><a href='#'>" + file_name + "</a></li>";
+                            } else {
+                                var file_name   = "";
+                            }
                         }
                         pkhd_bukti += "</ul>";
 
@@ -193,6 +218,7 @@ function showModal(idModal, jenis, value)
                         ]).draw('false');
                     }
                 }
+                Swal.close();
             })
             .catch(function(xhr){
                 console.log(xhr);
@@ -213,7 +239,8 @@ function closeModal(idModal) {
             $("#btnTambahBaris").val(1);
         });
     } else if(idModal == 'modalAktivitas') {
-
+        var pkb_ID  = $("#prokerBulananID_Activity").val();
+        showModal('modalForm', 'edit', pkb_ID);
     }
 }
 
