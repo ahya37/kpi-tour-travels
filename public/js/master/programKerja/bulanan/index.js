@@ -1,23 +1,55 @@
 var getUrl  = window.location.pathname;
 
 $(document).ready(function(){
+    $("#current_date").val(moment().tz('Asia/Jakarta').format('YYYY-MM-DD'));
+    // SHOW COLLAPSE
+    $("#btnFilter").on('click', function(){
+        $("#filterCalendar").collapse('show');
+        // FORMAT CALENDAR DATERANGEPICKER
+        $(".date").daterangepicker({
+            singleDatePicker : true,
+            locale : {
+                format  : 'DD/MM/YYYY',
+                cancelLabel: 'Clear'
+            },
+            autoUpdateInput: false,
+            autoApply    : true,
+        }).attr('readonly','readonly').css({"cursor":"pointer", "background":"white"});
+
+        $('.date').on('apply.daterangepicker', function(ev, picker) {
+            $(this).val(picker.startDate.format('DD/MM/YYYY'));
+        });
+
+        // SHOW SELECT2
+        show_select('groupDivisionName','','');
+    });
+
+    $("#btnFilter").on('click', function(){
+        $("#filterCalendar").collapse('hide');
+        $("#filterCalendar").on('hidden.bs.collapse', function(){
+            console.log('test2');
+        });
+    });
+
     var current_date    = moment().tz('Asia/Jakarta').format('YYYY-MM-DD');
-    showCalendar(current_date);
+    showCalendar(current_date, '' ,'', '');
+
+    $(".fc-nextCustomButton-button").html("<i class='fa fa-chevron-right'></i>");
+    $(".fc-prevCustomButton-button").html("<i class='fa fa-chevron-left'></i>");
 });
 
-function showCalendar(tanggalCari)
+function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
 {
     var idCalendar  = document.getElementById('calendar');
-
     var calendar    = new FullCalendar.Calendar(idCalendar, {
         themeSystem: 'bootstrap',
         headerToolbar: {
-            left    : 'prev next',
+            left    : 'prevCustomButton nextCustomButton',
             center  : 'title',
             right   : 'dayGridMonth',
         },
         locale  : 'id',
-        initialDate     : tanggalCari,
+        initialDate     : tgl_sekarang,
         navLinks: false, // can click day/week names to navigate views
         selectable: true,
         selectMirror: true,
@@ -40,20 +72,45 @@ function showCalendar(tanggalCari)
             var value       = arg.event.id;
 
             showModal(idModal, jenis, value);
-            console.log({idModal, jenis, value});
             
             $("#btnSimpan").click(function(){
                 do_save(this.value, arg, calendar);
             });
         },
+        customButtons: {
+            prevCustomButton: {
+                // text: "",
+                click: function() {
+                    var hari_ini                = $("#current_date").val();
+                    var hari_ini_bulan_lalu     = moment(hari_ini).subtract(1, 'month').format('YYYY-MM-DD');
+                    var tgl_awal_bulan_lalu     = moment(hari_ini_bulan_lalu).startOf('month').format('YYYY-MM-DD');
+                    var tgl_akhir_bulan_lalu    = moment(hari_ini_bulan_lalu).endOf('month').format('YYYY-MM-DD');
+                    showCalendar(tgl_awal_bulan_lalu, tgl_awal_bulan_lalu, tgl_akhir_bulan_lalu,'');
+                    $("#current_date").val(hari_ini_bulan_lalu);
+                }
+            },
+            nextCustomButton : {
+                click : function() {
+                    var today                   = $("#current_date").val();
+                    var hari_ini_bulan_depan    = moment(today).add(1, 'month').format('YYYY-MM-DD');
+                    var tgl_awal_bulan_depan    = moment(hari_ini_bulan_depan).startOf('month').format('YYYY-MM-DD');
+                    var tgl_akhir_bulan_depan   = moment(hari_ini_bulan_depan).endOf('month').format('YYYY-MM-DD');
+                    showCalendar(tgl_awal_bulan_depan, tgl_awal_bulan_depan, tgl_akhir_bulan_depan,'');
+                    $("#current_date").val(hari_ini_bulan_depan);
+                }
+            }
+        },
         editable: false,
         fixedMirrorParent: document.body,
-        dayMaxEvents: true, // allow "more" link when too many events
+        dayMaxEvents: true, // allow "more" link when too many events,
         events: function(fetchInfo, successCallback, failureCallback) {
             var url         = "/master/programkerja/bulanan/getDataAllProkerBulanan";
             var type        = "GET";
             var data        = {
                 "cari"      : "%",
+                "tgl_awal"  : tgl_awal,
+                "tgl_akhir" : tgl_akhir,
+                "divisi"    : divisi == null ? '' : divisi
             };
             var message     =   Swal.fire({
                                     title   : 'Data Sedang Dimuat',
@@ -62,18 +119,18 @@ function showCalendar(tanggalCari)
             var isAsync     = true;
             transData(url, type, data, message, isAsync)
                 .then(function(xhr){
-                    Swal.close();
                     var tempData    = [];
-                    for(var i = 0; i < xhr.data.header.length; i++) {
+                    for(var i = 0; i < xhr.data.list.length; i++) {
                         tempData.push({
-                            title   : xhr.data.header[i]['pkb_title'],
-                            start   : xhr.data.header[i]['pkb_start_date'], 
+                            title   : xhr.data.list[i]['pkb_title'],
+                            start   : xhr.data.list[i]['pkb_start_date'], 
                             end     : null,
                             allDay  : true,
-                            id      : xhr.data.header[i]['pkb_uuid'],
+                            id      : xhr.data.list[i]['pkb_uuid'],
                         });
                     }
                     successCallback(tempData);
+                    Swal.close();
                 })
                 .catch(function(xhr){
                     Swal.close();
@@ -88,6 +145,38 @@ function showCalendar(tanggalCari)
     });
 
     calendar.render();
+}
+
+function showDataCalendar()
+{
+    var start_date      = $("#prokerBulananStartDate").val() != '' ? moment($("#prokerBulananStartDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : '';
+    var end_date        = $("#prokerBulananEndDate").val() != '' ? moment($("#prokerBulananEndDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : '';
+    var divisi          = $("#groupDivisionName").val();
+
+    if($("#prokerBulananStartDate").val() == '') {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Tanggal Awal Harus diisi',
+        }).then((results)   => {
+            if(results.isConfirmed) {
+                $("#prokerBulananStartDate").focus();
+            }
+        })
+    } else if($("#prokerBulananEndDate").val() == '') {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Tanggal Akhir Harus diisi',
+        }).then((results)   => {
+            if(results.isConfirmed) {
+                $("#prokerBulananEndDate").focus();
+            }
+        })
+    } else {
+        var current_date    = start_date.split('-')[0]+"-"+start_date.split('-')[1]+"-01";
+        showCalendar(current_date, start_date, end_date, divisi);
+    }
 }
 
 function showModal(idModal, jenis, value)
@@ -333,6 +422,23 @@ function show_select(idSelect, valueCari, valueSelect)
             })
         }
         $("#"+idSelect).html(html);
+    } else if(idSelect == 'groupDivisionName') {
+        var html    = "<option selected disabled>Pilih Group Divisi</option>";
+        var url     = "/master/data/getGroupDivisionWRole";
+        var type    = "GET";
+        var async   = true;
+
+        transData(url, type, '', '', async)
+        .then(function(xhr){
+            $.each(xhr.data, function(i,item){
+                html    += "<option value='" + item['role_name'] + "'>" + item['gd_name'] + "</option>";
+            });
+            $("#"+idSelect).html(html);
+        })
+        .catch(function(xhr){
+            console.log(xhr);
+            $("#"+idSelect).html(html);
+        })
     }
 }
 

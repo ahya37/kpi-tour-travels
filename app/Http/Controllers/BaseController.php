@@ -27,4 +27,24 @@ class BaseController extends Controller
         
         return Response::json($output, $output['status']);
     }
+
+    public function getGroupDivisionWRole()
+    {
+        $getData    = BaseService::doGetGroupDivisionWRole();
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "data"      => $getData,
+            );
+        }
+        
+        return Response::json($output, $output['status']);
+    }
 }

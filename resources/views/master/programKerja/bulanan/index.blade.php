@@ -6,6 +6,7 @@
     <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
@@ -66,14 +67,54 @@
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
-                        <div class="row text-right">
+                        <div class="row">
+                            <div class="col-sm-12 text-right">
+                                <input type="hidden" id="current_date">
+                                <button type="button" class="btn btn-secondary" title="Filter Tanggal" id="btnFilter"><i class="fa fa-filter"></i> Filter</button>
+                            </div>
+                        </div>
+                        <div class="row">
                             <div class="col-sm-12">
-                                <button type="button" class="btn btn-secondary" title="Filter Tanggal"><i class="fa fa-filter"></i></button>
+                                <div class="collapse" id="filterCalendar">
+                                    <div class="row">
+                                        <div class="col-sm-3">
+                                            <label>Tanggal Awal</label>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <label>Tanggal Akhir</label>
+                                        </div>
+                                        <div class="col-sm-3">
+                                        @if(Auth::user()->hasRole('admin'))
+                                            <label>Divisi</label>
+                                        @endif
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-3">
+                                            
+                                            <input type="text" class="form-control date" id="prokerBulananStartDate" placeholder="DD/MM/YYYY" style="cursor: pointer; background: white; height: 38px;" readonly>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            
+                                            <input type="text" class="form-control date" id="prokerBulananEndDate" placeholder="DD/MM/YYYY" style="cursor: pointer; background: white; height: 38px;" readonly>
+                                        </div>
+                                        @if(Auth::user()->hasRole('admin'))
+                                            <div class="col-sm-3">
+                                                <select id="groupDivisionName" style="width: 100%;">
+
+                                                </select>
+                                            </div>
+                                        @endif
+                                        <div class="col-sm-3">
+                                            <button class="btn btn-primary" id="btnFilterCari" onclick="showDataCalendar()" style="height: 37px;">Cari</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="ibox-content">
-                        <div id="calendar"></div>
+                        <div id="calendar" style="width: 100%;"></div>
                     </div>
                 </div>
             </div>
@@ -234,5 +275,6 @@
     <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/bootstrap4.index.global.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.36/moment-timezone-with-data.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script src="{{ asset('js/master/programKerja/bulanan/index.js') }}"></script>
 @endpush
