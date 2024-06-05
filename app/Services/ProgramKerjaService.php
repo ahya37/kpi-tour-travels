@@ -176,7 +176,7 @@ class ProgramKerjaService
     public static function getProkerBulananAll($cari)
     {
         $uuid       = $cari['uuid'];
-        $roleName   = $cari['role_name'];
+        $roleName   = $cari['role_name'] == 'admin' ? '%' : $cari['role_name'];
         $tgl_awal   = $cari['tgl_awal'];
         $tgl_akhir  = $cari['tgl_akhir'];
 
@@ -208,7 +208,7 @@ class ProgramKerjaService
             "
         );
 
-        if(($cari['uuid'] != '%') || (!empty($cari['uuid']))) {
+        if($cari['uuid'] != '%') {
             $query_header   = DB::select(
                 "
                 SELECT 	a.uuid as pkb_uuid,
@@ -235,7 +235,7 @@ class ProgramKerjaService
                 ORDER BY a.pkb_start_date, a.created_at ASC
                 "
             );
-            
+
             $query_detail   = DB::select(
                 "
                 SELECT 	b.id as detail_id,
@@ -310,55 +310,71 @@ class ProgramKerjaService
     
     public static function doSimpanProkerBulanan($dataProkerBulanan)
     {
+        $dataProkerBulananInput     = $dataProkerBulanan->all()['sendData'];
         DB::beginTransaction();
         
-        if($dataProkerBulanan['prokerBulanan_typeTrans'] == 'add') {
+        if($dataProkerBulananInput['prokerBulanan_typeTrans'] == 'add') {
             // HEADER
             $data_insert    = array(
                 "uuid"                  => Str::uuid(),
-                "pkb_title"             => $dataProkerBulanan['prokerBulanan_title'],
-                "pkb_start_date"        => date('Y-m-d', strtotime($dataProkerBulanan['prokerBulanan_startDate'])),
-                "pkb_description"       => $dataProkerBulanan['prokerBulanan_description'],
-                "pkb_pkt_id"            => !empty($dataProkerBulanan['prokerBulanan_subProkerTahunan']) ? $dataProkerBulanan['prokerBulanan_prokerTahunanID']." | ".$dataProkerBulanan['prokerBulanan_subProkerTahunan'] : $dataProkerBulanan['prokerBulanan_prokerTahunanID'],
-                "pkb_employee_id"       => $dataProkerBulanan['prokerBulanan_employeeID'],
+                "pkb_title"             => $dataProkerBulananInput['prokerBulanan_title'],
+                "pkb_start_date"        => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate'])),
+                "pkb_description"       => $dataProkerBulananInput['prokerBulanan_description'],
+                "pkb_pkt_id"            => !empty($dataProkerBulananInput['prokerBulanan_subProkerTahunan']) ? $dataProkerBulananInput['prokerBulanan_prokerTahunanID']." | ".$dataProkerBulananInput['prokerBulanan_subProkerTahunan'] : $dataProkerBulananInput['prokerBulanan_prokerTahunanID'],
+                "pkb_employee_id"       => $dataProkerBulananInput['prokerBulanan_employeeID'],
                 "created_by"            => Auth::user()->id,
                 "updated_by"            => Auth::user()->id,
                 "created_at"            => date('Y-m-d H:i:s'),
                 "updated_at"            => date('Y-m-d H:i:s'),
+                "pkb_start_time"        => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate']))." ".$dataProkerBulananInput['prokerBulanan_startActivity'],
+                "pkb_end_time"          => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate']))." ".$dataProkerBulananInput['prokerBulanan_endActivity'],
             );
             DB::table('proker_bulanan')
                 ->insert($data_insert);
 
             $idHeader   = DB::getPdo()->lastInsertId();
-            if(count($dataProkerBulanan['prokerBulanan_detail']) > 0) {
-                for($i = 0; $i < count($dataProkerBulanan['prokerBulanan_detail']); $i++) {
+            // INSERT DETAIL
+            if(count($dataProkerBulananInput['prokerBulanan_detail']) > 0) {
+                for($i = 0; $i < count($dataProkerBulananInput['prokerBulanan_detail']); $i++) {
                     $data_insert_detail     = array(
                         "pkb_id"            => $idHeader,
-                        "pkbd_type"         => $dataProkerBulanan['prokerBulanan_detail'][$i]['jenisPekerjaan'],
-                        "pkbd_target"       => $dataProkerBulanan['prokerBulanan_detail'][$i]['targetSasaran'],
-                        "pkbd_result"       => $dataProkerBulanan['prokerBulanan_detail'][$i]['hasil'],
-                        "pkbd_evaluation"   => $dataProkerBulanan['prokerBulanan_detail'][$i]['evaluasi'],
-                        "pkbd_description"  => $dataProkerBulanan['prokerBulanan_detail'][$i]['keterangan'],
+                        "pkbd_type"         => $dataProkerBulananInput['prokerBulanan_detail'][$i]['jenisPekerjaan'],
+                        "pkbd_target"       => $dataProkerBulananInput['prokerBulanan_detail'][$i]['targetSasaran'],
+                        "pkbd_result"       => $dataProkerBulananInput['prokerBulanan_detail'][$i]['hasil'],
+                        "pkbd_evaluation"   => $dataProkerBulananInput['prokerBulanan_detail'][$i]['evaluasi'],
+                        "pkbd_description"  => $dataProkerBulananInput['prokerBulanan_detail'][$i]['keterangan'],
                     );
                     
                     if(!empty($data_insert_detail['pkbd_type'])) {
                         DB::table('proker_bulanan_detail')->insert($data_insert_detail);
                     }
                 }
-            } else {
-                // DO NOTHING
             }
-        } else if($dataProkerBulanan['prokerBulanan_typeTrans'] == 'edit') {
-            // print("<pre>" .print_r($dataProkerBulanan, true). "</pre>");die();
+
+            // INSERT FILE
+            if(!empty($dataProkerBulananInput['prokerBulanan_file_list'])) {
+                for($j = 0; $j < count($dataProkerBulananInput['prokerBulanan_file_list']); $j++) {
+                    $data_insert_file   = array(
+                        "pkb_id"    => $idHeader,
+                        "pkbf_seq"  => $j + 1,
+                        "pkbf_name" => $dataProkerBulananInput['prokerBulanan_file_list'][$j]['originalName'],
+                        "pkbf_path" => $dataProkerBulananInput['prokerBulanan_file_list'][$j]['path'],
+
+                    );
+                    DB::table('proker_bulanan_file')->insert($data_insert_file);
+                }
+            }
+        } else if($dataProkerBulananInput['prokerBulanan_typeTrans'] == 'edit') {
+            // print("<pre>" .print_r($dataProkerBulananInput, true). "</pre>");die();
             $data_header_where  = array(
-                "uuid"      => $dataProkerBulanan['prokerBulanan_ID'],
+                "uuid"      => $dataProkerBulananInput['prokerBulanan_ID'],
             );
 
             $data_header_update = array(
-                "pkb_pkt_id"            => $dataProkerBulanan['prokerBulanan_prokerTahunanID']." | ".$dataProkerBulanan['prokerBulanan_subProkerTahunan'],
-                "pkb_title"             => $dataProkerBulanan['prokerBulanan_title'],
-                "pkb_description"       => $dataProkerBulanan['prokerBulanan_description'],
-                "pkb_employee_id"       => $dataProkerBulanan['prokerBulanan_employeeID'],
+                "pkb_pkt_id"            => $dataProkerBulananInput['prokerBulanan_prokerTahunanID']." | ".$dataProkerBulananInput['prokerBulanan_subProkerTahunan'],
+                "pkb_title"             => $dataProkerBulananInput['prokerBulanan_title'],
+                "pkb_description"       => $dataProkerBulananInput['prokerBulanan_description'],
+                "pkb_employee_id"       => $dataProkerBulananInput['prokerBulanan_employeeID'],
                 "updated_by"            => Auth::user()->id,
                 "updated_at"            => date('Y-m-d H:i:s'),
             );
@@ -369,12 +385,12 @@ class ProgramKerjaService
                 ->update($data_header_update);
             
             // UPDATE DETAIL
-            if(count($dataProkerBulanan['prokerBulanan_detail']) > 0) {
-                if(!empty($dataProkerBulanan['prokerBulanan_detail'][0]['jenisPekerjaan'])) {
+            if(count($dataProkerBulananInput['prokerBulanan_detail']) > 0) {
+                if(!empty($dataProkerBulananInput['prokerBulanan_detail'][0]['jenisPekerjaan'])) {
                     // DELETE DATA
                     $getIDProkerBulanan     = DB::table('proker_bulanan')
                                                     ->select('id')
-                                                    ->where('uuid','=', $dataProkerBulanan['prokerBulanan_ID'])
+                                                    ->where('uuid','=', $dataProkerBulananInput['prokerBulanan_ID'])
                                                     ->get();
                     
                     // CHECK JIKA ID GETIDPROKERBULANAN SUDAH ADA DI DETAIL
@@ -387,14 +403,14 @@ class ProgramKerjaService
                             ->delete();
                     }
 
-                    for($i = 0; $i < count($dataProkerBulanan['prokerBulanan_detail']); $i++) {
+                    for($i = 0; $i < count($dataProkerBulananInput['prokerBulanan_detail']); $i++) {
                         $data_insert_detail     = array(
                             "pkb_id"            => $getIDProkerBulanan[0]->id,
-                            "pkbd_type"         => $dataProkerBulanan['prokerBulanan_detail'][$i]['jenisPekerjaan'],
-                            "pkbd_target"       => $dataProkerBulanan['prokerBulanan_detail'][$i]['targetSasaran'],
-                            "pkbd_result"       => $dataProkerBulanan['prokerBulanan_detail'][$i]['hasil'],
-                            "pkbd_evaluation"   => $dataProkerBulanan['prokerBulanan_detail'][$i]['evaluasi'],
-                            "pkbd_description"  => $dataProkerBulanan['prokerBulanan_detail'][$i]['keterangan'],
+                            "pkbd_type"         => $dataProkerBulananInput['prokerBulanan_detail'][$i]['jenisPekerjaan'],
+                            "pkbd_target"       => $dataProkerBulananInput['prokerBulanan_detail'][$i]['targetSasaran'],
+                            "pkbd_result"       => $dataProkerBulananInput['prokerBulanan_detail'][$i]['hasil'],
+                            "pkbd_evaluation"   => $dataProkerBulananInput['prokerBulanan_detail'][$i]['evaluasi'],
+                            "pkbd_description"  => $dataProkerBulananInput['prokerBulanan_detail'][$i]['keterangan'],
                         );
     
                         if(!empty($data_insert_detail['pkbd_type'])) {
@@ -466,6 +482,42 @@ class ProgramKerjaService
         );
 
         return $output;
+    }
+
+    public static function listProkerTahunan()
+    {
+        $query  = DB::select(
+            "
+            SELECT 	b.pktd_seq,
+				    b.pktd_title
+            FROM 	proker_tahunan a
+            JOIN    proker_tahunan_detail b ON a.id = b.pkt_id
+            JOIN 	group_divisions c ON a.division_group_id = c.id
+            JOIN 	roles d ON c.roles_id = d.id
+            WHERE 	d.name LIKE 'operasional'
+            ORDER BY CAST(pktd_seq AS SIGNED) ASC
+            "
+        );
+
+        return $query;
+    }
+
+    public static function getCellProkerBulanan()
+    {
+        $query  = DB::select(
+            "
+            SELECT 	SUBSTRING_INDEX(pkb_pkt_id,' | ',-1) as data_ke,
+                    pkb_title as title,
+                    pkb_start_date
+            FROM 	proker_bulanan
+            WHERE 	pkb_start_time is not null
+            AND 	EXTRACT(YEAR FROM pkb_start_date) = '2024'
+            AND 	EXTRACT(MONTH FROM pkb_start_date) = '06'
+            ORDER BY pkb_pkt_id, pkb_start_date ASC
+            "
+        );
+
+        return $query;
     }
 
     // HARIAN
@@ -618,5 +670,51 @@ class ProgramKerjaService
         }
 
         return $output;
+    }
+
+    // 04 06 2024
+    // NOTE : SUMMARY UNTUK DASHBOARD PROGRAM KERJA
+    public static function doGetDataTotalProgramKerja()
+    {
+        $query  = DB::select(
+            "
+            SELECT 	SUM(total_proker_tahunan) as grand_total_proker_tahunan,
+                    SUM(total_proker_bulanan) as grand_total_proker_bulanan,
+                    SUM(total_proker_harian) as grand_total_proker_harian,
+                    tahun
+            FROM 		(
+            SELECT 	count(*) as total_proker_tahunan,
+                    0 as total_proker_bulanan,
+                    0 as total_proker_harian,
+                    pkt_year as tahun
+            FROM    proker_tahunan
+            WHERE 	pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
+            GROUP BY pkt_year
+
+            UNION
+
+            SELECT 	0 as total_proker_tahunan,
+                    count(*) as total_proker_bulanan,
+                    0 as total_proker_harian,
+                    EXTRACT(YEAR FROM pkb_start_date) as tahun
+            FROM 	proker_bulanan
+            WHERE 	EXTRACT(YEAR FROM pkb_start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+            GROUP BY EXTRACT(YEAR FROM pkb_start_date)
+
+            UNION
+
+            SELECT 	0 as total_proker_tahunan,
+                    0 as total_proker_bulanan,
+                    COUNT(*) as total_proker_harian,
+                    EXTRACT(YEAR FROM pkh_date) as tahun
+            FROM 	proker_harian
+            WHERE 	EXTRACT(YEAR FROM pkh_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+            GROUP BY EXTRACT(YEAR FROM pkh_date)
+            ) AS b
+            GROUP BY tahun
+            "
+        );
+
+        return $query;
     }
 }

@@ -1,4 +1,57 @@
 var getUrl  = window.location.pathname;
+Dropzone.autoDiscover = false;
+// DROPZONE AREA
+
+var isClick         = 0;
+var penampung       = [];
+var uploadSize      = 25; // megabyte
+var jenisFile       = ".jpg, .jpeg, .png, .docx, .doc, .xls, .xlsx, .pdf"; 
+var showDropzone    = new Dropzone("#myDropzone", {
+    url             : getUrl + "/fileUpload",
+    headers         : {
+        "X-CSRF-TOKEN"  : CSRF_TOKEN,
+    },
+    beforeSend  : function() {
+        Swal.fire({
+            title : 'Data Sedang Diunggah',
+        });
+        Swal.showLoading();
+    },
+    addRemoveLinks  : true,
+    maxFileSize     : uploadSize,
+    parallelUploads : 5,
+    acceptedFiles   : jenisFile,
+    dictDefaultMessage  : "Tarik dan Lepaskan file disini atau klik untuk mencari data yang akan diunggah",
+    dictFileTooBig      : "Ukuran file melebihi batas maksimal unaggah. Batas maksimal ukuran untuk unggh adalah "+uploadSize+"MegaByte",
+    init            : function() {
+        var dropzone    = this;
+        this.on("success", function(file, response){
+            penampung.push({"originalName":response['originalName'], "systemName":response['systeName'], "path":response['path']});
+            // penampung.push(response['originalName']);
+        });
+
+        this.on('removedfile', function(file){
+            // var index   = penampung.indexOf(file.name);
+            for(var i = 0; i < penampung.length; i++) {
+                if(penampung[i].originalName === file.name) {
+                    var url     = getUrl + "/deleteUpload";
+                    var data    = {
+                        "path_files"    : penampung[i].path,
+                    };
+                    var type    = "POST";
+                    transData(url, type, data, '','')
+                        .then(function(xhr){
+                            penampung.splice(i, 1);
+                        })
+                        .catch(function(xhr){
+                            console.log(xhr);
+                        });
+                    break;
+                }
+            }
+        });
+    }
+});
 
 $(document).ready(function(){
     $("#current_date").val(moment().tz('Asia/Jakarta').format('YYYY-MM-DD'));
@@ -30,22 +83,23 @@ $(document).ready(function(){
             console.log('test2');
         });
     });
-
-    var current_date    = moment().tz('Asia/Jakarta').format('YYYY-MM-DD');
-    showCalendar(current_date, '' ,'', '');
-
-    $(".fc-nextCustomButton-button").html("<i class='fa fa-chevron-right'></i>");
-    $(".fc-prevCustomButton-button").html("<i class='fa fa-chevron-left'></i>");
+    
+    showCalendarButton('global')
 });
 
 function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
 {
+    if(tgl_sekarang == '') {
+        tgl_sekarang    = moment().format('YYYY-MM-DD');
+    } else {
+        tgl_sekarang    = tgl_sekarang;
+    }
     var idCalendar  = document.getElementById('calendar');
     var calendar    = new FullCalendar.Calendar(idCalendar, {
         themeSystem: 'bootstrap',
         headerToolbar: {
             left    : 'prevCustomButton nextCustomButton',
-            center  : 'title',
+            center  : '',
             right   : 'dayGridMonth',
         },
         locale  : 'id',
@@ -82,20 +136,22 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                 // text: "",
                 click: function() {
                     var hari_ini                = $("#current_date").val();
+                    var groupDivision           = $("#groupDivisionName").val();
                     var hari_ini_bulan_lalu     = moment(hari_ini).subtract(1, 'month').format('YYYY-MM-DD');
                     var tgl_awal_bulan_lalu     = moment(hari_ini_bulan_lalu).startOf('month').format('YYYY-MM-DD');
                     var tgl_akhir_bulan_lalu    = moment(hari_ini_bulan_lalu).endOf('month').format('YYYY-MM-DD');
-                    showCalendar(tgl_awal_bulan_lalu, tgl_awal_bulan_lalu, tgl_akhir_bulan_lalu,'');
+                    showCalendar(tgl_awal_bulan_lalu, tgl_awal_bulan_lalu, tgl_akhir_bulan_lalu, groupDivision);
                     $("#current_date").val(hari_ini_bulan_lalu);
                 }
             },
             nextCustomButton : {
                 click : function() {
                     var today                   = $("#current_date").val();
+                    var groupDivision           = $("#groupDivisionName").val();
                     var hari_ini_bulan_depan    = moment(today).add(1, 'month').format('YYYY-MM-DD');
                     var tgl_awal_bulan_depan    = moment(hari_ini_bulan_depan).startOf('month').format('YYYY-MM-DD');
                     var tgl_akhir_bulan_depan   = moment(hari_ini_bulan_depan).endOf('month').format('YYYY-MM-DD');
-                    showCalendar(tgl_awal_bulan_depan, tgl_awal_bulan_depan, tgl_akhir_bulan_depan,'');
+                    showCalendar(tgl_awal_bulan_depan, tgl_awal_bulan_depan, tgl_akhir_bulan_depan, groupDivision);
                     $("#current_date").val(hari_ini_bulan_depan);
                 }
             }
@@ -104,12 +160,12 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
         fixedMirrorParent: document.body,
         dayMaxEvents: true, // allow "more" link when too many events,
         events: function(fetchInfo, successCallback, failureCallback) {
-            var url         = "/master/programkerja/bulanan/getDataAllProkerBulanan";
+            var url         = getUrl + "/getDataAllProkerBulanan";
             var type        = "GET";
             var data        = {
                 "cari"      : "%",
-                "tgl_awal"  : tgl_awal,
-                "tgl_akhir" : tgl_akhir,
+                "tgl_awal"  : tgl_awal == '' ? moment().startOf('month').format('YYYY-MM-DD') : tgl_awal,
+                "tgl_akhir" : tgl_akhir == '' ? moment().endOf('month').format('YYYY-MM-DD') : tgl_akhir,
                 "divisi"    : divisi == null ? '' : divisi
             };
             var message     =   Swal.fire({
@@ -120,13 +176,25 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
             transData(url, type, data, message, isAsync)
                 .then(function(xhr){
                     var tempData    = [];
+                    var roleColor   = '';
                     for(var i = 0; i < xhr.data.list.length; i++) {
+                        // if(xhr.data.lis)
+                        if(xhr.data.list[i]['role_id'] == '2') {
+                            roleColor   = '#1AB394';
+                        } else if(xhr.data.list[i]['role_id'] == '3') {
+                            roleColor   = '#364B45';
+                        } else if(xhr.data.list[i]['role_id'] == '4') {
+                            roleColor   = '#98B0A9';
+                        } else if(xhr.data.list[i]['role_id'] == '5') {
+                            roleColor   = '#43A6EE';
+                        }
                         tempData.push({
                             title   : xhr.data.list[i]['pkb_title'],
                             start   : xhr.data.list[i]['pkb_start_date'], 
                             end     : null,
                             allDay  : true,
                             id      : xhr.data.list[i]['pkb_uuid'],
+                            color   : roleColor,
                         });
                     }
                     successCallback(tempData);
@@ -179,14 +247,53 @@ function showDataCalendar()
     }
 }
 
+function showCalendarOperasional()
+{
+    var table   = $("#tableCalendarOperasional").DataTable({
+        scrollX     : true,
+    });
+}
+
 function showModal(idModal, jenis, value)
 {
     $("#"+idModal).modal({backdrop: 'static', keyboard: false});
     $("#"+idModal).modal('show');
+    const current_role    = $("#roleName").val();
     if(idModal == 'modalForm') {
+        if(current_role != 'admin') {
+            if(current_role == 'operasional') {
+                $("#formTableDetailProkerBulanan").hide();
+                $("#formUpload").show();
+                $("#formWaktuAktivitias_prokerBulanan").show();
+            } else {
+                $("#formTableDetailProkerBulanan").show();
+                $("#formUpload").hide();
+                $("#formWaktuAktivitias_prokerBulanan").hide();
+            }
+        } else {
+            $("#formTableDetailProkerBulanan").show();
+            $("#formUpload").show();
+            $("#formWaktuAktivitias_prokerBulanan").show();
+        }
         show_table('tableDetailProkerBulanan');
+
         $("#btnSimpan").val(jenis);
         $(".fc .fc-popover").hide();
+
+        // DATERANGEPICKER HANYA WAKTU
+        $(".waktu").daterangepicker({
+            singleDatePicker    : true,
+            autoApply           : true,
+            timePicker          : true,
+            timePicker24Hour    : true,
+            timePickerIncrement : 1,
+            timePickerSeconds   : true,
+            locale: {
+                format: 'HH:mm:ss'
+            },
+        }).on('show.daterangepicker', function (ev, picker) {
+            picker.container.find(".calendar-table").hide();
+        });
 
         if(jenis == 'add') {
             $("#prokerTahunanID").prop('disabled',false);
@@ -319,6 +426,7 @@ function closeModal(idModal) {
     $("#"+idModal).modal('hide');
     if(idModal == 'modalForm') {
         $("#"+idModal).on('hidden.bs.modal', function(){
+            // RESET FORM
             $("#btnSimpan").off('click');
             $("#prokerBulananTitle").val(null);
             $("#prokerBulananDesc").val(null);
@@ -326,7 +434,21 @@ function closeModal(idModal) {
             $("#btnSimpan").val(null);
             $("#prokerBulananID").val(null);
             $("#btnTambahBaris").val(1);
+            $(".waktu").val('00:00:00');
+            // HIDE FORM
+            $("#formTableDetailProkerBulanan").hide();
+            $("#formUpload").hide();
+            $("#formWaktuAktivitias_prokerBulanan").hide();
+
+            // REMOVE FILE FROM DROPZONE
+            penampung = [];
+            if(isClick == 1) {
+                showDropzone.removeAllFiles(true);
+            } 
         });
+        if(isClick == 0) {
+            showDropzone.removeAllFiles(true);
+        }
     } else if(idModal == 'modalAktivitas') {
         var pkb_ID  = $("#prokerBulananID_Activity").val();
         showModal('modalForm', 'edit', pkb_ID);
@@ -429,16 +551,17 @@ function show_select(idSelect, valueCari, valueSelect)
         var async   = true;
 
         transData(url, type, '', '', async)
-        .then(function(xhr){
-            $.each(xhr.data, function(i,item){
-                html    += "<option value='" + item['role_name'] + "'>" + item['gd_name'] + "</option>";
-            });
-            $("#"+idSelect).html(html);
-        })
-        .catch(function(xhr){
-            console.log(xhr);
-            $("#"+idSelect).html(html);
-        })
+            .then(function(xhr){
+                html    += "<option value='%'>Semua</option>";
+                $.each(xhr.data, function(i,item){
+                    html    += "<option value='" + item['role_name'] + "'>" + item['gd_name'] + "</option>";
+                });
+                $("#"+idSelect).html(html);
+            })
+            .catch(function(xhr){
+                console.log(xhr);
+                $("#"+idSelect).html(html);
+            })
     }
 }
 
@@ -464,6 +587,9 @@ function show_select_detail(idSelect, valueCari) {
             });
 
         show_select('subProkerTahunanSeq', valueCari, '');
+    } else if(idSelect == 'subProkerTahunanSeq') {
+        var selected_text   = $("#subProkerTahunanSeq option:selected").text();
+        $("#prokerBulananTitle").val(selected_text);
     }
 }
 
@@ -494,6 +620,99 @@ function show_table(idTable)
                 
             ],
         });
+    } else if(idTable == 'tableCalendarOperasional') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            autoWidth   : false,
+            scrollX     : true,
+            ordering    : false,
+            pageLength  : -1,
+            fixedColumns    : true,
+            columnDefs  : [
+                {
+                    "targets"   : [0],
+                    "width"     : "20%",
+                }
+            ],
+        });
+
+        // GET DATA
+        var url     = getUrl + "/listProkerTahunan";
+        var type    = "GET";
+        var isAsync = true;
+        var customMessage   = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
+
+        transData(url, type, '', customMessage, isAsync)
+            .then((xhr) => {
+                for(var i = 0; i < xhr.data.length; i++) {
+                    // var activity    = xhr.data[i]['pktd_title'].length > 90 ? xhr.data[i]['pktd_title'].substring(0, 90) + "..." : xhr.data[i]['pktd_title'];
+                    var activity    = xhr.data[i]['pktd_title'];
+                    var kosong      = '';
+                    $("#"+idTable).DataTable().row.add([
+                        activity,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                    ]).draw('false');
+                }
+                // FILL CELL
+                var cellUrl     = getUrl + "/cellProkerBulanan";
+                var cellType    = "GET";
+                var cellAsync   = false;
+                
+                transData(cellUrl, cellType, '', '', cellAsync)
+                    .then((xhr) => {
+                        if(xhr.data.length > 0) {
+                            for(var j = 0; j < xhr.data.length; j++) {
+                                var rowKe   = xhr.data[j]['row_ke'];
+                                var cellKe  = xhr.data[j]['cell_ke'];
+                                var text    = xhr.data[j]['text'];
+                                $("#"+idTable).DataTable().cell(rowKe,cellKe).data(text).draw();
+                            }
+                        }
+                    })
+                    .catch((xhr) => {
+                        console.log(xhr);
+                    });
+                Swal.close();
+            })
+            .catch((xhr) => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : xhr.status+" "+xhr.statusText,
+                })
+                console.log(xhr);
+            })
+
     }
 } 
 
@@ -555,17 +774,19 @@ function hapus_baris(idTable, seq) {
 
 function do_save(jenis, arg, calendar)
 {
-    var prokerBulananID     = $("#prokerBulananID").val();
-    var prokerTahunanID     = $("#prokerTahunanID").val();
-    var prokerSubTahunanID  = $("#subProkerTahunanSeq").val();
-    var groupDivisionID     = $("#prokerTahunanGroupDivisionID").val();
-    var groupDivisionName   = $("#prokerTahunanGroupDivisionName").val();
-    var subDivisionID       = $("#prokerTahunanSubDivisionID").val();
-    var subDivisionName     = $("#prokerTahunanSubDivisionName").val();
-    var prokerBulananPIC    = $("#prokerBulananPIC").val();
-    var prokerBulananTitle  = $("#prokerBulananTitle").val();
-    var prokerBulananDesc   = $("#prokerBulananDesc").val();
-    var totalDetail         = $("#tableDetailProkerBulanan").DataTable().rows().count();
+    var prokerBulananID         = $("#prokerBulananID").val();
+    var prokerTahunanID         = $("#prokerTahunanID").val();
+    var prokerSubTahunanID      = $("#subProkerTahunanSeq").val();
+    var groupDivisionID         = $("#prokerTahunanGroupDivisionID").val();
+    var groupDivisionName       = $("#prokerTahunanGroupDivisionName").val();
+    var subDivisionID           = $("#prokerTahunanSubDivisionID").val();
+    var subDivisionName         = $("#prokerTahunanSubDivisionName").val();
+    var prokerBulananPIC        = $("#prokerBulananPIC").val();
+    var prokerBulananTitle      = $("#prokerBulananTitle").val();
+    var prokerBulananDesc       = $("#prokerBulananDesc").val();
+    var prokerBulananStartTime  = $("#prokerBulananStartTime").val();
+    var prokerBulananEndTime    = $("#prokerBulananEndTime").val();
+    var totalDetail             = $("#tableDetailProkerBulanan").DataTable().rows().count();
     var prokerBulananDetail = [];
     for(var i = 0; i < totalDetail; i++) {
         var seq     = i + 1;
@@ -592,6 +813,9 @@ function do_save(jenis, arg, calendar)
         "prokerBulanan_startDate"           : arg.startStr,
         "prokerBulanan_typeTrans"           : jenis,
         "prokerBulanan_detail"              : prokerBulananDetail,
+        "prokerBulanan_startActivity"       : prokerBulananStartTime,
+        "prokerBulanan_endActivity"         : prokerBulananEndTime,
+        "prokerBulanan_file_list"           : penampung.length > 0 ? penampung : null,
     };
 
     // CREATE VALIDATE
@@ -636,17 +860,16 @@ function do_save(jenis, arg, calendar)
             }
         })
     } else {
-        var url     = "/master/programkerja/bulanan/postDataProkerBulanan";
+        var url     = getUrl+"/postDataProkerBulanan";
         var type    = "POST";
         var data    = dataSimpan;
         var message =   Swal.fire({
                             title   : 'Data Sedang Diproses',
                         });
                         Swal.showLoading();
-
         transData(url, type, data, message, true)
             .then(function(xhr){
-                console.log(xhr);
+                isClick = 1;
                 Swal.fire({
                     icon    : xhr.alert.icon,
                     title   : xhr.alert.message.title,
@@ -660,6 +883,7 @@ function do_save(jenis, arg, calendar)
                             allDay  : arg.allDay,
                             customValue     : dataSimpan,
                         });
+                        isClick = 0;
                         closeModal('modalForm');
                         showCalendar();
                     }
@@ -672,6 +896,29 @@ function do_save(jenis, arg, calendar)
                     text    : xhr.responseJSON.alert.message.text,
                 });
             });
+    }
+}
+
+function showCalendarButton(jenis)
+{
+    if(jenis == 'global') {
+        // SHOW CALENDAR GLOBAL
+        $("#btnCalendarGlobal").addClass('active');
+        $("#calendar").show();
+        showCalendar('','','','');
+        $(".fc-nextCustomButton-button").html("<i class='fa fa-chevron-right'></i>");
+        $(".fc-prevCustomButton-button").html("<i class='fa fa-chevron-left'></i>");
+        // HIDE CALENDAR OPERASIONAL ONLY
+        $("#btnCalendarOperasional").removeClass('active');
+        $("#calendarOperasional").hide();
+    } else if(jenis == 'operasional') {
+        // HIDE CALENDAR GLOBAL
+        $("#btnCalendarGlobal").removeClass('active');
+        $("#calendar").hide();
+        // SHOW CALENDAR OPERASIONAL
+        $("#btnCalendarOperasional").addClass('active');
+        $("#calendarOperasional").show();
+        show_table('tableCalendarOperasional');
     }
 }
 

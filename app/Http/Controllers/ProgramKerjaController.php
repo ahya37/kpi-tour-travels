@@ -27,6 +27,28 @@ class ProgramKerjaController extends Controller
         return view('master/programKerja/index', $data);
     }
 
+    public function getDataTotalProgramKerja()
+    {
+        $getData    = ProgramKerjaService::doGetDataTotalProgramKerja();
+        if(!empty($getData)) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "data"      => $getData,
+                "message"   => "Berhasil Mengambil Data",
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "data"      => [],
+                "message"   => "Berhasil Mengambil Data",
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     // TAHUNAN
     public function indexTahunan()
     {
@@ -198,7 +220,7 @@ class ProgramKerjaController extends Controller
     {
         $data_cari  = [
             "uuid"          => $request->all()['sendData']['cari'],
-            "role_name"     => !empty($request->all()['sendData']['divisi']) ? $request->all()['sendData']['divisi'] : '%',
+            "role_name"     => !empty($request->all()['sendData']['divisi']) && Auth::user()->hasRole('admin') ? ($request->all()['sendData']['divisi'] == 'Semua' ? '%' : $request->all()['sendData']['divisi']) : Auth::user()->getRoleNames()[0],
             "tgl_awal"      => !empty($request->all()['sendData']['tgl_awal']) ? $request->all()['sendData']['tgl_awal'] : date('Y')."-".date('m')."-01",
             "tgl_akhir"     => !empty($request->all()['sendData']['tgl_akhir']) ? $request->all()['sendData']['tgl_akhir'] : date('Y-m-d')
         ];
@@ -295,7 +317,7 @@ class ProgramKerjaController extends Controller
 
     public function simpanProkerBulanan(Request $request)
     {
-        $doSimpan   = ProgramKerjaService::doSimpanProkerBulanan($request->all()['sendData']);
+        $doSimpan   = ProgramKerjaService::doSimpanProkerBulanan($request);
         if($doSimpan['status'] == 'berhasil') {
             $output     = array(
                 "success"       => true,
@@ -342,6 +364,58 @@ class ProgramKerjaController extends Controller
                 "status"    => 404,
                 "success"   => false,
                 "data"      => $getData,
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function listProkerTahunan()
+    {
+        $getData    = ProgramKerjaService::listProkerTahunan();
+        
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 500,
+                "success"   => false,
+                "data"      => $getData,
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function cellProkerBulanan()
+    {
+        $getData    =  ProgramKerjaService::getCellProkerBulanan();
+        
+        if(!empty($getData)) {
+            for($i = 0; $i < count($getData); $i++) {
+                $data_ke    = intval($getData[$i]->data_ke) - $i;
+                $start_date = intval(explode('-', $getData[$i]->pkb_start_date)[2]);
+
+                $data[]     = [
+                    "row_ke"    => $data_ke,
+                    "cell_ke"   => $start_date,
+                    "text"      => "<i class='fa fa-check'></i>",
+                ];
+            }
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "data"      => $data,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "data"      => [],
             );
         }
 
