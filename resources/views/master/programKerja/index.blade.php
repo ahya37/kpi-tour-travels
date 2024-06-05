@@ -21,16 +21,22 @@
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
             <div class="col-lg-12">
-                <div class="ibox ">
-                    <div class="ibox-content">
-                        <div class="row">
+                <div class="card shadow">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-sm-12">
+                                <h1 style="margin-top: 10px;">Program Kerja Tahun - @php echo date('Y') @endphp</h1>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row" id="summary_header" style="display: none;">
                             <div class="col-md-4">
                                 <div class="card">
                                     <div class="card-header">
                                         <b>Program Kerja Tahunan</b>
                                     </div>
-                                    <div class="card-body text-right pk_tahunan">
-                                        <h2>0 Program Kerja</h2>
+                                    <div class="card-body text-right">
+                                        <h2 id="pk_tahunan">0 Program Kerja</h2>
                                     </div>
                                     <div class="card-footer">
                                         <a href="{{ Route('programKerja.tahunan.index') }}">Lihat Detail</a>
@@ -42,8 +48,8 @@
                                     <div class="card-header">
                                         <b>Program Kerja Bulanan</b>
                                     </div>
-                                    <div class="card-body text-right pk_bulanan">
-                                        <h2>0 Program Kerja</h2>
+                                    <div class="card-body text-right">
+                                        <h2 id="pk_bulanan">0 Program Kerja</h2>
                                     </div>
                                     <div class="card-footer">
                                         <a href="{{ Route('programKerja.bulanan.index') }}">Lihat Detail</a>
@@ -55,8 +61,8 @@
                                     <div class="card-header">
                                         <b>Program Kerja Harian</b>
                                     </div>
-                                    <div class="card-body text-right pk_harian">
-                                        <h2>0 Program Kerja</h2>
+                                    <div class="card-body text-right">
+                                        <h2 id="pk_harian">0 Program Kerja</h2>
                                     </div>
                                     <div class="card-footer">
                                         <a href="{{ Route('programKerja.harian.index') }}">Lihat Detail</a>
@@ -77,4 +83,5 @@
     <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+    <script src="{{ asset('js/master/programKerja/dashboard/index.js') }}"></script>
 @endpush

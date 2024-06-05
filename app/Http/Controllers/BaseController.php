@@ -11,7 +11,7 @@ class BaseController extends Controller
     public function getGroupDivision()
     {
         $getData    = BaseService::getDataGroupDivision();
-        if(count($getData) > 1) {
+        if(!empty($getData)) {
             $output     = array(
                 "success"   => true,
                 "status"    => 200,
@@ -22,6 +22,26 @@ class BaseController extends Controller
                 "success"   => false,
                 "status"    => 500,
                 "data"      => [],
+            );
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+
+    public function getGroupDivisionWRole()
+    {
+        $getData    = BaseService::doGetGroupDivisionWRole();
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "data"      => $getData,
             );
         }
         

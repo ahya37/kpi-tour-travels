@@ -257,6 +257,7 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
         }
         transData(url, type, data, message, isAsync)
             .then(function(xhr){
+                Swal.close();
                 var getDataHeader     = xhr.data.header;
                 $.each(getDataHeader, function(i,item){
                     html    += "<option value='" + item['pkb_uuid'] + "'>  [" + moment(item['pkb_date'], 'YYYY-MM-DD').format('DD-MM-YYYY') + "] "+ item['pkb_title'] +"</option>";
@@ -264,15 +265,13 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                 $("#"+idSelect).html(html);
 
                 if(valueSelect != '') {
-                    // $("#"+idSelect).html(valueSelect).trigger('change');
                     $("#"+idSelect).val(valueSelect);
                 }
             })
             .catch(function(xhr){
                 Swal.close();
-                console.log(xhr);
+                $("#"+idSelect).html(html);
             });
-            $("#"+idSelect).html(html);
     } else if(idSelect == 'programKerjaBulananAktivitas') {
         var html    = "<option selected disabled>Jenis Pekerjaan</option>";
 
@@ -388,6 +387,7 @@ function doSimpan(jenis)
                     if(results.isConfirmed) {
                         closeModal('modalForm')
                         isClick = 0;
+                        showTable('tableListHarian');
                     }
                 })
             })
@@ -421,7 +421,7 @@ function transData(url, type, data, customMessage, isAsync)
             success : function(xhr) {
                 resolve(xhr);
             },
-            reject  : function(xhr) {
+            error   : function(xhr) {
                 reject(xhr);
                 console.log(xhr);
             }

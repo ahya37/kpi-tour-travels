@@ -27,6 +27,28 @@ class ProgramKerjaController extends Controller
         return view('master/programKerja/index', $data);
     }
 
+    public function getDataTotalProgramKerja()
+    {
+        $getData    = ProgramKerjaService::doGetDataTotalProgramKerja();
+        if(!empty($getData)) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "data"      => $getData,
+                "message"   => "Berhasil Mengambil Data",
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "data"      => [],
+                "message"   => "Berhasil Mengambil Data",
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     // TAHUNAN
     public function indexTahunan()
     {
@@ -46,8 +68,8 @@ class ProgramKerjaController extends Controller
     public function ambilListDataProkerTahunan(Request $request)
     {
         $filter     = [
-            "uid"               => request()->id,
-            "groupDivisionID"   => $request->all()['groupDivisionID'],
+            "uid"       => request()->id,
+            "roleName"  => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0],
         ];
         $getData    = $this->ambilDataProkerTahunan($filter);
         if(!empty($getData)) {
@@ -196,13 +218,20 @@ class ProgramKerjaController extends Controller
 
     public function getProkerBulananAll(Request $request)
     {
-        $getData    = ProgramKerjaService::getProkerBulananAll($request->all()['sendData']['cari']);
+        $data_cari  = [
+            "uuid"          => $request->all()['sendData']['cari'],
+            "role_name"     => !empty($request->all()['sendData']['divisi']) && Auth::user()->hasRole('admin') ? ($request->all()['sendData']['divisi'] == 'Semua' ? '%' : $request->all()['sendData']['divisi']) : Auth::user()->getRoleNames()[0],
+            "tgl_awal"      => !empty($request->all()['sendData']['tgl_awal']) ? $request->all()['sendData']['tgl_awal'] : date('Y')."-".date('m')."-01",
+            "tgl_akhir"     => !empty($request->all()['sendData']['tgl_akhir']) ? $request->all()['sendData']['tgl_akhir'] : date('Y-m-d')
+        ];
+        $getData    = ProgramKerjaService::getProkerBulananAll($data_cari);
         
         if(!empty($getData)) {
             $output     = array(
                 "success"   => true,
                 "status"    => 200,
                 "data"      => [
+                    "list"      => $getData['list'],
                     "header"    => $getData['header'],
                     "detail"    => $getData['detail'],
                 ],
@@ -288,7 +317,7 @@ class ProgramKerjaController extends Controller
 
     public function simpanProkerBulanan(Request $request)
     {
-        $doSimpan   = ProgramKerjaService::doSimpanProkerBulanan($request->all()['sendData']);
+        $doSimpan   = ProgramKerjaService::doSimpanProkerBulanan($request);
         if($doSimpan['status'] == 'berhasil') {
             $output     = array(
                 "success"       => true,
@@ -320,12 +349,85 @@ class ProgramKerjaController extends Controller
         return Response::json($output, $output['status']);
     }
 
+    public function getListDataHarian(Request $request)
+    {
+        $getData     = ProgramKerjaService::doGetListDataHarian($request);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "data"      => $getData,
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function listProkerTahunan()
+    {
+        $getData    = ProgramKerjaService::listProkerTahunan();
+        
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 500,
+                "success"   => false,
+                "data"      => $getData,
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function cellProkerBulanan()
+    {
+        $getData    =  ProgramKerjaService::getCellProkerBulanan();
+        
+        if(!empty($getData)) {
+            for($i = 0; $i < count($getData); $i++) {
+                $data_ke    = intval($getData[$i]->data_ke) - $i;
+                $start_date = intval(explode('-', $getData[$i]->pkb_start_date)[2]);
+
+                $data[]     = [
+                    "row_ke"    => $data_ke,
+                    "cell_ke"   => $start_date,
+                    "text"      => "<i class='fa fa-check'></i>",
+                ];
+            }
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "data"      => $data,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     // HARIAN
     public function indexHarian()
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'Dashboard Program Kerja Harian'
+            'sub_title' => 'Dashboard Program Kerja Harian ('.date('F Y').')',
         ];
 
         return view('master/programKerja/harian/index', $data);
@@ -430,7 +532,7 @@ class ProgramKerjaController extends Controller
             "pkb_uuid"      => $request->all()['sendData']['pkb_uuid'],
         ];
         $getData    = ProgramKerjaService::getProkerBulanan($sendData);
-        if(!empty($getData))
+        if(count($getData) > 0)
         {
             $header     = [];
             $detail     = [];
@@ -474,11 +576,8 @@ class ProgramKerjaController extends Controller
         } else {
             $output     = array(
                 "success"   => false,
-                "status"    => 500,
-                "data"      => [
-                    "header"    => [],
-                    "detail"    => [],
-                ],
+                "status"    => 404,
+                "data"      => null,
             );
         }
 
@@ -487,7 +586,8 @@ class ProgramKerjaController extends Controller
 
     public function simpanDataHarian(Request $request)
     {
-        $doSimpan   = ProgramKerjaService::simpanDataHarian($request->all()['sendData']);
+        $ip         = $request->ip();
+        $doSimpan   = ProgramKerjaService::simpanDataHarian($request->all()['sendData'], $ip);
         if($doSimpan['status'] == "berhasil") {
             $output     = array(
                 "sucess"    => true,

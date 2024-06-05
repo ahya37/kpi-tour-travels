@@ -4,9 +4,13 @@
 @push('addon-style')
     <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/plugins/sweetalert/sweetalert.css') }}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
+
     <link href="{{ asset('assets/css/plugins/ladda/ladda-themeless.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+    {{-- <link href="{{ asset('assets/css/plugins/datapicker/datepicker3.csss') }}" rel="stylesheet"> --}}
+    <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
+
 @endpush
 
 @section('breadcrumb')
@@ -24,19 +28,10 @@
                 @include('layouts.notification')
                 <div class="ibox ">
                     <div class="ibox-title">
-                       <form action="{{route('marketing.prospectmaterial.store')}}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="form-group row">
-                            <div class="col-sm-2 col-md-2 col-lg-2">
-                                <input type="text" name="year" class="form-control form-control-sm" placeholder="Tahun" required>
-                            </div>
-                            <div class="col-sm-5 col-md-5 col-lg-5">
-                                <button type="submit" class="btn btn-sm btn-primary"><i
-                                       class="fa fa-download"></i> Generate Alumni Umrah
-                               </button>
-                            </div>
-                        </div>
-                        </form>
+                        <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#myModal5"><i
+                                class="fa fa-download"></i> Generate Alumni Umrah
+                        </button>
+
                     </div>
                     <div class="ibox-content">
                         <div class="table-responsive">
@@ -54,11 +49,11 @@
                                 <tbody id="dataTable">
                                     @foreach ($prospectMaterial as $item)
                                         <tr>
-                                            <td>{{$no++}}</td>
-                                            <td>{{$item->cs}}</td>
-                                            <td>{{$item->label}}</td>
-                                            <td>{{$item->members}}</td>
-                                            <td>{{$item->created_at}}</td>
+                                            <td>{{ $no++ }}</td>
+                                            <td>{{ $item->cs }}</td>
+                                            <td>{{ $item->label }}</td>
+                                            <td>{{ $item->members }}</td>
+                                            <td>{{ $item->created_at }}</td>
                                             <td></td>
                                         </tr>
                                     @endforeach
@@ -69,13 +64,36 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal inmodal fade" id="myModal5">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span
+                                aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">Generate Alumni Umrah</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div id="loading"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-white" data-dismiss="modal"
+                            onclick="closeModal()">Batal</button>
+                        <button type="button" class="btn btn-sm btn-primary ladda-button" id="saveButton">Simpan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 @endsection
 
 @push('addon-script')
     <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/chartJs/Chart.min.js') }}"></script>
-    <script src="{{ asset('assets/js/plugins/sweetalert/sweetalert.min.js') }}"></script>
+    {{-- <script src="{{ asset('assets/js/plugins/datapicker/bootstrap-datepicker.js') }}"></script> --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+
     <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/ladda/spin.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/ladda/ladda.min.js') }}"></script>
@@ -83,5 +101,6 @@
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/loaders.js') }}"></script>
     <script src="{{ asset('js/ladda-button.js') }}"></script>
+    <script src="{{ asset('js/initial-select2.js') }}"></script>
     <script src="{{ asset('js/marketings/prospect-material.js') }}"></script>
 @endpush

@@ -11,6 +11,7 @@ use App\Http\Requests\DetailMarketingTargetRequests;
 use App\Http\Requests\ManageAlumniProspectMaterialRequest;
 use App\Models\AlumniProspekMaterial;
 use App\Models\DetailAlumniProspekMaterial;
+use App\Models\Employee;
 use App\Models\JobEmployee;
 use App\Models\Program;
 use App\Models\Reason;
@@ -19,6 +20,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+
+use function Laravel\Prompts\select;
 
 class MarketingController extends Controller
 {
@@ -158,93 +162,154 @@ class MarketingController extends Controller
         DB::beginTransaction();
         try {
 
-            $formData = $request->only(['year']);
-            $response = MarketingService::prospectMaterialStore($formData);
-            $response = $response['data']['members'];
+            $formData['start_year'] = $request->start_year;
+            $formData['end_year'] = $request->end_year;
 
-            // get data job divisi customer service
-            $customerServices = JobEmployee::getJobDivisionCustomerServices();
-            $results  = [];
+            $res = MarketingService::prospectMaterialStore($formData);
+            $res_total   = $res['data']['total'];
+            $res_members = $res['data']['members'];
 
-            foreach($response as $no => $member){
-			   
-                $job_employee_id = $customerServices[$no]->id;
-                
-                $list_id_members = [];
-                $count_members   = 0; 
-                foreach($member as $no_member => $id_member){
-                    
-                    $list_id_members[] = ['id_member' => $id_member];
-                    $count_members     = count($id_member);
-                }
-                
-                $results[] = [
-                     'no' => $no,
-                     'job_employee_id' => $job_employee_id,
-                     'count_members' => $count_members,
-                     'list_members' => $list_id_members,
-                ];
-                
+            $req_total_data = $request->jml_data; // total data yg di request dikali dengan jumlah cs yg di request
+
+            #jika data kurang dari seribu beri notif dan lakukan select range tahun lagi
+            if ($res_total < $req_total_data) {
+                return ResponseFormatter::success([
+                    'status'  => 2,
+                    'message' => 'Data kurang dari '.$req_total_data.' silahkan tentukan range tahun kembali!'
+                ]);
             }
 
-            // simpan ke table bahan prospek 
-		    $label = 'BAHAN PROSPEK ALUMNI ('.date('m').'-'.date('Y').')';
-            // $bahanProspekAlumni = $response['data']['listBahanProspekAlumni'];
-            foreach ($results as  $value) {
-               $asveAlumniProspectMaterial = AlumniProspekMaterial::create([
-                    'id' => Str::random(30),
-                    'periode' => 0,
-                    'label' => $label,
-                    'job_employee_id' => $value['job_employee_id'],
-                    'members' => $value['count_members'],
-                    'notes' => '',
-                    'created_by' => Auth::user()->id,
-                    'updated_by' => Auth::user()->id,
-                ]);
+            #jika jumlah data dari sumber > jumlah yang di request, maka hapus sebanyak selisihnya
+            if ($res_total > $req_total_data) {
+                
+                $selisih = $res_total - $req_total_data;
+                $res_members = array_slice($res_members, 0, - $selisih, true);
+            }
 
-                foreach ($value['list_members'] as $item) {
-                    // dd($item['id_member']);
-                    foreach ($item['id_member'] as $t) {
-                          $address   = $t['members']['ALAMAT'] ?? $t['members']['ALAMAT_UMRAH'];
-                          $kelurahan = $t['members']['KELURAHAN'] ?? $t['members']['KELURAHAN_UMRAH'];
-                          $kecamatan = $t['members']['KECAMATAN'] ?? $t['members']['KECAMATAN_UMRAH'];
-                          $kota      = $t['members']['KOTA'] ?? $t['members']['KOTA_UMRAH'];
-                          $provinsi  = $t['members']['PROPINSI'] ?? $t['members']['PROPINSI_UMRAH'];
-       
+            #get data cs by request cs
+            $csId       = explode(",", $request->cs); 
+            $res_cs     = [];
+            foreach ($csId as $key => $employeeId) {
+                $res_cs[] = [
+                    'cs' => JobEmployee::getCsByEmployeeId($employeeId)
+                ];
+            }
+
+            $jml_bagi = $req_total_data / count($csId);
+
+            #membagi data jamaah dengan  jumlah cs yg di request
+            $groups = array_chunk($res_members, $jml_bagi);
+
+            $results = [];
+            foreach ($groups as $key => $member) {
+                $group_cs_key = $res_cs[$key %  count($csId)];
+
+                #kelompokan jamaah yang sudah dibagi dengan customer service nya
+                $results[] = [
+                    'cs' => $group_cs_key,
+                    'members' => $member
+                ];
+            }
+
+            #simpan ke table bahan prospek 
+            $label = 'BAHAN PROSPEK ALUMNI ('.date('m').'-'.date('Y').')';
+            foreach ($results as $value) {
+                foreach ($value['cs'] as $cs) {
+                    $asveAlumniProspectMaterial = AlumniProspekMaterial::create([
+                            'id' => Str::random(30),
+                            'periode' => 0,
+                            'label' => $label,
+                            'job_employee_id' => $cs->id,
+                            'members' => count($value['members']),
+                            'notes' => '',
+                            'created_by' => Auth::user()->id,
+                            'updated_by' => Auth::user()->id,
+                    ]);
+
+                    foreach ($value['members'] as $member) {
+                          $address   = $member['ALAMAT'] ?? $member['ALAMAT_UMRAH'];
+                          $kelurahan = $member['KELURAHAN'] ?? $member['KELURAHAN_UMRAH'];
+                          $kecamatan = $member['KECAMATAN'] ?? $member['KECAMATAN_UMRAH'];
+                          $kota      = $member['KOTA'] ?? $member['KOTA_UMRAH'];
+                          $provinsi  = $member['PROPINSI'] ?? $member['PROPINSI_UMRAH'];
+
                           $addressFull = $address.', '.$kelurahan.', '.$kecamatan.', '.$kota.', '.$provinsi;
 
                           DetailAlumniProspekMaterial::create([
                                'id' => Str::random(30),
                                'alumni_prospect_material_id' => $asveAlumniProspectMaterial->id,
-                               'id_members' =>  $t['members']['ID'],
-                               'name' =>  $t['members']['NAMA'],
-                               'telp' =>  $t['members']['TELEPON'] ??  $t['members']['HP'],
+                               'id_members' =>  $member['ID_MEMBER'],
+                               'name' =>  $member['NAMA'],
+                               'telp' =>  $member['TELEPON'] ??  $member['HP'],
+                               'provinsi' => $provinsi,
+                               'kota' => $kota,
+                               'kecamatan' => $kecamatan,
+                               'kelurahan' => $kelurahan,
+                               'alamat' => $address,
                                'address' => $addressFull,
                                'created_by' => Auth::user()->id,
                                'updated_by' => Auth::user()->id,
                           ]);
-
-                         
-                        }
-
-                        // API umhaj update member jika member tersebut sudah menjadi bahan prospek alumni
-                        // $formData['id_member'] = $t['members']['ID'];
-                       $formDataUpdate['data']    = $item['id_member'];
-                       MarketingService::updateApiIsBahanProspek($formDataUpdate);
-                    //    return $update;
+                    }
+                    
                 }
-
-
             }
 
             DB::commit();
-            return redirect()->back()->with(['success' => 'Sukses generate alumni jamaah umrah']);
+
+            return ResponseFormatter::success([
+                'message' => 'Berhasil generate alumni',
+            ]);
 
         } catch (\Exception $e) {
             DB::rollback();
-            Log::error(['file' => get_class(), 'errors' => $e->getMessage()]);
-            return redirect()->back()->with(['error' => 'Gagal generate alumni jamaah umrah']);
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal generate alumni'
+            ]);
         }
+    }
+
+    public function singkronisasiDataAlumniUmrah($id)
+    {
+        DB::beginTransaction();
+        try {
+
+            # get data detail_alumni_prospect_material where alumni_prospect_material where id
+            $detailProspectMaterials = DetailAlumniProspekMaterial::select('id_members','id')->where('alumni_prospect_material_id',$id)->get();
+            $id_members = [];
+            foreach ($detailProspectMaterials as  $value) {
+                $id_members[] =  [
+                    'id_members' => $value->id_members
+                ];
+                // if ($updateMember) {
+                //     DB::table('detail_alumni_prospect_material')->where('id_members', $updateMember)->update(['is_sinkronisasi' => '1']);
+                // }
+            }
+
+            #Update is_bahan_prospek_di API / db utama
+            $res_update_data=  MarketingService::updateApiIsBahanProspek($id_members);
+            foreach ($res_update_data as $key => $value) {
+                    DB::table('detail_alumni_prospect_material')->where('id_members', $value)->update(['is_sinkronisasi' => '1']);
+
+            }
+
+            AlumniProspekMaterial::where('id', $id)->update(['is_sinkronisasi' => 1]);
+
+            DB::commit();
+            return ResponseFormatter::success([
+                'message' => 'Berhasil Singkronkan data'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal Singkronkan data!'
+            ]);
+        }
+
+        // API umhaj update member jika member tersebut sudah menjadi bahan prospek alumni
+        //  $formDataUpdate['id_member']    = $member['ID_MEMBER'];
     }
 
     public function alumniProspectMaterialByAccountCS()
@@ -394,7 +459,7 @@ class MarketingController extends Controller
             return ResponseFormatter::success($results);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error($e->getMessage());
+            Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
                 'message' => 'Gagal kelola jamaah'
             ]);
@@ -414,7 +479,58 @@ class MarketingController extends Controller
 
     public function simpanLaporanIklan(Request $request)
     {
-        $doSimpan   = MarketingTargetService::doSimpanLaporanIklan($request->all());
+        $doSimpan   = MarketingService::doSimpanLaporanIklan($request->all());
         
+    }
+
+    public function loadModalGenerateAlumni()
+    {
+        // sleep(1);
+
+        #get data cs
+        $cs = Employee::getCustomerServices();
+        
+        $modalContent = '<form id="form" method="POST" enctype="multipart/form-data">
+                            <div class="form-group row">
+                            <input type="hidden" name="_token" value="'.csrf_token().'">
+                                <label class="col-sm-3 col-form-label">CS</label>
+                                <div class="col-sm-9">
+                                    <select class="form-control select2" name="cs[]" id="cs" multiple="multiple" required>
+                                    ';
+
+                                    foreach ($cs as $key => $value) {
+                                        $modalContent = $modalContent.'<option value="'.$value->id.'">'.$value->cs.'</option>';
+                                    }
+
+        $modalContent = $modalContent.'</select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label">Jumlah Data</label>
+                                <div class="col-sm-9">
+                                    <input type="number" class="form-control form-control-sm" name="jmlData" id="jmlData">
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Tahun</label> 
+                                <div class="col-sm-9">
+                                    <div class="form-group" id="data_5">
+                                    <div class="input-daterange input-group" id="datepicker">
+                                        <input type="text" class="form-control-sm form-control" name="start" placeholder="Awal" id="startYear">
+                                        <span class="input-group-addon">to</span>
+                                        <input type="text" class="form-control-sm form-control" name="end"  placeholder="Akhir" id="endYear"/>
+                                    </div>
+                                 </div>
+                                </div>
+                            </div>
+
+                            <div class="hr-line-dashed"></div>
+                        </form>';
+
+        return response()->json([
+            'modalContent' => $modalContent,
+        ]);
+
     }
 }

@@ -141,7 +141,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="close_modal('modalTambahDataProkerTahunan')">Close</button>
+                    <button type="button" class="btn btn-secondary" onclick="close_modal('modalTambahDataProkerTahunan')">Batal</button>
                     <button type="button" class="btn btn-primary" id="btnTambahData" onclick="do_simpan(this.value)">Simpan</button>
                 </div>
             </div>

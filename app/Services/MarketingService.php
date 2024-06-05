@@ -167,7 +167,8 @@ class MarketingService
 
     public static function prospectMaterialStore($formData)
     {
-        $response = Http::post(env('API_PERCIK').'/member/bahanprospek/store',$formData);
+       
+        $response = Http::post(env('API_PERCIK').'/member/umrah/alumni',$formData);
         
         // Check if the request was successful
         if ($response->successful()) {
@@ -188,9 +189,10 @@ class MarketingService
         }
     }
 
-    public static function updateApiIsBahanProspek($members)
+    public static function updateApiIsBahanProspek($id_member)
     {
-        $response = Http::post(env('API_PERCIK').'/member/bahanprospek/update',$members);
+        $formData['id_member'] = $id_member;
+        $response = Http::post(env('API_PERCIK').'/member/bahanprospek/update',$formData);
         
         // Check if the request was successful
         if ($response->successful()) {
@@ -239,7 +241,7 @@ class MarketingService
             'reason_id' => $request['reason'],
             'tourcode' => $request['tourcode'],
             'tourcode_haji' => $request['tourcodeHaji'],
-            'tourcode_tsourmuslim' => $request['tourcodeMuslim'],
+            'tourcode_tourmuslim' => $request['tourcodeMuslim'],
             'notes' => $request['notes'],
             'remember' => $request['remember'],
             'created_by' => $request['user'],
@@ -285,13 +287,20 @@ class MarketingService
         $results = [];
         $no = 1;
         foreach ($marketingTargets as $value) {
+            $is_response = '';
+            if ($value->is_respone == 'Y') {
+                $is_response = 'Ya';
+            }elseif ($value->is_respone == 'N') {
+                $is_response = 'Tidak';
+            }
+
             $results[] = [
                 'id' => $value->id,
                 'no' => $no++,
                 'name' => $value->name,
                 'telp' => $value->telp,
                 'address' => $value->address,
-                'is_respone' => $value->is_respone,
+                'is_respone' => $is_response,
                 'reason' => $value->reason,
                 'notes' => $value->notes
             ];

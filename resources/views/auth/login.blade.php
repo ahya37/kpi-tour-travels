@@ -1,48 +1,65 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DMA | Login</title>
-    <link href="{{asset('assets/css/bootstrap.min.css')}}" rel="stylesheet">
-    <link href="{{asset('assets/font-awesome/css/font-awesome.css')}}" rel="stylesheet">
-    <link href="{{asset('assets/css/animate.css')}}" rel="stylesheet">
-    <link href="{{asset('assets/css/style.css')}}" rel="stylesheet">
-</head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
 
-<body class="gray-bg">
+    <link rel="stylesheet" href="{{asset('/assets/login/fonts/icomoon/style.css')}}">
 
-    <div class="middle-box text-center loginscreen animated fadeInDown">
-        <div>
-            <div>
+    <link rel="stylesheet" href="{{asset('/assets/login/css/owl.carousel.min.css')}}">
 
-                <h1 class="logo-name">IN+</h1>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{asset('/assets/login/css/bootstrap.min.css')}}">
+    
+    <!-- Style -->
+    <link rel="stylesheet" href="{{asset('/assets/login/css/style.css')}}">
+    <title>Login #6</title>
+  </head>
+  <body>
+  
 
+  <div class="d-lg-flex half">
+    <div class="bg order-1 order-md-2" style="background-image: url('/assets/login/images/b_3.jpg');"></div>
+    <div class="contents order-2 order-md-1">
+
+      <div class="container">
+        <div class="row align-items-center justify-content-center">
+          <div class="col-md-7">
+            <div class="mb-4">
+              <h3>Sign In</h3>
             </div>
-            </p> 
-            <p>Login</p>
-			@include('layouts.notification')
-            <form class="m-t" role="form" method="POST" action="{{ route('login.store') }}">
-			 @csrf
-                <div class="form-group">
-                    <input type="email" name="email" class="form-control" placeholder="Email" required="">
-                </div>
-                <div class="form-group">
-                    <input type="password" class="form-control" name="password" placeholder="Password" required="">
-                </div>
-				
-                <button type="submit" class="btn btn-primary block full-width m-b">Login</button>
+            <form  method="POST" action="{{ route('login.store') }}">
+                @csrf
+              <div class="form-group first">
+                <label for="username">Email / Usernam</label>
+                <input type="email" name="email"  class="form-control" id="email">
+
+              </div>
+              <div class="form-group last mb-3">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" name="password" id="password">
+                
+              </div>
+
+
+              <button type="submit" value="Log In" class="btn btn-block btn-sm btn-primary" style="background-color: #24A287">Sign In</button>
+
             </form>
+          </div>
         </div>
+      </div>
     </div>
 
-    <!-- Mainly scripts -->
-    <script src="{{asset('assets/js/jquery-3.1.1.min.js')}}"></script>
-    <script src="{{asset('assets/js/popper.min.js')}}"></script>
-    <script src="{{asset('assets/js/bootstrap.js')}}"></script>
+    
+  </div>
+    
+    
 
-</body>
-
+    <script src="{{asset('/assets/login/js/jquery-3.3.1.min.js')}}"></script>
+    <script src="{{asset('/assets/login/js/popper.min.js')}}"></script>
+    <script src="{{asset('/assets/login/js/bootstrap.min.js')}}"></script>
+    <script src="{{asset('/assets/login/js/main.js')}}"></script>
+  </body>
 </html>
