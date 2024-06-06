@@ -116,6 +116,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/trans/get/selectDataGroupDivision', [SubDivisionController::class , 'getDataGroupDivision'])->name('subDivision.trans.getDataGroupDivision');
             Route::post('/trans/store/modalDataSubDivision', [SubDivisionController::class, 'saveDataSubDivision'])->name('subDivision.trans.storeDataSubDivision');
             Route::post('/simpanDataSubDivision/{jenis}', [SubDivisionController::class,'simpanDataSubDivision'])->name('subDivision.simpanDataSubDivision');
+            Route::get('/getDataSubDivision', [SubDivisionController::class, 'getDataSubDivision']);
         });
 
         // EMPLOYEES

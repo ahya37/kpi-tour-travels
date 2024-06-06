@@ -7,10 +7,7 @@ $(document).ready(function(){
     show_table('tableSubDivision','%');
 })
 
-function getURL()
-{
-    return $(location).attr('pathname');
-}
+var getURL = window.location.pathname;
 
 function show_table(id_table, value)
 {
@@ -31,7 +28,7 @@ function show_table(id_table, value)
                     cari    : value,
                 },
                 type    : "GET",
-                url     : getURL()+"/trans/get/tableDataGroupDivision",
+                url     : getURL +"/trans/get/tableDataGroupDivision",
            },
            columnDefs  : [
                 {
@@ -47,29 +44,37 @@ function show_modal(id_modal, jenis, value)
 {
     $("#"+id_modal).modal({backdrop: 'static', keyboard: false});
     $("#"+id_modal).modal('show');
-    show_select('groupDivisionID','%');
     $("#btnSimpan").val(jenis);
+    if (jenis == 'add') {
+        show_select('groupDivisionID','%', true);
+    } else if (jenis == 'edit') {
+        // SHOW INTO FORM
 
-    if(jenis == 'edit') {
-        var subDivisionID   = value;
-        var url             = getURL()+"/trans/get/modalDataSubDivision";
-        var sendData        = {
-            "subDivisionID" : subDivisionID,
-        };
-        var type            = "GET";
+        var url         = getURL + "/getDataSubDivision";
+        var sendData    = { "subDivisionID" : value };
+        var type        = "GET";
+        var isAsync     = true;
+        var message     = Swal.fire({title:'Data Sedang Dimuat'}); Swal.showLoading();
 
-        transData(url, type, sendData, '').then(function(xhr){
-            var groupDivisionID     = xhr.data[0]['group_division_id'];
-            var subDivisionID       = xhr.data[0]['sub_division_id'];
-            var subDivisionName     = xhr.data[0]['sub_division_name'];
+        transData(url, type, sendData, message, isAsync)
+            .then(function(xhr){
+                var getData     = xhr.data[0];
+                // SHOW DATA ON SELECT
+                show_select('groupDivisionID', getData['group_division_id'], false);
+                // SHOW DATA ON TEXT FORM
+                $("#subDivisionID").val(getData['sub_division_id']);
+                $("#subDivisionName").val(getData['sub_division_name']);
 
-            $("#subDivisionID").val(subDivisionID);
-            $("#subDivisionName").val(subDivisionName);
-            $("#groupDivisionID").val(groupDivisionID).trigger('change');
-
-        }).catch(function(xhr){
-            console.log(xhr);
-        });
+                Swal.close();
+            })
+            .catch(function(xhr){
+                console.log(xhr);
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : xhr.status+" "+xhr.statusMessage
+                });
+            })
     }
 }
 
@@ -83,43 +88,52 @@ function close_modal(id_modal)
     });
 }
 
-function show_select(id_form, value)
+function show_select(id_form, value, isAsync)
 {
     $("#"+id_form).select2({
         theme   : 'bootstrap4',
     });
     if(id_form == 'groupDivisionID') {
+        console.log({value, isAsync});
         var html    = "<option selected disabled>Pilih Grup Divisi</option>";
-        var url     = getURL()+"/trans/get/selectDataGroupDivision";
+        var url     = getURL +"/trans/get/selectDataGroupDivision";
         var type    = "GET";
         var sendData= "%";
+        if(isAsync == true) {
+            var message     = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
+        } else {
+            var message     = "";
+        }
 
-        transData(url, type, sendData, '').then(function(xhr){
+        transData(url, type, sendData, message, isAsync).then(function(xhr){
             $.each(xhr.data, function(i,item){
                 html    += "<option value='" + item['groupDivisionID'] + "'>" + item['groupDivisionName'] + "</option>";
             });
             $("#"+id_form).html(html);
+
+            if(value != '%') {
+                $("#"+id_form).val(value).trigger('change');
+            }
+            isAsync == true ? Swal.close() : '';
+            isAsync == true ? $("#"+id_form).select2('open') : '';
         }).catch(function(xhr){
-            console.log(xhr);
             $("#"+id_form).html(html);
         });
-
-        if(value != '') {
-            $("#"+id_form).select2('val',value);
-        }
 
         if(id_form == 'groupDivisionID') {
             $("#groupDivisionID").on('select2:select', function(){
                 $("#subDivisionName").focus();
             });
         }
+
+        $("#"+id_form).html(html);
     }
 }
 
 function do_save(jenis)
 {
     console.log({jenis});
-    var url     = getURL() + "/simpanDataSubDivision/"+jenis;
+    var url     = getURL  + "/simpanDataSubDivision/"+jenis;
     var type    = "POST";
     var customMessage   =   Swal.fire({
                                 title   : 'Data Sedang Diproses'
@@ -156,10 +170,10 @@ function do_save(jenis)
         });
 }
 
-function transData(url, type, sendData, customMessage) {
+function transData(url, type, sendData, customMessage, isAsync) {
     return new Promise(function(resolve, reject){
         $.ajax({
-            async   : false,
+            async   : isAsync,
             cache   : false,
             dataType: "json",
             type    : type,
