@@ -502,8 +502,10 @@ class ProgramKerjaService
         return $query;
     }
 
-    public static function getCellProkerBulanan()
+    public static function getCellProkerBulanan($data)
     {
+        $get_bulan  = date('m', strtotime($data['tgl_awal']));
+        $get_tahun  = date('Y', strtotime($data['tgl_awal']));
         $query  = DB::select(
             "
             SELECT 	SUBSTRING_INDEX(pkb_pkt_id,' | ',-1) as data_ke,
@@ -511,8 +513,8 @@ class ProgramKerjaService
                     pkb_start_date
             FROM 	proker_bulanan
             WHERE 	pkb_start_time is not null
-            AND 	EXTRACT(YEAR FROM pkb_start_date) = '2024'
-            AND 	EXTRACT(MONTH FROM pkb_start_date) = '06'
+            AND 	EXTRACT(YEAR FROM pkb_start_date) = '$get_tahun'
+            AND 	EXTRACT(MONTH FROM pkb_start_date) = '$get_bulan'
             ORDER BY pkb_pkt_id, pkb_start_date ASC
             "
         );

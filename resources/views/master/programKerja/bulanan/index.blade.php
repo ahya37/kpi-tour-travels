@@ -2,15 +2,22 @@
 @section('title', $title ?? '')
 
 @push('addon-style')
+    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+    {{-- SELECT2 --}}
     <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
-    {{-- <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet"> --}}
+    {{-- DATATABLES --}}
     <link href="https://cdn.datatables.net/v/bs4/dt-2.0.8/fc-5.0.1/fh-4.0.1/datatables.min.css" rel="stylesheet">
+    {{-- <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.dataTables.css"> --}}
+    {{-- SWEETALERT --}}
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
+    {{-- DATERANGEPICKER --}}
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    {{-- DROPZONE --}}
     <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+    {{-- CUSTOM CSS --}}
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
     <style>
     .fc-daygrid-event-dot {
@@ -52,6 +59,15 @@
     .ibox-title {
         padding: 15px;
     }
+
+    /* FOR DATATABLE */
+    .btn-next-table {
+        margin-left: 0.50em;
+    }
+    .dt-scroll {
+        margin-top: 11px;
+    }
+    
     </style>
 @endpush
 
@@ -64,13 +80,19 @@
 @endsection
 
 @section('content')
+    @php
+        setlocale(LC_ALL, 'IND');
+    @endphp
     <input type="hidden" id="roleName" value={{ Auth::user()->getRoleNames()[0] }}>
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
-                        <div class="row">
+                        <h2 class="text-center">Pogram Kerja Bulan <span id="titleBulan">@php echo strftime('%B') @endphp</span> Tahun <span id="titleTahun">@php echo date('Y'); @endphp</span></h2>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row mb-2">
                             <div class="col-sm-6 text-left">
                                 <button type="button" class="btn btn-primary active" title="Calendar Global" id="btnCalendarGlobal" onclick="showCalendarButton('global')">Kalendar Semua Grup Divisi</button>
                                 <button type="butotn" class="btn btn-primary" title="Calendar Operasional" id="btnCalendarOperasional" onclick="showCalendarButton('operasional')">Kalendar Grup Divisi Operasional</button>
@@ -80,9 +102,9 @@
                                 <button type="button" class="btn btn-secondary" title="Filter Tanggal" id="btnFilter"><i class="fa fa-filter"></i> Filter</button>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row mb-2">
                             <div class="col-sm-12">
-                                <div class="collapse mt-4" id="filterCalendar">
+                                <div class="collapse" id="filterCalendar">
                                     <div class="row">
                                         <div class="col-sm-3">
                                             <label>Tanggal Awal</label>
@@ -117,20 +139,23 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="ibox-content">
-                        <div id="calendar" style="width: 100%;"></div>
-                        <div id="calendarOperasional" style="width: 100%; display: none;">
-                            <table class="table table-sm table-bordered table-striped table-hover" style="width: 200%;" id="tableCalendarOperasional">
-                                <thead>
-                                    <tr>
-                                        <th>Aktivitas</th>
-                                        @for($i = 0; $i < 31; $i++)
-                                            <th class="text-center" style="vertical-align: middle;">{{ $i + 1 }}</th>
-                                        @endfor
-                                    </tr>
-                                </thead>
-                            </table>
+                        <hr>
+                        <div class="row mt-2">
+                            <div class="col-sm-12">
+                                <div id="calendar" style="width: 100%;"></div>
+                                <div id="calendarOperasional" style="width: 100%; display: none;">
+                                    <table class="table table-sm table-bordered table-striped table-hover" style="width: 200%;" id="tableCalendarOperasional">
+                                        <thead>
+                                            <tr>
+                                                <th>Aktivitas</th>
+                                                @for($i = 0; $i < 31; $i++)
+                                                    <th class="text-center" style="vertical-align: middle;">{{ $i + 1 }}</th>
+                                                @endfor
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -306,19 +331,25 @@
 
 
 @push('addon-script')
+    {{-- SELECT2 --}}
     <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
-    {{-- <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script> --}}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    {{-- DATATABLE --}}
     <script src="https://cdn.datatables.net/v/bs4/dt-2.0.8/fc-5.0.1/fh-4.0.1/datatables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.dataTables.js"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     {{-- FULL CALENDAR AREA --}}
-    <script src="{{ asset('assets/js/plugins/fullcalendar/moment.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/index.global.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/index.global.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/bootstrap4.index.global.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+    {{-- MOMENT AREA --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/id.js"></script> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.36/moment-timezone-with-data.min.js"></script>
+    {{-- DATERANGEPICKER --}}
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    {{-- DROPZONE --}}
     <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
     <script src="{{ asset('js/master/programKerja/bulanan/index.js') }}"></script>
 @endpush
