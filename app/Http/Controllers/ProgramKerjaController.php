@@ -620,6 +620,16 @@ class ProgramKerjaController extends Controller
         
     }
 
+    public function ProkerHarianDownloadFile($path)
+    {
+        $filePath   = "/user_data/".$path;
+        if(Storage::exists($filePath)) {
+            return Storage::download($filePath);
+        } else {
+            abort(404);
+        }
+    }
+
     // GLOBAL
     public function getDataPIC(Request $request)
     {

@@ -14,6 +14,7 @@ use App\Http\Controllers\WorkPlanController;
 use App\Http\Controllers\ProgramKerjaController;
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\DailyActivityController;
+use App\Http\Controllers\DivisiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -158,6 +159,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/deleteUpload', [ProgramKerjaController::class, 'deleteUpload'])->name('programKerja.harian.deleteUpload');
                 Route::get('/cariDataProkerBulanan', [ProgramKerjaController::class,'dataProkerBulanan'])->name('programKerja.harian.dataProkerBulanan');
                 Route::post('/doSimpanTransHarian', [ProgramKerjaController::class,'simpanDataHarian'])->name('programKerja.harian.postDataProkerHarian');
+                Route::get('/downloadFile/{path}', [ProgramKerjaController::class, 'ProkerHarianDownloadFile']);
             });
             // GLOBAL
             Route::get('/get/data/PIC', [ProgramKerjaController::class, 'getDataPIC'])->name('programKerja.get.data.pic');

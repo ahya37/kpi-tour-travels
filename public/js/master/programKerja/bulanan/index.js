@@ -397,6 +397,7 @@ function showModal(idModal, jenis, value)
             .then(function(xhr){
                 var getData     = xhr.data.header;
                 var getFile     = xhr.data.file;
+                console.log(getFile);
 
                 if(getData.length > 0) {
                     // console.log(getData, getFile);
@@ -405,13 +406,13 @@ function showModal(idModal, jenis, value)
                         var pkhd_title      = getData[i]['pkh_title'];
                         var pkhd_pic        = getData[i]['pkh_create_by'];
                         var pkhd_duration   = moment(getData[i]['pkh_date'], 'YYYY-MM-DD').format('DD/MM/YYYY')+" ("+getData[i]['pkh_start_time']+' s/d '+getData[i]['pkh_end_time']+")";
-
                         // KOLOM BUKTI
                         var pkhd_bukti      = "<ul>";
                         for(var j = 0; j < getFile.length; j++) {
                             if(getData[i]['pkh_id'] == getFile[j]['file_header_id']) {
+                                var file_path   = getFile[j]['file_path'].split('/')[1];
                                 var file_name   = getFile[j]['file_name'].length > 25 ? getFile[j]['file_name'].substring(0, 25) + '...' : getFile[j]['file_name'];
-                                pkhd_bukti      += "<li><a href='#'>" + file_name + "</a></li>";
+                                pkhd_bukti      += "<li><a href='/master/programkerja/harian/downloadFile/"+file_path+"'>" + file_name + "</a></li>";
                             } else {
                                 var file_name   = "";
                             }
@@ -609,7 +610,7 @@ function show_select_detail(idSelect, valueCari) {
     }
 }
 
-function show_table(idTable)
+function show_table(idTable, jmlTable)
 {
     if(idTable == 'tableDetailProkerBulanan') {
         $("#"+idTable).DataTable().clear().destroy();
@@ -643,6 +644,7 @@ function show_table(idTable)
             scrollX     : true,
             ordering    : false,
             pageLength  : -1,
+            fixedHeader: true,
             fixedColumns: {
                 start: 1,
                 end: 1
@@ -666,7 +668,7 @@ function show_table(idTable)
                         $("#prokerBulananStartDate").val(moment(bulan_lalu_awal, 'YYYY-MM-DD').format('DD/MM/YYYY'));
                         $("#prokerBulananEndDate").val(moment(bulan_lalu_akhir, 'YYYY-MM-DD').format('DD/MM/YYYY'));
                         $("#current_date").val(bulan_lalu_hari_ini);
-                        show_table(idTable);
+                        showDataTable(idTable);
                     }
                 },
                 {
@@ -684,7 +686,7 @@ function show_table(idTable)
                         $("#prokerBulananStartDate").val(moment(bulan_depan_awal, 'YYYY-MM-DD').format('DD/MM/YYYY'));
                         $("#prokerBulananEndDate").val(moment(bulan_depan_akhir, 'YYYY-MM-DD').format('DD/MM/YYYY'));
                         $("#current_date").val(bulan_depan_hari_ini);
-                        show_table(idTable);
+                        showDataTable(idTable);
                     }
                 }
             ],
@@ -694,94 +696,99 @@ function show_table(idTable)
                     "width"     : "19%",
                 },
                 {
-                    "targets"   : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+                    "targets"   : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
                     "className" : "text-center",
                 }
             ],
         });
-
-        // GET DATA
-        var url     = getUrl + "/listProkerTahunan";
-        var type    = "GET";
-        var isAsync = true;
-        var customMessage   = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
-
-        transData(url, type, '', customMessage, isAsync)
-            .then((xhr) => {
-                for(var i = 0; i < xhr.data.length; i++) {
-                    var activity    = xhr.data[i]['pktd_title'];
-                    $("#"+idTable).DataTable().row.add([
-                        activity,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                    ]).draw('false');
-                }
-                // FILL CELL
-                var cellUrl     = getUrl + "/cellProkerBulanan";
-                var cellType    = "GET";
-                var cellAsync   = false;
-                var cellData    = {
-                    "tgl_awal"  : $("#prokerBulananStartDate").val() != '' ? moment($("#prokerBulananStartDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
-                    "tgl_akhir" : $("#prokerBulananEndDate").val() != '' ? moment($("#prokerBulananEndDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),  
-                }
-                
-                transData(cellUrl, cellType, cellData, '', cellAsync)
-                    .then((xhr) => {
-                        if(xhr.data.length > 0) {
-                            for(var j = 0; j < xhr.data.length; j++) {
-                                var rowKe   = xhr.data[j]['row_ke'];
-                                var cellKe  = xhr.data[j]['cell_ke'];
-                                var text    = xhr.data[j]['text'];
-                                $("#"+idTable).DataTable().cell(rowKe,cellKe).data(text).draw();
-                            }
-                        }
-                    })
-                    .catch((xhr) => {
-                        console.log(xhr);
-                    });
-                Swal.close();
-            })
-            .catch((xhr) => {
-                Swal.fire({
-                    icon    : 'error',
-                    title   : 'Terjadi Kesalahan',
-                    text    : xhr.status+" "+xhr.statusText,
-                })
-                console.log(xhr);
-            })
         $("#btn_prev_table").html("<i class='fa fa-chevron-left'></i>");
         $("#btn_next_table").html("<i class='fa fa-chevron-right'></i>").css('margin-left: 0.75em;');
     }
 } 
+
+function showDataTable(idTable)
+{
+    show_table(idTable,'');
+    // console.log(getLastDay);    
+    // GET DATA
+    var url     = getUrl + "/listProkerTahunan";
+    var type    = "GET";
+    var isAsync = true;
+    var customMessage   = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
+
+    transData(url, type, '', customMessage, isAsync)
+        .then((xhr) => {
+            for(var i = 0; i < xhr.data.length; i++) {
+                $("#"+idTable).DataTable().row.add([
+                    xhr.data[i]['pktd_title'],
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                ]).draw('false');
+            }
+
+            // FILL CELL
+            var cellUrl     = getUrl + "/cellProkerBulanan";
+            var cellType    = "GET";
+            var cellAsync   = false;
+            var cellData    = {
+                "tgl_awal"  : $("#prokerBulananStartDate").val() != '' ? moment($("#prokerBulananStartDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
+                "tgl_akhir" : $("#prokerBulananEndDate").val() != '' ? moment($("#prokerBulananEndDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),  
+            }
+            
+            transData(cellUrl, cellType, cellData, '', cellAsync)
+                .then((xhr) => {
+                    if(xhr.data.length > 0) {
+                        for(var j = 0; j < xhr.data.length; j++) {
+                            var rowKe   = xhr.data[j]['row_ke'];
+                            var cellKe  = xhr.data[j]['cell_ke'];
+                            var text    = xhr.data[j]['text'];
+                            $("#"+idTable).DataTable().cell(rowKe,cellKe).data(text).draw();
+                        }
+                    }
+                })
+                .catch((xhr) => {
+                    console.log(xhr);
+                });
+            Swal.close();
+        })
+        .catch((xhr) => {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : xhr.status+" "+xhr.statusText,
+            })
+            console.log(xhr);
+        })
+}
 
 function tambah_baris(idTable, value)
 {
@@ -991,7 +998,7 @@ function showCalendarButton(jenis)
         // SHOW CALENDAR OPERASIONAL
         $("#btnCalendarOperasional").addClass('active');
         $("#calendarOperasional").show();
-        show_table('tableCalendarOperasional');
+        showDataTable('tableCalendarOperasional')
     }
 }
 
