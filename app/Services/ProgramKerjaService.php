@@ -128,7 +128,12 @@ class ProgramKerjaService
                 'transStatus'   => 'berhasil',
                 'errMsg'        => '',
             );
-            LogHelper::create("add", "Berhasil Menambahkan Program Kerja Tahunan", $ip);
+            if($jenis == 'add') {
+                $message    = "Berhasil Menambahkan Program Kerja Tahunan";
+            } else {
+                $message    = "Berhasil Mengubah Program Kerja Tahunan";
+            }
+            LogHelper::create($jenis, $message, $ip);
         } catch(\Exception $e) {
             DB::rollback();
             Log::channel('daily')->error($e->getMessage());
@@ -428,13 +433,20 @@ class ProgramKerjaService
                 "status"    => "berhasil",
                 "errMsg"    => null
             );
+            if($dataProkerBulananInput['prokerBulanan_typeTrans'] == 'add') {
+                $message    = "Berhasil Menambahkan Program Kerja Bulanan";
+            } else {
+                $message    = "Berhasil Merubah Program Kerja Bulanan";
+            }
+            LogHelper::create($dataProkerBulananInput['prokerBulanan_typeTrans'], $message, $dataProkerBulanan->ip());
         } catch(\Exception $e) {
             DB::rollback();
-            Log::channel('daily')->error($e->getMessage());
             $output     = array(
                 "status"    => "gagal",
                 "errMsg"    => $e->getMessage(),
             );
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create("error_message", $e->getMessage(), $dataProkerBulanan->ip());
         }
 
         return $output;
@@ -502,8 +514,10 @@ class ProgramKerjaService
         return $query;
     }
 
-    public static function getCellProkerBulanan()
+    public static function getCellProkerBulanan($data)
     {
+        $get_bulan  = date('m', strtotime($data['tgl_awal']));
+        $get_tahun  = date('Y', strtotime($data['tgl_awal']));
         $query  = DB::select(
             "
             SELECT 	SUBSTRING_INDEX(pkb_pkt_id,' | ',-1) as data_ke,
@@ -511,8 +525,8 @@ class ProgramKerjaService
                     pkb_start_date
             FROM 	proker_bulanan
             WHERE 	pkb_start_time is not null
-            AND 	EXTRACT(YEAR FROM pkb_start_date) = '2024'
-            AND 	EXTRACT(MONTH FROM pkb_start_date) = '06'
+            AND 	EXTRACT(YEAR FROM pkb_start_date) = '$get_tahun'
+            AND 	EXTRACT(MONTH FROM pkb_start_date) = '$get_bulan'
             ORDER BY pkb_pkt_id, pkb_start_date ASC
             "
         );

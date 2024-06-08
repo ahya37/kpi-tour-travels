@@ -333,7 +333,7 @@ class ProgramKerjaController extends Controller
             );
         } else if($doSimpan['status'] == 'gagal') {
             $output     = array(
-                "success"       => gagal,
+                "success"       => false,
                 "status"        => 500,
                 "alert"         => [
                     "icon"      => "success",
@@ -391,9 +391,9 @@ class ProgramKerjaController extends Controller
         return Response::json($output, $output['status']);
     }
 
-    public function cellProkerBulanan()
+    public function cellProkerBulanan(Request $request)
     {
-        $getData    =  ProgramKerjaService::getCellProkerBulanan();
+        $getData    =  ProgramKerjaService::getCellProkerBulanan($request->all()['sendData']);
         
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
@@ -610,7 +610,7 @@ class ProgramKerjaController extends Controller
                     "message"   => [
                         "title"     => "Berhasil",
                         "text"      => "Aktivitas Harian Baru Telah Ditambahkan",
-                        "errMsg"    => $data['errMsg'],
+                        "errMsg"    => $doSimpan['errMsg'],
                     ],
                 ],
             );
@@ -618,6 +618,16 @@ class ProgramKerjaController extends Controller
 
         return Response::json($output, $output['status']);
         
+    }
+
+    public function ProkerHarianDownloadFile($path)
+    {
+        $filePath   = "/user_data/".$path;
+        if(Storage::exists($filePath)) {
+            return Storage::download($filePath);
+        } else {
+            abort(404);
+        }
     }
 
     // GLOBAL

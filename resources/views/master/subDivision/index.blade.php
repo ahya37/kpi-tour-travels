@@ -69,7 +69,7 @@
                         </div>
                         <div class="col-sm-8">
                             <input type="hidden" class="form-control form-control-sm" placeholder="Sub Divisi ID" id="subDivisionID" autocomplete="off">
-                            <input type="text" class="form-control form-control-sm" placeholder="Sub-Divisi Nama" id="subDivisionName" autocomplete="off">
+                            <input type="text" class="form-control form-control-sm" placeholder="Sub-Divisi Nama" id="subDivisionName" autocomplete="off" style="height: calc(2.25rem + 2px)">
                         </div>
                     </div>
                 </div>

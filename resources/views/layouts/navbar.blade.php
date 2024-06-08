@@ -11,12 +11,12 @@
                 </a>
                 <ul class="dropdown-menu">
                     <li>
-                        <a href="#">
+                        <a href="{{ route('accounts.user.log') }}">
                             <i class='fa fa-user'></i> Activity Log
                         </a>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="{{ route('accounts.user.profile') }}">
                             <i class='fa fa-cog'></i> Setting Profile
                         </a>
                     </li>

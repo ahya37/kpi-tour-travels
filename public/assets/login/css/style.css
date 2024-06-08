@@ -1,7 +1,11 @@
 body {
   font-family: "Roboto", sans-serif;
-  background-color: #fff; }
+  background-color: #faf9f6; }
 
+input {
+  background-color: #faf9f6;
+}
+  
 p {
   color: #b3b3b3;
   font-weight: 300; }

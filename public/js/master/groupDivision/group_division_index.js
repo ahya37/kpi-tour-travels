@@ -12,6 +12,8 @@ $.ajaxSetup({
     }
 });
 
+var site_url    = window.location.pathname;
+
 function show_table(id_table, value)
 {
     if(id_table == 'tableGroupDivision') {
@@ -31,7 +33,7 @@ function show_table(id_table, value)
                 data:{
                     q: value
                 },
-                url     : '/master/groupDivisions/trans/get/dataGroupDivisions/',
+                url     : site_url+'/trans/get/dataGroupDivisions/',
             },
             columnDefs  : [
                 { "targets":[0], "className":"text-center", "width": "5%"},
@@ -43,31 +45,38 @@ function show_table(id_table, value)
 
 function show_modal(id_modal, jenis, value)
 {
+    // console.log({id_modal, jenis, value});
     $("#"+id_modal).modal({backdrop: 'static', keyboard: false});
     $("#"+id_modal).modal('show');
+    $("#btnSimpan").val(jenis);
     if(jenis == 'add') {
         $("#"+id_modal).on('shown.bs.modal', function(){
             $("#groupDivisionName").focus();
         });
-        $("#btnSimpan").val('add');
+
+        show_select('groupDivisionRole','%','', true);
     } else if(jenis == 'edit') {
-        var url     = "/master/groupDivisions/trans/get/modalDataGroupDivisions/"+value;
+        var url     = site_url+"/trans/get/modalDataGroupDivisions/"+value;
         var type    = "GET";
-        var messag  =   Swal.fire({
+        var message  =   Swal.fire({
                             title   : 'Data Sedang Dimuat',
                         });
                         Swal.showLoading();
-        showData(url, type, '')
+        
+        showData(url, type, '', message, true)
             .then((xhr) => {
                 var data    = xhr.data;
+                console.log(data);
                 $("#groupDivisionID").val(data['gdID']);
                 $("#groupDivisionName").val(data['gdName']);
+                
+                show_select('groupDivisionRole','%', data['roleID'], false);
+
                 Swal.close();
             })
             .catch((xhr)    => {
                 console.log(xhr.responseJSON);
             });
-        $("#btnSimpan").val('edit');
     }
 }
 
@@ -82,14 +91,45 @@ function close_modal(id_modal) {
     }
 }
 
+function show_select(id_select, value_cari, value_select, isAsync)
+{
+    $("#"+id_select).select2({
+        theme   : 'bootstrap4',
+    });
+    if(id_select == 'groupDivisionRole') {
+        var html    = "<option selected disabled>Pilih Role Sistem</option>";
+        var url     = "/master/data/trans/get/dataRoles";
+        var sendData= {
+            "sendData"  : value_cari,
+        };
+        
+        showData(url, "GET", sendData, '', isAsync)
+            .then(function(xhr){
+                $.each(xhr.data, function(i,item){
+                    html    += "<option value='" + item['role_id'] + "'>" + item['role_name'] + "</option>";
+                });
+                $("#"+id_select).html(html);
+                if(value_select != '') {
+                    $("#"+id_select).val(value_select).trigger('change')
+                }
+            })
+            .catch(function(xhr){
+                console.log(xhr);
+            })
+
+        $("#"+id_select).html(html);
+    }
+}
+
 function do_save(jenis)
 {
     var sendData    = {
         "groupDivisionID"   : $("#groupDivisionID").val(),
         "groupDivisionName" : $("#groupDivisionName").val(),
+        "groupDivisionRole" : $("#groupDivisionRole").val(),
     };
     var type       = "POST";
-    var url         = "/master/groupDivisions/trans/store/dataGroupDivisions/"+jenis;
+    var url         = site_url+"/trans/store/dataGroupDivisions/"+jenis;
     var customMessage   =   Swal.fire({
                                 title   : 'Data Sedang Diproses',
                             });
@@ -112,11 +152,11 @@ function do_save(jenis)
         });
 }
 
-function showData(url, type, sendData, customMessage)
+function showData(url, type, sendData, customMessage, isAsync)
 {
     return new Promise(function(resolve, reject){
         $.ajax({
-            async   : true,
+            async   : isAsync,
             cache   : false,
             type    : type,
             dataType: "json",

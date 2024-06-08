@@ -32,9 +32,9 @@
                                 <thead>
                                     <tr>
                                         <th class="text-center" style="vertical-align: middle;">No</th>
-                                        <th class="text-center" style="vertical-align: middle;">Name Group Division</th>
-                                        <th class="text-center" style="vertical-align: middle;">Created At</th>
-                                        <th class="text-center" style="vertical-align: middle;">Action</th>
+                                        <th class="text-center" style="vertical-align: middle;">Grup Divisi</th>
+                                        <th class="text-center" style="vertical-align: middle;">Dibuat Tanggal</th>
+                                        <th class="text-center" style="vertical-align: middle;">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -50,16 +50,24 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    Create Data Group Division
+                    Tambah Data Grup Divisi
                 </div>
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-4">
-                            <h4 class="pt-0.5">Name</h4>
+                    <div class="form-row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label><h4>Nama</h4></label>
+                                <input type="hidden" class="form-control form-control-sm" name="groupDivisionID" id="groupDivisionID" placeholder="Group Division ID">
+                                <input type="text" class="form-control" name="groupDivisionName" id="groupDivisionName" placeholder="Masukkan Nama Grup Divisi" style="height: 37px;" autocomplete="off">
+                            </div>
                         </div>
-                        <div class="col-sm-8">
-                            <input type="hidden" class="form-control form-control-sm" name="groupDivisionID" id="groupDivisionID" placeholder="Group Division ID">
-                            <input type="text" class="form-control form-control-sm" name="groupDivisionName" id="groupDivisionName" placeholder="Name Group Division">
+                    </div>
+                    <div class="form-row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label><h4>Role</h4></label>
+                                <select name="groupDivisionRole" id="groupDivisionRole" style="width: 100%;"></select>
+                            </div>
                         </div>
                     </div>
                 </div>

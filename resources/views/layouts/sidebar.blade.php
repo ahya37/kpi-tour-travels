@@ -84,7 +84,21 @@
                     </ul>
                 </li>
 
-
+                <li class="{{ request()->is('divisions/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class='fa fa-users'></i>
+                        <span class="nav-label">Divisi</span><span class='fa arrow'></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li><a href="#">Marketing</a></li>
+                    </ul>
+                    <ul class="nav nav-second-level">
+                        <li><a href="#">IT</a></li>
+                    </ul>
+                    <ul class="nav nav-second-level">
+                        <li><a href="#">Operasional</a></li>
+                    </ul>
+                </li>
             @endif
             @if (Auth::user()->hasRole('marketing'))
                 <li class="{{ request()->is('master/*') ? 'active' : '' }}">
