@@ -176,7 +176,7 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Program Kerja Tahunan</label>
-                                <select name="prokerTahunanID" id="prokerTahunanID" onchange="show_select_detail(this.id, this.value)" style="width:100%;"></select>
+                                <select class="form-select" name="prokerTahunanID" id="prokerTahunanID" onchange="show_select_detail(this.id, this.value)" style="width:100%;"></select>
                             </div>
                         </div>
                     </div>
@@ -184,7 +184,7 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Sub-Program Kerja Tahunan</label>
-                                <select name="subProkerTahunanSeq" id="subProkerTahunanSeq" style="width: 100%;" onchange="show_select_detail(this.id, this.value)"></select>
+                                <select class="form-select" name="subProkerTahunanSeq" id="subProkerTahunanSeq" style="width: 100%;" onchange="show_select_detail(this.id, this.value)"></select>
                             </div>
                         </div>
                     </div>
@@ -207,7 +207,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>PIC / Penanggung Jawab</label>
-                                <select name="prokerBulananPIC" id="prokerBulananPIC" style="width: 100%;"></select>
+                                <select class="form-select" name="prokerBulananPIC" id="prokerBulananPIC" style="width: 100%;"></select>
                             </div>
                         </div>
                         <div class="col-md-6" style="display: none;">
@@ -291,7 +291,7 @@
     <div class="modal fade" id="modalAktivitas">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header bg-primary">
+                <div class="modal-header">
                     <h4 class="modal-title">Lihat Aktivitas User</h4>
                     <button type="button" class="close" onclick="closeModal('modalAktivitas')">
                         <span aria-hidden="true" >&times;</span>

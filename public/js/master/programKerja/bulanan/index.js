@@ -81,7 +81,7 @@ $(document).ready(function(){
     $("#btnFilter").on('click', function(){
         $("#filterCalendar").collapse('hide');
         $("#filterCalendar").on('hidden.bs.collapse', function(){
-            console.log('test2');
+            // console.log('test2');
         });
     });
     
@@ -181,9 +181,7 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                 "tgl_akhir" : tgl_akhir == '' ? moment().endOf('month').format('YYYY-MM-DD') : tgl_akhir,
                 "divisi"    : divisi == null ? '' : divisi
             };
-            var message     =   Swal.fire({
-                                    title   : 'Data Sedang Dimuat',
-                                });
+            var message     =   Swal.fire({title   : 'Data Sedang Dimuat',allowOutsideClick: false});
                                 Swal.showLoading();
             var isAsync     = true;
             transData(url, type, data, message, isAsync)
@@ -272,6 +270,9 @@ function showModal(idModal, jenis, value)
     $("#"+idModal).modal({backdrop: 'static', keyboard: false});
     $("#"+idModal).modal('show');
     const current_role    = $("#roleName").val();
+    $(".form-select").select2({
+        theme   : 'bootstrap4',
+    })
     if(idModal == 'modalForm') {
         if(current_role != 'admin') {
             if(current_role == 'operasional') {
@@ -333,7 +334,7 @@ function showModal(idModal, jenis, value)
 
             // SHOW MESSAGE
             if(isAsync == true) {
-                var customMessage   = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
+                var customMessage   = Swal.fire({title:'Data Sedang Dimuat', allowOutsideClick: false});Swal.showLoading();
             }
 
             transData(url, type, data, customMessage, isAsync)
@@ -391,13 +392,12 @@ function showModal(idModal, jenis, value)
         }
 
         var isAsync = true;
-        var customMessage   = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
+        var customMessage   = Swal.fire({title:'Data Sedang Dimuat', allowOutsideClick: false});Swal.showLoading();
 
         transData(url, type, data, customMessage, isAsync)
             .then(function(xhr){
                 var getData     = xhr.data.header;
                 var getFile     = xhr.data.file;
-                console.log(getFile);
 
                 if(getData.length > 0) {
                     // console.log(getData, getFile);
@@ -714,7 +714,7 @@ function showDataTable(idTable)
     var url     = getUrl + "/listProkerTahunan";
     var type    = "GET";
     var isAsync = true;
-    var customMessage   = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
+    var customMessage   = Swal.fire({title:'Data Sedang Dimuat', allowOutsideClick: false});Swal.showLoading();
 
     transData(url, type, '', customMessage, isAsync)
         .then((xhr) => {
@@ -939,6 +939,7 @@ function do_save(jenis, arg, calendar)
         var data    = dataSimpan;
         var message =   Swal.fire({
                             title   : 'Data Sedang Diproses',
+                            allowOutsideClick: false
                         });
                         Swal.showLoading();
         transData(url, type, data, message, true)

@@ -128,7 +128,12 @@ class ProgramKerjaService
                 'transStatus'   => 'berhasil',
                 'errMsg'        => '',
             );
-            LogHelper::create("add", "Berhasil Menambahkan Program Kerja Tahunan", $ip);
+            if($jenis == 'add') {
+                $message    = "Berhasil Menambahkan Program Kerja Tahunan";
+            } else {
+                $message    = "Berhasil Mengubah Program Kerja Tahunan";
+            }
+            LogHelper::create($jenis, $message, $ip);
         } catch(\Exception $e) {
             DB::rollback();
             Log::channel('daily')->error($e->getMessage());
@@ -428,13 +433,20 @@ class ProgramKerjaService
                 "status"    => "berhasil",
                 "errMsg"    => null
             );
+            if($dataProkerBulananInput['prokerBulanan_typeTrans'] == 'add') {
+                $message    = "Berhasil Menambahkan Program Kerja Bulanan";
+            } else {
+                $message    = "Berhasil Merubah Program Kerja Bulanan";
+            }
+            LogHelper::create($dataProkerBulananInput['prokerBulanan_typeTrans'], $message, $dataProkerBulanan->ip());
         } catch(\Exception $e) {
             DB::rollback();
-            Log::channel('daily')->error($e->getMessage());
             $output     = array(
                 "status"    => "gagal",
                 "errMsg"    => $e->getMessage(),
             );
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create("error_message", $e->getMessage(), $dataProkerBulanan->ip());
         }
 
         return $output;

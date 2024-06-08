@@ -9,7 +9,7 @@ function dashboard() {
     // GET SUMMARY DASHBOARD
     var url     = base_url+"/getDataTotalProgramKerja";
     var type    = "GET";
-    var message =   Swal.fire({title   : 'Data Sedand Dimuat'});Swal.showLoading();
+    var message =   NProgress.start();
     var isAsync = true;
 
     transData(url, type, '', message, isAsync)
@@ -18,7 +18,7 @@ function dashboard() {
             $("#pk_bulanan").text(xhr.data[0].grand_total_proker_bulanan+" Program Kerja");
             $("#pk_harian").text(xhr.data[0].grand_total_proker_harian+" Program Kerja");
             $("#summary_header").show();
-            Swal.close();
+            NProgress.done();
         })
         .catch(function(xhr){
             console.log(xhr);
