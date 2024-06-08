@@ -87,11 +87,19 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/users', 'index')->name('users.index')->middleware('permission:users.index');
             Route::get('/users/create', 'create')->name('users.create')->middleware('permission:users.create');
             Route::post('/users/store', 'store')->name('users.store');
+            Route::get('/userProfiles', 'userProfiles')->name('accounts.user.profile');
+            Route::prefix('userLog')->group(function(){
+                Route::get('/', 'userLog')->name('accounts.user.log');
+                Route::get('/dataTableUserLog', 'dataTableUserLog');
+            });
+            Route::get('/userLog', 'userLog')->name('accounts.user.log');
         });
 
         Route::controller(RoleController::class)->group(function(){
             Route::get('/roles', 'index')->name('roles.index')->middleware('permission:roles.index');
         });
+
+        // Route::get('/userProfiles', UserController::class, 'userProfiles')->name('accounts.user.profile');
     });
 
 
