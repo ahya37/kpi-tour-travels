@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{{asset('/assets/login/css/bootstrap.min.css')}}">
     
     <!-- Style -->
+    <link rel="stylesheet" href="{{ asset('/assets/css/style.css') }}">
     <link rel="stylesheet" href="{{asset('/assets/login/css/style.css')}}">
     <title>Login #6</title>
   </head>
@@ -27,25 +28,21 @@
       <div class="container">
         <div class="row align-items-center justify-content-center">
           <div class="col-md-7">
-            <div class="mb-4">
-              <h3>Sign In</h3>
+            <div class="mb-4 text-center">
+              <h2>ERP Percik Tours Login</h2>
             </div>
             <form  method="POST" action="{{ route('login.store') }}">
                 @csrf
               <div class="form-group first">
-                <label for="username">Email / Usernam</label>
-                <input type="email" name="email"  class="form-control" id="email">
+                <label for="username">Email / Username</label>
+                <input type="email" name="email"  class="form-control" id="email" autofocus autocomplete="off" style="background-color: #faf9f6;">
 
               </div>
               <div class="form-group last mb-3">
                 <label for="password">Password</label>
-                <input type="password" class="form-control" name="password" id="password">
-                
+                <input type="password" class="form-control" name="password" id="password" style="background-color: #faf9f6;">
               </div>
-
-
-              <button type="submit" value="Log In" class="btn btn-block btn-sm btn-primary" style="background-color: #24A287">Sign In</button>
-
+              <button type="submit" value="Log In" class="btn btn-block btn-sm btn-primary">Sign In</button>
             </form>
           </div>
         </div>
