@@ -6,6 +6,7 @@
     <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/nprogress@0.2.0/nprogress.css" rel="stylesheet">
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
 @endpush
 
@@ -83,5 +84,6 @@
     <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+    <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
     <script src="{{ asset('js/master/programKerja/dashboard/index.js') }}"></script>
 @endpush
