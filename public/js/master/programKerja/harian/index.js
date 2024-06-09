@@ -184,15 +184,15 @@ function showModal(idModal, jenis, value)
                     for(var i = 0; i < detail.length; i++) {
                         var seq         = i + 1;
                         var namaFile    = detail[i]['pkhf_name'].length > 80 ? detail[i]['pkhf_name'].substring(0, 80) + "..." : detail[i]['pkhf_name'];
-                        var pathFile    = detail[i]['pkhf_path'];
+                        var pathFile    = detail[i]['pkhf_path'].split('/')[1];
                         var dataFile    = value + " | " + seq;
-                        var button      = "<button class='btn btn-sm btn-danger' type='button' value='"+dataFile+"'><i class='fa fa-trash'></i></button>";
+                        var button_delete       = "<button class='btn btn-sm btn-danger' type='button' value='"+dataFile+"'><i class='fa fa-trash'></i></button>";
                         var url         = getURL() + "/downloadFile/" + pathFile;
 
                         $("#tableListFile").DataTable().row.add([
                             seq,
-                            "<a href='"+url+"' title='"+detail[i]['pkhf_name']+"'>" + namaFile + "</a>",
-                            button
+                            "<a href='"+url+"' title='"+detail[i]['pkhf_name']+"' target='_blank'>" + namaFile + "</a>",
+                            button_delete
                         ]).draw('false');
                     }
                 }

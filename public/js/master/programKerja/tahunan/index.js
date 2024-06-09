@@ -63,20 +63,11 @@ function show_modal(id_modal, value)
         show_table('tblSubProk');
         tambahBaris('tblSubProk','');
 
-        $("#prokTahunanTime").yearpicker();
-        $("#prokTahunanTime").val(2024);
-
-        // var table   = $("#tblSubProk").DataTable();
-        // $("#tblSubProk").on('click', '#btnHapus', function(){
-        //     var row         = $(this).closest('tr');
-        //     var barisKe     = table.row(row).index();
-        //     var hitungBaris     = table.rows().count();
-
-        //     if(barisKe > 0) {
-        //         var hitung  = parseInt(hitungBaris) - parseInt(barisKe);
-        //         table.row(row).remove().draw('false');
-        //     }
-        // });
+        $("#prokTahunanTime").yearpicker({
+            autoHide: true,
+            year    : parseInt(moment().format('YYYY')),
+        });
+        // $("#prokTahunanTime").val(moment().format('YYYY')).trigger('change');
 
         $("#btnTambahData").val('add');
         if(value != '') {
@@ -97,7 +88,7 @@ function show_modal(id_modal, value)
                     $("#prokTahunanID").val(value);
                     $("#prokTahunanTitle").val(header['program_kerja_title']);
                     $("#prokTahunanDesc").val(header['program_kerja_description']);
-                    $("#prokTahunanTime").val(header['program_kerja_periode']);
+                    $("#prokTahunanTime").val(header['program_kerja_periode']).trigger('change');
                     show_select('prokTahunanGroupDivision',header['program_kerja_group_div_id'],'');
                     show_select('prokTahunanPIC',header['program_kerja_group_div_id'], header['program_kerja_pic_id'])
                     

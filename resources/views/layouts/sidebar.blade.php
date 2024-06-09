@@ -21,11 +21,11 @@
                     </ul>
                 </div>
             </li>
+            <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
+                <a href="{{ route('dashboard') }}"><i class="fa fa-bar-chart-o"></i> <span
+                        class="nav-label">Dashboard</span></a>
+            </li>
             @if (Auth::user()->hasRole('admin'))
-                <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
-                    <a href="{{ route('dashboard') }}"><i class="fa fa-bar-chart-o"></i> <span
-                            class="nav-label">Dashboard</span></a>
-                </li>
                 <li class="{{ request()->is('master/*') ? 'active' : '' }}">
                     <a href="#">
                         <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span
@@ -84,14 +84,23 @@
                     </ul>
                 </li>
 
-
+                <li class="{{ request()->is('divisions/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class='fa fa-users'></i>
+                        <span class="nav-label">Divisi</span><span class='fa arrow'></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li><a href="#">Marketing</a></li>
+                    </ul>
+                    <ul class="nav nav-second-level">
+                        <li><a href="#">IT</a></li>
+                    </ul>
+                    <ul class="nav nav-second-level">
+                        <li><a href="#">Operasional</a></li>
+                    </ul>
+                </li>
             @endif
             @if (Auth::user()->hasRole('marketing'))
-                <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
-                    <a href="{{ route('dashboard') }}"><i class="fa fa-bar-chart-o"></i> <span
-                            class="nav-label">Dashboard</span></a>
-                </li>
-
                 <li class="{{ request()->is('master/*') ? 'active' : '' }}">
                     <a href="#">
                         <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span
@@ -135,12 +144,20 @@
                             class="nav-label">Aktivitas Harian</span></a>
                 </li>
             @endif
-            @if (Auth::user()->hasRole('it'))
-                <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
-                    <a href="{{ route('dashboard') }}"><i class="fa fa-bar-chart-o"></i> <span
-                            class="nav-label">Dashboard</span></a>
+            @if (Auth::user()->hasRole('operasional'))
+                <li class="{{ request()->is('master/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span
+                            class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li class="{{ (request()->is('master/programkerja') || request()->is('master/programkerja/*')) ? 'active' : '' }}">
+                            <a href={{ route('programKerja.index') }}>Program Kerja</a>
+                        </li>
+                    </ul>
                 </li>
-
+            @endif
+            @if (Auth::user()->hasRole('it'))
                 <li class="{{ request()->is('master/*') ? 'active' : '' }}">
                     <a href="#">
                         <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span

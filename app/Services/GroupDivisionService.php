@@ -6,6 +6,8 @@ use App\Models\GroupDivision;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use App\Helpers\LogHelper;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -24,7 +26,7 @@ class GroupDivisionService
         return $get_data;
     }
 
-    public static function doSimpanGroupDivisions($jenis, $data)
+    public static function doSimpanGroupDivisions($jenis, $data, $ip)
     {
         DB::beginTransaction();
 
@@ -34,6 +36,7 @@ class GroupDivisionService
             $data_simpan    = array(
                 "id"    => Str::random(30),
                 "name"  => $data['groupDivisionName'],
+                "roles_id"      => $data['groupDivisionRole'],
                 "created_by"    => Auth::user()->id,
                 "updated_by"    => Auth::user()->id,
                 "created_at"    => date('Y-m-d H:i:s'),
@@ -47,12 +50,17 @@ class GroupDivisionService
                     "status"    => "berhasil",
                     "errMsg"    => null,
                 );
+                // CREATE LOG
+                LogHelper::create("add", "Berhasil Menambahkan Grup Divisi Baru (".$data_simpan['name'].")", $ip);
             } catch (\Exception $e) {
                 DB::rollback();
                 $output  = array(
                     "status"    => "gagal",
                     "errMsg"    => $e->getMessage(),
                 );
+                // CREATE LOG
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create("add", "Gagal Menambahkan Grup Divsii Baru", $ip);
             }
         } else if($jenis == 'edit') {
             $data_where     = [
@@ -60,7 +68,8 @@ class GroupDivisionService
             ];
 
             $data_update    = [
-                "name"  => $data['groupDivisionName'],
+                "name"          => $data['groupDivisionName'],
+                "roles_id"      => $data['groupDivisionRole'],
                 "updated_by"    => Auth::user()->id,
                 "updated_at"    => date('Y-m-d H:i:s'),
             ];
@@ -74,12 +83,17 @@ class GroupDivisionService
                     "status"    => "berhasil",
                     "message"   => null,
                 );
+                // CREATE LOG
+                LogHelper::create("edit", "Berhasil Mengubah Grup Divisi (".$data_update['name'].")", $ip);
             } catch(\Exception $e) {
                 DB::rollback();
                 $output     = array(
                     "status"    => "gagal",
                     "errMsg"    => $e->getMessage(),
                 );
+                // CREATE LOG
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create("add", "Gagal Mengubah Grup Divisi (error : ".$e->getMessage().")", $ip);
             } 
         }
 

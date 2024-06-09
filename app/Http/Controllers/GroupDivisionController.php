@@ -35,12 +35,13 @@ class GroupDivisionController extends Controller
         
         if(!empty($get_data)) {
             for($i = 0; $i < count($get_data); $i++) {
+                $button_edit    = "<button type='button' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modalForm`, `edit`, this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>";
                 $data[]     = array(
                     $i + 1,
                     $get_data[$i]->name,
                     $get_data[$i]->created_at,
-                    "<button type='text' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modal_edit_division`, this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>&nbsp<button type='text' class='btn btn-danger btn-sm' value='".$get_data[$i]->id."' onclick='show_modal(`modal_hapus_data`, this.value)' title='Hapus Data'><i class='fa fa-trash'></i></button>",
-                    "<button type='text' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modalForm`,`edit`,this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>",
+                    $button_edit
+                    // "<button type='text' class='btn btn-sm btn-primary' value='".$get_data[$i]->id."' onclick='show_modal(`modal_edit_division`, this.value)' title='Edit Data'><i class='fa fa-edit'></i></button>&nbsp<button type='text' class='btn btn-danger btn-sm' value='".$get_data[$i]->id."' onclick='show_modal(`modal_hapus_data`, this.value)' title='Hapus Data'><i class='fa fa-trash'></i></button>",
                 );
             }
         } else {
@@ -74,7 +75,7 @@ class GroupDivisionController extends Controller
                 ],
             ];
         } else {
-            $data_simpan    = GroupDivisionService::doSimpanGroupDivisions($jenis, $request->all()['sendData']);
+            $data_simpan    = GroupDivisionService::doSimpanGroupDivisions($jenis, $request->all()['sendData'], $request->ip());
             if($data_simpan['status'] == 'berhasil') {
                 $output     = array(
                     "success"   => true,
@@ -119,6 +120,7 @@ class GroupDivisionController extends Controller
                 "data"          => [
                     "gdID"      => $data[0]->id,
                     "gdName"    => $data[0]->name,
+                    "roleID"    => $data[0]->roles_id,
                 ]
             );
         } else {

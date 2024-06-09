@@ -96,7 +96,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="prokTahunanTime"><b>Masa Kerja</b></label>
-                                            <input type="text" id="prokTahunanTime" name="prokTahunanTime" class="form-control form-control-sm" placeholder="YYYY" readonly style="cursor: pointer; background: white">
+                                            <input type="text" id="prokTahunanTime" name="prokTahunanTime" class="form-control form-control-sm date-picker-year" placeholder="YYYY" readonly style="cursor: pointer; background: white">
                                         </div>
                                     </div>
                                 </div>
@@ -155,6 +155,10 @@
     <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+    {{-- MOMENT AREA --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/id.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.36/moment-timezone-with-data.min.js"></script>
     <script src="{{ asset('js/master/programKerja/tahunan/index.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/yearpicker/yearpicker.js') }}"></script>
 @endpush

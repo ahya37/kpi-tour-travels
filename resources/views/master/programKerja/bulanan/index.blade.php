@@ -2,13 +2,23 @@
 @section('title', $title ?? '')
 
 @push('addon-style')
+    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+    {{-- SELECT2 --}}
     <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+    {{-- DATATABLES --}}
+    <link href="https://cdn.datatables.net/v/bs4/dt-2.0.8/fc-5.0.1/fh-4.0.1/datatables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/fixedheader/4.0.1/css/fixedHeader.dataTables.min.css" rel="stylesheet">
+    {{-- <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.dataTables.css"> --}}
+    {{-- SWEETALERT --}}
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
+    {{-- DATERANGEPICKER --}}
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    {{-- DROPZONE --}}
+    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+    {{-- CUSTOM CSS --}}
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
     <style>
     .fc-daygrid-event-dot {
@@ -50,6 +60,15 @@
     .ibox-title {
         padding: 15px;
     }
+
+    /* FOR DATATABLE */
+    .btn-next-table {
+        margin-left: 0.50em;
+    }
+    .dt-scroll {
+        margin-top: 11px;
+    }
+    
     </style>
 @endpush
 
@@ -62,18 +81,29 @@
 @endsection
 
 @section('content')
+    @php
+        setlocale(LC_ALL, 'IND');
+    @endphp
+    <input type="hidden" id="roleName" value={{ Auth::user()->getRoleNames()[0] }}>
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
-                        <div class="row">
-                            <div class="col-sm-12 text-right">
+                        <h2 class="text-center">Pogram Kerja Bulan <span id="titleBulan">@php echo strftime('%B') @endphp</span> Tahun <span id="titleTahun">@php echo date('Y'); @endphp</span></h2>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row mb-2">
+                            <div class="col-sm-6 text-left">
+                                <button type="button" class="btn btn-primary active" title="Calendar Global" id="btnCalendarGlobal" onclick="showCalendarButton('global')">Kalendar Semua Grup Divisi</button>
+                                <button type="butotn" class="btn btn-primary" title="Calendar Operasional" id="btnCalendarOperasional" onclick="showCalendarButton('operasional')">Kalendar Grup Divisi Operasional</button>
+                            </div>
+                            <div class="col-sm-6 text-right">
                                 <input type="hidden" id="current_date">
                                 <button type="button" class="btn btn-secondary" title="Filter Tanggal" id="btnFilter"><i class="fa fa-filter"></i> Filter</button>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row mb-2">
                             <div class="col-sm-12">
                                 <div class="collapse" id="filterCalendar">
                                     <div class="row">
@@ -100,9 +130,7 @@
                                         </div>
                                         @if(Auth::user()->hasRole('admin'))
                                             <div class="col-sm-3">
-                                                <select id="groupDivisionName" style="width: 100%;">
-
-                                                </select>
+                                                <select id="groupDivisionName" style="width: 100%;"></select>
                                             </div>
                                         @endif
                                         <div class="col-sm-3">
@@ -112,14 +140,30 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="ibox-content">
-                        <div id="calendar" style="width: 100%;"></div>
+                        <hr>
+                        <div class="row mt-2">
+                            <div class="col-sm-12">
+                                <div id="calendar" style="width: 100%;"></div>
+                                <div id="calendarOperasional" style="width: 100%; display: none;">
+                                    <table class="table table-sm table-bordered table-striped table-hover" style="width: 200%;" id="tableCalendarOperasional">
+                                        <thead>
+                                            <tr>
+                                                <th>Aktivitas</th>
+                                                @for($i = 0; $i < 31; $i++)
+                                                    <th class="text-center" style="vertical-align: middle;">{{ $i + 1 }}</th>
+                                                @endfor
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
     <div class="modal fade" id="modalForm">
         <div class="modal-dialog modal-xl modal-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -132,7 +176,7 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Program Kerja Tahunan</label>
-                                <select name="prokerTahunanID" id="prokerTahunanID" onchange="show_select_detail(this.id, this.value)" style="width:100%;"></select>
+                                <select class="form-select" name="prokerTahunanID" id="prokerTahunanID" onchange="show_select_detail(this.id, this.value)" style="width:100%;"></select>
                             </div>
                         </div>
                     </div>
@@ -140,7 +184,7 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Sub-Program Kerja Tahunan</label>
-                                <select name="subProkerTahunanSeq" id="subProkerTahunanSeq" style="width: 100%;"></select>
+                                <select class="form-select" name="subProkerTahunanSeq" id="subProkerTahunanSeq" style="width: 100%;" onchange="show_select_detail(this.id, this.value)"></select>
                             </div>
                         </div>
                     </div>
@@ -163,7 +207,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>PIC / Penanggung Jawab</label>
-                                <select name="prokerBulananPIC" id="prokerBulananPIC" style="width: 100%;"></select>
+                                <select class="form-select" name="prokerBulananPIC" id="prokerBulananPIC" style="width: 100%;"></select>
                             </div>
                         </div>
                         <div class="col-md-6" style="display: none;">
@@ -182,6 +226,20 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-row mb-2" id="formWaktuAktivitias_prokerBulanan">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Waktu Awal Aktivitas</label>
+                                <input type="text" name="prokerBulananStartTime" id="prokerBulananStartTime" class="form-control form-control-sm waktu" placeholder="HH:MM:SS" style="height: 37.5px;" onclick="this.setSelectionRange(0, 2)">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Waktu Akhir Aktivitas</label>
+                                <input type="text" name="prokerBulananEndTime" id="prokerBulananEndTime" class="form-control form-control-sm waktu" placeholder="HH:MM:SS" style="height: 37.5px;" onclick="this.setSelectionRange(0, 2)">
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-row mb-2">
                         <div class="col-md-12">
                             <div class="form-group">
@@ -190,7 +248,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-row mb-2">
+                    <div class="form-row mb-2" id="formTableDetailProkerBulanan">
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Detail Uraian Tugas</label>
@@ -213,6 +271,14 @@
                             <button class="btn btn-primary" id="btnTambahBaris" onclick="tambah_baris('tableDetailProkerBulanan','')" value="1">Tambah Baris</button>
                         </div>
                     </div>
+                    <div class="form-row mb-2" id="formUpload">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>File Dokumen / Gambar Aktivitas <small class="text-danger">* Jika ada</small></label>
+                                <div class="dropzone" id="myDropzone"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="btnCancel" onclick="closeModal('modalForm')">Batal</button>
@@ -225,7 +291,7 @@
     <div class="modal fade" id="modalAktivitas">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header bg-primary">
+                <div class="modal-header">
                     <h4 class="modal-title">Lihat Aktivitas User</h4>
                     <button type="button" class="close" onclick="closeModal('modalAktivitas')">
                         <span aria-hidden="true" >&times;</span>
@@ -266,15 +332,26 @@
 
 
 @push('addon-script')
+    {{-- SELECT2 --}}
     <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
-    <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
+    {{-- DATATABLE --}}
+    <script src="https://cdn.datatables.net/v/bs4/dt-2.0.8/fc-5.0.1/fh-4.0.1/datatables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.dataTables.js"></script>
+    <script src="https://cdn.datatables.net/fixedheader/4.0.1/js/dataTables.fixedHeader.min.js"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
-    <script src="{{ asset('assets/js/plugins/fullcalendar/moment.min.js') }}"></script>
+    {{-- FULL CALENDAR AREA --}}
     <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/index.global.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/index.global.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/bootstrap4.index.global.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+    {{-- MOMENT AREA --}}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/id.js"></script> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.36/moment-timezone-with-data.min.js"></script>
+    {{-- DATERANGEPICKER --}}
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    {{-- DROPZONE --}}
+    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
     <script src="{{ asset('js/master/programKerja/bulanan/index.js') }}"></script>
 @endpush

@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
+use Auth;
+use Illuminate\Support\Facades\Response;
 
 class UserController extends Controller
 {
@@ -55,5 +57,44 @@ class UserController extends Controller
             DB::rollback();
             return $e->getMessage();
         }
+    }
+
+    // ADDITIONAL
+    public function userLog()
+    {
+        $data   = [
+            'title'     => 'Log Activity User',
+            'sub_title' => 'Aktivitas User'
+        ];
+        
+        return view('users/userLog/index', $data);
+    }
+    
+    public function dataTableUserLog()
+    {
+        $current_user   = Auth::user()->id;
+
+        $getData    = UserService::DoGetDataTableUserLog($current_user);
+        $data       = [];
+
+        if(!empty($getData)) {
+            $i  = 1;
+            foreach($getData as $tarik) {
+                $data[]     = array(
+                    $i++,
+                    $tarik->log_desc,
+                    "<span class='label label-sm ".$tarik->type_trans_color."'>".$tarik->type_trans."</span>",
+                    $tarik->log_date_time,
+                );
+            }
+            $status     = 200;
+        }
+
+        $output     = array(
+            "draw"  => 1,
+            "data"  => $data,
+        );
+
+        return Response::json($output, 200);
     }
 }
