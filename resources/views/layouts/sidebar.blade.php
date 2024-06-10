@@ -1,24 +1,21 @@
 <nav class="navbar-default navbar-static-side" role="navigation">
     <div class="sidebar-collapse">
         <ul class="nav metismenu" id="side-menu">
-            <li class="nav-header">
-                <div class="dropdown profile-element">
-                    <img alt="image" class="rounded-circle" src="{{ asset('assets/img/profile_small.jpg') }}" />
-                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-                        <span class="block m-t-xs font-bold">{{ auth()->user()->name }}</span>
-                        <span class="text-muted text-xs block">Developer<b class="caret"></b></span>
-                    </a>
-                    <ul class="dropdown-menu animated fadeInRight m-t-xs">
-                        <li>
-                            <a class="dropdown-item" href="{{ route('logout.store') }}"
-                                onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">Logout</a>
-
-                            <form id="logout-form" action="{{ route('logout.store') }}" method="POST" class="d-none">
-                                @csrf
-                            </form>
-                        </li>
-                    </ul>
+            <li class="nav-header text-center" style="padding:0px;">
+                <div id="profile_id" style="margin-top: 32px; margin-bottom: 4px;">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <img alt="image" class="rounded-circle" src="{{ asset('assets/img/profile_small.jpg') }}" width="64px" height="64px"/>
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 16px;">
+                        <div class="col-sm-12">
+                            <span class="font-bold text-white">{{ auth()->user()->name }}</span>
+                        </div>
+                        <div class="col-sm-12">
+                            <span class="text-muted text-xs block">{{ strtoupper(auth()->user()->getRoleNames()[0]) }}</span>
+                        </div>
+                    </div>
                 </div>
             </li>
             <li class="{{ request()->is('dashboard') ? 'active' : '' }}">

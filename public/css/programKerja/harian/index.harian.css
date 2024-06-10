@@ -1,0 +1,15 @@
+label {
+    font-weight: bold;
+}
+
+.dataTables_wrapper {
+    padding-bottom: 0px;
+    margin-top: -6px;
+}
+
+.dropzone {
+    min-height: 140px;
+    border: 1px dashed #1ab394;
+    background: white;
+    padding: 20px 20px;
+}

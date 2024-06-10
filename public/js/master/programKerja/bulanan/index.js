@@ -781,11 +781,12 @@ function showDataTable(idTable)
             Swal.close();
         })
         .catch((xhr) => {
-            Swal.fire({
-                icon    : 'error',
-                title   : 'Terjadi Kesalahan',
-                text    : xhr.status+" "+xhr.statusText,
-            })
+            // Swal.fire({
+            //     icon    : 'error',
+            //     title   : 'Terjadi Kesalahan',
+            //     text    : xhr.status+" "+xhr.statusText,
+            // })
+            Swal.close();
             console.log(xhr);
         })
 }

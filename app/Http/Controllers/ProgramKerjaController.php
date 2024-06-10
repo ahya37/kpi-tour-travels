@@ -54,7 +54,7 @@ class ProgramKerjaController extends Controller
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'List Program Kerja - Tahunan'
+            'sub_title' => 'Program Kerja - Tahunan'
         ];
 
         return view('master/programKerja/tahunan/index', $data);
@@ -210,7 +210,7 @@ class ProgramKerjaController extends Controller
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'Program Kerja Bulanan'
+            'sub_title' => 'Program Kerja - Bulanan'
         ];
 
         return view('master/programKerja/bulanan/index', $data);
@@ -427,7 +427,7 @@ class ProgramKerjaController extends Controller
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'Dashboard Program Kerja Harian ('.date('F Y').')',
+            'sub_title' => 'Program Kerja - Harian',
         ];
 
         return view('master/programKerja/harian/index', $data);

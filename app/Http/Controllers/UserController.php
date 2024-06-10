@@ -88,6 +88,8 @@ class UserController extends Controller
                 );
             }
             $status     = 200;
+        } else {
+            $status     = 404;
         }
 
         $output     = array(
@@ -95,6 +97,6 @@ class UserController extends Controller
             "data"  => $data,
         );
 
-        return Response::json($output, 200);
+        return Response::json($output, $status);
     }
 }

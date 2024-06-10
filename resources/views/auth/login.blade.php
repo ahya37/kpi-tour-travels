@@ -16,8 +16,13 @@
     <!-- Style -->
     <link rel="stylesheet" href="{{ asset('/assets/css/style.css') }}">
     <link rel="stylesheet" href="{{asset('/assets/login/css/style.css')}}">
-    <title>Login #6</title>
+    <title>ERP Perci tours Login</title>
   </head>
+  <style class="text/css">
+    input {
+      background-color: #faf9f6;
+    }
+  </style>
   <body>
   
 
