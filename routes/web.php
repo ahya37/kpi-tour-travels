@@ -177,6 +177,32 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/trans/get/dataRoles', [EmployeesController::class, 'getDataRoles'])->name('master.data.roles');
             Route::get('/trans/get/groupDivision', [BaseController::class, 'getGroupDivision'])->name('master.data.groupDivision');
             Route::get('/getGroupDivisionWRole', [BaseController::class,'getGroupDivisionWRole'])->name('master.data.groupDivisionWRole');
+            Route::get('/getProgramUmrah/{program}', [BaseController::class, 'getProgramUmrah'])->name('master.data.getProgramUmrah');
+        });
+    });
+    
+    Route::prefix('divisi')->group(function(){
+        Route::prefix('operasional')->group(function(){
+            Route::get('/', [DivisiController::class, 'indexOperasional'])->name('index.operasional');
+            Route::get('/dataTableGenerateJadwalUmrah', [DivisiController::class, 'dataTableGenerateJadwalUmrah']);
+            Route::get('/generateRules', [DivisiController::class, 'generateRules']);
+            Route::prefix('program')->group(function(){
+                Route::get('/', [DivisiController::class, 'indexProgram'])->name('index.operasional.program');
+                Route::get('/listJadwalumrah', [DivisiController::class, 'listJadwalUmrah']);
+                Route::post('/simpanJadwalUmrah', [DivisiController::class, 'simpanJadwalUmrah']);
+                Route::get('/getDataJadwalUmrah', [DivisiController::class, 'getDataJadwalUmrah']);
+            });
+            Route::prefix('rules')->group(function(){
+                Route::get('/', [DivisiController::class, 'indexRuleProkerBulanan'])->name('index.operasional.rulesprokerbulanan');
+                Route::get('/listRules', [DivisiController::class, 'listRules']);
+                Route::post('/simpanDataRules/{tipe}', [DivisiController::class, 'simpanDataRules']);
+                Route::get('/getRulesDetail/{rulesID}', [DivisiController::class, 'getRulesDetail']);
+            });
+        });
+
+        Route::prefix('master')->group(function(){
+            Route::get('/getDataProkerTahunan', [DivisiController::class, 'getDataProkerTahunan']);
+            Route::get('/getDataSubDivision', [DivisiController::class, 'getDataSubDivision']);
         });
     });
 

@@ -16,7 +16,7 @@
     <!-- Style -->
     <link rel="stylesheet" href="{{ asset('/assets/css/style.css') }}">
     <link rel="stylesheet" href="{{asset('/assets/login/css/style.css')}}">
-    <title>ERP Perci tours Login</title>
+    <title>ERP Percik Tours | Login</title>
   </head>
   <style class="text/css">
     input {

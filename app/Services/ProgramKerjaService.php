@@ -191,6 +191,7 @@ class ProgramKerjaService
                     a.pkb_title,
                     a.pkb_description,
                     a.pkb_start_date,
+                    a.pkb_end_date,
                     SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_id,
                     SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
                     d.id as pkb_gd_id,
@@ -696,34 +697,34 @@ class ProgramKerjaService
                     SUM(total_proker_bulanan) as grand_total_proker_bulanan,
                     SUM(total_proker_harian) as grand_total_proker_harian,
                     tahun
-            FROM 		(
-            SELECT 	count(*) as total_proker_tahunan,
-                    0 as total_proker_bulanan,
-                    0 as total_proker_harian,
-                    pkt_year as tahun
-            FROM    proker_tahunan
-            WHERE 	pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
-            GROUP BY pkt_year
+            FROM 	(
+                SELECT 	count(*) as total_proker_tahunan,
+                        0 as total_proker_bulanan,
+                        0 as total_proker_harian,
+                        pkt_year as tahun
+                FROM    proker_tahunan
+                WHERE 	pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
+                GROUP BY pkt_year
 
-            UNION
+                UNION
 
-            SELECT 	0 as total_proker_tahunan,
-                    count(*) as total_proker_bulanan,
-                    0 as total_proker_harian,
-                    EXTRACT(YEAR FROM pkb_start_date) as tahun
-            FROM 	proker_bulanan
-            WHERE 	EXTRACT(YEAR FROM pkb_start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-            GROUP BY EXTRACT(YEAR FROM pkb_start_date)
+                SELECT 	0 as total_proker_tahunan,
+                        count(*) as total_proker_bulanan,
+                        0 as total_proker_harian,
+                        EXTRACT(YEAR FROM pkb_start_date) as tahun
+                FROM 	proker_bulanan
+                WHERE 	EXTRACT(YEAR FROM pkb_start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+                GROUP BY EXTRACT(YEAR FROM pkb_start_date)
 
-            UNION
+                UNION
 
-            SELECT 	0 as total_proker_tahunan,
-                    0 as total_proker_bulanan,
-                    COUNT(*) as total_proker_harian,
-                    EXTRACT(YEAR FROM pkh_date) as tahun
-            FROM 	proker_harian
-            WHERE 	EXTRACT(YEAR FROM pkh_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-            GROUP BY EXTRACT(YEAR FROM pkh_date)
+                SELECT 	0 as total_proker_tahunan,
+                        0 as total_proker_bulanan,
+                        COUNT(*) as total_proker_harian,
+                        EXTRACT(YEAR FROM pkh_date) as tahun
+                FROM 	proker_harian
+                WHERE 	EXTRACT(YEAR FROM pkh_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+                GROUP BY EXTRACT(YEAR FROM pkh_date)
             ) AS b
             GROUP BY tahun
             "

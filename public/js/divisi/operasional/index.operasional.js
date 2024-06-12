@@ -1,0 +1,177 @@
+$(document).ready(function(){
+    console.log('test');
+
+    var currMonth   = moment().format('MM');
+    var currYear    = moment().format('YYYY');
+    var currPaket   = '%';
+
+    showSelect('programFilterBulan', '%', '%', '');
+    showSelect('programFilterTahun', '%', currYear, '');
+    showSelect('programFlterPaket', '%', currPaket, true);
+
+    var inputCurrMonth  = $("#programFilterBulan").val();
+
+    showTable('table_jadwal_umrah', [inputCurrMonth, currYear, '%', currPaket]);
+
+    $("#programFilterBtnCari").on('click', function(){
+        var selectedMonth   = $("#programFilterBulan").val();
+        var selectedYear    = $("#programFilterTahun").val();
+        var selectedPaket   = $("#programFlterPaket").val();
+        showTable('table_jadwal_umrah', [selectedMonth, selectedYear, '%', selectedPaket])
+    })
+});
+
+var site_url    = window.location.pathname;
+
+function showTable(idTable, valueCari)
+{
+    $("#"+idTable).DataTable().clear().destroy();
+    if(idTable == 'table_jadwal_umrah') {
+        $("#"+idTable).DataTable({
+            language    : {
+                "processing"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat...",
+                "zeroRecords"   : "Tidak ada data yang bisa ditampilkan..",
+                "emptyTable"    : "Tidak ada data yang bisa ditampilkan.."
+            },
+            columnDefs  : [
+                { targets: [0, 5], className: "text-center", width: "7%" },
+                { targets: [3, 4], className: "text-center", width: "16%" },
+                { targets: [1], className: "text-left", width: "18%" },
+            ],
+            processing  : true,
+            serverSide  : false,
+            ajax        : {
+                type    : "GET",
+                dataType: "json",
+                data    : {
+                    sendData    : {
+                        cari    : valueCari,
+                    },
+                },
+                url     : '/divisi/operasional/dataTableGenerateJadwalUmrah'
+            },
+        })
+    }
+}
+
+function showSelect(idSelect, valueCari, valueSelect, isAsync)
+{
+    $("#"+idSelect).select2({
+        theme   : 'bootstrap4',
+    });
+    if(idSelect == 'programFilterBulan') {
+        var month   = moment.months();
+        var html    = [
+            "<option selected disabled>Pilih Bulan</option>",
+            "<option value='%'>Semua</option>"
+        ];
+        for(var i = 0; i < month.length; i++) {
+            var id      = moment(month[i], 'MMM').format('MM');
+            var text    = month[i];
+            html    += "<option value='" + id + "'>" + text + "</option>";
+        }
+
+        $("#"+idSelect).html(html);
+        if(valueSelect != '') {
+            $("#"+idSelect).val(valueSelect).trigger('change');
+        }
+    } else if(idSelect == 'programFilterTahun') {
+        var html            = "<option selected disabled>Pilih Tahun</option>";
+        var current_year    = moment().format('YYYY');
+        var past_year_10    = moment(current_year, 'YYYY').subtract(10, 'years').year();
+        var future_year_10  = moment(current_year, 'YYYY').add(10, 'years').year();
+
+        for(let i = past_year_10; i <= future_year_10; i++) {
+            html    += "<option value='" + i + "'>" + i + "</option>"
+        }
+        
+        $("#"+idSelect).html(html);
+        if(valueCari != '') {
+            $("#"+idSelect).val(valueSelect).trigger('change');
+        }
+    } else if(idSelect == 'programFlterPaket') {
+        var html    = [
+            "<option selected disabled>Pilih Paket Program Umrah</option>",
+            "<option value='%'>Semua</option>"
+        ];
+        var url     = "/master/data/getProgramUmrah/umrah";
+        var data    = {
+            "cari"  : valueCari,
+        };
+        doTrans(url, "GET", data, '', isAsync)
+            .then(function(xhr){
+                for(var i = 0; i < xhr.data.length; i++) {
+                    html    += "<option value='" + xhr.data[i]['program_id'] + "'>" + xhr.data[i]['program_name'] + "</option>";
+                }
+
+                $("#"+idSelect).html(html);
+                
+                if(valueSelect != '') {
+                    $("#"+idSelect).val(valueSelect).trigger('change');
+                }
+            })
+            .catch(function(xhr){
+                console.log(xhr);
+            });
+
+        $("#"+idSelect).html(html);
+    }
+}
+
+function generateRules(element, id)
+{
+    var depature_date   = $(element).data('startdate');
+    var arrival_date    = $(element).data('enddate');
+    var program_id      = id;
+
+    var url             = site_url + "/generateRules";
+    var type            = "GET";
+    var data            = {
+        "depature_date" : depature_date,
+        "arrival_date"  : arrival_date,
+        "program_id"    : program_id,
+    }
+    var isAsync         = true;
+    var message         = Swal.fire({title:'Data sedang diproses'});Swal.showLoading();
+
+    doTrans(url, type, data, message, isAsync)
+        .then((xhr) => {
+            Swal.fire({
+                icon    : xhr.alert.icon,
+                title   : xhr.alert.message.title,
+                text    : xhr.alert.message.text,
+            }).then((results)=>{
+                if(results.isConfirmed) {
+                    showTable('table_jadwal_umrah', ['07', '2024', '%', '%']);
+                }
+            });
+        })
+        .catch((xhr) => {
+            console.log(xhr);
+        })
+}
+
+function doTrans(url, type, data, customMessage, isAsync)
+{
+    return new Promise(function(resolve, reject){
+        $.ajax({
+            cache   : false,
+            type    : type,
+            async   : isAsync,
+            url     : url,
+            data    : {
+                _token  : CSRF_TOKEN,
+                sendData: data,
+            },
+            beforeSend  : function() {
+                customMessage;
+            },
+            success     : function(xhr) {
+                resolve(xhr)
+            },
+            error       : function(xhr) {
+                reject(xhr)
+            }
+        })
+    });
+}

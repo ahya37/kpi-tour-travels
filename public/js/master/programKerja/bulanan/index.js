@@ -121,6 +121,16 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
             });
             calendar.unselect();
         },
+        eventRender: function(event, element) {
+        element.popover({
+            title: event.title,
+            content: event.description,
+            trigger: 'hover',
+            placement: 'bottom', // Popover akan muncul di bawah event
+            container: 'body', // Pastikan popover muncul di dalam body untuk menghindari masalah penempatan
+            html: true
+        });
+        },
         eventClick: function(arg) {
             var idModal     = "modalForm";
             var jenis       = "edit";
@@ -202,7 +212,7 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                         tempData.push({
                             title   : xhr.data.list[i]['pkb_title'],
                             start   : xhr.data.list[i]['pkb_start_date'], 
-                            end     : null,
+                            end     : xhr.data.list[i]['pkb_end_date'],
                             allDay  : true,
                             id      : xhr.data.list[i]['pkb_uuid'],
                             color   : roleColor,
