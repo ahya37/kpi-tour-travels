@@ -13,15 +13,17 @@ use App\Models\AlumniProspekMaterial;
 use App\Models\DetailAlumniProspekMaterial;
 use App\Models\Employee;
 use App\Models\JobEmployee;
+use App\Models\MarketingTarget;
 use App\Models\Program;
 use App\Models\Reason;
+use App\Models\DetailMarketingTarget;
 use App\Services\MarketingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-
+use Illuminate\Support\Collection;
 use function Laravel\Prompts\select;
 
 class MarketingController extends Controller
@@ -52,13 +54,86 @@ class MarketingController extends Controller
 
     public function detailMarketingTarget($marketingTargetId)
     {
+       
         $detailMatketingTargets = MarketingService::detailMarketingTarget($marketingTargetId);
+
 
         return view('marketings.detail-marketing-target', [
             'title' => 'Detail Target Marketing',
+            'marketingTargetId' => $marketingTargetId,
             'detailMatketingTargets' => $detailMatketingTargets
         ]);
 
+    }
+
+    public function singkronRealisasi(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+
+            
+            $id =  $request->id;
+
+
+            #get data taregt by id 
+            $target = MarketingTarget::select('id','year','total_target','total_realization','total_difference')->where('id', $id)->first();
+
+            #get data realiasai dari API umhaj
+            $formData['year'] = $target->year;
+            $res_realiasi = MarketingService::getRelisasiUmrah($formData);
+            $res_umrah    = $res_realiasi['data'];
+
+
+            #pecah data realisasi dari API
+            $res_data_umrah = [];
+            foreach ($res_umrah as $key =>  $value) {
+                #update total realisasi target marketing
+                foreach ($value['umrah'] as $umrah) {
+                    $res_data_umrah[] = $umrah;
+                }
+            }
+
+            // return $res_data_umrah;
+
+            $res = [];
+            foreach($res_data_umrah as $value){
+                $detailtarget     = DetailMarketingTarget::getProgramByYearAndMonth($target->year, $value['bulan'], $value['tipe']);
+
+                $data1            = new Collection($value);
+                $data2            = new Collection($detailtarget);
+                
+                #merge dan filter, yang hanya memiliki atribut id saja
+                $mergedData = $data1->merge($data2);
+                $res[] = $mergedData;
+            }
+
+           // Menghapus entri dengan id kosong
+            $res_data = array_filter($res, function($entry) {
+                return !empty($entry['id']);
+            });
+
+           #update detail target marketing
+           foreach($res_data as $value){
+            $DetailMarketingTarget =  DetailMarketingTarget::where('id', $value['id'])->first();
+
+            $DetailMarketingTarget->update([
+                    'realization' => $value['realiasi'],
+                    'difference'  => $value['realiasi'] - $DetailMarketingTarget->target
+                ]);
+           }
+
+
+            DB::commit();
+            return ResponseFormatter::success([
+                'message' => 'Sukses singkornisasi'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ResponseFormatter::error([
+                'message' =>  $e->getMessage()
+            ]);
+        }
     }
 
     public function loadModalMarketingTarget()

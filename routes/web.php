@@ -38,6 +38,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::prefix('marketings')->controller(MarketingController::class)->group(function(){
         Route::get('/target','target')->name('marketing.target');
         Route::post('/target','storeTarget')->name('marketing.target.store');
+
+        Route::post('/target/singkronrealisasi','singkronRealisasi');
         
         // datatable
         Route::post('/target/list','listTarget');
