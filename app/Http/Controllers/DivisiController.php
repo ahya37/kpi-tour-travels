@@ -282,6 +282,31 @@ class DivisiController extends Controller
         return Response::json($output, $output['status']);
         
     }
+
+    // 13/06/2024
+    // NOTE : GET DATA DASHBOARD
+    public function getDataDashboard($year)
+    {
+        $getData    = DivisiService::doGetDataDashboard($year);
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Gagal Ambil Data",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     // MASTER ZONE
     // 11/06/2024
     public function getDataProkerTahunan(Request $request)

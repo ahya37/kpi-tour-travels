@@ -278,10 +278,9 @@ function doSimpan(jenis)
 
                         $("#programFilterBulan").val(insertMonth).trigger('change');
                         $("#programFilterTahun").val(insertYear).trigger('change');
-                        $("#programFilterPaket").val(dataSend['programPaket']).trigger('change');
 
                         closeModal('modalForm');
-                        showTable('table_program_umrah', [insertMonth, insertYear, '%', dataSend['programPaket']]);
+                        showTable('table_program_umrah', [insertMonth, insertYear, '%', '%']);
                     }
                 })
             })

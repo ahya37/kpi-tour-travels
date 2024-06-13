@@ -43,6 +43,11 @@ div.popover > div.popover-body > div.fc-daygrid-event-harness > a.fc-event{
     margin-left: 0;
 }
 
+.fc-popover {
+    left    : 35%;
+    top     : 200px;
+}
+
 
 label {
     font-weight: bold;

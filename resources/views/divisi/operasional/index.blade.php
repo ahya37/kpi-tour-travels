@@ -46,7 +46,7 @@
                         <h4 style="margin-top: 0px; margin-bottom: 0px;"><i class='fa fa-wrench'></i> &nbsp; Aturan Program Kerja</h4>
                     </div>
                     <div class="card-body">
-                        <h2 style="margin-bottom: 0px; margin-top: 0px;" class="text-right" id="dashboard_jadwal_umrah">0</h2>
+                        <h2 style="margin-bottom: 0px; margin-top: 0px;" class="text-right" id="dashboard_rules">0</h2>
                     </div>
                     <a href="{{ route('index.operasional.rulesprokerbulanan') }}">
                         <div class="card-footer text-left">Lihat Detail</div>

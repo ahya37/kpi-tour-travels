@@ -5,6 +5,21 @@ $(document).ready(function(){
     var currYear    = moment().format('YYYY');
     var currPaket   = '%';
 
+    // SHOW DATA DASHBOARD
+    var url     = site_url + "/getDataDashboard/"+currYear;
+    var type    = "GET";
+
+    doTrans(url, type, '', '', false)
+        .then((xhr)=>{
+            var getData     = xhr.data[0];
+            $("#dashboard_jadwal_umrah").html(getData.grand_total_jadwal_umrah);
+            $("#dashboard_rules").html(getData.grand_total_rule);
+        })
+        .catch((xhr)=>{
+            $("#dashboard_jadwal_umrah").html(0);
+            $("#dashboard_rules").html(0);
+        })
+
     showSelect('programFilterBulan', '%', '%', '');
     showSelect('programFilterTahun', '%', currYear, '');
     showSelect('programFlterPaket', '%', currPaket, true);
@@ -18,7 +33,7 @@ $(document).ready(function(){
         var selectedYear    = $("#programFilterTahun").val();
         var selectedPaket   = $("#programFlterPaket").val();
         showTable('table_jadwal_umrah', [selectedMonth, selectedYear, '%', selectedPaket])
-    })
+    });
 });
 
 var site_url    = window.location.pathname;

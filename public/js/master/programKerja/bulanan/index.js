@@ -55,6 +55,10 @@ var showDropzone    = new Dropzone("#myDropzone", {
 
 $(document).ready(function(){
     moment.locale('id');
+
+    $("#prokerBulananStartDate").val(moment().startOf('month').format('DD/MM/YYYY'));
+    $("#prokerBulananEndDate").val(moment().format('DD/MM/YYYY'));
+
     $("#current_date").val(moment().tz('Asia/Jakarta').format('YYYY-MM-DD'));
     // SHOW COLLAPSE
     $("#btnFilter").on('click', function(){
@@ -121,15 +125,8 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
             });
             calendar.unselect();
         },
-        eventRender: function(event, element) {
-        element.popover({
-            title: event.title,
-            content: event.description,
-            trigger: 'hover',
-            placement: 'bottom', // Popover akan muncul di bawah event
-            container: 'body', // Pastikan popover muncul di dalam body untuk menghindari masalah penempatan
-            html: true
-        });
+        moreLinkContent:function(args){
+            return '+'+args.num+' Lainnya';
         },
         eventClick: function(arg) {
             var idModal     = "modalForm";
@@ -180,7 +177,7 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
             }
         },
         editable: false,
-        fixedMirrorParent: document.body,
+        // fixedMirrorParent: document.body,
         dayMaxEvents: true, // allow "more" link when too many events,
         events: function(fetchInfo, successCallback, failureCallback) {
             var url         = getUrl + "/getDataAllProkerBulanan";
@@ -993,9 +990,9 @@ function showCalendarButton(jenis)
         $("#calendar").show();
         
         var current_date    = moment().format('YYYY-MM-DD');
-        var tgl_awal        = $("#prokerBulananStartDate").val() != '' ? moment($("#prokerBulananStartDate").val(), 'YYYY-MM-DD').format('YYYY-MM-DD') : '';
+        var tgl_awal        = $("#prokerBulananStartDate").val() != '' ? moment($("#prokerBulananStartDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : '';
         // var tgl_akhir       = $("#prokerBulananEndDate").val() != '' ? moment($("#prokerBulananEndDate").val()).format('YYYY-MM-DD') : '';
-        var tgl_akhir       = $("#prokerBulananEndDate").val() != '' ? moment($("#prokerBulananEndDate").val(), 'YYYY-MM-DD').format('YYYY-MM-DD') : '';
+        var tgl_akhir       = $("#prokerBulananEndDate").val() != '' ? moment($("#prokerBulananEndDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : '';
         var group_divisi    = $("#groupDivisionName").val();
         showCalendar(current_date, tgl_awal, tgl_akhir, group_divisi);
         $(".fc-nextCustomButton-button").html("<i class='fa fa-chevron-right'></i>");

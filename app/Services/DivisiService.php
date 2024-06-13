@@ -352,6 +352,30 @@ class DivisiService
         return $query;
     }
 
+    public static function doGetDataDashboard($year)
+    {
+        $query  = DB::select(
+            "
+            SELECT 	SUM(total_jadwal_umrah) as grand_total_jadwal_umrah,
+                    SUM(total_rule) as grand_total_rule
+            FROM    (
+                    SELECT 	count(*) as total_jadwal_umrah,
+                            0 as total_rule
+                    FROM 	programs_jadwal
+                    WHERE 	EXTRACT(YEAR FROM jdw_depature_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+
+                    UNION
+
+                    SELECT 	0 as total_jadwal_umrah,
+                            count(*) as total_rul
+                    FROM 	programs_jadwal_rules
+            ) as x
+            "
+        );
+
+        return $query;
+    }
+
     // MASTER
     public static function doGetDataProkerTahunan($roleName, $data)
     {

@@ -2,8 +2,6 @@
 @section('title', $title ?? '')
 
 @push('addon-style')
-    {{-- MAIN CSS --}}
-    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
     {{-- SELECT2 --}}
     <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
@@ -17,6 +15,7 @@
     <link href="{{ asset('assets/css/plugins/dropzone/basic.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
     {{-- CUSTOM CSS --}}
+    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/programKerja/harian/index.harian.css') }}">
 @endpush
