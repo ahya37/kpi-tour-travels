@@ -132,9 +132,10 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
             var idModal     = "modalForm";
             var jenis       = "edit";
             var value       = arg.event.id;
+            var roleId      = arg.event.extendedProps.roleId;
 
             showModal(idModal, jenis, value);
-            
+
             $("#btnSimpan").click(function(){
                 do_save(this.value, arg, calendar);
             });
@@ -206,12 +207,14 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                         } else if(xhr.data.list[i]['role_id'] == '5') {
                             roleColor   = '#43A6EE';
                         }
+                        
                         tempData.push({
                             title   : xhr.data.list[i]['pkb_title'],
                             start   : xhr.data.list[i]['pkb_start_date'], 
                             end     : xhr.data.list[i]['pkb_end_date'],
                             allDay  : true,
                             id      : xhr.data.list[i]['pkb_uuid'],
+                            roleId  : xhr.data.list[i]['role_id'],
                             color   : roleColor,
                         });
                     }
@@ -856,6 +859,7 @@ function hapus_baris(idTable, seq) {
 
 function do_save(jenis, arg, calendar)
 {
+    console.log(arg);
     var prokerBulananID         = $("#prokerBulananID").val();
     var prokerTahunanID         = $("#prokerTahunanID").val();
     var prokerSubTahunanID      = $("#subProkerTahunanSeq").val();

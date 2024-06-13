@@ -317,6 +317,7 @@ class ProgramKerjaService
     public static function doSimpanProkerBulanan($dataProkerBulanan)
     {
         $dataProkerBulananInput     = $dataProkerBulanan->all()['sendData'];
+        print("<pre>".print_r($dataProkerBulananInput, true)."</pre>");die();
         DB::beginTransaction();
         
         if($dataProkerBulananInput['prokerBulanan_typeTrans'] == 'add') {
@@ -691,6 +692,7 @@ class ProgramKerjaService
     // NOTE : SUMMARY UNTUK DASHBOARD PROGRAM KERJA
     public static function doGetDataTotalProgramKerja()
     {
+        $roleId     = Auth::user()->getRoleNames()[0]  == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
         $query  = DB::select(
             "
             SELECT 	SUM(total_proker_tahunan) as grand_total_proker_tahunan,
@@ -698,34 +700,58 @@ class ProgramKerjaService
                     SUM(total_proker_harian) as grand_total_proker_harian,
                     tahun
             FROM 	(
-                SELECT 	count(*) as total_proker_tahunan,
-                        0 as total_proker_bulanan,
-                        0 as total_proker_harian,
-                        pkt_year as tahun
-                FROM    proker_tahunan
-                WHERE 	pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
-                GROUP BY pkt_year
+                    SELECT 	COUNT(a.id) as total_proker_tahunan,
+                            0 as total_proker_bulanan,
+                            0 as total_proker_harian,
+                            pkt_year as tahun,
+                            c.name as role_name
+                    FROM 	proker_tahunan a
+                    JOIN	group_divisions b ON a.division_group_id = b.id
+                    JOIN 	roles c ON b.roles_id = c.id
+                    GROUP BY pkt_year, c.name
 
-                UNION
+                    UNION
 
-                SELECT 	0 as total_proker_tahunan,
-                        count(*) as total_proker_bulanan,
-                        0 as total_proker_harian,
-                        EXTRACT(YEAR FROM pkb_start_date) as tahun
-                FROM 	proker_bulanan
-                WHERE 	EXTRACT(YEAR FROM pkb_start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-                GROUP BY EXTRACT(YEAR FROM pkb_start_date)
+                    SELECT 	0 as total_proker_tahunan,
+                            COUNT(a.id) as total_proker_bulanan,
+                            0 as total_proker_harian,
+                            EXTRACT(YEAR FROM a.pkb_start_date) as tahun,
+                            c.name
+                    FROM 	proker_bulanan a
+                    JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
+                    JOIN	group_divisions c ON b.division_group_id = c.id
+                    JOIN 	roles d ON c.roles_id = d.id
+                    GROUP BY EXTRACT(YEAR FROM a.pkb_start_date), c.name
 
-                UNION
+                    UNION
 
-                SELECT 	0 as total_proker_tahunan,
-                        0 as total_proker_bulanan,
-                        COUNT(*) as total_proker_harian,
-                        EXTRACT(YEAR FROM pkh_date) as tahun
-                FROM 	proker_harian
-                WHERE 	EXTRACT(YEAR FROM pkh_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-                GROUP BY EXTRACT(YEAR FROM pkh_date)
+                    SELECT 	0 as total_proker_tahunan,
+                            0 as total_proker_bulanan,
+                            count(a.uuid) as total_proker_harian,
+                            EXTRACT(YEAR FROM a.pkh_date) as tahun,
+                            e.name as role_name
+                    FROM 	proker_harian a
+                    JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id,' | ',1) = b.uuid
+                    JOIN 	proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id,' | ',1) = c.uid
+                    JOIN 	group_divisions d ON c.division_group_id = d.id
+                    JOIN 	roles e ON d.roles_id = e.id
+                    GROUP BY e.name, EXTRACT(YEAR FROM a.pkh_date)
+                    
+                    UNION
+                    
+                    SELECT 	0 as total_proker_tahunan,
+                            0 as total_proker_bulanan,
+                            count(a.uuid) as total_proker_harian,
+                            EXTRACT(YEAR FROM a.pkb_start_date) as tahun,
+                            d.name as role_name
+                    FROM 	proker_bulanan a
+                    JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
+                    JOIN 	group_divisions c ON b.division_group_id = c.id
+                    JOIN 	roles d ON c.roles_id = d.id
+                    WHERE 	pkb_start_time IS NOT NULL
+                    GROUP BY EXTRACT(YEAR FROM a.pkb_start_date), d.name
             ) AS b
+            WHERE   b.role_name LIKE '$roleId'
             GROUP BY tahun
             "
         );

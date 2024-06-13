@@ -155,6 +155,17 @@
                         </li>
                     </ul>
                 </li>
+                <li class="{{ request()->is('divisi/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class='fa fa-users'></i>
+                        <span class="nav-label">Divisi</span><span class='fa arrow'></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li class="{{ request()->is('divisi/operasional') || request()->is('divisi/operasional/*') ? 'active' : '' }}">
+                            <a href="{{ route('index.operasional') }}">Operasional</a>
+                        </li>
+                    </ul>
+                </li>
             @endif
             @if (Auth::user()->hasRole('it'))
                 <li class="{{ request()->is('master/*') ? 'active' : '' }}">
