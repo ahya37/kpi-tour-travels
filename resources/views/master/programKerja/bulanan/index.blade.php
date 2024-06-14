@@ -83,6 +83,11 @@
                                                     <select id="groupDivisionName" style="width: 100%;"></select>
                                                 </div>
                                             @endif
+                                            @if(Auth::user()->hasRole('operasional'))
+                                                <div class="col-sm-3">
+                                                    <select name="jadwalUmrah" id="jadwalUmrah" style="width: 100%;"></select>
+                                                </div>
+                                            @endif
                                             <div class="col-sm-3">
                                                 <button class="btn btn-primary" id="btnFilterCari" onclick="showDataCalendar()" style="height: 37px;">Cari</button>
                                             </div>
@@ -174,6 +179,24 @@
                             <div class="form-group">
                                 <label>Uraian Pekerjaan</label>
                                 <input type="text" name="prokerBulananTitle" id="prokerBulananTitle" class="form-control form-control-sm" placeholder="Uraian Pekerjaan" style="height: 37.5px;" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2" id="formTanggalAktivitas_prokerBulanan">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Tanggal Aktivitas</label>
+                                <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggal" id="prokerBulananTanggal" placeholder="DD/MM/YYYY">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="prokerBulananCheckSameDay">
+                                    <label class="form-check-label">Di hari yang sama?</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Tanggal Akhir Aktivitas</label>
+                                <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggalAkhir" id="prokerBulananTanggalAkhir" placeholder="DD/MM/YYYY">
                             </div>
                         </div>
                     </div>

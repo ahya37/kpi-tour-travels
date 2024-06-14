@@ -184,6 +184,7 @@ class ProgramKerjaService
         $roleName   = $cari['role_name'] == 'admin' ? '%' : $cari['role_name'];
         $tgl_awal   = $cari['tgl_awal'];
         $tgl_akhir  = $cari['tgl_akhir'];
+        $jadwal     = $cari['jadwal'];
 
         $query_list  = DB::select(
             "
@@ -210,6 +211,7 @@ class ProgramKerjaService
             WHERE 	a.uuid LIKE '$uuid'
             AND 	f.name LIKE '$roleName'
             AND     a.pkb_start_date BETWEEN '$tgl_awal' AND '$tgl_akhir'
+            AND     a.pkb_title LIKE '$jadwal%'
             ORDER BY a.pkb_start_date, a.created_at ASC
             "
         );
@@ -229,7 +231,11 @@ class ProgramKerjaService
                         f.name as role_name,
                         e.id as pkb_sd_id,
                         e.name as pkb_sd_name,
-                        a.pkb_employee_id
+                        a.pkb_employee_id,        
+                        a.pkb_start_date,
+                        a.pkb_end_date,
+                        a.pkb_start_time,
+                        a.pkb_end_time
                 FROM 	proker_bulanan a
                 JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
                 JOIN 	job_employees c ON b.pkt_pic_job_employee_id = c.employee_id
@@ -317,7 +323,7 @@ class ProgramKerjaService
     public static function doSimpanProkerBulanan($dataProkerBulanan)
     {
         $dataProkerBulananInput     = $dataProkerBulanan->all()['sendData'];
-        print("<pre>".print_r($dataProkerBulananInput, true)."</pre>");die();
+        // print("<pre>".print_r($dataProkerBulananInput, true)."</pre>");die();
         DB::beginTransaction();
         
         if($dataProkerBulananInput['prokerBulanan_typeTrans'] == 'add') {
@@ -326,6 +332,7 @@ class ProgramKerjaService
                 "uuid"                  => Str::uuid(),
                 "pkb_title"             => $dataProkerBulananInput['prokerBulanan_title'],
                 "pkb_start_date"        => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate'])),
+                "pkb_end_date"          => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_endDate'])),
                 "pkb_description"       => $dataProkerBulananInput['prokerBulanan_description'],
                 "pkb_pkt_id"            => !empty($dataProkerBulananInput['prokerBulanan_subProkerTahunan']) ? $dataProkerBulananInput['prokerBulanan_prokerTahunanID']." | ".$dataProkerBulananInput['prokerBulanan_subProkerTahunan'] : $dataProkerBulananInput['prokerBulanan_prokerTahunanID'],
                 "pkb_employee_id"       => $dataProkerBulananInput['prokerBulanan_employeeID'],
@@ -378,10 +385,14 @@ class ProgramKerjaService
             );
 
             $data_header_update = array(
-                "pkb_pkt_id"            => $dataProkerBulananInput['prokerBulanan_prokerTahunanID']." | ".$dataProkerBulananInput['prokerBulanan_subProkerTahunan'],
                 "pkb_title"             => $dataProkerBulananInput['prokerBulanan_title'],
+                "pkb_start_date"        => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate'])),
+                "pkb_end_date"          => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_endDate'])),
                 "pkb_description"       => $dataProkerBulananInput['prokerBulanan_description'],
+                "pkb_pkt_id"            => $dataProkerBulananInput['prokerBulanan_prokerTahunanID']." | ".$dataProkerBulananInput['prokerBulanan_subProkerTahunan'],
                 "pkb_employee_id"       => $dataProkerBulananInput['prokerBulanan_employeeID'],
+                "pkb_start_time"        => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate']))." ".$dataProkerBulananInput['prokerBulanan_startActivity'],
+                "pkb_end_time"          => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate']))." ".$dataProkerBulananInput['prokerBulanan_endActivity'],
                 "updated_by"            => Auth::user()->id,
                 "updated_at"            => date('Y-m-d H:i:s'),
             );
@@ -536,6 +547,28 @@ class ProgramKerjaService
         return $query;
     }
 
+    public static function getListSelectJadwalUmrah()
+    {
+        $query  = DB::select(
+            "
+            SELECT 	c.name,
+                    d.jdw_arrival_date,
+                    d.jdw_depature_date
+            FROM 	(
+                    SELECT 	LOWER(REPLACE(REPLACE(SUBSTRING_INDEX(pkb_title, ' ', 1),'[', ''),']','')) AS program
+                    FROM 	proker_bulanan
+                    WHERE 	pkb_end_date IS NOT NULL
+                    GROUP BY program
+            ) AS b
+            JOIN 	programs c ON b.program = LOWER(c.name)
+            JOIN 	programs_jadwal d ON c.id = d.jdw_programs_id
+            ORDER BY d.jdw_arrival_date ASC
+            "
+        );
+
+        return $query;
+    }
+
     // HARIAN
     public static function listProkerHarian($data)
     {
@@ -550,13 +583,13 @@ class ProgramKerjaService
                     d.id as group_division_id,
                     d.name as group_division
             FROM 	proker_harian a
-            JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id,' | ', 1) = b.uuid
-            JOIN  	job_employees c ON c.employee_id = b.pkb_employee_id
-            JOIN 	group_divisions d ON c.group_division_id = d.id
-            JOIN    roles e ON d.roles_id = e.id
-            WHERE   e.name LIKE '$rolesName'
-            AND     EXTRACT(MONTH FROM a.pkh_date) = '$getMonth'
-            ORDER BY a.id DESC
+            JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = b.uuid
+            JOIN 	proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1) = c.uid
+            JOIN 	group_divisions d ON c.division_group_id = d.id
+            JOIN 	roles e ON d.roles_id = e.id
+            WHERE 	e.name LIKE '$rolesName'
+            AND 	EXTRACT(MONTH FROM a.pkh_date) = '$getMonth'
+            ORDER BY a.id ASC
             "
         );
         
@@ -666,6 +699,22 @@ class ProgramKerjaService
                     DB::table('proker_harian_file')->insert($dataSimpan_file);
                 }
             }
+        } else if($data['programKerjaHarian_jenisTrans'] == 'edit') {
+            $data_where     = array(
+                "uuid"      => $data['programKerjaHarian_ID'],
+            );
+
+            $data_update    = array(
+                "pkh_title"         => $data['programKerjaHarian_description'],
+                "pkh_date"          => $data['programKerjaHarian_startDate'],
+                "pkh_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
+                "pkh_end_time"      => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_endTime'],
+                "pkh_pkb_id"        => $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'],
+                "updated_by"        => Auth::user()->id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            );
+
+            DB::table('proker_harian')->where($data_where)->update($data_update);
         }
         
         try {
@@ -674,7 +723,11 @@ class ProgramKerjaService
                 "status"    => "berhasil",
                 "errMsg"    => null
             );
-            LogHelper::create("add", "Berhasil Menambahkan Program Kerja Harian", $ip);
+            if($data['programKerjaHarian_jenisTrans'] == 'add') {
+                LogHelper::create("add", "Berhasil Menambahkan Program Kerja Harian", $ip);
+            } else if($data['programKerjaHarian_jenisTrans'] == 'edit') {
+                LogHelper::create("edit", "Berhasil Mengubah Program Kerja Harian id : ".$data['programKerjaHarian_ID'], $ip);
+            }
         } catch(\Exception $e) {
             DB::rollback();
             Log::channel('daily')->error($e->getMessage());

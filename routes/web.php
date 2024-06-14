@@ -158,6 +158,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/deleteUpload', [ProgramKerjaController::class, 'deleteUpload'])->name('programKerja.harian.deleteUpload');
                 Route::get('/listProkerTahunan', [ProgramKerjaController::class, 'listProkerTahunan']);
                 Route::get('/cellProkerBulanan', [ProgramKerjaController::class, 'cellProkerBulanan']);
+                Route::get('/listSelectJadwalUmrah', [ProgramKerjaController::class, 'listSelectJadwalUmrah']);
             });
             Route::prefix('harian')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('programKerja.harian.index');
