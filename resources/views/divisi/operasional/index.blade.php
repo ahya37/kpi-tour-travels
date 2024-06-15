@@ -110,7 +110,43 @@
         </div>
     </div>
 
-    
+    <div class="modal fade" id="modalForm" >
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">List Program Kerja sudah tercapai</h4>
+                    <button type="button" class="close" onclick="closeModal('modalForm')">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped table-hover" id="table_list_program_kerja">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Program Kerja</th>
+                                            <th>Tanggal</th>
+                                            <th>Divisi</th>
+                                            <th>Tanggal Realisasi</th>
+                                            <th>Durasi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{-- <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary">Tutup</button>
+                    <button type="button" class="btn btn-primary">Save</button>
+                </div> --}}
+            </div>
+        </div>
+    </div>
 @endsection
 
 

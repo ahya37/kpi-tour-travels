@@ -201,7 +201,7 @@ class DivisiController extends Controller
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
                 $button_generate    = "<button type='button' class='btn btn-sm btn-primary' title='Generate Aturan Program Kerja' data-startdate='".$getData[$i]->jdw_depature_date."' data-enddate='".$getData[$i]->jdw_arrival_date."' value='".$getData[$i]->jdw_id."' onclick='generateRules(this, this.value)'><i class='fa fa-cog'></i></button>";
-                $button_success     = "<button type='button' class='btn btn-sm btn-primary' disabled title='Berhasil Generate'><i class='fa fa-check'></i></button>";
+                $button_success     = "<button type='button' class='btn btn-sm btn-primary' title='Lihat Detail' value='" .$getData[$i]->jdw_id. "' onclick='showModal(`modalForm`, this.value)' title='Berhasil Generate'><i class='fa fa-check'></i></button>";
                 $button         = $getData[$i]->is_generated == 'f' ? $button_generate : $button_success;
                 $data[]     = array(
                     $i + 1,
@@ -305,6 +305,41 @@ class DivisiController extends Controller
         }
 
         return Response::json($output, $output['status']);
+    }
+
+    public function getDataRulesJadwal($idJadwalProgram)
+    {
+        $getData    = DivisiService::doGetDataRulesJadwal($idJadwalProgram);
+
+        if(!empty($getData)) {
+            for($i = 0; $i < count($getData); $i++) {
+                $data[]     = array(
+                    $i + 1,
+                    $getData[$i]->rules,
+                    date('d-m-Y', strtotime($getData[$i]->start_date_job))." s/d ".date('d-m-Y', strtotime($getData[$i]->end_date_job)),
+                    $getData[$i]->pic_role,
+                    !empty($getData[$i]->realization_start_date) ? $getData[$i]->realization_start_date == $getData[$i]->realization_end_date ? date('d-m-Y', strtotime($getData[$i]->realization_start_date)) : date('d-m-Y', strtotime($getData[$i]->realization_start_date))." s/d ".date('d-m-Y', strtotime($getData[$i]->realization_end_date)) : null,
+                    $getData[$i]->duration_day
+                );
+            }
+
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $data,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Gagal Mengambil Data",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+
     }
 
     // MASTER ZONE

@@ -188,6 +188,8 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/dataTableGenerateJadwalUmrah', [DivisiController::class, 'dataTableGenerateJadwalUmrah']);
             Route::get('/generateRules', [DivisiController::class, 'generateRules']);
             Route::get('/getDataDashboard/{year}', [DivisiController::class, 'getDataDashboard']);
+            Route::get('/getDataRulesJadwal/{idJadwalProgram}', [DivisiController::class, 'getDataRulesJadwal']);
+
             Route::prefix('program')->group(function(){
                 Route::get('/', [DivisiController::class, 'indexProgram'])->name('index.operasional.program');
                 Route::get('/listJadwalumrah', [DivisiController::class, 'listJadwalUmrah']);

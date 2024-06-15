@@ -166,6 +166,48 @@ function generateRules(element, id)
         })
 }
 
+function showModal(idForm, valueCari)
+{
+    if(idForm == 'modalForm') {
+        var url     =  site_url + "/getDataRulesJadwal/"+valueCari;
+        var type    = "GET";
+        var message = Swal.fire({title: 'Data Sedang Dimuat'});Swal.showLoading();
+
+        doTrans(url, type, '', message, true)
+            .then((xhr)=>{
+                Swal.close();
+                $("#"+idForm).modal('show');
+                var getData     = xhr.data;
+
+                if(getData.length > 0) {
+                    for(var i = 0; i < getData.length; i++) {
+                        $("#table_list_program_kerja").DataTable().row.add([
+                            getData[i][0],
+                            getData[i][1],
+                            getData[i][2],
+                            getData[i][3],
+                            getData[i][4],
+                            getData[i][5],
+                        ]).draw('false');
+                    }
+                }
+            }) 
+            .catch((xhr)=>{
+                Swal.fire({
+                    icon    : 'error',
+                    title   : xhr.statusText
+                });
+            })
+
+    }
+}
+
+function closeModal(idForm) {
+    if(idForm == 'modalForm') {
+        $("#"+idForm).modal('hide');
+    }
+}
+
 function doTrans(url, type, data, customMessage, isAsync)
 {
     return new Promise(function(resolve, reject){
