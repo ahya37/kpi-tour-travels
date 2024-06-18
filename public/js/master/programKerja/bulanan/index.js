@@ -289,8 +289,6 @@ function showCalendarOperasional()
 
 function showModal(idModal, jenis, value)
 {
-    $("#"+idModal).modal({backdrop: 'static', keyboard: false});
-    $("#"+idModal).modal('show');
     const current_role    = $("#roleName").val();
     $(".form-select").select2({
         theme   : 'bootstrap4',
@@ -359,6 +357,8 @@ function showModal(idModal, jenis, value)
 
 
         if(jenis == 'add') {
+            $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+            $("#"+idModal).modal('show');
             $("#prokerTahunanID").prop('disabled',false);
             $("#"+idModal).on('shown.bs.modal', function(){
                 $("#prokerBulananTitle").focus();
@@ -388,6 +388,9 @@ function showModal(idModal, jenis, value)
 
             transData(url, type, data, customMessage, isAsync)
                 .then(function(xhr){
+                    
+                    $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+                    $("#"+idModal).modal('show');
                     var resultData  = xhr.data.header[0];
 
                     var start_date  = resultData['pkb_start_date'] != '' ? moment(resultData['pkb_start_date'], 'YYYY-MM-DD').format('DD/MM/YYYY') : null;
@@ -530,7 +533,7 @@ function closeModal(idModal) {
     }
 }
 
-function show_select(idSelect, valueCari, valueSelect)
+function show_select(idSelect, valueCari, valueSelect, isAsync)
 {
     $("#"+idSelect).select2({
         theme   : 'bootstrap4',

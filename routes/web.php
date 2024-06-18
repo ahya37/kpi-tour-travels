@@ -88,6 +88,8 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/users/create', 'create')->name('users.create')->middleware('permission:users.create');
             Route::post('/users/store', 'store')->name('users.store');
             Route::get('/userProfiles', 'userProfiles')->name('accounts.user.profile');
+            Route::get('/userProfiles/ChangePasswordUser', 'ChangePasswordUser');
+            Route::get('/userProfiles/CheckPasswordCurrentUser', 'CheckPasswordCurrentUser');
             Route::prefix('userLog')->group(function(){
                 Route::get('/', 'userLog')->name('accounts.user.log');
                 Route::get('/dataTableUserLog', 'dataTableUserLog');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\LogHelper;
 use App\Http\Requests\UserRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -9,6 +10,7 @@ use App\Services\UserService;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Auth;
+use Hash;
 use Illuminate\Support\Facades\Response;
 
 class UserController extends Controller
@@ -98,5 +100,65 @@ class UserController extends Controller
         );
 
         return Response::json($output, $status);
+    }
+
+    // USER PROFILE
+    public function userProfiles()
+    {
+        $data   = [
+            "title"     => "User Account Control",
+            "sub_title" => "Lihat Profile User"
+        ];
+
+        return view('users/userProfile/index', $data);
+    }
+
+    public function ChangePasswordUser(Request $request) {
+        $data    = $request->all()['sendData'];
+        $data_update    = [
+            'password'  => Hash::make($data['userNewPassword']),
+        ];
+
+        $doChange       = User::whereId($data['userId'])->update($data_update);
+        if($doChange) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Mengubah Password"
+            );
+            LogHelper::create('edit', 'Berhasil Mengubah Password User : '.Auth::user()->name, $request->ip());
+        } else {
+            $output     = array(
+                "status"    => 500,
+                "success"   => false,
+                "message"   => "Bad Request"
+            );
+            LogHelper::create('error_system', 'Gagal Mengubah Password User : '.Auth::user()->name, $request->ip());
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function CheckPasswordCurrentUser(Request $request)
+    {
+        $data   = $request->all()['sendData'];
+        // DO CHECK PASSWORD    
+        $user   = Auth::user($data['currentUserId']);
+        
+        if(Hash::check($data['currentPassword'], $user->password)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Ok"
+            );
+        } else {
+            $output     = array(
+                "status"    => 500,
+                "success"   => false,
+                "message"   => "Bad Request"
+            );
+        }
+
+        return Response::json($output, $output['status']);
     }
 }
