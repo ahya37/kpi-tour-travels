@@ -55,6 +55,10 @@ var showDropzone    = new Dropzone("#myDropzone", {
 
 $(document).ready(function(){
     moment.locale('id');
+
+    $("#prokerBulananStartDate").val(moment().startOf('month').format('DD/MM/YYYY'));
+    $("#prokerBulananEndDate").val(moment().format('DD/MM/YYYY'));
+
     $("#current_date").val(moment().tz('Asia/Jakarta').format('YYYY-MM-DD'));
     // SHOW COLLAPSE
     $("#btnFilter").on('click', function(){
@@ -76,6 +80,7 @@ $(document).ready(function(){
 
         // SHOW SELECT2
         show_select('groupDivisionName','','');
+        show_select('jadwalUmrah', '', '');
     });
 
     $("#btnFilter").on('click', function(){
@@ -101,14 +106,14 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
         headerToolbar: {
             left    : 'prevCustomButton nextCustomButton',
             center  : '',
-            right   : 'dayGridMonth',
+            right   : 'refreshCustomButton dayGridMonth',
         },
         locale  : 'id',
         initialDate     : tgl_sekarang,
         navLinks: false, // can click day/week names to navigate views
         selectable: true,
         selectMirror: true,
-        contentHeight: 600,
+        contentHeight: 750,
         select  : function(arg) {
             var idModal     = "modalForm";
             var jenis       = "add";
@@ -121,13 +126,17 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
             });
             calendar.unselect();
         },
+        moreLinkContent:function(args){
+            return '+'+args.num+' Lainnya';
+        },
         eventClick: function(arg) {
             var idModal     = "modalForm";
             var jenis       = "edit";
             var value       = arg.event.id;
+            var roleId      = arg.event.extendedProps.roleId;
 
             showModal(idModal, jenis, value);
-            
+
             $("#btnSimpan").click(function(){
                 do_save(this.value, arg, calendar);
             });
@@ -167,19 +176,30 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                     $("#prokerBulananStartDate").val(moment(tgl_awal_bulan_depan).format('DD/MM/YYYY'));
                     $("#prokerBulananEndDate").val(moment(tgl_akhir_bulan_depan).format('DD/MM/YYYY'));
                 }
+            },
+            refreshCustomButton     : {
+                click   : function() {
+                    var today           = $("#current_date").val();
+                    var groupDivision   = $("#groupDivisionName").val();
+                    var tgl_awal        = moment(today).startOf('month').format('YYYY-MM-DD');
+                    var tgl_akhir       = moment(today).endOf('month').format('YYYY-MM-DD');
+                    showCalendar(today, tgl_awal, tgl_akhir, groupDivision);
+                }
             }
         },
         editable: false,
-        fixedMirrorParent: document.body,
+        // fixedMirrorParent: document.body,
         dayMaxEvents: true, // allow "more" link when too many events,
         events: function(fetchInfo, successCallback, failureCallback) {
+            var jadwal      = $("#jadwalUmrah").val();
             var url         = getUrl + "/getDataAllProkerBulanan";
             var type        = "GET";
             var data        = {
                 "cari"      : "%",
                 "tgl_awal"  : tgl_awal == '' ? moment().startOf('month').format('YYYY-MM-DD') : tgl_awal,
                 "tgl_akhir" : tgl_akhir == '' ? moment().endOf('month').format('YYYY-MM-DD') : tgl_akhir,
-                "divisi"    : divisi == null ? '' : divisi
+                "divisi"    : divisi == null ? '' : divisi,
+                "jadwal"    : jadwal == null ? '%' : jadwal
             };
             var message     =   Swal.fire({title   : 'Data Sedang Dimuat',allowOutsideClick: false});
                                 Swal.showLoading();
@@ -195,16 +215,18 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                         } else if(xhr.data.list[i]['role_id'] == '3') {
                             roleColor   = '#364B45';
                         } else if(xhr.data.list[i]['role_id'] == '4') {
-                            roleColor   = '#98B0A9';
+                            roleColor   = '#00A7AC';
                         } else if(xhr.data.list[i]['role_id'] == '5') {
                             roleColor   = '#43A6EE';
                         }
+                        
                         tempData.push({
                             title   : xhr.data.list[i]['pkb_title'],
                             start   : xhr.data.list[i]['pkb_start_date'], 
-                            end     : null,
+                            end     : xhr.data.list[i]['pkb_end_date'],
                             allDay  : true,
                             id      : xhr.data.list[i]['pkb_uuid'],
+                            roleId  : xhr.data.list[i]['role_id'],
                             color   : roleColor,
                         });
                     }
@@ -309,6 +331,33 @@ function showModal(idModal, jenis, value)
             picker.container.find(".calendar-table").hide();
         });
 
+        // DATERANGEPICKER HANYA TANGGAL
+        $(".tanggal").daterangepicker({
+            singleDatePicker : true,
+            locale : {
+                format  : 'DD/MM/YYYY',
+            },
+            minYear     : moment().subtract(10, 'years'),
+            maxYear     : moment().add(10, 'years'),
+            autoApply    : true,
+            showDropdowns: true,
+        }).css({"cursor":"pointer","background":"white"}).attr('readonly','readonly');
+        $(".tanggal").val(null);
+
+        $("#prokerBulananCheckSameDay").on('click', function(){
+            var tanggal     = $("#prokerBulananTanggal").val();
+            if(($(this).is(":checked") == true) && (tanggal != '')) {
+                $("#prokerBulananTanggalAkhir").val(tanggal);
+            } else {
+                $("#prokerBulananTanggalAkhir").val(null);
+            }
+        });
+
+        $("#prokerBulananTanggalAkhir").on('apply.daterangepicker', function(){
+            $("#prokerBulananCheckSameDay").prop('checked', false);
+        });
+
+
         if(jenis == 'add') {
             $("#prokerTahunanID").prop('disabled',false);
             $("#"+idModal).on('shown.bs.modal', function(){
@@ -334,12 +383,18 @@ function showModal(idModal, jenis, value)
 
             // SHOW MESSAGE
             if(isAsync == true) {
-                var customMessage   = Swal.fire({title:'Data Sedang Dimuat', allowOutsideClick: false});Swal.showLoading();
+                var customMessage   = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
             }
 
             transData(url, type, data, customMessage, isAsync)
                 .then(function(xhr){
                     var resultData  = xhr.data.header[0];
+
+                    var start_date  = resultData['pkb_start_date'] != '' ? moment(resultData['pkb_start_date'], 'YYYY-MM-DD').format('DD/MM/YYYY') : null;
+                    var end_date    = resultData['pkb_end_date'] != '' ? moment(resultData['pkb_end_date'], 'YYYY-MM-DD').format('DD/MM/YYYY') : null;
+                    var start_time  = resultData['pkb_start_time'] != null ? resultData['pkb_start_time'].split(' ')[1] : "00:00:00";
+                    var end_time    = resultData['pkb_end_time'] != null ? resultData['pkb_end_time'].split(' ')[1] : "00:00:00" ;
+
                     $("#prokerBulananID").val(resultData['pkb_uuid']);
                     $("#prokerTahunanGroupDivisionID").val(resultData['pkb_gd_id']);
                     $("#prokerTahunanGroupDivisionName").val(resultData['pkb_gd_name']);
@@ -347,6 +402,12 @@ function showModal(idModal, jenis, value)
                     $("#prokerTahunanSubDivisionName").val(resultData['pkb_sd_name']);
                     $("#prokerBulananTitle").val(resultData['pkb_title']);
                     $("#prokerBulananDesc").val(resultData['pkb_description']);
+                    $("#prokerBulananTanggal").data('daterangepicker').setStartDate(start_date);
+                    $("#prokerBulananTanggal").data('daterangepicker').setEndDate(start_date);
+                    $("#prokerBulananTanggalAkhir").data('daterangepicker').setStartDate(end_date);
+                    $("#prokerBulananTanggalAkhir").data('daterangepicker').setEndDate(end_date);
+                    $("#prokerBulananStartTime").val(start_time);
+                    $("#prokerBulananEndTime").val(end_time);
 
                     var title   = "Preview Uraian Pekerjaan Tgl. "+moment(resultData['pkb_start_date'],'YYYY-MM-DD').format('DD/MM/YYYY');
                     $("#modalTitle").html(title);
@@ -573,6 +634,36 @@ function show_select(idSelect, valueCari, valueSelect)
                 $("#"+idSelect).html(html);
             })
             .catch(function(xhr){
+                console.log(xhr);
+                $("#"+idSelect).html(html);
+            })
+    } else if(idSelect == 'jadwalUmrah') {
+        
+        moment.locale('en');
+        var html    = [
+            "<option selected disabled>Pilih Jadwal</option>",
+            "<option value='%'>Semua</option>"
+        ];
+
+        var url     = getUrl + "/listSelectJadwalUmrah";
+        transData(url, 'GET', '', '', true)
+            .then((xhr)=>{
+                var getData     = xhr.data;
+                $.each(getData, function(i,item){
+                    var program_name            = item['name'];
+                    var program_depature_date   = item['jdw_depature_date'];
+                    var program_arrival_date    = item['jdw_arrival_date'];
+
+                    var customVal               = "[" + program_name.toUpperCase() + "] (" + moment(program_depature_date, 'YYYY-MM-DD').format('DD/MMM/YYYY') + " s/d " + moment(program_arrival_date, 'YYYY-MM-DD').format('DD/MMM/YYYY') + ")";
+                    var customText              = program_name+" - "+moment(program_depature_date,'YYYY-MM-DD').format('DD/MM/YYYY')+" s/d "+moment(program_arrival_date, 'YYYY-MM-DD').format('DD/MM/YYYY');
+                    
+                    console.log({customVal});
+
+                    html                        += "<option value='" +customVal+ "'>" +customText+ "</option>";
+                });
+                $("#"+idSelect).html(html);
+            })
+            .catch((xhr)=>{
                 console.log(xhr);
                 $("#"+idSelect).html(html);
             })
@@ -861,6 +952,8 @@ function do_save(jenis, arg, calendar)
     var prokerBulananDesc       = $("#prokerBulananDesc").val();
     var prokerBulananStartTime  = $("#prokerBulananStartTime").val();
     var prokerBulananEndTime    = $("#prokerBulananEndTime").val();
+    var prokerBulananStartDate  = $("#prokerBulananTanggal").val();
+    var prokerBulananEndDate    = $("#prokerBulananTanggalAkhir").val();
     var totalDetail             = $("#tableDetailProkerBulanan").DataTable().rows().count();
     var prokerBulananDetail = [];
     for(var i = 0; i < totalDetail; i++) {
@@ -885,7 +978,8 @@ function do_save(jenis, arg, calendar)
         "prokerBulanan_employeeID"          : prokerBulananPIC,
         "prokerBulanan_title"               : prokerBulananTitle,
         "prokerBulanan_description"         : prokerBulananDesc,
-        "prokerBulanan_startDate"           : arg.startStr,
+        "prokerBulanan_startDate"           : prokerBulananStartDate == '' ? arg.startStr : moment(prokerBulananStartDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+        "prokerBulanan_endDate"             : prokerBulananEndDate == '' ? arg.startStr : moment(prokerBulananEndDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
         "prokerBulanan_typeTrans"           : jenis,
         "prokerBulanan_detail"              : prokerBulananDetail,
         "prokerBulanan_startActivity"       : prokerBulananStartTime,
@@ -983,13 +1077,14 @@ function showCalendarButton(jenis)
         $("#calendar").show();
         
         var current_date    = moment().format('YYYY-MM-DD');
-        var tgl_awal        = $("#prokerBulananStartDate").val() != '' ? moment($("#prokerBulananStartDate").val(), 'YYYY-MM-DD').format('YYYY-MM-DD') : '';
+        var tgl_awal        = $("#prokerBulananStartDate").val() != '' ? moment($("#prokerBulananStartDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : '';
         // var tgl_akhir       = $("#prokerBulananEndDate").val() != '' ? moment($("#prokerBulananEndDate").val()).format('YYYY-MM-DD') : '';
-        var tgl_akhir       = $("#prokerBulananEndDate").val() != '' ? moment($("#prokerBulananEndDate").val(), 'YYYY-MM-DD').format('YYYY-MM-DD') : '';
+        var tgl_akhir       = $("#prokerBulananEndDate").val() != '' ? moment($("#prokerBulananEndDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : '';
         var group_divisi    = $("#groupDivisionName").val();
         showCalendar(current_date, tgl_awal, tgl_akhir, group_divisi);
         $(".fc-nextCustomButton-button").html("<i class='fa fa-chevron-right'></i>");
         $(".fc-prevCustomButton-button").html("<i class='fa fa-chevron-left'></i>");
+        $(".fc-refreshCustomButton-button").html("<i class='fa fa-undo'></i>").prop('title','Refresh Calendar');
         // HIDE CALENDAR OPERASIONAL ONLY
         $("#btnCalendarOperasional").removeClass('active');
         $("#calendarOperasional").hide();

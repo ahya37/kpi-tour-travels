@@ -2,7 +2,6 @@
 @section('title', $title ?? '')
 
 @push('addon-style')
-    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
     {{-- SELECT2 --}}
     <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
@@ -17,8 +16,9 @@
     <link href="{{ asset('assets/css/plugins/dropzone/basic.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
     {{-- CUSTOM CSS --}}
+    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/programKerja/bulanan/index.css') }}">
+    <link href="{{ asset('css/programKerja/bulanan/index.css') }}" rel="stylesheet">
 @endpush
 
 @section('breadcrumb')
@@ -52,38 +52,45 @@
                                 <button type="button" class="btn btn-secondary" title="Filter Tanggal" id="btnFilter"><i class="fa fa-filter"></i> Filter</button>
                             </div>
                         </div>
-                        <div class="row mb-2">
+                        <div class="row mb-2" style="padding-top: 8px;">
                             <div class="col-sm-12">
                                 <div class="collapse" id="filterCalendar">
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            <label>Tanggal Awal</label>
-                                        </div>
-                                        <div class="col-sm-3">
-                                            <label>Tanggal Akhir</label>
-                                        </div>
-                                        <div class="col-sm-3">
-                                        @if(Auth::user()->hasRole('admin'))
-                                            <label>Divisi</label>
-                                        @endif
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-sm-3">
-                                            
-                                            <input type="text" class="form-control date" id="prokerBulananStartDate" placeholder="DD/MM/YYYY" style="cursor: pointer; background: white; height: 38px;" readonly>
-                                        </div>
-                                        <div class="col-sm-3">
-                                            
-                                            <input type="text" class="form-control date" id="prokerBulananEndDate" placeholder="DD/MM/YYYY" style="cursor: pointer; background: white; height: 38px;" readonly>
-                                        </div>
-                                        @if(Auth::user()->hasRole('admin'))
+                                    <div class="card card-body">
+                                        <div class="row">
                                             <div class="col-sm-3">
-                                                <select id="groupDivisionName" style="width: 100%;"></select>
+                                                <label>Tanggal Awal</label>
                                             </div>
-                                        @endif
-                                        <div class="col-sm-3">
-                                            <button class="btn btn-primary" id="btnFilterCari" onclick="showDataCalendar()" style="height: 37px;">Cari</button>
+                                            <div class="col-sm-3">
+                                                <label>Tanggal Akhir</label>
+                                            </div>
+                                            <div class="col-sm-3">
+                                            @if(Auth::user()->hasRole('admin'))
+                                                <label>Divisi</label>
+                                            @endif
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-3">
+                                                
+                                                <input type="text" class="form-control date" id="prokerBulananStartDate" placeholder="DD/MM/YYYY" style="cursor: pointer; background: white; height: 38px;" readonly>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                
+                                                <input type="text" class="form-control date" id="prokerBulananEndDate" placeholder="DD/MM/YYYY" style="cursor: pointer; background: white; height: 38px;" readonly>
+                                            </div>
+                                            @if(Auth::user()->hasRole('admin'))
+                                                <div class="col-sm-3">
+                                                    <select id="groupDivisionName" style="width: 100%;"></select>
+                                                </div>
+                                            @endif
+                                            @if(Auth::user()->hasRole('operasional'))
+                                                <div class="col-sm-3">
+                                                    <select name="jadwalUmrah" id="jadwalUmrah" style="width: 100%;"></select>
+                                                </div>
+                                            @endif
+                                            <div class="col-sm-3">
+                                                <button class="btn btn-primary" id="btnFilterCari" onclick="showDataCalendar()" style="height: 37px;">Cari</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -172,6 +179,24 @@
                             <div class="form-group">
                                 <label>Uraian Pekerjaan</label>
                                 <input type="text" name="prokerBulananTitle" id="prokerBulananTitle" class="form-control form-control-sm" placeholder="Uraian Pekerjaan" style="height: 37.5px;" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row mb-2" id="formTanggalAktivitas_prokerBulanan">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Tanggal Aktivitas</label>
+                                <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggal" id="prokerBulananTanggal" placeholder="DD/MM/YYYY">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="prokerBulananCheckSameDay">
+                                    <label class="form-check-label">Di hari yang sama?</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Tanggal Akhir Aktivitas</label>
+                                <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggalAkhir" id="prokerBulananTanggalAkhir" placeholder="DD/MM/YYYY">
                             </div>
                         </div>
                     </div>

@@ -52,4 +52,25 @@ class BaseService
         
         return $query;
     }
+
+    public static function doGetProgramUmrah($data, $program_name)
+    {
+        $valueCari  = $data->all()['sendData']['cari'];
+
+        $query      = DB::select(
+            "
+            SELECT 	a.id as program_id,
+                    a.name as program_name,
+                    a.product_id as product_id,
+                    b.name as product_name
+            FROM 	programs a
+            JOIN 	products b ON a.product_id = b.id
+            WHERE 	a.id LIKE '$valueCari'
+            AND 	(a.product_id LIKE '$program_name' or lower(b.name) LIKE '$program_name')
+            ORDER BY a.name ASC
+            "
+        );
+
+        return $query;
+    }
 }

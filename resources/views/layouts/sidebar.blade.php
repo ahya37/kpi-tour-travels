@@ -81,7 +81,7 @@
                     </ul>
                 </li>
 
-                <li class="{{ request()->is('divisions/*') ? 'active' : '' }}">
+                <li class="{{ request()->is('divisi/*') ? 'active' : '' }}">
                     <a href="#">
                         <i class='fa fa-users'></i>
                         <span class="nav-label">Divisi</span><span class='fa arrow'></span>
@@ -93,7 +93,9 @@
                         <li><a href="#">IT</a></li>
                     </ul>
                     <ul class="nav nav-second-level">
-                        <li><a href="#">Operasional</a></li>
+                        <li class="{{ request()->is('divisi/operasional') || request()->is('divisi/operasional/*') ? 'active' : '' }}">
+                            <a href="{{ route('index.operasional') }}">Operasional</a>
+                        </li>
                     </ul>
                 </li>
             @endif
@@ -150,6 +152,17 @@
                     <ul class="nav nav-second-level">
                         <li class="{{ (request()->is('master/programkerja') || request()->is('master/programkerja/*')) ? 'active' : '' }}">
                             <a href={{ route('programKerja.index') }}>Program Kerja</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="{{ request()->is('divisi/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class='fa fa-users'></i>
+                        <span class="nav-label">Divisi</span><span class='fa arrow'></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li class="{{ request()->is('divisi/operasional') || request()->is('divisi/operasional/*') ? 'active' : '' }}">
+                            <a href="{{ route('index.operasional') }}">Operasional</a>
                         </li>
                     </ul>
                 </li>

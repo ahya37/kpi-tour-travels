@@ -158,6 +158,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/deleteUpload', [ProgramKerjaController::class, 'deleteUpload'])->name('programKerja.harian.deleteUpload');
                 Route::get('/listProkerTahunan', [ProgramKerjaController::class, 'listProkerTahunan']);
                 Route::get('/cellProkerBulanan', [ProgramKerjaController::class, 'cellProkerBulanan']);
+                Route::get('/listSelectJadwalUmrah', [ProgramKerjaController::class, 'listSelectJadwalUmrah']);
             });
             Route::prefix('harian')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('programKerja.harian.index');
@@ -177,6 +178,35 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/trans/get/dataRoles', [EmployeesController::class, 'getDataRoles'])->name('master.data.roles');
             Route::get('/trans/get/groupDivision', [BaseController::class, 'getGroupDivision'])->name('master.data.groupDivision');
             Route::get('/getGroupDivisionWRole', [BaseController::class,'getGroupDivisionWRole'])->name('master.data.groupDivisionWRole');
+            Route::get('/getProgramUmrah/{program}', [BaseController::class, 'getProgramUmrah'])->name('master.data.getProgramUmrah');
+        });
+    });
+    
+    Route::prefix('divisi')->group(function(){
+        Route::prefix('operasional')->group(function(){
+            Route::get('/', [DivisiController::class, 'indexOperasional'])->name('index.operasional');
+            Route::get('/dataTableGenerateJadwalUmrah', [DivisiController::class, 'dataTableGenerateJadwalUmrah']);
+            Route::get('/generateRules', [DivisiController::class, 'generateRules']);
+            Route::get('/getDataDashboard/{year}', [DivisiController::class, 'getDataDashboard']);
+            Route::get('/getDataRulesJadwal/{idJadwalProgram}', [DivisiController::class, 'getDataRulesJadwal']);
+
+            Route::prefix('program')->group(function(){
+                Route::get('/', [DivisiController::class, 'indexProgram'])->name('index.operasional.program');
+                Route::get('/listJadwalumrah', [DivisiController::class, 'listJadwalUmrah']);
+                Route::post('/simpanJadwalUmrah', [DivisiController::class, 'simpanJadwalUmrah']);
+                Route::get('/getDataJadwalUmrah', [DivisiController::class, 'getDataJadwalUmrah']);
+            });
+            Route::prefix('rules')->group(function(){
+                Route::get('/', [DivisiController::class, 'indexRuleProkerBulanan'])->name('index.operasional.rulesprokerbulanan');
+                Route::get('/listRules', [DivisiController::class, 'listRules']);
+                Route::post('/simpanDataRules/{tipe}', [DivisiController::class, 'simpanDataRules']);
+                Route::get('/getRulesDetail/{rulesID}', [DivisiController::class, 'getRulesDetail']);
+            });
+        });
+
+        Route::prefix('master')->group(function(){
+            Route::get('/getDataProkerTahunan', [DivisiController::class, 'getDataProkerTahunan']);
+            Route::get('/getDataSubDivision', [DivisiController::class, 'getDataSubDivision']);
         });
     });
 
