@@ -318,7 +318,7 @@ class DivisiController extends Controller
                     $getData[$i]->rules,
                     date('d-m-Y', strtotime($getData[$i]->start_date_job))." s/d ".date('d-m-Y', strtotime($getData[$i]->end_date_job)),
                     $getData[$i]->pic_role,
-                    !empty($getData[$i]->realization_start_date) ? $getData[$i]->realization_start_date == $getData[$i]->realization_end_date ? date('d-m-Y', strtotime($getData[$i]->realization_start_date)) : date('d-m-Y', strtotime($getData[$i]->realization_start_date))." s/d ".date('d-m-Y', strtotime($getData[$i]->realization_end_date)) : null,
+                    !empty($getData[$i]->realization_start_date) ? ($getData[$i]->realization_start_date == $getData[$i]->realization_end_date ? date('d-m-Y', strtotime($getData[$i]->realization_start_date)) : date('d-m-Y', strtotime($getData[$i]->realization_start_date))." s/d ".date('d-m-Y', strtotime($getData[$i]->realization_end_date))) : null,
                     $getData[$i]->duration_day
                 );
             }

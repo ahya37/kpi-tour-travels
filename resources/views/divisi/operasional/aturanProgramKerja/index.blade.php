@@ -90,7 +90,7 @@
                                 <label>Uraian</label>
                             </div>
                             <div class="col-sm-9">
-                                <input type="text" name="ruleDescription" id="ruleDescription" class="form-control form-control-sm" placeholder="Uraian Pekerjaan">
+                                <input type="text" name="ruleDescription" id="ruleDescription" class="form-control form-control-sm" placeholder="Uraian Pekerjaan" autocomplete="off">
                             </div>
                         </div>
                     </div>
@@ -136,10 +136,21 @@
                                 <input type="text" class="form-control form-control-sm text-center" value="H" readonly>
                             </div>
                             <div class="col-sm-2">
-                                <select name="rulePlusMin" id="rulePlusMin" class="text-center" style="width: 100%;"></select>
+                                <select name="rulePlusMin" id="rulePlusMin" class="text-center" style="width: 100%;" onchange="showSelect('ruleCondition', this.value, '', '')"></select>
                             </div>
                             <div class="col-sm-2">
                                 <input type="number" name="rulesSLADay" id="rulesSLADay" class="form-control form-control-sm" placeholder="Hari" min="0" max="999" step="1" value="0" onclick="this.select()" onfocus="this.select()">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col-sm-3 pt-2">
+                                Kondisi
+                            </div>
+                            <div class="col-sm-9">
+                                <select name="ruleCondition" id="ruleCondition" style="width: 100%;">
+                                </select>
                             </div>
                         </div>
                     </div>
