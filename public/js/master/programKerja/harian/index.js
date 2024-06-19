@@ -171,7 +171,8 @@ function showModal(idModal, jenis, value)
                 var detail  = xhr.data.detail;
 
                 // UPDATE HEADER
-                $("#programKerjaHarianTanggal").val(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                $("#programKerjaHarianTanggal").data('daterangepicker').setStartDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                $("#programKerjaHarianTanggal").data('daterangepicker').setEndDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
                 $("#programKerjaHarianWaktuMulai").val(header.pkh_start_time);
                 $("#programKerjaHarianWaktuAkhir").val(header.pkh_end_time);
                 $("#programKerjaHarianJudul").val(header.pkh_title);
@@ -328,6 +329,7 @@ function doSimpan(jenis)
     var programKerjaHarian_pkbID        = $("#programKerjaBulananID");
     var programKerjaHarian_pkbSeq       = $("#programKerjaBulananAktivitas");
     var programKerjaHarian_description  = $("#programKerjaHarianJudul");
+    var programKerjaHarian_id           = $("#programKerjaHarianID");
     var programKerjaHarian_file         = penampung;
 
     if(programKerjaHarian_pkbID.val() == null) {
@@ -362,6 +364,7 @@ function doSimpan(jenis)
         })
     } else {
         var dataSimpan  = {
+            "programKerjaHarian_ID"             : programKerjaHarian_id.val(),
             "programKerjaHarian_startDate"      : moment(programKerjaHarian_startDate.val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
             "programKerjaHarian_startTime"      : programKerjaHarian_startTime.val(),
             "programKerjaHarian_endTime"        : programKerjaHarian_endTime.val(),

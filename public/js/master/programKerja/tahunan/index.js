@@ -67,7 +67,7 @@ function show_modal(id_modal, value)
             autoHide: true,
             year    : parseInt(moment().format('YYYY')),
         });
-        // $("#prokTahunanTime").val(moment().format('YYYY')).trigger('change');
+        $("#prokTahunanTime").val(moment().format('YYYY')).trigger('change');
 
         $("#btnTambahData").val('add');
         if(value != '') {

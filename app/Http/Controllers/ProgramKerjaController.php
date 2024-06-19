@@ -54,7 +54,7 @@ class ProgramKerjaController extends Controller
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'List Program Kerja - Tahunan'
+            'sub_title' => 'Program Kerja - Tahunan'
         ];
 
         return view('master/programKerja/tahunan/index', $data);
@@ -210,7 +210,7 @@ class ProgramKerjaController extends Controller
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'Program Kerja Bulanan'
+            'sub_title' => 'Program Kerja - Bulanan'
         ];
 
         return view('master/programKerja/bulanan/index', $data);
@@ -222,7 +222,8 @@ class ProgramKerjaController extends Controller
             "uuid"          => $request->all()['sendData']['cari'],
             "role_name"     => !empty($request->all()['sendData']['divisi']) && Auth::user()->hasRole('admin') ? ($request->all()['sendData']['divisi'] == 'Semua' ? '%' : $request->all()['sendData']['divisi']) : Auth::user()->getRoleNames()[0],
             "tgl_awal"      => !empty($request->all()['sendData']['tgl_awal']) ? $request->all()['sendData']['tgl_awal'] : date('Y')."-".date('m')."-01",
-            "tgl_akhir"     => !empty($request->all()['sendData']['tgl_akhir']) ? $request->all()['sendData']['tgl_akhir'] : date('Y-m-d')
+            "tgl_akhir"     => !empty($request->all()['sendData']['tgl_akhir']) ? $request->all()['sendData']['tgl_akhir'] : date('Y-m-d'),
+            "jadwal"        => !empty($request->all()['sendData']['jadwal']) ? $request->all()['sendData']['jadwal'] : null
         ];
         $getData    = ProgramKerjaService::getProkerBulananAll($data_cari);
         
@@ -422,12 +423,38 @@ class ProgramKerjaController extends Controller
         return Response::json($output, $output['status']);
     }
 
+    // 14/06/2024
+    // NOTE : PEMBUATAN FUGNSI UNTUK MENGAMBIL DATA PADA SELECT DI VIEW PROGRAM KERJA BULANAN
+
+    public function listSelectJadwalUmrah()
+    {
+        $getData    = ProgramKerjaService::getListSelectJadwalUmrah();
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Ambil Data Jadwal Umrah",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Tidak Ada Jadwal Umrah",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     // HARIAN
     public function indexHarian()
     {
         $data   = [
             'title'     => 'Master Program Kerja',
-            'sub_title' => 'Dashboard Program Kerja Harian ('.date('F Y').')',
+            'sub_title' => 'Program Kerja - Harian',
         ];
 
         return view('master/programKerja/harian/index', $data);

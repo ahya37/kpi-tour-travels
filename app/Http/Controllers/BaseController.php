@@ -47,4 +47,27 @@ class BaseController extends Controller
         
         return Response::json($output, $output['status']);
     }
+
+    public function getProgramUmrah(Request $request, $program)
+    {
+        $getData    = BaseService::doGetProgramUmrah($request, $program);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Mengambil data Program ".$program,
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Gagal Mengambil Data Program ".$program,
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

@@ -1,0 +1,79 @@
+/* FULLCALENDAR CSS */
+.fc-daygrid-event-dot {
+    border: 4px solid #1de5bd;
+}
+
+.fc-daygrid-event-dot {
+    color: #FFF;
+}
+
+.fc-event-time {
+    color: #FFF;
+    font-size: 8pt;
+}
+
+.fc-event-title {
+    color: #FFF;
+    font-size: 8pt;
+}
+
+a.fc-event:hover {
+    /* text-decoration: underline; */
+    background-color: #159178;
+    border-color: #159178;
+}
+
+.fc-day:hover {
+    cursor: pointer;
+}
+
+.fc-popover-header {
+    position: sticky;
+}
+
+.fc-popover-body {
+    overflow: auto;
+    max-height: 200px;
+}
+
+div.popover > div.popover-body > div.fc-daygrid-event-harness > a.fc-event{
+    margin-top: 4px;
+    white-space: normal;
+    align-items: normal;
+    margin-left: 0;
+}
+
+.fc-popover {
+    left    : 35%;
+    top     : 200px;
+}
+
+
+label {
+    font-weight: bold;
+}
+
+
+.dataTables_wrapper {
+    padding-bottom: 0px;
+    margin-top: -6px;
+}
+
+.ibox-title {
+    padding: 15px;
+}
+
+/* FOR DATATABLE */
+.btn-next-table {
+    margin-left: 0.50em;
+}
+.dt-scroll {
+    margin-top: 11px;
+}
+
+.dropzone {
+    min-height: 140px;
+    border: 1px dashed #1ab394;
+    background: white;
+    padding: 20px 20px;
+}
