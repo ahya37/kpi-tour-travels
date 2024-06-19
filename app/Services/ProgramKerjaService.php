@@ -49,7 +49,7 @@ class ProgramKerjaService
         if($jenis == 'add') {
             // SIMPAN DULU HEADER
             $data_header    = array(
-                "uid"               => Str::uuid(),
+                "uid"               => Str::random(30), 
                 "pkt_title"         => $data['prtTitle'],
                 "pkt_description"   => $data['prtDescription'],
                 "pkt_year"          => $data['prtPeriode'],
@@ -329,7 +329,7 @@ class ProgramKerjaService
         if($dataProkerBulananInput['prokerBulanan_typeTrans'] == 'add') {
             // HEADER
             $data_insert    = array(
-                "uuid"                  => Str::uuid(),
+                "uuid"                  => Str::random(30),
                 "pkb_title"             => $dataProkerBulananInput['prokerBulanan_title'],
                 "pkb_start_date"        => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate'])),
                 "pkb_end_date"          => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_endDate'])),
@@ -575,6 +575,7 @@ class ProgramKerjaService
         $rolesName  = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
         $currentDate    = date('Y-m-d');
         $getMonth       = date('m', strtotime($currentDate));
+		$userId          = Auth::user()->id;
         $query  = DB::select(
             "
             SELECT 	a.uuid as pkh_id,
@@ -588,6 +589,7 @@ class ProgramKerjaService
             JOIN 	group_divisions d ON c.division_group_id = d.id
             JOIN 	roles e ON d.roles_id = e.id
             WHERE 	e.name LIKE '$rolesName'
+			AND a.created_by = $userId
             AND 	EXTRACT(MONTH FROM a.pkh_date) = '$getMonth'
             ORDER BY a.id ASC
             "
@@ -665,15 +667,15 @@ class ProgramKerjaService
             "detail"    => $detail,
         );
 
-        return $output;
+        return $output; 
     }
     
     public static function simpanDataHarian($data, $ip)
-    {
+    { 
         DB::beginTransaction();
         if($data['programKerjaHarian_jenisTrans'] == 'add') {
             $dataSimpan_header  = array(
-                "uuid"              => Str::random(30),
+				"uuid"              => Str::random(30),
                 "pkh_title"         => $data['programKerjaHarian_description'],
                 "pkh_date"          => $data['programKerjaHarian_startDate'],
                 "pkh_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
