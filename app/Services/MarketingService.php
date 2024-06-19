@@ -75,7 +75,9 @@ class MarketingService
 
     public static function detailMarketingTarget($marketingTargetId)
     {
-        $detailMarketingTargets = DetailMarketingTarget::where('marketing_target_id', $marketingTargetId)->get();
+        $detailMarketingTargets = DetailMarketingTarget::where('marketing_target_id', $marketingTargetId)
+                                  ->orderBy('month_number','asc')
+                                  ->get();
         return $detailMarketingTargets;
     }
 

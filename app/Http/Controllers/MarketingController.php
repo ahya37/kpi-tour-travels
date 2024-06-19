@@ -66,6 +66,7 @@ class MarketingController extends Controller
 
     }
 
+
     public function singkronRealisasi(Request $request)
     {
         DB::beginTransaction();
@@ -609,15 +610,15 @@ class MarketingController extends Controller
 
     }
 
-    public function reportUmrahBulanan()
+    public function reportUmrahBulanan($marketingTargetId)
     {
-        $marketing_target_id = request()->id;
+        // $marketing_target_id = request()->id;
         
-        $targetMarketing = MarketingTarget::getReportUmrahBulanan($marketing_target_id);
+        $targetMarketing = MarketingTarget::getReportUmrahBulanan($marketingTargetId);
         $results = [];
         foreach ($targetMarketing as $key => $value) {
 
-            $programs = MarketingTarget::getProgramBytargetBulanan($value->month_number, $marketing_target_id);
+            $programs = MarketingTarget::getProgramBytargetBulanan($value->month_number, $marketingTargetId);
 
             $results[] = [
                 'nomor_bulan' => $value->month_number,
@@ -628,6 +629,16 @@ class MarketingController extends Controller
                 'list_program' => $programs
             ];
         }
+
+        #get jumlah program yang ada
+
+        $data   = [
+            'title'     => 'Laporan Umrah Bulanan',
+            'sub_title' => 'Laporan Umrah Bulanan',
+            'marketingTargetId' => $marketingTargetId
+        ];
+
+        return view('marketings/laporan/report-umrah-bulanan', $data);
 
         return $results;
     }

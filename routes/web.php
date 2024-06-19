@@ -44,11 +44,13 @@ Route::group(['middleware' => ['auth']], function () {
         
         // datatable
         Route::post('/target/list','listTarget');
+        Route::get('/target/report/perbulan/pertahun/marketingtarget/{id}','reportUmrahBulanan');
         
         // detail target marketing
         Route::get('/target/detail/{marketingTargetId}','detailMarketingTarget');
         Route::post('/target/detail/{marketingTargetId}/store','detailMarketingTargetStore');
         Route::post('/target/detail/list/{detailMarketingTargetId}','detailListTarget');
+        
         
         // bahan prospek
         Route::get('/prospectmaterial','prospectMaterial')->name('marketing.prospectmaterial');

@@ -53,6 +53,7 @@ const table = $(".data").DataTable({
       render: function (data, type, row, meta) {
         return `
            <a href="/marketings/target/detail/${row.id}" class="btn btn-sm btn-primary text-white" title="Detail"><i class="fa fa-eye"></i></a >
+           <a href="/marketings/target/report/perbulan/pertahun/marketingtarget/${row.id}" class="btn btn-sm btn-primary text-white" title="Detail"><i class="fa fa-download"></i> Laporan</a >
           `;
       },
     },
