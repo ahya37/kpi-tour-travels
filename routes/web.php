@@ -23,7 +23,7 @@ Route::get('/test', function () {
 });
 
 Route::get('/', function () {
-    return view('auth.login');
+    return view('auth.login');  
 });
 
 //route login index
