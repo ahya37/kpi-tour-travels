@@ -20,4 +20,35 @@ class MarketingTarget extends Model
     {
         return DB::table('marketing_targets')->select('id','year','total_target','total_realization','total_difference');
     }
+
+    public static function getReportUmrahBulanan($marketing_target_id)
+    {
+        return DB::table('detailed_marketing_targets as a')
+               ->select('a.month_number','a.month_name',
+                    DB::raw('
+                        (select sum(a1.target) from detailed_marketing_targets as a1 where a1.month_number = a.month_number) as terget
+                    '),
+                    DB::raw('
+                        (select sum(a2.realization) from detailed_marketing_targets as a2 where a2.month_number = a.month_number) as realisasi
+                    '),
+                    DB::raw('
+                        (select sum(a3.difference) from detailed_marketing_targets as a3 where a3.month_number = a.month_number) as selisih
+                    ')
+               )
+               ->join('programs as b','a.program_id','=','b.id')
+               ->where('a.marketing_target_id', $marketing_target_id)
+               ->groupBy('a.month_name','a.month_number')
+               ->orderBy('a.month_number','asc')
+               ->get();
+    }
+
+    public static function getProgramBytargetBulanan($bulan, $marketing_target_id)
+    {
+        return DB::table('detailed_marketing_targets as a')
+               ->select('b.name as program', 'a.target' , 'a.realization as realisasi' , 'a.difference as selisih')
+               ->join('programs as b','a.program_id','=','b.id')
+               ->where('a.month_number', $bulan)
+               ->where('a.marketing_target_id', $marketing_target_id)
+               ->get();
+    }
 }

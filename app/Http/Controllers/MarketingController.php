@@ -608,4 +608,27 @@ class MarketingController extends Controller
         ]);
 
     }
+
+    public function reportUmrahBulanan()
+    {
+        $marketing_target_id = request()->id;
+        
+        $targetMarketing = MarketingTarget::getReportUmrahBulanan($marketing_target_id);
+        $results = [];
+        foreach ($targetMarketing as $key => $value) {
+
+            $programs = MarketingTarget::getProgramBytargetBulanan($value->month_number, $marketing_target_id);
+
+            $results[] = [
+                'nomor_bulan' => $value->month_number,
+                'bulan' => $value->month_name,
+                'target' => $value->terget,
+                'realisasi' => $value->realisasi,
+                'selisih' => $value->selisih,
+                'list_program' => $programs
+            ];
+        }
+
+        return $results;
+    }
 }

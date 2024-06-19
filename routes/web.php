@@ -28,6 +28,7 @@ Route::get('/login', [LoginController::class, 'index'])->name('login')->middlewa
 Route::post('/login', [LoginController::class, 'store'])->name('login.store')->middleware('guest');
 //route logout
 
+
 Route::group(['middleware' => ['auth']], function () {
 
     //route dashboard
