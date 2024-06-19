@@ -17,6 +17,11 @@ use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DivisiController;
 use Illuminate\Support\Facades\Route;
 
+
+Route::get('/test', function () {
+    return 'test';
+});
+
 Route::get('/', function () {
     return view('auth.login');
 });
