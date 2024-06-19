@@ -223,7 +223,8 @@ class ProgramKerjaController extends Controller
             "role_name"     => !empty($request->all()['sendData']['divisi']) && Auth::user()->hasRole('admin') ? ($request->all()['sendData']['divisi'] == 'Semua' ? '%' : $request->all()['sendData']['divisi']) : Auth::user()->getRoleNames()[0],
             "tgl_awal"      => !empty($request->all()['sendData']['tgl_awal']) ? $request->all()['sendData']['tgl_awal'] : date('Y')."-".date('m')."-01",
             "tgl_akhir"     => !empty($request->all()['sendData']['tgl_akhir']) ? $request->all()['sendData']['tgl_akhir'] : date('Y-m-d'),
-            "jadwal"        => !empty($request->all()['sendData']['jadwal']) ? $request->all()['sendData']['jadwal'] : null
+            "jadwal"        => !empty($request->all()['sendData']['jadwal']) ? $request->all()['sendData']['jadwal'] : null,
+            "sub_divisi"    => !empty($request->all()['sendData']['sub_divisi']) ? $request->all()['sendData']['sub_divisi'] : '%',
         ];
         $getData    = ProgramKerjaService::getProkerBulananAll($data_cari);
         

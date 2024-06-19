@@ -136,6 +136,7 @@ class DivisiService
                 "rul_pic_sdid"  => $getData['dataPIC'],
                 "rul_duration_day"  => $getData['dataDuration'],
                 "rul_sla"       => $getData['dataSLA'],
+                "rul_condition" => $getData['dataCondition'],
                 "created_by"    => Auth::user()->id,
                 "updated_by"    => Auth::user()->id,
                 "created_at"    => date('Y-m-d H:i:s'),
@@ -154,6 +155,7 @@ class DivisiService
                 "rul_pic_sdid"      => $getData['dataPIC'],
                 "rul_duration_day"  => $getData['dataDuration'],
                 "rul_sla"           => $getData['dataSLA'],
+                "rul_condition"     => $getData['dataCondition'],
                 "updated_by"        => Auth::user()->id,
                 "updated_at"        => date('Y-m-d H:i:s'),
             );
@@ -248,7 +250,8 @@ class DivisiService
                     a.rul_sla,
                     LEFT(a.rul_sla, 1) as custom_sla_condition,
                     SUBSTRING_INDEX(SUBSTRING_INDEX(a.rul_sla,'-',-1),'+',-1) AS custom_sla,
-                    a.rul_pkt_id
+                    a.rul_pkt_id,
+                    a.rul_condition
             FROM 	programs_jadwal_rules a
             ORDER BY a.id ASC
             "
@@ -258,10 +261,11 @@ class DivisiService
             for($i = 0; $i < count($query_getDataRules); $i++) {
                 $dataRules  = $query_getDataRules[$i];
                 if($dataRules->custom_sla_condition == '-') {
+                    $rulesCondition     = $dataRules->rul_condition == 'bf-dpt' ? $dataProgram['jdw_depature_date'] : $dataProgram['jdw_arrival_date'];
                     $dataSimpan         = [
                         "pkb_title"         => "[".$dataProgram['jdw_program_name']."] (".date('d/M/Y', strtotime($dataProgram['jdw_depature_date']))." s/d ".date('d/M/Y', strtotime($dataProgram['jdw_arrival_date'])).") ".$dataRules->rul_title,
-                        "pkb_start_date"    => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' -'.$dataRules->custom_sla.' days', strtotime($dataProgram['jdw_depature_date']))) : '1970-01-01',
-                        "pkb_end_date"      => count($dataProgram) > 0 ? $dataProgram['jdw_depature_date'] : '1970-01-01',
+                        "pkb_start_date"    => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' -'.$dataRules->custom_sla.' days', strtotime($rulesCondition))) : '1970-01-01',
+                        "pkb_end_date"      => count($dataProgram) > 0 ? $rulesCondition : '1970-01-01',
                         "pkb_description"   => count($dataProgram) > 0 ? $dataProgram['jdw_description'] : '',
                         "pkb_pkt_id"        => $dataRules->rul_pkt_id,
                         "pkb_employee_id"   => '',
@@ -271,10 +275,11 @@ class DivisiService
                         "updated_at"        => date('Y-m-d H:i:s'),
                     ];
                 } else {
+                    $rulesCondition     = $dataRules->rul_condition == 'af-dpt' ? $dataProgram['jdw_depature_date'] : $dataProgram['jdw_arrival_date'];
                     $dataSimpan         = [
                         "pkb_title"         => "[".$dataProgram['jdw_program_name']."] (".date('d/M/Y', strtotime($dataProgram['jdw_depature_date']))." s/d ".date('d/M/Y', strtotime($dataProgram['jdw_arrival_date'])).") ".$dataRules->rul_title,
-                        "pkb_start_date"    => count($dataProgram) > 0 ? $dataProgram['jdw_arrival_date'] : '1970-01-01',
-                        "pkb_end_date"      => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' +'.$dataRules->custom_sla.' days', strtotime($dataProgram['jdw_arrival_date']))) : '1970-01-01',
+                        "pkb_start_date"    => count($dataProgram) > 0 ? $rulesCondition : '1970-01-01',
+                        "pkb_end_date"      => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' +'.$dataRules->custom_sla.' days', strtotime($rulesCondition))) : '1970-01-01',
                         "pkb_description"   => count($dataProgram) > 0 ? $dataProgram['jdw_description'] : '',
                         "pkb_pkt_id"        => $dataRules->rul_pkt_id,
                         "pkb_employee_id"   => '',
@@ -356,7 +361,8 @@ class DivisiService
                     a.rul_pic_sdid as rul_pic,
                     a.rul_duration_day,
                     LEFT(a.rul_sla, 1) as rul_length_day_condition,
-                    SUBSTRING_INDEX(SUBSTRING_INDEX(a.rul_sla,'+',-1), '-', -1) as rul_length_day
+                    SUBSTRING_INDEX(SUBSTRING_INDEX(a.rul_sla,'+',-1), '-', -1) as rul_length_day,
+                    a.rul_condition
             FROM    programs_jadwal_rules a
             WHERE 	a.id = '$rulesID'
             "
@@ -395,42 +401,42 @@ class DivisiService
             "
             SELECT 	*
             FROM 	(
-                        SELECT 	a.prog_jdw_id as jdw_id,
-                                f.name as sub_program_name,
-                                c.jdw_mentor_name as mentor_name,
-                                d.rul_title as rules,
-                                CONCAT('H', d.rul_sla) as duration,
-                                CONCAT(d.rul_duration_day,' Hari') as duration_day,
-                                c.jdw_depature_date as depature_date,
-                                c.jdw_arrival_date as arrival_date,
-                                CASE
-                                    WHEN LEFT(d.rul_sla, 1) = '-' THEN DATE_ADD(c.jdw_depature_date, INTERVAL d.rul_sla DAY)
-                                    WHEN LEFT(d.rul_sla, 1) = '+' THEN c.jdw_arrival_date
-                                    ELSE c.jdw_depature_date
-                                END as start_date_job,
-                                CASE
-                                    WHEN LEFT(d.rul_sla, 1) = '-' THEN c.jdw_depature_date
-                                    WHEN LEFT(d.rul_sla, 1) = '+' THEN DATE_ADD(c.jdw_arrival_date, INTERVAL d.rul_sla DAY)
-                                END as end_date_job,
-                                CASE
-                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_start_date
-                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_start_date
-                                    ELSE null
-                                END as realization_start_date,
-                                CASE
-                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_end_date
-                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_end_date
-                                    ELSE null
-                                END as realization_end_date,
-                                e.name as pic_role
-                        FROM 	tr_prog_jdw a
-                        JOIN 	proker_bulanan b ON a.prog_pkb_id = b.uuid
-                        JOIN 	programs_jadwal c ON a.prog_jdw_id = c.jdw_uuid
-                        JOIN 	programs_jadwal_rules d ON a.prog_rul_id = d.id
-                        JOIN 	sub_divisions e ON d.rul_pic_sdid = e.id
-                        JOIN 	programs f ON c.jdw_programs_id = f.id
-                    ) AS rp 
-            WHERE 	rp.jdw_id LIKE '%'
+                    SELECT 	a.prog_jdw_id as jdw_id,
+                            f.name as sub_program_name,
+                            c.jdw_mentor_name as mentor_name,
+                            d.rul_title as rules,
+                            CONCAT('H', d.rul_sla) as duration,
+                            CONCAT(d.rul_duration_day,' Hari') as duration_day,
+                            c.jdw_depature_date as depature_date,
+                            c.jdw_arrival_date as arrival_date,
+                            CASE
+                                WHEN LEFT(d.rul_sla, 1) = '-' THEN DATE_ADD(c.jdw_depature_date, INTERVAL d.rul_sla DAY)
+                                WHEN LEFT(d.rul_sla, 1) = '+' THEN c.jdw_arrival_date
+                                ELSE c.jdw_depature_date
+                            END as start_date_job,
+                            CASE
+                                WHEN LEFT(d.rul_sla, 1) = '-' THEN c.jdw_depature_date
+                                WHEN LEFT(d.rul_sla, 1) = '+' THEN DATE_ADD(c.jdw_arrival_date, INTERVAL d.rul_sla DAY)
+                            END as end_date_job,
+                            CASE
+                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_start_date
+                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_start_date
+                                ELSE null
+                            END as realization_start_date,
+                            CASE
+                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_end_date
+                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_end_date
+                                ELSE null
+                            END as realization_end_date,
+                            e.name as pic_role
+                    FROM 	tr_prog_jdw a
+                    JOIN 	proker_bulanan b ON a.prog_pkb_id = b.uuid
+                    JOIN 	programs_jadwal c ON a.prog_jdw_id = c.jdw_uuid
+                    JOIN 	programs_jadwal_rules d ON a.prog_rul_id = d.id
+                    JOIN 	sub_divisions e ON d.rul_pic_sdid = e.id
+                    JOIN 	programs f ON c.jdw_programs_id = f.id
+                ) AS rp 
+            WHERE 	rp.jdw_id LIKE '$id'
             ORDER BY rp.pic_role, rp.depature_date ASC
             "
         );

@@ -123,13 +123,13 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="table-responsive">
-                                <table class="table table-sm table-striped table-hover" id="table_list_program_kerja">
+                                <table class="table table-sm table-striped table-hover table-bordered" id="table_list_program_kerja">
                                     <thead>
                                         <tr>
                                             <th>No</th>
                                             <th>Program Kerja</th>
                                             <th>Tanggal</th>
-                                            <th>Divisi</th>
+                                            <th>Bagian</th>
                                             <th>Tanggal Realisasi</th>
                                             <th>Durasi</th>
                                         </tr>
