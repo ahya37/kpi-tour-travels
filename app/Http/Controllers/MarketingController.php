@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\Months;
+use App\Helpers\NumberFormat;
 use App\Http\Requests\MarketingTargetRequest;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
@@ -615,31 +616,78 @@ class MarketingController extends Controller
         // $marketing_target_id = request()->id;
         
         $targetMarketing = MarketingTarget::getReportUmrahBulanan($marketingTargetId);
-        $results = [];
+
+        #get jumlah program yang ada
+        $programs = Program::select('id','name','color')->where('is_active','Y')->orderBy('sequence','asc')->get();
+        $countProgram = count($programs);
+
+        $res_target = [];
         foreach ($targetMarketing as $key => $value) {
 
-            $programs = MarketingTarget::getProgramBytargetBulanan($value->month_number, $marketingTargetId);
+            $list_programs = MarketingTarget::getProgramBytargetBulanan($value->month_number, $marketingTargetId);
+            $res = [];
 
-            $results[] = [
+            foreach ($list_programs as  $list) {
+                $res[] = [
+                    'program' => $list->program,
+                    'target' => $list->target,
+                    'realisasi' => $list->realisasi,
+                    'selisih' => $list->selisih,
+                    'color' => $list->color,
+                ];
+            }
+
+            $formatNumber = new NumberFormat();
+
+            // jumlah target
+            $jml_target = collect($res)->sum(function($q){
+                return $q['target'];
+            });
+            // jumlah realisasi
+            $jml_realisasi = collect($res)->sum(function($q){
+                return $q['realisasi'];
+            });
+
+            // jumlah realisasi
+            $jml_selisih = collect($res)->sum(function($q){
+                return  $q['realisasi'] - $q['target'];
+            });
+
+            // jml per bulan nya
+            $persentage_jml_pencapaian = $formatNumber->persentage($jml_realisasi,$jml_target);
+            if ($persentage_jml_pencapaian !== null) {
+				$persentage_jml_pencapaian  = $formatNumber->persen($persentage_jml_pencapaian);  
+			}
+
+
+            $res_target[] = [
+                'color' => Months::monthColor($value->month_number),
                 'nomor_bulan' => $value->month_number,
                 'bulan' => $value->month_name,
                 'target' => $value->terget,
                 'realisasi' => $value->realisasi,
                 'selisih' => $value->selisih,
-                'list_program' => $programs
+                'persentage_jml_pencapaian' => $persentage_jml_pencapaian,
+                'list_program' => $res,
+                'jml_target' => $jml_target,
+                'jml_realisasi' => $jml_realisasi,
+                'jml_selisih' => $jml_selisih,
+                'count_list_program' => count($res)
             ];
         }
-
-        #get jumlah program yang ada
 
         $data   = [
             'title'     => 'Laporan Umrah Bulanan',
             'sub_title' => 'Laporan Umrah Bulanan',
-            'marketingTargetId' => $marketingTargetId
+            'marketingTargetId' => $marketingTargetId,
+            'countProgram' => $countProgram,
+            'programs' => $programs,
+            'res_target' =>  $res_target,
+            'formatNumber' => $formatNumber
         ];
+
 
         return view('marketings/laporan/report-umrah-bulanan', $data);
 
-        return $results;
     }
 }

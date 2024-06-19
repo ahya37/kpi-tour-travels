@@ -45,10 +45,25 @@ class MarketingTarget extends Model
     public static function getProgramBytargetBulanan($bulan, $marketing_target_id)
     {
         return DB::table('detailed_marketing_targets as a')
-               ->select('b.name as program', 'a.target' , 'a.realization as realisasi' , 'a.difference as selisih')
+               ->select('b.name as program', 'a.target' , 'a.realization as realisasi' , 'a.difference as selisih','b.color')
                ->join('programs as b','a.program_id','=','b.id')
                ->where('a.month_number', $bulan)
+               ->where('b.is_active', 'Y')
                ->where('a.marketing_target_id', $marketing_target_id)
+               ->orderBy('b.sequence','asc')
                ->get();
+    }
+
+    public static function getProgramBytargetBulananAndProgramId($bulan, $marketing_target_id, $program_id)
+    {
+        return DB::table('detailed_marketing_targets as a')
+               ->select('b.name as program', 'a.target' , 'a.realization as realisasi' , 'a.difference as selisih')
+               ->join('programs as b','a.program_id','=','b.id')
+               ->where('a.marketing_target_id', $marketing_target_id)
+               ->where('a.month_number', $bulan)
+               ->where('b.is_active', 'Y')
+               ->where('a.program_id', $program_id)
+               ->orderBy('b.sequence','asc')
+               ->first();
     }
 }
