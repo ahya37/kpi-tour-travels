@@ -45,7 +45,13 @@
                         <div class="row mb-2">
                             <div class="col-sm-6 text-left">
                                 <button type="button" class="btn btn-primary active" title="Calendar Global" id="btnCalendarGlobal" onclick="showCalendarButton('global')">Kalendar Semua Grup Divisi</button>
+                                @if(Auth::user()->hasRole('admin'))
+                                    <button type="butotn" class="btn btn-primary" title="Calendar Operasional" id="btnCalendarOperasional" onclick="showCalendarButton('operasional')">Kalendar Grup Divisi Operasional</button>
+                                @endif
+                                @if(Auth::user()->hasRole('operasional'))
+                                    
                                 <button type="butotn" class="btn btn-primary" title="Calendar Operasional" id="btnCalendarOperasional" onclick="showCalendarButton('operasional')">Kalendar Grup Divisi Operasional</button>
+                                @endif
                             </div>
                             <div class="col-sm-6 text-right">
                                 <input type="hidden" id="current_date">
@@ -63,11 +69,19 @@
                                             <div class="col-sm-3">
                                                 <label>Tanggal Akhir</label>
                                             </div>
-                                            <div class="col-sm-3">
                                             @if(Auth::user()->hasRole('admin'))
-                                                <label>Divisi</label>
+                                                <div class="col-sm-3">
+                                                    <label>Divisi</label>
+                                                </div>
                                             @endif
-                                            </div>
+                                            @if(Auth::user()->hasRole('operasional'))
+                                                <div class="col-sm-3">
+                                                    <label>Jadwal</label>
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <label>Sub-Divisi</label>
+                                                </div>
+                                            @endif
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-3">
@@ -80,18 +94,42 @@
                                             </div>
                                             @if(Auth::user()->hasRole('admin'))
                                                 <div class="col-sm-3">
-                                                    <select id="groupDivisionName" style="width: 100%;"></select>
+                                                    <select id="groupDivisionName" style="width: 100%;" onchange="show_select_detail(this.id, this.value)"></select>
                                                 </div>
                                             @endif
                                             @if(Auth::user()->hasRole('operasional'))
                                                 <div class="col-sm-3">
                                                     <select name="jadwalUmrah" id="jadwalUmrah" style="width: 100%;"></select>
                                                 </div>
+                                                <div class="col-sm-2">
+                                                    <select name="bagian" id="bagian" style="width: 100%;"></select>
+                                                </div>
                                             @endif
-                                            <div class="col-sm-3">
+                                            <div class="col-sm-1">
                                                 <button class="btn btn-primary" id="btnFilterCari" onclick="showDataCalendar()" style="height: 37px;">Cari</button>
                                             </div>
                                         </div>
+                                        @if(Auth::user()->hasRole('admin'))
+                                            <div class="collapse" id="filterOperasional">
+                                                <hr>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <label>Program</label>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <label>Bagian</label>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <select name="jadwalUmrah" id="jadwalUmrah" style="width: 100%;"></select>
+                                                    </div>
+                                                    <div class="col-sm-3">
+                                                        <select name="bagian" id="bagian" style="width: 100%;"></select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -132,6 +170,7 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Program Kerja Tahunan</label>
+                                <input type="hidden" name="currentRole" id="currentRole" value="@php echo Auth::user()->name; @endphp">
                                 <select class="form-select" name="prokerTahunanID" id="prokerTahunanID" onchange="show_select_detail(this.id, this.value)" style="width:100%;"></select>
                             </div>
                         </div>
@@ -182,24 +221,26 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-row mb-2" id="formTanggalAktivitas_prokerBulanan">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Tanggal Aktivitas</label>
-                                <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggal" id="prokerBulananTanggal" placeholder="DD/MM/YYYY">
-                                <div class="form-check mt-2">
-                                    <input class="form-check-input" type="checkbox" id="prokerBulananCheckSameDay">
-                                    <label class="form-check-label">Di hari yang sama?</label>
+                    @if(Auth::user()->hasRole('admin') || Auth::uesr()->hasRole('operasional'))
+                        <div class="form-row mb-2" id="formTanggalAktivitas_prokerBulanan">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Tanggal Aktivitas</label>
+                                    <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggal" id="prokerBulananTanggal" placeholder="DD/MM/YYYY">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="prokerBulananCheckSameDay">
+                                        <label class="form-check-label">Di hari yang sama?</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Tanggal Akhir Aktivitas</label>
+                                    <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggalAkhir" id="prokerBulananTanggalAkhir" placeholder="DD/MM/YYYY">
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label>Tanggal Akhir Aktivitas</label>
-                                <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggalAkhir" id="prokerBulananTanggalAkhir" placeholder="DD/MM/YYYY">
-                            </div>
-                        </div>
-                    </div>
+                    @endif
                     <div class="form-row mb-2" id="formWaktuAktivitias_prokerBulanan">
                         <div class="col-md-6">
                             <div class="form-group">
