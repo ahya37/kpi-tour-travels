@@ -614,6 +614,7 @@ class MarketingController extends Controller
     public function reportUmrahBulanan($marketingTargetId)
     {
         // $marketing_target_id = request()->id;
+        $marketing = MarketingTarget::select('year')->where('id', $marketingTargetId)->first();
         
         $targetMarketing = MarketingTarget::getReportUmrahBulanan($marketingTargetId);
 
@@ -693,7 +694,7 @@ class MarketingController extends Controller
 			}
 
         $data   = [
-            'title'     => 'Laporan Umrah Bulanan',
+            'title'     => 'Laporan Umrah Bulanan Tahun '.$marketing->year,
             'sub_title' => 'Laporan Umrah Bulanan',
             'marketingTargetId' => $marketingTargetId,
             'countProgram' => $countProgram,
@@ -703,7 +704,7 @@ class MarketingController extends Controller
             'total_realisasi' => $total_realisasi,
             'total_selisih' => $total_selisih,
             'persentage_total_pencapaian' => $persentage_total_pencapaian,
-            'formatNumber' => $formatNumber
+            'formatNumber' => $formatNumber,
         ];
 
 
@@ -718,12 +719,24 @@ class MarketingController extends Controller
 
             $id = request()->id;
 
+            // format number 
+            $fn = new NumberFormat();
+
             $umrah_program = MarketingTarget::getPencapaianUmrahPerProgramByTahun($id);
 
             $res_umrah_program = [];
             foreach ($umrah_program as  $value) {
+
+                $persentage_per_program = $fn->persentage($value->realisasi,$value->target);
+
+				if ($persentage_per_program !== null) {
+						$persentage_per_program  = $fn->persen($persentage_per_program);  
+				}
+
                 $res_umrah_program['label'][]    = $value->name;
+				$res_umrah_program['target'][]   = $value->target;
 				$res_umrah_program['realisasi'][]   = $value->realisasi;
+				$res_umrah_program['persentage_per_program'][]   = $persentage_per_program;
 				$res_umrah_program['color'][] = '#d3d3d3';
             }
 
@@ -731,10 +744,25 @@ class MarketingController extends Controller
                 "labels" => $res_umrah_program['label'],
                 "datasets" => array(
                         array(
-                            "label" => 'Program',
+                            "label" => 'Target',
+                            "data"  => $res_umrah_program['target'],
+                            "color" => $res_umrah_program['color'],
+                            "backgroundColor" => "#DF9E0F",
+                            
+                        ),
+                        array(
+                            "label" => 'Realisasi',
                             "data"  => $res_umrah_program['realisasi'],
                             "color" => $res_umrah_program['color'],
                             "backgroundColor" => "#a3e1d4",
+                            
+                        ),
+                        array(
+                            "label" => 'Persentase',
+                            "data"  => $res_umrah_program['persentage_per_program'],
+                            "type" => 'line',
+                            "borderColor" => "#C00000",
+                            "backgroundColor" => 'rgba(0, 0, 0, 0.0)',
                             
                         )
                     )
@@ -744,8 +772,16 @@ class MarketingController extends Controller
 
             $res_umrah_bulan = [];
             foreach ($umrah_prbulan as  $value) {
+                $persentage_per_bulan = $fn->persentage($value->realisasi,$value->target);
+
+				if ($persentage_per_bulan !== null) {
+						$persentage_per_bulan  = $fn->persen($persentage_per_bulan);  
+				}
+
                 $res_umrah_bulan['label'][]    = $value->month_name;
+				$res_umrah_bulan['target'][]   = $value->target;
 				$res_umrah_bulan['realisasi'][]   = $value->realisasi;
+				$res_umrah_bulan['persentage_per_bulan'][]   = $persentage_per_bulan;
 				$res_umrah_bulan['color'][] = '#d3d3d3';
             }
 
@@ -753,10 +789,25 @@ class MarketingController extends Controller
                 "labels" => $res_umrah_bulan['label'],
                 "datasets" => array(
                         array(
-                            "label" => 'Bulan',
+                            "label" => 'Target',
+                            "data"  => $res_umrah_bulan['target'],
+                            "color" => $res_umrah_bulan['color'],
+                            "backgroundColor" => "#DF9E0F",
+                            
+                        ),
+                        array(
+                            "label" => 'Realisasi',
                             "data"  => $res_umrah_bulan['realisasi'],
                             "color" => $res_umrah_bulan['color'],
                             "borderColor" => "#a3e1d4",
+                            "backgroundColor" => "#a3e1d4",
+                            
+                        ),
+                        array(
+                            "label" => 'Persentase',
+                            "data"  => $res_umrah_bulan['persentage_per_bulan'],
+                            "type" => 'line',
+                            "borderColor" => "#C00000",
                             "backgroundColor" => 'rgba(0, 0, 0, 0.0)',
                             
                         )

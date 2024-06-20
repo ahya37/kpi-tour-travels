@@ -57,9 +57,9 @@
         <div class="col-lg-12">
             <div class="ibox ">
                 <div class="ibox-title">
-                    <button type="button" class="btn btn-sm btn-primary" onclick="onSingkron(this)"
+                    {{-- <button type="button" class="btn btn-sm btn-primary" onclick="onSingkron(this)"
                         id="{{ $marketingTargetId }}"><i class="fa fa-download"></i> Download PDF
-                    </button>
+                    </button> --}}
                 </div>
                 <div class="ibox-content">
                     <div class="table-responsive">

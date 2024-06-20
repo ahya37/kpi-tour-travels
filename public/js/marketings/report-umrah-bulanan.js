@@ -82,7 +82,7 @@ $(document).ready(function(){
     
         const ctx3  = document.getElementById("jamaahperprogram").getContext("2d");
        new Chart(ctx3,{
-                            type: 'line', 
+                            type: 'bar', 
                             data: data, 
                             options:barOptions
                      });
