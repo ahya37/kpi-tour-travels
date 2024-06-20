@@ -221,7 +221,7 @@
                             </div>
                         </div>
                     </div>
-                    @if(Auth::user()->hasRole('admin') || Auth::uesr()->hasRole('operasional'))
+                    @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('operasional'))
                         <div class="form-row mb-2" id="formTanggalAktivitas_prokerBulanan">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -229,7 +229,7 @@
                                     <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggal" id="prokerBulananTanggal" placeholder="DD/MM/YYYY">
                                     <div class="form-check mt-2">
                                         <input class="form-check-input" type="checkbox" id="prokerBulananCheckSameDay">
-                                        <label class="form-check-label">Di hari yang sama?</label>
+                                        <label class="form-check-label" style="padding-top: 2px;">Di hari yang sama?</label>
                                     </div>
                                 </div>
                             </div>

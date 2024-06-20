@@ -26,7 +26,7 @@ class DivisiService
                     b.name as jdw_program_name,
                     a.is_generated
             FROM 	programs_jadwal a
-            JOIN 	programs B on a.jdw_programs_id = b.id
+            JOIN 	programs b on a.jdw_programs_id = b.id
             WHERE   a.jdw_uuid LIKE '$uuid'
             AND     EXTRACT(YEAR FROM a.jdw_depature_date) LIKE '$tahun_cari'
             AND     (EXTRACT(MONTH FROM a.jdw_depature_date) = '$bulan_cari' OR EXTRACT(MONTH FROM a.jdw_depature_date) LIKE '$bulan_cari') 
