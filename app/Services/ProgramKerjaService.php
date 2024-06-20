@@ -311,28 +311,24 @@ class ProgramKerjaService
                         a.pkb_title,
                         a.pkb_description,
                         a.pkb_start_date,
-                        SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_id,
-                        SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
-                        d.id as pkb_gd_id,
-                        d.name as pkb_gd_name,
-                        d.roles_id as role_id,
-                        f.name as role_name,
-                        e.id as pkb_sd_id,
-                        e.name as pkb_sd_name,
-                        a.pkb_employee_id,        
-                        a.pkb_start_date,
                         a.pkb_end_date,
                         a.pkb_start_time,
-                        a.pkb_end_time
+                        a.pkb_end_time,
+                        SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_id,
+                        SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
+                        a.pkb_employee_id,
+				        e.name as pkb_gd_name,
+                        b.division_group_id as pkb_gd_id,
+                        (SELECT name FROM group_divisions WHERE id = b.division_group_id) as pkb_gd_name
                 FROM 	proker_bulanan a
-                JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
-                JOIN 	job_employees c ON b.pkt_pic_job_employee_id = c.employee_id
-                JOIN 	group_divisions d ON c.group_division_id = d.id
-                JOIN 	sub_divisions e ON c.sub_division_id = e.id
-                JOIN 	roles f ON d.roles_id = f.id
-                WHERE 	a.uuid LIKE '$uuid'
-                AND 	f.name LIKE '$roleName'
-                ORDER BY a.pkb_start_date, a.created_at ASC
+                JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
+                JOIN 	model_has_roles c ON a.created_by = c.model_id
+                JOIN 	roles d ON c.role_id = d.id
+                JOIN 	group_divisions e ON (e.roles_id = d.id)
+                JOIN 	sub_divisions f ON f.division_group_id = e.id
+                WHERE 	a.uuid = '$uuid'
+                AND 	d.name LIKE '$roleName'
+                ORDER BY a.created_at DESC
                 "
             );
 
@@ -381,7 +377,7 @@ class ProgramKerjaService
             JOIN 	group_divisions b ON a.division_group_id = b.id
             JOIN 	roles d ON b.roles_id = d.id
             WHERE 	a.parent_id IS NULL
-            AND 	(d.id LIKE '$roleName') OR (d.name LIKE '$roleName')
+            AND 	(d.id LIKE '$roleName' OR d.name LIKE '$roleName')
             AND 	a.uid LIKE '$prokerID'
             AND 	a.pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
             ORDER BY a.created_at ASC
