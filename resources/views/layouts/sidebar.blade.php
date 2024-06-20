@@ -5,7 +5,7 @@
                 <div id="profile_id" style="margin-top: 32px; margin-bottom: 4px;">
                     <div class="row">
                         <div class="col-sm-12">
-                            <img alt="image" class="rounded-circle" src="{{ asset('assets/img/profile_small.jpg') }}" width="64px" height="64px"/>
+                            <img alt="image" class="rounded-circle" src="{{ asset('assets/img/9187604.png') }}" width="64px" height="64px"/>
                         </div>
                     </div>
                     <div class="row" style="padding-top: 16px;">
