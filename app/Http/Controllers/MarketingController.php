@@ -710,4 +710,69 @@ class MarketingController extends Controller
         return view('marketings/laporan/report-umrah-bulanan', $data);
 
     }
+
+    public function pencapaianBulanan()
+    {
+        try {
+            
+
+            $id = request()->id;
+
+            $umrah_program = MarketingTarget::getPencapaianUmrahPerProgramByTahun($id);
+
+            $res_umrah_program = [];
+            foreach ($umrah_program as  $value) {
+                $res_umrah_program['label'][]    = $value->name;
+				$res_umrah_program['realisasi'][]   = $value->realisasi;
+				$res_umrah_program['color'][] = '#d3d3d3';
+            }
+
+            $chart_umrah_program = array(
+                "labels" => $res_umrah_program['label'],
+                "datasets" => array(
+                        array(
+                            "label" => 'Program',
+                            "data"  => $res_umrah_program['realisasi'],
+                            "color" => $res_umrah_program['color'],
+                            "backgroundColor" => "#a3e1d4",
+                            
+                        )
+                    )
+            );
+
+            $umrah_prbulan = MarketingTarget::getPencapaianUmrahPerBulanByTahun($id);
+
+            $res_umrah_bulan = [];
+            foreach ($umrah_prbulan as  $value) {
+                $res_umrah_bulan['label'][]    = $value->month_name;
+				$res_umrah_bulan['realisasi'][]   = $value->realisasi;
+				$res_umrah_bulan['color'][] = '#d3d3d3';
+            }
+
+            $chart_umrah_bulan = array(
+                "labels" => $res_umrah_bulan['label'],
+                "datasets" => array(
+                        array(
+                            "label" => 'Bulan',
+                            "data"  => $res_umrah_bulan['realisasi'],
+                            "color" => $res_umrah_bulan['color'],
+                            "borderColor" => "#a3e1d4",
+                            "backgroundColor" => 'rgba(0, 0, 0, 0.0)',
+                            
+                        )
+                    )
+            );
+
+            return ResponseFormatter::success([
+                'chart_umrah_program' => $chart_umrah_program,
+                'chart_umrah_bulan' => $chart_umrah_bulan
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Terjadi kesalahan!'
+            ]);
+        }
+    }
 }

@@ -66,4 +66,34 @@ class MarketingTarget extends Model
                ->orderBy('b.sequence','asc')
                ->first();
     }
+
+    public static function getPencapaianUmrahPerProgramByTahun($marketing_target_id)
+    {
+        return DB::table('detailed_marketing_targets as a')
+                ->select('b.name',
+                    DB::raw('(sum(a.target)) as target'),
+                    DB::raw('(sum(a.realization)) as realisasi'),
+                    DB::raw('(sum(a.difference)) as selisih'),
+                )
+                ->join('programs as b','a.program_id','=','b.id')
+                ->where('a.marketing_target_id', $marketing_target_id)
+                ->groupBy('b.name')
+                ->orderBy('realisasi','desc')
+                ->get();
+    }
+
+    public static function getPencapaianUmrahPerBulanByTahun($marketing_target_id)
+    {
+        return DB::table('detailed_marketing_targets as a')
+                ->select('a.month_number', 'a.month_name',
+                    DB::raw('(sum(a.target)) as target'),
+                    DB::raw('(sum(a.realization)) as realisasi'),
+                    DB::raw('(sum(a.difference)) as selisih'),
+                )
+                ->join('programs as b','a.program_id','=','b.id')
+                ->where('a.marketing_target_id', $marketing_target_id)
+                ->groupBy('a.month_number', 'a.month_name')
+                ->orderBy('a.month_number','asc')
+                ->get();
+    }
 }
