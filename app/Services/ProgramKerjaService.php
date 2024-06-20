@@ -228,8 +228,7 @@ class ProgramKerjaService
                     pkb.pkb_end_date,
                     pkb.pkb_pkt_uuid,
                     pkb.pkb_pkt_seq,
-                    pkb.pkb_created_date,
-                    pkb.role_id
+                    pkb.pkb_created_date
             FROM 	(
                     SELECT 	a.uuid as pkb_uuid,
                             a.pkb_title,
@@ -274,7 +273,28 @@ class ProgramKerjaService
                     JOIN 	group_divisions f ON f.id = d.division_group_id
                     JOIN 	roles g ON f.roles_id = g.id
                     WHERE 	e.pkb_title LIKE '[%]%'
-            ) AS pkb
+                    
+                    UNION ALL
+                    
+                    SELECT 		a.uuid as pkb_uuid,
+                                a.pkb_title,
+                                a.pkb_description,
+                                a.pkb_start_date,
+                                a.pkb_end_date,
+                                SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_uuid,
+                                SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_seq,
+                                d.id as role_id,
+                                d.name as role_name,
+                                e.name as group_division_name,
+                                f.name as sub_division_name,
+                                a.created_at
+                    FROM 		proker_bulanan a
+                    JOIN 		proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ', 1) = b.uid
+                    JOIN 		model_has_roles c ON a.created_by = c.model_id
+                    JOIN 		roles d ON c.role_id = d.id
+                    JOIN 		group_divisions e ON e.roles_id = d.id
+                    JOIN 		sub_divisions f ON f.division_group_id = e.id
+                ) AS pkb
             WHERE 	pkb.pkb_uuid LIKE '$uuid'
             AND 	pkb.pkb_start_date BETWEEN '$tgl_awal' AND '$tgl_akhir'
             AND 	pkb.role_name LIKE '$roleName'
@@ -346,26 +366,25 @@ class ProgramKerjaService
 
     public static function doGetProkerTahunan($data)
     {
-        $roleName   = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
+        $roleName   = (Auth::user()->hasRole('admin') || Auth::user()->hasRole('umum')) ? '%' : Auth::user()->getRoleNames()[0];
         $prokerID   = $data['prokerID'];
         $query      = DB::select(
             "
             SELECT 	a.uid as pkt_uid,
-                    a.pkt_title as pkt_title,
-                    b.group_division_id,
-                    c.name as group_division_name,
-                    b.sub_division_id,
-                    d.name as sub_division_name,
-                    a.created_at as created_date
+                    a.pkt_title,
+                    b.id as group_division_id,
+                    b.name as group_division_name,
+                    d.id as role_id,
+                    d.name as role_name,
+                    a.created_at
             FROM 	proker_tahunan a
-            JOIN 	job_employees b ON a.pkt_pic_job_employee_id = b.employee_id
-            JOIN 	group_divisions c ON b.group_division_id = c.id
-            JOIN 	sub_divisions d ON b.sub_division_id = d.id
-            JOIN    roles e ON c.roles_id = e.id
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            JOIN 	roles d ON b.roles_id = d.id
             WHERE 	a.parent_id IS NULL
+            AND 	(d.id LIKE '$roleName') OR (d.name LIKE '$roleName')
             AND 	a.uid LIKE '$prokerID'
-            AND     e.name LIKE '$roleName'
-            ORDER BY a.created_at DESC
+            AND 	a.pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
+            ORDER BY a.created_at ASC
             "
         );
 
@@ -813,7 +832,7 @@ class ProgramKerjaService
     // NOTE : SUMMARY UNTUK DASHBOARD PROGRAM KERJA
     public static function doGetDataTotalProgramKerja()
     {
-        $roleId     = Auth::user()->getRoleNames()[0]  == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
+        $roleId     = (Auth::user()->getRoleNames()[0]  == 'admin') || (Auth::user()->getRoleNames()[0]  == 'umum') ? '%' : Auth::user()->getRoleNames()[0];
         $query  = DB::select(
             "
             SELECT 	SUM(total_proker_tahunan) as grand_total_proker_tahunan,

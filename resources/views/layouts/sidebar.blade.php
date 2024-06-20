@@ -211,6 +211,19 @@
                             class="nav-label">Aktivitas Harian</span></a>
                 </li>
             @endif
+            @if(Auth::user()->hasRole('umum'))
+                <li class="{{ request()->is('master/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span
+                            class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li class="{{ (request()->is('master/programkerja') || request()->is('master/programkerja/*')) ? 'active' : '' }}">
+                            <a href={{ route('programKerja.index') }}>Program Kerja</a>
+                        </li>
+                    </ul>
+                </li>
+            @endif
         </ul>
 
     </div>
