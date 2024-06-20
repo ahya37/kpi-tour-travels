@@ -1019,8 +1019,8 @@ function do_save(jenis, arg, calendar)
         "prokerBulanan_employeeID"          : prokerBulananPIC,
         "prokerBulanan_title"               : prokerBulananTitle,
         "prokerBulanan_description"         : prokerBulananDesc,
-        "prokerBulanan_startDate"           : prokerBulananStartDate == '' ? arg.startStr : moment(prokerBulananStartDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
-        "prokerBulanan_endDate"             : prokerBulananEndDate == '' ? arg.startStr : moment(prokerBulananEndDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+        "prokerBulanan_startDate"           : (prokerBulananStartDate == '' || prokerBulananStartDate === undefined) ? arg.startStr : moment(prokerBulananStartDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+        "prokerBulanan_endDate"             : (prokerBulananEndDate == '' || prokerBulananEndDate === undefined) ? arg.startStr : moment(prokerBulananEndDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
         "prokerBulanan_typeTrans"           : jenis,
         "prokerBulanan_detail"              : prokerBulananDetail,
         "prokerBulanan_startActivity"       : prokerBulananStartTime,
@@ -1075,7 +1075,7 @@ function do_save(jenis, arg, calendar)
         var data    = dataSimpan;
         var message =   Swal.fire({
                             title   : 'Data Sedang Diproses',
-                            allowOutsideClick: false
+                            // allowOutsideClick: false
                         });
                         Swal.showLoading();
         transData(url, type, data, message, true)
