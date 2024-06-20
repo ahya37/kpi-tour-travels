@@ -116,6 +116,10 @@
                     <a href="#"><i class="fa fa-diamond"></i> <span class="nav-label">Marketing</span> <span
                             class="fa arrow"></span></a>
                     <ul class="nav nav-second-level">
+                        <ul class="nav nav-second-level">
+                            <li class="active"><a href="{{ route('marketing.target') }}">Target Jamaah</a></li>
+    
+                        </ul>
                         <li class="active"><a href="{{ route('marketing.alumniprospectmaterial') }}">Bahan Prospek
                                 Alumni</a></li>
                         {{-- <li class="active"><a href="{{ route('marketing.workplans.index') }}">Rencana Kerja</a></li> --}}
