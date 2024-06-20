@@ -221,7 +221,7 @@
                             </div>
                         </div>
                     </div>
-                    @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('operasional'))
+                    @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('operasional') || Auth::user()->hasRole('marketing'))
                         <div class="form-row mb-2" id="formTanggalAktivitas_prokerBulanan">
                             <div class="col-md-6">
                                 <div class="form-group">
