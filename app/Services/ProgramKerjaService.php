@@ -243,7 +243,7 @@ class ProgramKerjaService
                             f.name as sub_division_name,
                             a.created_at as pkb_created_date
                     FROM 	proker_bulanan a
-                    JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = B.uid
+                    JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
                     JOIN 	group_divisions c ON b.division_group_id = c.id
                     JOIN 	job_employees d ON d.group_division_id = c.id
                     JOIN 	employees e ON d.employee_id = e.id
