@@ -32,6 +32,21 @@
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
             <div class="col-lg-12">
+                <div class="ibox">
+                    <div class="ibox-title">
+                       <button type="button" class="btn btn-sm btn-primary" onclick="onSingkron(this)" id="{{ $marketingTargetId }}"><i
+                           class="fa fa-download"></i> Download PDF
+                       </button>
+                       <div class="ibox-content">
+                           
+                       </div>
+                    </div>
+                </div>
+           </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-title">
                         <button type="button" class="btn btn-sm btn-primary" onclick="onSingkron(this)" id="{{ $marketingTargetId }}"><i
@@ -78,13 +93,20 @@
                                         @endforeach
                                         <tr>
                                             <th colspan="3" style="text-align: right">Jumlah</th>
-                                            <th style="text-align: right">{{ $item['jml_target'] }}</th>
-                                            <th style="text-align: right">{{ $item['jml_realisasi'] }}</th>
-                                            <th style="text-align: right">{{ $item['jml_selisih'] }}</th>
+                                            <th style="text-align: right">{{ $formatNumber->decimalFormat($item['jml_target']) }}</th>
+                                            <th style="text-align: right">{{ $formatNumber->decimalFormat($item['jml_realisasi']) }}</th>
+                                            <th style="text-align: right">{{ $formatNumber->decimalFormat($item['jml_selisih']) }}</th>
                                             <th style="text-align: right">{{ $item['persentage_jml_pencapaian'] }} %</th>
 
                                         </tr>
                                     @endforeach
+                                    <tr>
+                                        <th colspan="3" style="text-align: right">Total</th>
+                                        <th style="text-align: right">{{ $formatNumber->decimalFormat($total_target) }}</th>
+                                        <th style="text-align: right">{{ $formatNumber->decimalFormat($total_realisasi) }}</th>
+                                        <th style="text-align: right">{{ $formatNumber->decimalFormat($total_selisih) }}</th>
+                                        <th style="text-align: right">{{ $persentage_total_pencapaian }} %</th>
+                                    </tr>
                             </table>
                         </div>
                     </div>

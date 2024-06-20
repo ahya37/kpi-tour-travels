@@ -676,6 +676,22 @@ class MarketingController extends Controller
             ];
         }
 
+        // all total 
+        $total_target = collect($res_target)->sum(function($q){
+            return $q['jml_target'];
+        });
+        $total_realisasi = collect($res_target)->sum(function($q){
+            return $q['jml_realisasi'];
+        });
+        $total_selisih = collect($res_target)->sum(function($q){
+            return $q['jml_selisih'];
+        });
+
+        $persentage_total_pencapaian = $formatNumber->persentage($total_realisasi,$total_target);
+            if ($persentage_total_pencapaian !== null) {
+				$persentage_total_pencapaian  = $formatNumber->persen($persentage_total_pencapaian);  
+			}
+
         $data   = [
             'title'     => 'Laporan Umrah Bulanan',
             'sub_title' => 'Laporan Umrah Bulanan',
@@ -683,6 +699,10 @@ class MarketingController extends Controller
             'countProgram' => $countProgram,
             'programs' => $programs,
             'res_target' =>  $res_target,
+            'total_target' => $total_target,
+            'total_realisasi' => $total_realisasi,
+            'total_selisih' => $total_selisih,
+            'persentage_total_pencapaian' => $persentage_total_pencapaian,
             'formatNumber' => $formatNumber
         ];
 

@@ -20,6 +20,12 @@ class NumberFormat {
         $show = number_format($data,0);
         return $show;
     }
+
+    public function decimalFormat($data) {
+        $show = number_format((float)$data,0,',','.');
+        return $show;
+    }
+
 }
 
 ?>
