@@ -762,7 +762,7 @@ class ProgramKerjaService
         DB::beginTransaction();
         if($data['programKerjaHarian_jenisTrans'] == 'add') {
             $dataSimpan_header  = array(
-                "uuid" => Str::random(30),
+                "uuid" => Str::random(30), 
                 "pkh_title"         => $data['programKerjaHarian_description'],
                 "pkh_date"          => $data['programKerjaHarian_startDate'],
                 "pkh_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
