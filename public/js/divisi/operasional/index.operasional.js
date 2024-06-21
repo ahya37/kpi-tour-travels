@@ -178,7 +178,11 @@ function generateRules(element, id)
             });
         })
         .catch((xhr) => {
-            console.log(xhr);
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Tidak ada Rules baru yang bisa digenerate',
+            })
         })
 }
 

@@ -319,6 +319,7 @@ class ProgramKerjaController extends Controller
 
     public function simpanProkerBulanan(Request $request)
     {
+        // print("<pre>" . print_r($request->all()['sendData'], true) . "</pre>");die();
         $doSimpan   = ProgramKerjaService::doSimpanProkerBulanan($request);
         if($doSimpan['status'] == 'berhasil') {
             $output     = array(
