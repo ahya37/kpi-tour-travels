@@ -317,18 +317,18 @@ class ProgramKerjaService
                         SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_id,
                         SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
                         a.pkb_employee_id,
-				        e.name as pkb_gd_name,
                         b.division_group_id as pkb_gd_id,
-                        (SELECT name FROM group_divisions WHERE id = b.division_group_id) as pkb_gd_name
+                        (SELECT name FROM group_divisions WHERE id = b.division_group_id) as pkb_gd_name,
+                        e.id
                 FROM 	proker_bulanan a
                 JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
                 JOIN 	model_has_roles c ON a.created_by = c.model_id
                 JOIN 	roles d ON c.role_id = d.id
                 JOIN 	group_divisions e ON (e.roles_id = d.id)
-                JOIN 	sub_divisions f ON f.division_group_id = e.id
-                WHERE 	a.uuid = '$uuid'
+                WHERE 	a.uuid LIKE '$uuid'
                 AND 	d.name LIKE '$roleName'
                 ORDER BY a.created_at DESC
+                LIMIT 1
                 "
             );
 

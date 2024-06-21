@@ -283,7 +283,8 @@
                             </div>
                         </div>
                         <div class="col-md-12 text-right">
-                            <button class="btn btn-primary" id="btnTambahBaris" onclick="tambah_baris('tableDetailProkerBulanan','')" value="1">Tambah Baris</button>
+                            <button type="button" class="btn btn-primary" id="btnTambahBaris" value="1" onclick="tambah_baris('tableDetailProkerBulanan', '', this.value)">Tambah Baris</button>
+                            
                         </div>
                     </div>
                     <div class="form-row mb-2" id="formUpload">
