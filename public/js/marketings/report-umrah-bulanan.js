@@ -1,22 +1,17 @@
-$(document).ready(function(){	
+$(document).ready(function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const query = document.URL;
     const id = query.substring(query.lastIndexOf("/") + 1);
 
-    const initialGrafikJamaahPerbulan = (data) => {
-          
-        // referesh chart jika ada order data
-        // $('#jamaahperbulan').remove();
-        // $('#graph-container-jamaahperbulan').append('<canvas id="jamaahperbulan" height="70"></canvas>');
-    
-        let barOptions = {
+    const optionsChart = () => {
+        const barOptions = {
             responsive: true,
             plugins: {
                 datalabels: {
                     anchor: 'end',
                     align: 'end',
-                    formatter: function(value, context) {
-                        return value + "%"; 
+                    formatter: function (value, context) {
+                        return value;
                     }
                 }
             },
@@ -25,99 +20,72 @@ $(document).ready(function(){
                     ticks: {
                         beginAtZero: true
                     },
-                     stacked: true // Enable stacking for y-axis
+                    stacked: true
                 }],
                 xAxes: [{
                     ticks: {
                         beginAtZero: true
                     },
-                     stacked: true // Enable stacking for y-axis
-                    
+                    stacked: true
+
                 }]
             }
         };
-    
-        const ctx3  = document.getElementById("jamaahperbulan").getContext("2d");
-       new Chart(ctx3,{
-                            type: 'bar', 
-                            data: data, 
-                            options:barOptions
-                     });
-        
+
+        return barOptions;
+    }
+
+    const createChart = (elementId, type, data) => {
+        const ctx = document.getElementById(elementId).getContext("2d");
+        new Chart(ctx, {
+            type: type,
+            data: data,
+            options: optionsChart()
+        });
+    }
+
+    const initialGrafikJamaahPerbulan = (data) => {
+        createChart('jamaahperbulan','bar', data);
     }
 
     const initialGrafikJamaahPerProgram = (data) => {
-          
-        // referesh chart jika ada order data
-        // $('#jamaahperbulan').remove();
-        // $('#graph-container-jamaahperbulan').append('<canvas id="jamaahperbulan" height="70"></canvas>');
-    
-        let barOptions = {
-            responsive: true,
-            plugins: {
-                datalabels: {
-                    anchor: 'end',
-                    align: 'end',
-                    formatter: function(value, context) {
-                        return value + "%"; 
-                    }
-                }
-            },
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    },
-                     stacked: true // Enable stacking for y-axis
-                }],
-                xAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    },
-                     stacked: true // Enable stacking for y-axis
-                    
-                }]
-            }
-        };
-    
-        const ctx3  = document.getElementById("jamaahperprogram").getContext("2d");
-       new Chart(ctx3,{
-                            type: 'bar', 
-                            data: data, 
-                            options:barOptions
-                     });
-        
+        createChart('jamaahperprogram','bar', data);
     }
-    
+    const initialGrafikJamaahPerPic = (data) => {
+        createChart('jamaahperpic','bar', data);
+    }
+
     const fetchApi = () => {
         Swal.fire({
-            title   : 'Menampilkan data',
+            title: 'Menampilkan data',
         });
 
         Swal.showLoading();
 
         fetch('/marketings/pencapaian/bulanan', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken // Menggunakan token CSRF dalam header X-CSRF-TOKEN
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 id: id
             })
         }).then(response => {
-    
+
             if (!response.ok) {
-              throw new Error('Network response was not ok');
+                throw new Error('Network response was not ok');
             }
-            Swal.close(); 
+            Swal.close();
             return response.json();
 
-          }).then(data => {
-            initialGrafikJamaahPerbulan(data.data.chart_umrah_program);
-            initialGrafikJamaahPerProgram(data.data.chart_umrah_bulan);
-          }).catch(error => {
-            Swal.close(); 
+        }).then(data => {
+            const results = data.data;
+            initialGrafikJamaahPerbulan(results.chart_umrah_program);
+            initialGrafikJamaahPerProgram(results.chart_umrah_bulan);
+            initialGrafikJamaahPerPic(results.chart_umrah_per_pic);
+        }).catch(error => {
+            Swal.close();
             Swal.fire({
                 title: "Gagal!",
                 position: "center",
@@ -126,10 +94,10 @@ $(document).ready(function(){
                 showConfirmButton: false,
                 width: 500,
                 timer: 900,
-              });
-          }).finally(() => {
-            Swal.close(); 
-          });
+            });
+        }).finally(() => {
+            Swal.close();
+        });
     }
 
     fetchApi();

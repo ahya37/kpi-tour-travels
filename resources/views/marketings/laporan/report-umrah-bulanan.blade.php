@@ -4,16 +4,13 @@
 @push('addon-style')
 <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
-<link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
 <style>
     th {
         text-align: left;
-        /* Mengatur teks di header tabel menjadi rata kiri */
     }
 
     th.centered {
         text-align: center;
-        /* Mengatur teks di header tabel menjadi rata tengah */
         vertical-align: middle;
     }
 </style>
@@ -31,24 +28,96 @@
 @section('content')
 <div class="wrapper wrapper-content animated fadeInRight">
     <div class="row">
+        <div class="col-lg-3">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <div class="ibox-tools">
+                        <span class="label label-danger float-right" style="background-color: #DF9E0F">Annual</span>
+                    </div>
+                    <h5>Target</h5>
+                </div>
+                <div class="ibox-content">
+                    <h1 class="no-margins" id="totalTarget">{{ $formatNumber->decimalFormat($total_target) }}</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <div class="ibox-tools">
+                        <span class="label label-success float-right" style="background-color: #a3e1d4">Annual</span>
+                    </div>
+                    <h5>Realisasi</h5>
+                </div>
+                <div class="ibox-content">
+                    <h1 class="no-margins" id="totalRealisasi">{{ $formatNumber->decimalFormat($total_realisasi) }}</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <div class="ibox-tools">
+                        <span class="label label-success float-right" style="background-color: #828282">Annual</span>
+                    </div>
+                    <h5>Selisih</h5>
+                </div>
+                <div class="ibox-content">
+                    <h1 class="no-margins" id="totalRealisasi">{{ $formatNumber->decimalFormat($total_selisih) }}</h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <div class="ibox-tools">
+                        <span class="label label-success float-right" style="background-color: #C00000">Annual</span>
+                    </div>
+                    <h5>Persentase <i class="fa fa-bolt text-success"></i></h5>
+                </div>
+                <div class="ibox-content">
+                    <h1 class="text-success">{{ $persentage_total_pencapaian }} %</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
         <div class="col-lg-6">
-            <div class="ibox">
+            <div class="ibox ">
                 <div class="ibox-title">
                     <h5>Pencapaian Per Program</h5>
-                    <div class="ibox-content">
+                </div>
+                <div class="ibox-content">
+                    <div class="text-center">
                         <canvas id="jamaahperbulan" width="100%"></canvas>
                     </div>
                 </div>
+
             </div>
         </div>
         <div class="col-lg-6">
             <div class="ibox">
                 <div class="ibox-title">
                     <h5>Pencapaian Per Bulan</h5>
-                    <div class="ibox-content">
-                        <canvas id="jamaahperprogram" width="100%"></canvas>
-                    </div>
                 </div>
+                <div class="ibox-content">
+                    <canvas id="jamaahperprogram" width="100%"></canvas>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Pencapaian Per PIC</h5>
+                </div>
+                <div class="ibox-content">
+                    <canvas id="jamaahperpic" width="100%"></canvas>
+                </div>
+
             </div>
         </div>
     </div>
@@ -60,6 +129,7 @@
                     {{-- <button type="button" class="btn btn-sm btn-primary" onclick="onSingkron(this)"
                         id="{{ $marketingTargetId }}"><i class="fa fa-download"></i> Download PDF
                     </button> --}}
+                    <h5>Rincian Per Bulan</h5>
                 </div>
                 <div class="ibox-content">
                     <div class="table-responsive">
@@ -80,28 +150,30 @@
                             <tr style="background-color: #FFFFFF">
                                 <td rowspan="{{ $item['count_list_program'] + 1 }}"
                                     style=" display: table-cell; vertical-align: middle;text-align: center;font-size:14px">
-                                    <b>{{ $item['nomor_bulan'] }}</b></td>
+                                    <b>{{ $item['nomor_bulan'] }}</b>
+                                </td>
                                 <td rowspan="{{ $item['count_list_program'] + 1 }}" align="center"
                                     style=" display: table-cell; vertical-align: middle;text-align: center;font-size:14px">
-                                    <b>{{ $item['bulan'] }}<b></td>
+                                    <b>{{ $item['bulan'] }}<b>
+                                </td>
                             </tr>
                             @php
                             $no = 1;
                             @endphp
                             @foreach ($item['list_program'] as $program)
                             @php
-                            $persentase_per_program =
+                            // $persentase_per_program =
                             $formatNumber->persentage($program['realisasi'],$program['target']);
-                            if ($persentase_per_program !== null) {
-                            $persentase_per_program = $formatNumber->persen($persentase_per_program);
-                            }
+                            // if ($persentase_per_program !== null) {
+                            // $persentase_per_program = $formatNumber->persen($persentase_per_program);
+                            // }
                             @endphp
                             <tr style="background-color: {{ $program['color'] }}">
                                 <td>{{ $no++ }} . {{ $program['program'] }}</td>
                                 <td style="text-align: right">{{ $program['target']}}</td>
                                 <td style="text-align: right">{{ $program['realisasi']}}</td>
                                 <td style="text-align: right">{{ $program['selisih']}}</td>
-                                <td style="text-align: right">{{ $persentase_per_program }} %</td>
+                                <td style="text-align: right">0</td>
                             </tr>
                             @endforeach
                             <tr>

@@ -136,7 +136,7 @@ class ProgramKerjaService
             LogHelper::create($jenis, $message, $ip);
         } catch(\Exception $e) {
             DB::rollback();
-            Log::channel('daily')->error($e->getMessage());
+            // Log::channel('daily')->error($e->getMessage());
             $output     = array(
                 'transStatus'   => 'gagal',
                 'errMsg'        => $e->getMessage(),
