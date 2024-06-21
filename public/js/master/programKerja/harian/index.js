@@ -338,6 +338,12 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
 
         $("#"+idSelect).html(html);
     } else if(idSelect == 'programKerjaTahunanID') {
+        // RESET FORM
+        showSelect('programKerjaBulananAktivitas', '', '', true);
+        showSelect('programKerjaBulananID', '', '', true);
+        $("#programKerjaBulananAktivitasText").val(null);
+
+        // SHOW FORM
         var html    = "<option selected disabled>Pilih Program Kerja Tahunan</option>";
 
         if(valueCari != '' ) {
@@ -362,6 +368,10 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
             $("#"+idSelect).html(html);
         }
     } else if(idSelect == 'programKerjaBulananID') {
+        // RESET FORM
+        showSelect('programKerjaBulananAktivitas', '', '', true);
+        $("#programKerjaBulananAktivitasText").val(null);
+        
         if(current_role != 'umum') {
             var html    = [
                 "<option selected disabled>Pilih Program Bulanan</option>",
@@ -436,6 +446,10 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
             } else {
                 $("#"+idSelect).html(html);
             }
+
+            $("#"+idSelect).on('select2:select', function(){
+                $("#programKerjaBulananAktivitasText").focus();
+            })
         }
     } else if(idSelect == 'programKerjaBulananAktivitas') {
         var html    = "<option selected disabled>Jenis Pekerjaan</option>";
@@ -468,6 +482,7 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                         $("#"+idSelect).html(html);
                         if(isAsync === true) {
                             Swal.close();
+                            $("#"+idSelect).select2('open');
                         }
 
                         if(valueSelect != '') {

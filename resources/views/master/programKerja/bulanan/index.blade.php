@@ -221,7 +221,7 @@
                             </div>
                         </div>
                     </div>
-                    @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('operasional') || Auth::user()->hasRole('marketing'))
+                    @if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('operasional'))
                         <div class="form-row mb-2" id="formTanggalAktivitas_prokerBulanan">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -284,7 +284,6 @@
                         </div>
                         <div class="col-md-12 text-right">
                             <button type="button" class="btn btn-primary" id="btnTambahBaris" value="1" onclick="tambah_baris('tableDetailProkerBulanan', '', this.value)">Tambah Baris</button>
-                            
                         </div>
                     </div>
                     <div class="form-row mb-2" id="formUpload">

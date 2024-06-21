@@ -556,7 +556,7 @@ class ProgramKerjaController extends Controller
     public function dataProkerBulanan(Request $request)
     {
         $sendData   = [
-            "rolesName"     => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0],
+            "rolesName"     => Auth::user()->getRoleNames()[0] == ('admin' || 'umum') ? '%' : Auth::user()->getRoleNames()[0],
             "currentDate"   => date('Y-m-d'),
             "pkb_uuid"      => $request->all()['sendData']['pkb_uuid'],
         ];

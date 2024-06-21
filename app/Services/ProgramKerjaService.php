@@ -947,7 +947,7 @@ class ProgramKerjaService
                     pkb_start_date as pkb_date
             FROM 	proker_bulanan
             WHERE 	EXTRACT(MONTH FROM pkb_start_date) = EXTRACT(MONTH FROM CURRENT_DATE)
-            AND 	SUBSTRING_INDEX(pkb_pkt_id,' | ',1) = '28cb0775-a27e-49aa-bab9-78f5a6d7432b'
+            AND 	SUBSTRING_INDEX(pkb_pkt_id,' | ',1) = '$programKerjaTahunanID'
             ORDER BY created_by ASC
             "
         );
