@@ -659,6 +659,54 @@ class ProgramKerjaController extends Controller
         }
     }
 
+    // 21 JUNI 2024
+    // NOTE : PEMBUATAN FUNGSI UNTUK MEMANGGIL PROKER TAHUNAN BERDASARKAN GROUP DIVISI
+    public function getProgramKerjaTahunan($groupDivisionID)
+    {
+        $getData    = ProgramKerjaService::doGetProgramKerjaTahunan($groupDivisionID);
+    
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Mengambil Data Program Kerja Tahunan",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Tidak ada data yang bisa diambil",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function getProgramKerjaBulanan($prokerTahunanID)
+    {
+        $getData    = ProgramKerjaService::doGetProgramKerjaBulanan($prokerTahunanID);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Mengambil Data Program Kerja Bulanan",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Tidak ada data yang bisa diambil",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     // GLOBAL
     public function getDataPIC(Request $request)
     {

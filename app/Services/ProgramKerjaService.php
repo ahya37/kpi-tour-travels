@@ -655,26 +655,48 @@ class ProgramKerjaService
     // HARIAN
     public static function listProkerHarian($data)
     {
-        $rolesName  = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
+        $rolesName      = !empty($data['current_role']) ? $data['current_role'] : (Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0]);
         $currentDate    = date('Y-m-d');
-        $getMonth       = date('m', strtotime($currentDate));
-		$userId    		= Auth::user()->id;
+        $getMonth       = !empty($data['current_month']) ? $data['current_month'] : date('m', strtotime($currentDate));
+		$userId    		= Auth::user()->hasRole('admin') ? '%' : Auth::user()->id;
         $query  = DB::select(
             "
-            SELECT 	a.uuid as pkh_id,
-                    a.pkh_title,
-                    a.pkh_date,
-                    d.id as group_division_id,
-                    d.name as group_division
-            FROM 	proker_harian a
-            JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = b.uuid
-            JOIN 	proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1) = c.uid
-            JOIN 	group_divisions d ON c.division_group_id = d.id
-            JOIN 	roles e ON d.roles_id = e.id
-            WHERE 	e.name LIKE '$rolesName'
-			AND 	a.created_by = $userId 
-            AND 	EXTRACT(MONTH FROM a.pkh_date) = '$getMonth'
-            ORDER BY a.id ASC
+            SELECT 	*
+            FROM 	(
+                    SELECT 	a.uuid as pkh_id,
+                            a.pkh_title,
+                            a.pkh_date,
+                            d.id as group_division_id,
+                            d.name as group_division,
+                            e.name as role_name,
+                            a.created_by as user_id,
+                            a.created_at as created_date
+                    FROM 	proker_harian a
+                    JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = b.uuid
+                    JOIN 	proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1) = c.uid
+                    JOIN 	group_divisions d ON c.division_group_id = d.id
+                    JOIN 	roles e ON d.roles_id = e.id
+
+                    UNION ALL
+
+                    SELECT 	a.uuid as pkh_id,
+                            a.pkh_title, 
+                            a.pkh_date,
+                            d.id as group_division_id,
+                            d.name as group_division_name,
+                            c.name as role_name,
+                            a.created_by as user_id,
+                            a.created_at as created_date
+                    FROM 	proker_harian a
+                    JOIN 	model_has_roles b ON a.created_by = b.model_id
+                    JOIN 	roles c ON b.role_id = c.id
+                    JOIN 	group_divisions d ON b.role_id = d.roles_id
+                    WHERE 	SUBSTRING_INDEX(a.pkh_pkb_id,' | ', 1) = 'Lainnya'
+                    ) AS harian
+            WHERE 	harian.role_name LIKE '$rolesName'
+            AND 	harian.user_id LIKE '$userId'
+            AND 	EXTRACT(MONTH FROM harian.pkh_date) = '$getMonth'
+            ORDER BY harian.created_date DESC
             "
         );
         
@@ -895,6 +917,41 @@ class ProgramKerjaService
             "
         );
 
+        return $query;
+    }
+
+    // 21 JUNI 2024
+    // NOTE : PEMBUATAN FUNGIS AMBIL DATA PROGRAM KERJA TAHUNAN BY GROUP DIVISION ID
+    public static function doGetProgramKerjaTahunan($groupDivisionID)
+    {
+        $query  = DB::select(
+            "
+            SELECT 	a.uid as pkt_id,
+                    a.pkt_title as pkt_title
+            FROM 	proker_tahunan a
+            WHERE 	a.division_group_id = '$groupDivisionID'
+            AND 	a.pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
+            ORDER BY created_at ASC
+            "
+        );
+        
+        return $query;
+    }
+
+    public static function doGetProgramKerjaBulanan($programKerjaTahunanID)
+    {
+        $query  = DB::select(
+            "
+            SELECT 	uuid as pkb_id,
+                    pkb_title,
+                    pkb_start_date as pkb_date
+            FROM 	proker_bulanan
+            WHERE 	EXTRACT(MONTH FROM pkb_start_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+            AND 	SUBSTRING_INDEX(pkb_pkt_id,' | ',1) = '28cb0775-a27e-49aa-bab9-78f5a6d7432b'
+            ORDER BY created_by ASC
+            "
+        );
+        
         return $query;
     }
 }
