@@ -49,7 +49,7 @@ class ProgramKerjaService
         if($jenis == 'add') {
             // SIMPAN DULU HEADER
             $data_header    = array(
-                "uid"               => Str::uuid(),
+                "uid"               => Str::random(30),
                 "pkt_title"         => $data['prtTitle'],
                 "pkt_description"   => $data['prtDescription'],
                 "pkt_year"          => $data['prtPeriode'],
@@ -185,34 +185,122 @@ class ProgramKerjaService
         $tgl_awal   = $cari['tgl_awal'];
         $tgl_akhir  = $cari['tgl_akhir'];
         $jadwal     = $cari['jadwal'];
+        $sub_divisi = $cari['sub_divisi'];
 
-        $query_list  = DB::select(
+        // print("<pre>".print_r($data, true)."</pre>");die();
+
+        // $query_list  = DB::select(
+        //     "
+            // SELECT 	a.uuid as pkb_uuid,
+            //         a.pkb_title,
+            //         a.pkb_description,
+            //         a.pkb_start_date,
+            //         a.pkb_end_date,
+            //         SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_id,
+            //         SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
+            //         d.id as pkb_gd_id,
+            //         d.name as pkb_gd_name,
+            //         d.roles_id as role_id,
+            //         f.name as role_name,
+            //         e.id as pkb_sd_id,
+            //         e.name as pkb_sd_name,
+            //         a.pkb_employee_id
+            // FROM 	proker_bulanan a
+            // JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
+            // JOIN 	job_employees c ON b.pkt_pic_job_employee_id = c.employee_id
+            // JOIN 	group_divisions d ON c.group_division_id = d.id
+            // JOIN 	sub_divisions e ON c.sub_division_id = e.id
+            // JOIN 	roles f ON d.roles_id = f.id
+            // WHERE 	a.uuid LIKE '$uuid'
+            // AND 	f.name LIKE '$roleName'
+            // AND     a.pkb_start_date BETWEEN '$tgl_awal' AND '$tgl_akhir'
+            // AND     a.pkb_title LIKE '$jadwal%'
+            // ORDER BY a.pkb_start_date, a.created_at ASC
+        //     "
+        // );
+
+        $query_list     = DB::select(
             "
-            SELECT 	a.uuid as pkb_uuid,
-                    a.pkb_title,
-                    a.pkb_description,
-                    a.pkb_start_date,
-                    a.pkb_end_date,
-                    SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_id,
-                    SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
-                    d.id as pkb_gd_id,
-                    d.name as pkb_gd_name,
-                    d.roles_id as role_id,
-                    f.name as role_name,
-                    e.id as pkb_sd_id,
-                    e.name as pkb_sd_name,
-                    a.pkb_employee_id
-            FROM 	proker_bulanan a
-            JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
-            JOIN 	job_employees c ON b.pkt_pic_job_employee_id = c.employee_id
-            JOIN 	group_divisions d ON c.group_division_id = d.id
-            JOIN 	sub_divisions e ON c.sub_division_id = e.id
-            JOIN 	roles f ON d.roles_id = f.id
-            WHERE 	a.uuid LIKE '$uuid'
-            AND 	f.name LIKE '$roleName'
-            AND     a.pkb_start_date BETWEEN '$tgl_awal' AND '$tgl_akhir'
-            AND     a.pkb_title LIKE '$jadwal%'
-            ORDER BY a.pkb_start_date, a.created_at ASC
+            SELECT 	DISTINCT pkb.pkb_uuid,
+                    pkb.pkb_title,
+                    pkb.pkb_description,
+                    pkb.pkb_start_date,
+                    pkb.pkb_end_date,
+                    pkb.pkb_pkt_uuid,
+                    pkb.pkb_pkt_seq,
+                    pkb.pkb_created_date
+            FROM 	(
+                    SELECT 	a.uuid as pkb_uuid,
+                            a.pkb_title,
+                            a.pkb_description,
+                            a.pkb_start_date,
+                            a.pkb_end_date,
+                            SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_uuid,
+                            SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_seq,
+                            g.id as role_id,
+                            g.name as role_name,
+                            c.name as group_division_name,
+                            f.name as sub_division_name,
+                            a.created_at as pkb_created_date
+                    FROM 	proker_bulanan a
+                    JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
+                    JOIN 	group_divisions c ON b.division_group_id = c.id
+                    JOIN 	job_employees d ON d.group_division_id = c.id
+                    JOIN 	employees e ON d.employee_id = e.id
+                    JOIN 	sub_divisions f ON d.sub_division_id = f.id
+                    JOIN 	roles g ON g.id = c.roles_id
+                    WHERE 	a.pkb_title NOT LIKE '[%]%'
+
+                    UNION ALL
+
+                    SELECT 	e.uuid as pkb_uuid,
+                            e.pkb_title,
+                            e.pkb_description,
+                            e.pkb_start_date,
+                            e.pkb_end_date,
+                            SUBSTRING_INDEX(e.pkb_pkt_id, ' | ', 1) as pkb_pkt_uuid,
+                            SUBSTRING_INDEX(e.pkb_pkt_id, ' | ', -1) as pkb_pkt_seq,
+                            g.id as role_id,
+                            g.name as role_name,
+                            f.name as group_division_name,
+                            d.name as pkb_sd_name,
+                            e.created_at
+                    FROM 	tr_prog_jdw a
+                    JOIN 	programs_jadwal b ON a.prog_jdw_id = b.jdw_uuid
+                    JOIN 	programs_jadwal_rules c ON a.prog_rul_id = c.id
+                    JOIN 	sub_divisions d ON d.id = c.rul_pic_sdid
+                    JOIN 	proker_bulanan e ON a.prog_pkb_id = e.uuid
+                    JOIN 	group_divisions f ON f.id = d.division_group_id
+                    JOIN 	roles g ON f.roles_id = g.id
+                    WHERE 	e.pkb_title LIKE '[%]%'
+                    
+                    UNION ALL
+                    
+                    SELECT 		a.uuid as pkb_uuid,
+                                a.pkb_title,
+                                a.pkb_description,
+                                a.pkb_start_date,
+                                a.pkb_end_date,
+                                SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_uuid,
+                                SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_seq,
+                                d.id as role_id,
+                                d.name as role_name,
+                                e.name as group_division_name,
+                                f.name as sub_division_name,
+                                a.created_at
+                    FROM 		proker_bulanan a
+                    JOIN 		proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ', 1) = b.uid
+                    JOIN 		model_has_roles c ON a.created_by = c.model_id
+                    JOIN 		roles d ON c.role_id = d.id
+                    JOIN 		group_divisions e ON e.roles_id = d.id
+                    JOIN 		sub_divisions f ON f.division_group_id = e.id
+                ) AS pkb
+            WHERE 	pkb.pkb_uuid LIKE '$uuid'
+            AND 	pkb.pkb_start_date BETWEEN '$tgl_awal' AND '$tgl_akhir'
+            AND 	pkb.role_name LIKE '$roleName'
+            AND 	LOWER(pkb.sub_division_name) LIKE '$sub_divisi'
+            AND 	pkb.pkb_title LIKE '$jadwal%'
+            ORDER BY pkb.pkb_created_date ASC
             "
         );
 
@@ -223,28 +311,24 @@ class ProgramKerjaService
                         a.pkb_title,
                         a.pkb_description,
                         a.pkb_start_date,
-                        SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_id,
-                        SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
-                        d.id as pkb_gd_id,
-                        d.name as pkb_gd_name,
-                        d.roles_id as role_id,
-                        f.name as role_name,
-                        e.id as pkb_sd_id,
-                        e.name as pkb_sd_name,
-                        a.pkb_employee_id,        
-                        a.pkb_start_date,
                         a.pkb_end_date,
                         a.pkb_start_time,
-                        a.pkb_end_time
+                        a.pkb_end_time,
+                        SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_id,
+                        SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
+                        a.pkb_employee_id,
+                        b.division_group_id as pkb_gd_id,
+                        (SELECT name FROM group_divisions WHERE id = b.division_group_id) as pkb_gd_name,
+                        e.id
                 FROM 	proker_bulanan a
-                JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
-                JOIN 	job_employees c ON b.pkt_pic_job_employee_id = c.employee_id
-                JOIN 	group_divisions d ON c.group_division_id = d.id
-                JOIN 	sub_divisions e ON c.sub_division_id = e.id
-                JOIN 	roles f ON d.roles_id = f.id
+                JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
+                JOIN 	model_has_roles c ON a.created_by = c.model_id
+                JOIN 	roles d ON c.role_id = d.id
+                JOIN 	group_divisions e ON (e.roles_id = d.id)
                 WHERE 	a.uuid LIKE '$uuid'
-                AND 	f.name LIKE '$roleName'
-                ORDER BY a.pkb_start_date, a.created_at ASC
+                AND 	d.name LIKE '$roleName'
+                ORDER BY a.created_at DESC
+                LIMIT 1
                 "
             );
 
@@ -278,26 +362,25 @@ class ProgramKerjaService
 
     public static function doGetProkerTahunan($data)
     {
-        $roleName   = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
+        $roleName   = (Auth::user()->hasRole('admin') || Auth::user()->hasRole('umum')) ? '%' : Auth::user()->getRoleNames()[0];
         $prokerID   = $data['prokerID'];
         $query      = DB::select(
             "
             SELECT 	a.uid as pkt_uid,
-                    a.pkt_title as pkt_title,
-                    b.group_division_id,
-                    c.name as group_division_name,
-                    b.sub_division_id,
-                    d.name as sub_division_name,
-                    a.created_at as created_date
+                    a.pkt_title,
+                    b.id as group_division_id,
+                    b.name as group_division_name,
+                    d.id as role_id,
+                    d.name as role_name,
+                    a.created_at
             FROM 	proker_tahunan a
-            JOIN 	job_employees b ON a.pkt_pic_job_employee_id = b.employee_id
-            JOIN 	group_divisions c ON b.group_division_id = c.id
-            JOIN 	sub_divisions d ON b.sub_division_id = d.id
-            JOIN    roles e ON c.roles_id = e.id
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            JOIN 	roles d ON b.roles_id = d.id
             WHERE 	a.parent_id IS NULL
+            AND 	(d.id LIKE '$roleName' OR d.name LIKE '$roleName')
             AND 	a.uid LIKE '$prokerID'
-            AND     e.name LIKE '$roleName'
-            ORDER BY a.created_at DESC
+            AND 	a.pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
+            ORDER BY a.created_at ASC
             "
         );
 
@@ -329,7 +412,7 @@ class ProgramKerjaService
         if($dataProkerBulananInput['prokerBulanan_typeTrans'] == 'add') {
             // HEADER
             $data_insert    = array(
-                "uuid"                  => Str::uuid(),
+                "uuid"                  => Str::random(30),
                 "pkb_title"             => $dataProkerBulananInput['prokerBulanan_title'],
                 "pkb_start_date"        => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate'])),
                 "pkb_end_date"          => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_endDate'])),
@@ -572,24 +655,48 @@ class ProgramKerjaService
     // HARIAN
     public static function listProkerHarian($data)
     {
-        $rolesName  = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
+        $rolesName      = !empty($data['current_role']) ? $data['current_role'] : (Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0]);
         $currentDate    = date('Y-m-d');
-        $getMonth       = date('m', strtotime($currentDate));
+        $getMonth       = !empty($data['current_month']) ? $data['current_month'] : date('m', strtotime($currentDate));
+		$userId    		= Auth::user()->hasRole('admin') ? '%' : Auth::user()->id;
         $query  = DB::select(
             "
-            SELECT 	a.uuid as pkh_id,
-                    a.pkh_title,
-                    a.pkh_date,
-                    d.id as group_division_id,
-                    d.name as group_division
-            FROM 	proker_harian a
-            JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = b.uuid
-            JOIN 	proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1) = c.uid
-            JOIN 	group_divisions d ON c.division_group_id = d.id
-            JOIN 	roles e ON d.roles_id = e.id
-            WHERE 	e.name LIKE '$rolesName'
-            AND 	EXTRACT(MONTH FROM a.pkh_date) = '$getMonth'
-            ORDER BY a.id ASC
+            SELECT 	*
+            FROM 	(
+                    SELECT 	a.uuid as pkh_id,
+                            a.pkh_title,
+                            a.pkh_date,
+                            d.id as group_division_id,
+                            d.name as group_division,
+                            e.name as role_name,
+                            a.created_by as user_id,
+                            a.created_at as created_date
+                    FROM 	proker_harian a
+                    JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = b.uuid
+                    JOIN 	proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1) = c.uid
+                    JOIN 	group_divisions d ON c.division_group_id = d.id
+                    JOIN 	roles e ON d.roles_id = e.id
+
+                    UNION ALL
+
+                    SELECT 	a.uuid as pkh_id,
+                            a.pkh_title, 
+                            a.pkh_date,
+                            d.id as group_division_id,
+                            d.name as group_division_name,
+                            c.name as role_name,
+                            a.created_by as user_id,
+                            a.created_at as created_date
+                    FROM 	proker_harian a
+                    JOIN 	model_has_roles b ON a.created_by = b.model_id
+                    JOIN 	roles c ON b.role_id = c.id
+                    JOIN 	group_divisions d ON b.role_id = d.roles_id
+                    WHERE 	SUBSTRING_INDEX(a.pkh_pkb_id,' | ', 1) = 'Lainnya'
+                    ) AS harian
+            WHERE 	harian.role_name LIKE '$rolesName'
+            AND 	harian.user_id LIKE '$userId'
+            AND 	EXTRACT(MONTH FROM harian.pkh_date) = '$getMonth'
+            ORDER BY harian.created_date DESC
             "
         );
         
@@ -673,6 +780,7 @@ class ProgramKerjaService
         DB::beginTransaction();
         if($data['programKerjaHarian_jenisTrans'] == 'add') {
             $dataSimpan_header  = array(
+                "uuid" => Str::random(30), 
                 "pkh_title"         => $data['programKerjaHarian_description'],
                 "pkh_date"          => $data['programKerjaHarian_startDate'],
                 "pkh_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
@@ -745,7 +853,7 @@ class ProgramKerjaService
     // NOTE : SUMMARY UNTUK DASHBOARD PROGRAM KERJA
     public static function doGetDataTotalProgramKerja()
     {
-        $roleId     = Auth::user()->getRoleNames()[0]  == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
+        $roleId     = (Auth::user()->getRoleNames()[0]  == 'admin') || (Auth::user()->getRoleNames()[0]  == 'umum') ? '%' : Auth::user()->getRoleNames()[0];
         $query  = DB::select(
             "
             SELECT 	SUM(total_proker_tahunan) as grand_total_proker_tahunan,
@@ -809,6 +917,41 @@ class ProgramKerjaService
             "
         );
 
+        return $query;
+    }
+
+    // 21 JUNI 2024
+    // NOTE : PEMBUATAN FUNGIS AMBIL DATA PROGRAM KERJA TAHUNAN BY GROUP DIVISION ID
+    public static function doGetProgramKerjaTahunan($groupDivisionID)
+    {
+        $query  = DB::select(
+            "
+            SELECT 	a.uid as pkt_id,
+                    a.pkt_title as pkt_title
+            FROM 	proker_tahunan a
+            WHERE 	a.division_group_id = '$groupDivisionID'
+            AND 	a.pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
+            ORDER BY created_at ASC
+            "
+        );
+        
+        return $query;
+    }
+
+    public static function doGetProgramKerjaBulanan($programKerjaTahunanID)
+    {
+        $query  = DB::select(
+            "
+            SELECT 	uuid as pkb_id,
+                    pkb_title,
+                    pkb_start_date as pkb_date
+            FROM 	proker_bulanan
+            WHERE 	EXTRACT(MONTH FROM pkb_start_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+            AND 	SUBSTRING_INDEX(pkb_pkt_id,' | ',1) = '28cb0775-a27e-49aa-bab9-78f5a6d7432b'
+            ORDER BY created_by ASC
+            "
+        );
+        
         return $query;
     }
 }

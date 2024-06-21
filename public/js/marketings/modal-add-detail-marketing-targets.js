@@ -38,7 +38,7 @@ function closeModal() {
   $("#myModal5").modal("hide");
 }
 
-$(`#programs`).select2({
+$('#programs').select2({
   theme: 'bootstrap4',
   allowClear: true,
 });
@@ -58,32 +58,37 @@ saveButton.click(function (e) {
     contentType: false,
     processData: false,
     beforeSend: () => {
+      Swal.fire({
+        title   : 'Data Sedang Diproses',
+      });
+      Swal.showLoading();
     },
     success: (response) => {
       if (response) {
-        swal({
-          title: response.data.success === 1 ? 'Good job!' : 'Warning',
-          type: response.data.success === 1 ? 'success' : 'warning',
-          text: response.data.message,
+        Swal.close();
+        Swal.fire({
           position: "center",
+          icon: response.data.success === 1 ? 'success' : 'warning',
+          title: response.data.success === 1 ? 'Good job!' : 'Warning',
           showConfirmButton: false,
           width: 500,
-          timer: 1500,
+          timer: 900,
         });
         closeModal();
         table.ajax.reload();
       }
     },
     error: function (error) {
-      swal({
-        title: "Gagal!",
-        type: "danger",
-        position: "center",
-        text: error.responseJSON.data.message,
-        showConfirmButton: false,
-        width: 500,
-        timer: 1500,
-      });
+      Swal.close();
+          Swal.fire({
+            title: "Gagal!",
+            position: "center",
+            type: "danger",
+            text: error.responseJSON.data.message,
+            showConfirmButton: false,
+            width: 500,
+            timer: 900,
+          });
     }
   });
 });

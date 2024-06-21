@@ -223,7 +223,8 @@ class ProgramKerjaController extends Controller
             "role_name"     => !empty($request->all()['sendData']['divisi']) && Auth::user()->hasRole('admin') ? ($request->all()['sendData']['divisi'] == 'Semua' ? '%' : $request->all()['sendData']['divisi']) : Auth::user()->getRoleNames()[0],
             "tgl_awal"      => !empty($request->all()['sendData']['tgl_awal']) ? $request->all()['sendData']['tgl_awal'] : date('Y')."-".date('m')."-01",
             "tgl_akhir"     => !empty($request->all()['sendData']['tgl_akhir']) ? $request->all()['sendData']['tgl_akhir'] : date('Y-m-d'),
-            "jadwal"        => !empty($request->all()['sendData']['jadwal']) ? $request->all()['sendData']['jadwal'] : null
+            "jadwal"        => !empty($request->all()['sendData']['jadwal']) ? $request->all()['sendData']['jadwal'] : null,
+            "sub_divisi"    => !empty($request->all()['sendData']['sub_divisi']) ? $request->all()['sendData']['sub_divisi'] : '%',
         ];
         $getData    = ProgramKerjaService::getProkerBulananAll($data_cari);
         
@@ -318,6 +319,7 @@ class ProgramKerjaController extends Controller
 
     public function simpanProkerBulanan(Request $request)
     {
+        // print("<pre>" . print_r($request->all()['sendData'], true) . "</pre>");die();
         $doSimpan   = ProgramKerjaService::doSimpanProkerBulanan($request);
         if($doSimpan['status'] == 'berhasil') {
             $output     = array(
@@ -655,6 +657,54 @@ class ProgramKerjaController extends Controller
         } else {
             abort(404);
         }
+    }
+
+    // 21 JUNI 2024
+    // NOTE : PEMBUATAN FUNGSI UNTUK MEMANGGIL PROKER TAHUNAN BERDASARKAN GROUP DIVISI
+    public function getProgramKerjaTahunan($groupDivisionID)
+    {
+        $getData    = ProgramKerjaService::doGetProgramKerjaTahunan($groupDivisionID);
+    
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Mengambil Data Program Kerja Tahunan",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Tidak ada data yang bisa diambil",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function getProgramKerjaBulanan($prokerTahunanID)
+    {
+        $getData    = ProgramKerjaService::doGetProgramKerjaBulanan($prokerTahunanID);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Mengambil Data Program Kerja Bulanan",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Tidak ada data yang bisa diambil",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
     }
 
     // GLOBAL

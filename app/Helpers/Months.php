@@ -22,4 +22,20 @@ class Months {
 
         return $months;
     }
+
+    public static function monthColor($month)
+    {
+        // menentukan warna berdasarkan ganjil genap
+        $color = '';
+        if ($month % 2 == 0 ) {
+            // genap
+            $color = '#F2F2F2';
+
+        }else{
+
+            $color = '#FFFFFF';
+        }
+
+        return $color;
+    }
 }

@@ -24,4 +24,6 @@ class DetailAlumniProspekMaterial extends Model
                 ->where('a.alumni_prospect_material_id', $alumniProspectMaterialId);
 
     }
+
+    
 }

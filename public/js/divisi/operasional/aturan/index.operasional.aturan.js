@@ -48,6 +48,7 @@ function showModal(idModal, jenisTrans, valueCari)
         showSelect('rulePktID', '%', '', true);
         showSelect('rulePicID', '%', '', true);
         showSelect('rulePlusMin', '%','', true);
+        showSelect('ruleCondition', '', '', true);
     } else if(jenisTrans == 'edit') {
         var url     = site_url + "/getRulesDetail/" + valueCari;
         var type    = "GET";
@@ -68,7 +69,8 @@ function showModal(idModal, jenisTrans, valueCari)
 
                 showSelect('rulePktID', '%', xhr.data[0].rul_pkt, false);
                 showSelect('rulePicID', '%', xhr.data[0].rul_pic, false);
-                showSelect('rulePlusMin', '%',xhr.data[0].rul_length_day_condition, false);
+                showSelect('rulePlusMin', '%', xhr.data[0].rul_length_day_condition, false);
+                showSelect('ruleCondition', xhr.data[0].rul_length_day_condition, xhr.data[0].rul_condition, true);
 
                 $("#"+idModal).on('shown.bs.modal', function(){
                     $("#ruleDescription").focus();
@@ -150,6 +152,24 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
         if(valueSelect != '') {
             $("#"+idSelect).val(valueSelect).trigger('change');
         }
+    } else if(idSelect == 'ruleCondition') {
+        var html    = "<option selected disabled>Pilih Kondisi</option>";
+
+        if(valueCari != '') {
+            if(valueCari == '+') {
+                html    += "<option value='af-dpt'>Setelah Keberangkatan</option>";
+                html    += "<option value='af-arv'>Setelah Kepulangan</option>";
+            } else if(valueCari == '-') {
+                html    += "<option value='bf-dpt'>Sebelum Keberangkatan</option>";
+                html    += "<option value='bf-arv'>Sebelum Kepulangan</option>";
+            }
+        }
+    
+        $("#"+idSelect).html(html);
+
+        if(valueSelect != '') {
+            $("#"+idSelect).val(valueSelect).trigger('change');
+        }
     }
 }
 
@@ -172,6 +192,7 @@ function simpanData(tipe)
     var dataSLA     = $("#rulesSLADay");
     var dataPlusMin = $("#rulePlusMin");
     var dataID      = $("#rulesID");
+    var dataCondition   = $("#ruleCondition");
 
     if(dataTitle.val() == '') {
         Swal.fire({
@@ -211,6 +232,7 @@ function simpanData(tipe)
             "dataPIC"       : dataPIC.val(),
             "dataDuration"  : dataDuration.val(),
             "dataSLA"       : dataPlusMin.val()+""+dataSLA.val(),
+            "dataCondition" : dataCondition.val()
         };
         var url     = site_url + "/simpanDataRules/"+tipe;
         var type    = "POST";

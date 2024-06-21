@@ -17,8 +17,13 @@ use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DivisiController;
 use Illuminate\Support\Facades\Route;
 
+
+Route::get('/test', function () {
+    return 'test';
+});
+
 Route::get('/', function () {
-    return view('auth.login');
+    return view('auth.login');  
 });
 
 //route login index
@@ -27,6 +32,7 @@ Route::get('/login', [LoginController::class, 'index'])->name('login')->middlewa
 //route login store
 Route::post('/login', [LoginController::class, 'store'])->name('login.store')->middleware('guest');
 //route logout
+
 
 Route::group(['middleware' => ['auth']], function () {
 
@@ -38,14 +44,18 @@ Route::group(['middleware' => ['auth']], function () {
     Route::prefix('marketings')->controller(MarketingController::class)->group(function(){
         Route::get('/target','target')->name('marketing.target');
         Route::post('/target','storeTarget')->name('marketing.target.store');
+
+        Route::post('/target/singkronrealisasi','singkronRealisasi');
         
         // datatable
         Route::post('/target/list','listTarget');
+        Route::get('/target/report/perbulan/pertahun/marketingtarget/{id}','reportUmrahBulanan');
         
         // detail target marketing
         Route::get('/target/detail/{marketingTargetId}','detailMarketingTarget');
         Route::post('/target/detail/{marketingTargetId}/store','detailMarketingTargetStore');
         Route::post('/target/detail/list/{detailMarketingTargetId}','detailListTarget');
+        
         
         // bahan prospek
         Route::get('/prospectmaterial','prospectMaterial')->name('marketing.prospectmaterial');
@@ -171,6 +181,8 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/cariDataProkerBulanan', [ProgramKerjaController::class,'dataProkerBulanan'])->name('programKerja.harian.dataProkerBulanan');
                 Route::post('/doSimpanTransHarian', [ProgramKerjaController::class,'simpanDataHarian'])->name('programKerja.harian.postDataProkerHarian');
                 Route::get('/downloadFile/{path}', [ProgramKerjaController::class, 'ProkerHarianDownloadFile']);
+                Route::get('/getProgramKerjaTahunan/{groupDivisionID}', [ProgramKerjaController::class, 'getProgramKerjaTahunan']);
+                Route::get('/getProgramKerjaBulanan/{programKerjaTahunanID}', [ProgramKerjaController::class, 'getProgramKerjaBulanan']);
             });
             // GLOBAL
             Route::get('/get/data/PIC', [ProgramKerjaController::class, 'getDataPIC'])->name('programKerja.get.data.pic');

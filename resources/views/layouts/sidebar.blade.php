@@ -5,7 +5,7 @@
                 <div id="profile_id" style="margin-top: 32px; margin-bottom: 4px;">
                     <div class="row">
                         <div class="col-sm-12">
-                            <img alt="image" class="rounded-circle" src="{{ asset('assets/img/profile_small.jpg') }}" width="64px" height="64px"/>
+                            <img alt="image" class="rounded-circle" src="{{ asset('assets/img/9187604.png') }}" width="64px" height="64px"/>
                         </div>
                     </div>
                     <div class="row" style="padding-top: 16px;">
@@ -115,11 +115,11 @@
                 <li class="{{ request()->is('marketings/*') ? 'active' : '' }}">
                     <a href="#"><i class="fa fa-diamond"></i> <span class="nav-label">Marketing</span> <span
                             class="fa arrow"></span></a>
-                    {{-- <ul class="nav nav-second-level">
+                    <ul class="nav nav-second-level">
                         <li class="active"><a href="{{ route('marketing.alumniprospectmaterial') }}">Bahan Prospek
                                 Alumni</a></li>
-                        <li class="active"><a href="{{ route('marketing.workplans.index') }}">Rencana Kerja</a></li>
-                    </ul> --}}
+                        {{-- <li class="active"><a href="{{ route('marketing.workplans.index') }}">Rencana Kerja</a></li> --}}
+                    </ul>
                     <ul class="nav nav-second-level">
                         <li class="{{ request()->is('marketings/laporan/*') ? 'active' : '' }}">
                             <a href="#">
@@ -209,6 +209,19 @@
                 <li class="{{ request()->is('aktivitas') ? 'active' : '' }}">
                     <a href="{{ route('aktivitas.harian.index') }}"><i class="fa fa-pencil"></i> <span
                             class="nav-label">Aktivitas Harian</span></a>
+                </li>
+            @endif
+            @if(Auth::user()->hasRole('umum'))
+                <li class="{{ request()->is('master/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span
+                            class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li class="{{ (request()->is('master/programkerja') || request()->is('master/programkerja/*')) ? 'active' : '' }}">
+                            <a href={{ route('programKerja.index') }}>Program Kerja</a>
+                        </li>
+                    </ul>
                 </li>
             @endif
         </ul>

@@ -8,7 +8,7 @@ class BaseService
 {
 	public static function getDataGroupDivision()
     {
-        $role   = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
+        $role   = Auth::user()->getRoleNames()[0] == ('admin' || 'umum') ? '%' : Auth::user()->getRoleNames()[0];
         
         $query  = DB::select(
             "

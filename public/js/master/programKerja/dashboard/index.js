@@ -20,8 +20,13 @@ function dashboard() {
             $("#summary_header").show();
             NProgress.done();
         })
-        .catch(function(xhr){
-            console.log(xhr);
+        .catch(function(err){
+            console.log(err.responseJSON);
+            $("#pk_tahunan").text("0 Program Kerja");
+            $("#pk_bulanan").text("0 Program Kerja");
+            $("#pk_harian").text("0 Program Kerja");
+            $("#summary_header").show();
+            NProgress.done();
         })
 }
 

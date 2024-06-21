@@ -23,4 +23,15 @@ class DetailMarketingTarget extends Model
                 ->join('programs as b','a.program_id','=','b.id')
                 ->where('marketing_target_id',$detailMarketingTargetId);  
     }
+    public static function getProgramByYearAndMonth($year, $month = 0, $tipe)
+    {
+        return DB::table('detailed_marketing_targets as a')
+                ->select('c.year','a.id', 'b.name as tipe_name','a.month_number','a.target', 'a.realization','a.difference')
+                ->join('programs as b','a.program_id','=','b.id')
+                ->join('marketing_targets as c','a.marketing_target_id','=','c.id')
+                ->where('c.year', $year)
+                ->where('a.month_number', $month)
+                ->where('b.name', $tipe)
+                ->first();
+    }
 }

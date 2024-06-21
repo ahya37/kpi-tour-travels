@@ -66,6 +66,22 @@ function showTable(idTable, valueCari)
                 url     : '/divisi/operasional/dataTableGenerateJadwalUmrah'
             },
         })
+    } else if(idTable == 'table_list_program_kerja') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                "zeroRecords"   : "Tidak ada data yang bisa ditampilkan..",
+                "emptyTable"    : "Tidak ada data yang bisa ditampilkan..",
+            },
+            columnDefs  : [
+                { "targets" : [0, 5], "className":"text-center" },
+                { "targets" : [0], "width": "5%" },
+                { "targets" : [2], "width": "18%" },
+                { "targets" : [3], "width" : "10%" },
+            ],
+            pageLength : -1,
+            autoWidth   : false,
+        });
     }
 }
 
@@ -162,13 +178,19 @@ function generateRules(element, id)
             });
         })
         .catch((xhr) => {
-            console.log(xhr);
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Tidak ada Rules baru yang bisa digenerate',
+            })
         })
 }
 
 function showModal(idForm, valueCari)
 {
     if(idForm == 'modalForm') {
+        showTable('table_list_program_kerja');
+
         var url     =  site_url + "/getDataRulesJadwal/"+valueCari;
         var type    = "GET";
         var message = Swal.fire({title: 'Data Sedang Dimuat'});Swal.showLoading();

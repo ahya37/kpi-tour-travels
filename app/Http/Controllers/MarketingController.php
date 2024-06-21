@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\Months;
+use App\Helpers\NumberFormat;
 use App\Http\Requests\MarketingTargetRequest;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
@@ -13,15 +14,17 @@ use App\Models\AlumniProspekMaterial;
 use App\Models\DetailAlumniProspekMaterial;
 use App\Models\Employee;
 use App\Models\JobEmployee;
+use App\Models\MarketingTarget;
 use App\Models\Program;
 use App\Models\Reason;
+use App\Models\DetailMarketingTarget;
 use App\Services\MarketingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-
+use Illuminate\Support\Collection;
 use function Laravel\Prompts\select;
 
 class MarketingController extends Controller
@@ -52,13 +55,87 @@ class MarketingController extends Controller
 
     public function detailMarketingTarget($marketingTargetId)
     {
+       
         $detailMatketingTargets = MarketingService::detailMarketingTarget($marketingTargetId);
+
 
         return view('marketings.detail-marketing-target', [
             'title' => 'Detail Target Marketing',
+            'marketingTargetId' => $marketingTargetId,
             'detailMatketingTargets' => $detailMatketingTargets
         ]);
 
+    }
+
+
+    public function singkronRealisasi(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+
+            
+            $id =  $request->id;
+
+
+            #get data taregt by id 
+            $target = MarketingTarget::select('id','year','total_target','total_realization','total_difference')->where('id', $id)->first();
+
+            #get data realiasai dari API umhaj
+            $formData['year'] = $target->year;
+            $res_realiasi = MarketingService::getRelisasiUmrah($formData);
+            $res_umrah    = $res_realiasi['data'];
+
+
+            #pecah data realisasi dari API
+            $res_data_umrah = [];
+            foreach ($res_umrah as $key =>  $value) {
+                #update total realisasi target marketing
+                foreach ($value['umrah'] as $umrah) {
+                    $res_data_umrah[] = $umrah;
+                }
+            }
+
+            // return $res_data_umrah;
+
+            $res = [];
+            foreach($res_data_umrah as $value){
+                $detailtarget     = DetailMarketingTarget::getProgramByYearAndMonth($target->year, $value['bulan'], $value['tipe']);
+
+                $data1            = new Collection($value);
+                $data2            = new Collection($detailtarget);
+                
+                #merge dan filter, yang hanya memiliki atribut id saja
+                $mergedData = $data1->merge($data2);
+                $res[] = $mergedData;
+            }
+
+           // Menghapus entri dengan id kosong
+            $res_data = array_filter($res, function($entry) {
+                return !empty($entry['id']);
+            });
+
+           #update detail target marketing
+           foreach($res_data as $value){
+            $DetailMarketingTarget =  DetailMarketingTarget::where('id', $value['id'])->first();
+
+            $DetailMarketingTarget->update([
+                    'realization' => $value['realiasi'],
+                    'difference'  => $value['realiasi'] - $DetailMarketingTarget->target
+                ]);
+           }
+
+
+            DB::commit();
+            return ResponseFormatter::success([
+                'message' => 'Sukses singkornisasi'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return ResponseFormatter::error([
+                'message' =>  $e->getMessage()
+            ]);
+        }
     }
 
     public function loadModalMarketingTarget()
@@ -531,6 +608,106 @@ class MarketingController extends Controller
         return response()->json([
             'modalContent' => $modalContent,
         ]);
+
+    }
+
+    public function reportUmrahBulanan($marketingTargetId)
+    {
+        // $marketing_target_id = request()->id;
+        
+        $targetMarketing = MarketingTarget::getReportUmrahBulanan($marketingTargetId);
+
+        #get jumlah program yang ada
+        $programs = Program::select('id','name','color')->where('is_active','Y')->orderBy('sequence','asc')->get();
+        $countProgram = count($programs);
+
+        $res_target = [];
+        foreach ($targetMarketing as $key => $value) {
+
+            $list_programs = MarketingTarget::getProgramBytargetBulanan($value->month_number, $marketingTargetId);
+            $res = [];
+
+            foreach ($list_programs as  $list) {
+                $res[] = [
+                    'program' => $list->program,
+                    'target' => $list->target,
+                    'realisasi' => $list->realisasi,
+                    'selisih' => $list->selisih,
+                    'color' => $list->color,
+                ];
+            }
+
+            $formatNumber = new NumberFormat();
+
+            // jumlah target
+            $jml_target = collect($res)->sum(function($q){
+                return $q['target'];
+            });
+            // jumlah realisasi
+            $jml_realisasi = collect($res)->sum(function($q){
+                return $q['realisasi'];
+            });
+
+            // jumlah realisasi
+            $jml_selisih = collect($res)->sum(function($q){
+                return  $q['realisasi'] - $q['target'];
+            });
+
+            // jml per bulan nya
+            $persentage_jml_pencapaian = $formatNumber->persentage($jml_realisasi,$jml_target);
+            if ($persentage_jml_pencapaian !== null) {
+				$persentage_jml_pencapaian  = $formatNumber->persen($persentage_jml_pencapaian);  
+			}
+
+
+            $res_target[] = [
+                'color' => Months::monthColor($value->month_number),
+                'nomor_bulan' => $value->month_number,
+                'bulan' => $value->month_name,
+                'target' => $value->terget,
+                'realisasi' => $value->realisasi,
+                'selisih' => $value->selisih,
+                'persentage_jml_pencapaian' => $persentage_jml_pencapaian,
+                'list_program' => $res,
+                'jml_target' => $jml_target,
+                'jml_realisasi' => $jml_realisasi,
+                'jml_selisih' => $jml_selisih,
+                'count_list_program' => count($res)
+            ];
+        }
+
+        // all total 
+        $total_target = collect($res_target)->sum(function($q){
+            return $q['jml_target'];
+        });
+        $total_realisasi = collect($res_target)->sum(function($q){
+            return $q['jml_realisasi'];
+        });
+        $total_selisih = collect($res_target)->sum(function($q){
+            return $q['jml_selisih'];
+        });
+
+        $persentage_total_pencapaian = $formatNumber->persentage($total_realisasi,$total_target);
+            if ($persentage_total_pencapaian !== null) {
+				$persentage_total_pencapaian  = $formatNumber->persen($persentage_total_pencapaian);  
+			}
+
+        $data   = [
+            'title'     => 'Laporan Umrah Bulanan',
+            'sub_title' => 'Laporan Umrah Bulanan',
+            'marketingTargetId' => $marketingTargetId,
+            'countProgram' => $countProgram,
+            'programs' => $programs,
+            'res_target' =>  $res_target,
+            'total_target' => $total_target,
+            'total_realisasi' => $total_realisasi,
+            'total_selisih' => $total_selisih,
+            'persentage_total_pencapaian' => $persentage_total_pencapaian,
+            'formatNumber' => $formatNumber
+        ];
+
+
+        return view('marketings/laporan/report-umrah-bulanan', $data);
 
     }
 }
