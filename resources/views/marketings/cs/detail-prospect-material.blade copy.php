@@ -7,8 +7,6 @@
     <link href="{{ asset('assets/css/plugins/sweetalert/sweetalert.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/ladda/ladda-themeless.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-    {{-- <link rel="stylesheet" href="{{ asset('css/programKerja/harian/index.harian.css') }}"> --}}
-
 @endpush
 
 @section('breadcrumb')
@@ -27,9 +25,10 @@
                 <div class="ibox ">
                     <div class="ibox-content">
                         <div class="table-responsive">
-                            <table class="table table-striped table-bordered table-hover data" id="tableListAlumni">
+                            <table class="table table-striped table-bordered table-hover data">
                                 <thead>
                                     <tr>
+                                        <th>Id</th>
                                         <th  class="text-center" style="vertical-align: middle;">No</th>
                                         <th  class="text-center" style="vertical-align: middle;">Nama</th>
                                         <th  class="text-center" style="vertical-align: middle;">Telp</th>
