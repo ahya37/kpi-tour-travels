@@ -141,7 +141,16 @@
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Divisi</label>
-                                <select name="programKerjaHarianDivisi" id="programKerjaHarianDivisi" style="width: 100%;" onchange="showSelect(`programKerjaTahunanID`, this.value, '', true)"></select>
+                                <select name="programKerjaHarianDivisi" id="programKerjaHarianDivisi" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row mb-2" style="@php echo Auth::user()->hasRole('umum') ? '' : 'display: none;' @endphp">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>PIC / Penanggung Jawab</label>
+                                <select name="prograKerjaHarianPIC" id="prograKerjaHarianPIC" style="width:100%;"></select>
                             </div>
                         </div>
                     </div>
@@ -150,7 +159,9 @@
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Program Kerja Tahunan</label>
-                                <select name="programKerjaTahunanID" id="programKerjaTahunanID" style="width: 100%;" onchange="showSelect(`programKerjaBulananID`, this.value, '', true)"></select>
+                                <select name="programKerjaTahunanID" id="programKerjaTahunanID" style="width: 100%;" 
+                                {{-- onchange="showSelect(`programKerjaBulananID`, this.value, '', '')" --}}
+                                ></select>
                             </div>
                         </div>
                     </div>
@@ -159,10 +170,13 @@
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Program Bulanan</label>
-                                <select name="programKerjaBulananID" id="programKerjaBulananID" style="width: 100%;" onchange="showSelect('programKerjaBulananAktivitas', this.value, '', true)"></select>
+                                <select name="programKerjaBulananID" id="programKerjaBulananID" style="width: 100%;" 
+                                {{-- onchange="showSelect('programKerjaBulananAktivitas', this.value, '', '')" --}}
+                                ></select>
                             </div>
                         </div>
                     </div>
+                    {{-- UNTUK GLOBAL --}}
                     <div class="form-row mb-2" id="formProgramKerjaBulananAktivitas">
                         <div class="col-sm-12">
                             <div class="form-group">
@@ -171,6 +185,7 @@
                             </div>
                         </div>
                     </div>
+                    {{-- UNTUK ROLE UMUM SAJA --}}
                     <div class="form-row mb-2" id="formProgramKerjaBulananAktivitasText" style="display: none;">
                         <div class="col-sm-12">
                             <div class="form-group">
