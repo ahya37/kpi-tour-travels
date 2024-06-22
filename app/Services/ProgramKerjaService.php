@@ -691,7 +691,7 @@ class ProgramKerjaService
                     JOIN 	model_has_roles b ON a.created_by = b.model_id
                     JOIN 	roles c ON b.role_id = c.id
                     JOIN 	group_divisions d ON b.role_id = d.roles_id
-                    WHERE 	SUBSTRING_INDEX(a.pkh_pkb_id,' | ', 1) = 'Lainnya'
+                    WHERE 	SUBSTRING_INDEX(a.pkh_pkb_id,' | ', -1) = 'Lainnya'
                     ) AS harian
             WHERE 	harian.role_name LIKE '$rolesName'
             AND 	harian.user_id LIKE '$userId'
@@ -739,15 +739,40 @@ class ProgramKerjaService
     {
         $query_header   = DB::select(
             "
-            SELECT 	a.uuid as pkh_id,
-                    a.pkh_title,
-                    a.pkh_date,
-                    SUBSTRING_INDEX(a.pkh_start_time,' ', -1) as pkh_start_time,
-                    SUBSTRING_INDEX(a.pkh_end_time,' ', -1) as pkh_end_time,
-                    SUBSTRING_INDEX(a.pkh_pkb_id,' ', 1) as pkb_id,
-                    SUBSTRING_INDEX(a.pkh_pkb_id,' ', -1) as pkbd_id
-            FROM 	proker_harian a
-            WHERE 	a.uuid = '$uuid'
+            SELECT 	*
+            FROM 	(
+                    SELECT 	a.uuid as pkh_id,
+                            a.pkh_title,
+                            a.pkh_date,
+                            SUBSTRING_INDEX(a.pkh_start_time,' ', -1) as pkh_start_time,
+                            SUBSTRING_INDEX(a.pkh_end_time,' ', -1) as pkh_end_time,
+                            SUBSTRING_INDEX(a.pkh_pkb_id,' ', 1) as pkb_id,
+                            SUBSTRING_INDEX(a.pkh_pkb_id,' ', -1) as pkbd_id,
+                            c.uid as pkh_pkt_id,
+                            b.pkb_employee_id as pkh_employee_id,
+                            c.division_group_id as pkh_gd_id
+                    FROM 	proker_harian a
+                    JOIN 	proker_bulanan b ON b.uuid = SUBSTRING_INDEX(a.pkh_pkb_id, ' ', 1)
+                    JOIN 	proker_tahunan c ON c.uid = SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1)
+                    WHERE 	a.pkh_pkb_id NOT LIKE '%Lainnya'
+
+                    UNION
+
+                    SELECT 	a.uuid as pkh_id,
+                            a.pkh_title,
+                            a.pkh_date,
+                            SUBSTRING_INDEX(a.pkh_start_time,' ', -1) as pkh_start_time,
+                            SUBSTRING_INDEX(a.pkh_end_time,' ', -1) as pkh_end_time,
+                            b.uuid as pkb_id,
+                            SUBSTRING_INDEX(a.pkh_pkb_id,' ', -1) as pkbd_id,
+                            SUBSTRING_INDEX(a.pkh_pkb_id,' ', 1) as pkh_pkt_id,
+                            b.pkb_employee_id as pkh_employee_id,
+                            c.division_group_id as pkh_gd_id
+                    FROM 	proker_harian a
+                    JOIN 	proker_bulanan b ON b.pkb_pkt_id = CONCAT(SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1),' | ', a.uuid)
+                    JOIN 	proker_tahunan c ON c.uid = SUBSTRING_INDEX(b.pkb_pkt_id,' | ', 1)
+                    ) AS pkh
+            WHERE 	pkh.pkh_id = '$uuid'
             "
         );
 
@@ -778,14 +803,15 @@ class ProgramKerjaService
     public static function simpanDataHarian($data, $ip)
     {
         DB::beginTransaction();
+        $currentRole    = Auth::user()->getRoleNames()[0];
         if($data['programKerjaHarian_jenisTrans'] == 'add') {
             $dataSimpan_header  = array(
                 "uuid" => Str::random(30), 
-                "pkh_title"         => $data['programKerjaHarian_description'],
+                "pkh_title"         => $currentRole != 'umum' ? $data['programKerjaHarian_description'] : $data['programKerjaHarian_act_text'],
                 "pkh_date"          => $data['programKerjaHarian_startDate'],
                 "pkh_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
                 "pkh_end_time"      => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_endTime'],
-                "pkh_pkb_id"        => $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'],
+                "pkh_pkb_id"        => $currentRole != 'umum' ? $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'] : $data['programKerjaHarian_pktID']." | ".$data['programKerjaHarian_pkbID'],
                 "created_by"        => Auth::user()->id,
                 "updated_by"        => Auth::user()->id,
                 "created_at"        => date('Y-m-d H:i:s'),
@@ -795,6 +821,7 @@ class ProgramKerjaService
 
             $getIDHeader = DB::getPdo()->lastInsertId();
             
+            // CEK DAN INPUT KETIKA FILE ADA
             if(!empty($data['programKerjaHarian_file'])) {
                 for($i = 0; $i < count($data['programKerjaHarian_file']); $i++) {
                     $dataSimpan_file    = array(
@@ -807,6 +834,30 @@ class ProgramKerjaService
                     DB::table('proker_harian_file')->insert($dataSimpan_file);
                 }
             }
+
+            // CEK KETIKA CURRENT ROLE = UMUM MAKA INSERT KE PROKER BULANAN
+            if($currentRole == 'umum') {
+                // INSERT TO PROKER BULANAN
+                $data_simpan_proker_bulanan  = [
+                    "uuid"              => Str::uuid(),
+                    "pkb_title"         => $data['programKerjaHarian_act_text'],
+                    "pkb_start_date"    => $data['programKerjaHarian_startDate'],
+                    "pkb_description"   => $data['programKerjaHarian_description'],
+                    "pkb_pkt_id"        => $data['programKerjaHarian_pktID']. " | Lainnya",
+                    "pkb_employee_id"   => $data['programKerjaHarian_gd_picID'],
+                    "pkb_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
+                    "pkb_end_time"      => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_endTime'],
+                    "created_by"        => Auth::user()->id,
+                    "updated_by"        => Auth::user()->id,
+                    "created_at"        => date('Y-m-d H:i:s'),
+                    "updated_at"        => date('Y-m-d H:i:s'),
+                ];
+
+                DB::table('proker_bulanan')->insert($data_simpan_proker_bulanan);
+            } else {
+                // DO NOTHING
+            }
+
         } else if($data['programKerjaHarian_jenisTrans'] == 'edit') {
             $data_where     = array(
                 "uuid"      => $data['programKerjaHarian_ID'],
@@ -832,7 +883,11 @@ class ProgramKerjaService
                 "errMsg"    => null
             );
             if($data['programKerjaHarian_jenisTrans'] == 'add') {
-                LogHelper::create("add", "Berhasil Menambahkan Program Kerja Harian", $ip);
+                if($currentRole != 'umum') {
+                    LogHelper::create("add", "Berhasil Menambahkan Program Kerja Harian ID : ".$getIDHeader, $ip);
+                } else {
+                    LogHelper::create("add", "Berhasil Menambahkan Proggam Kerja Harian Umum ID : ".$getIDHeader, $ip);
+                }
             } else if($data['programKerjaHarian_jenisTrans'] == 'edit') {
                 LogHelper::create("edit", "Berhasil Mengubah Program Kerja Harian id : ".$data['programKerjaHarian_ID'], $ip);
             }

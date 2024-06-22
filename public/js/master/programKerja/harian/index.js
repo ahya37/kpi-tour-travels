@@ -76,7 +76,7 @@ function showTable(idTable, data)
 {
     $("#"+idTable).DataTable().clear().destroy();
     if(idTable == 'tableListHarian') {
-        console.log(data);
+        // console.log(data);
         $("#"+idTable).DataTable({
             language    : {
                 "zeroRecords"   : "Data Tidak ada, Silahkan tambahkan beberapa data..",
@@ -168,6 +168,7 @@ function showModal(idModal, jenis, value)
             showSelect('programKerjaHarianDivisi', '%', '', true);
             showSelect('programKerjaTahunanID', '', '', true);
             showSelect('programKerjaBulananID','','', true);
+            showSelect('prograKerjaHarianPIC', '', '', true);
         } else {
             showSelect('programKerjaBulananID','%','', true);
         }
@@ -194,6 +195,8 @@ function showModal(idModal, jenis, value)
                 var header  = xhr.data.header[0];
                 var detail  = xhr.data.detail;
 
+                console.log(header);
+
                 // UPDATE HEADER
                 $("#programKerjaHarianTanggal").data('daterangepicker').setStartDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
                 $("#programKerjaHarianTanggal").data('daterangepicker').setEndDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
@@ -201,8 +204,15 @@ function showModal(idModal, jenis, value)
                 $("#programKerjaHarianWaktuAkhir").val(header.pkh_end_time);
                 $("#programKerjaHarianJudul").val(header.pkh_title);
                 
-                showSelect('programKerjaBulananID', '%', header.pkb_id, false);
-                showSelect('programKerjaBulananAktivitas', header.pkb_id, header.pkbd_id, false);
+                if(current_role == 'umum') {
+                    showSelect('programKerjaHarianDivisi', '%', header.pkh_gd_id, false);
+                    showSelect('prograKerjaHarianPIC', header.pkh_gd_id, header.pkh_employee_id, false);
+                    // showSelect('programKerjaTahunanID', '', '', false);
+                    // showSelect('programKerjaBulananID','', '', false);
+                } else {
+                    showSelect('programKerjaBulananID', '%', header.pkb_id, false);
+                    showSelect('programKerjaBulananAktivitas', header.pkb_id, header.pkbd_id, false);
+                }
 
                 // UPDATE DETAIL
                 if( detail.length > 0 ) {
@@ -259,6 +269,7 @@ function closeModal(idModal)
 
 function showSelect(idSelect, valueCari, valueSelect, isAsync)
 {
+    var jenisTrans    = $("#btnSimpan").val();
     $("#"+idSelect).select2({
         theme   : 'bootstrap4',
     });
@@ -329,13 +340,60 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                 $("#"+idSelect).html(html);
                 
                 if(valueSelect != '') {
-                    $("#"+idSelect).val(valueSelect).trigger('change');
+                    $("#"+idSelect).val(valueSelect);
                 }
+
+                $("#"+idSelect).on('change', function(){
+                    showSelect('prograKerjaHarianPIC', this.value, '', true);
+                    showSelect('programKerjaTahunanID', this.value, '', true);
+                });
             })
             .catch((err) => {
                 console.log(err);
             })
 
+        $("#"+idSelect).html(html);
+    } else if(idSelect == 'prograKerjaHarianPIC') {
+        var html    = "<option selected disabled>Pilih PIC / Penanggung Jawab</option>";
+
+        if(valueCari != '') {
+            var url     = "/master/programkerja/bulanan/getDataPICByGroupDivisionID";
+            var data    = {'GroupDivisionID'   : valueCari};
+            var type    = "GET";
+            
+            if(isAsync === true) {
+                var message     = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
+            } else {
+                var message     = "";
+            }
+            
+            transData(url, type, data, message, isAsync)
+                .then((success)=>{
+                    $.each(success.data, function(i,item){
+                        const pic_id    = item.employee_id;
+                        const pic_name  = item.employee_name;
+
+                        html    += "<option value='" +pic_id+ "'>" + pic_name + "</option>";
+                    })
+                    $("#"+idSelect).html(html);
+
+                    if(valueSelect != '') {
+                        // JIKA VALUE SELECT != NULL MAKA ISI VALUE SELECT
+                        $("#"+idSelect).val(valueSelect).trigger('change');
+                    } else {
+                        // JIKA VALUE SELECT == '' MAKA OPEN SELECT2 INI
+                        $("#"+idSelect).select2('open');
+                    }
+                    Swal.close();
+
+                    $("#"+idSelect).on('change', function() {
+                        $("#programKerjaTahunanID").select2('open');
+                    })
+                })
+                .catch((xhr)=>{
+                    Swal.close();
+                })
+        }
         $("#"+idSelect).html(html);
     } else if(idSelect == 'programKerjaTahunanID') {
         // RESET FORM
@@ -367,6 +425,15 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
         } else {
             $("#"+idSelect).html(html);
         }
+
+        $("#"+idSelect).on('change', function(){
+            showSelect('programKerjaBulananID', this.value, '', true);
+        });
+
+        // -- NOTE : BUG DI MDOAL TIDAK MAU SCROLL MODAL
+        // $("#"+idSelect).on('change', function(){
+        //     $("#programKerjaBulananID").select2('open');
+        // })
     } else if(idSelect == 'programKerjaBulananID') {
         // RESET FORM
         showSelect('programKerjaBulananAktivitas', '', '', true);
@@ -391,7 +458,7 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
             } else {
                 var message     = "";
             }
-            transData(url, type, data, "", isAsync)
+            transData(url, type, data, message, isAsync)
                 .then(function(xhr){
                     Swal.close();
                     var getDataHeader     = xhr.data.header;
@@ -407,6 +474,8 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
     
                     if(valueSelect != '') {
                         $("#"+idSelect).val(valueSelect);
+                    } else {
+                        $("#"+idSelect).select2('open');
                     }
                 })
                 .catch(function(xhr){
@@ -417,8 +486,13 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
             var html    = "<option selected disabled>Pilih Program Kerja Bulanan</option>";
 
             if(valueCari != '') {
-                const url   = site_url + "/getProgramKerjaBulanan/"+valueCari;
-                const type  = "GET";
+                var url   = site_url + "/getProgramKerjaBulanan/"+valueCari;
+                var type  = "GET";
+                // if(isAsync === true) {
+                //     var message = Swal.fire({title : 'Data Sedang Dimuat'});Swal.showLoading();
+                // } else {
+                //     var message = "";
+                // }
                 
                 transData(url, type, '', '', isAsync)
                     .then((success)=> {
@@ -434,6 +508,8 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                         html    += "<option value='Lainnya'>Lainnya</option>";
 
                         $("#"+idSelect).html(html);
+                        // CLOSE MODAL
+                        Swal.close();
 
                         if(valueSelect != '') {
                             $("#"+idSelect).val(valueSelect).trigger('change');
@@ -511,21 +587,50 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
 
 function doSimpan(jenis) 
 {
-    var programKerjaHarian_startDate    = $("#programKerjaHarianTanggal");
-    var programKerjaHarian_startTime    = $("#programKerjaHarianWaktuMulai");
-    var programKerjaHarian_endTime      = $("#programKerjaHarianWaktuAkhir");
-    var programKerjaHarian_pkbID        = $("#programKerjaBulananID");
-    var programKerjaHarian_pkbSeq       = $("#programKerjaBulananAktivitas");
-    var programKerjaHarian_description  = $("#programKerjaHarianJudul");
-    var programKerjaHarian_id           = $("#programKerjaHarianID");
-    var programKerjaHarian_text         = $("#programKerjaBulananAktivitasText");
-    var programKerjaHarian_file         = penampung;
+    var programKerjaHarian_startDate        = $("#programKerjaHarianTanggal");
+    var programKerjaHarian_startTime        = $("#programKerjaHarianWaktuMulai");
+    var programKerjaHarian_endTime          = $("#programKerjaHarianWaktuAkhir");
+    var programKerjaHarian_pkbID            = $("#programKerjaBulananID");
+    var programKerjaHarian_pkbSeq           = $("#programKerjaBulananAktivitas");
+    var programKerjaHarian_description      = $("#programKerjaHarianJudul");
+    var programKerjaHarian_id               = $("#programKerjaHarianID");
+    var programKerjaHarian_text             = $("#programKerjaBulananAktivitasText");
+    var programKerjaHarian_prokerTahunanID  = $("#programKerjaTahunanID");
+    var programKerjaHarian_divisi           = $("#programKerjaHarianDivisi");
+    var programKerjaHarian_divisi_pic       = $("#prograKerjaHarianPIC");
+    var programKerjaHarian_file             = penampung;
 
-    if(programKerjaHarian_pkbID.val() == null) {
+    if(current_role == 'umum' && programKerjaHarian_divisi.val() == null) {
         Swal.fire({
             icon    : 'error',
             title   : 'Terjadi Kesalahan',
-            text    : 'Program Bulanan harus dipilih',
+            text    : 'Divisi Harus Dipilih'
+        }).then((results)=>{
+            programKerjaHarian_divisi.select2('open')
+        })
+    } else if(current_role == 'umum' && programKerjaHarian_divisi_pic.val() == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'PIC Harus Dipilih'
+        }).then((results)=>{
+            programKerjaHarian_divisi_pic.select2('open')
+        })
+    } else if(current_role == 'umum' && programKerjaHarian_prokerTahunanID.val() == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Program Kerja Tahunan Harus Dipilih'
+        }).then((results)=>{
+            if(results.isConfirmed) {
+                programKerjaHarian_prokerTahunanID.select2('open');
+            }
+        })
+    } else if(programKerjaHarian_pkbID.val() == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Program Bulanan Harus Dipilih',
         }).then((results)   => {
             if(results.isConfirmed) {
                 programKerjaHarian_pkbID.select2('open');
@@ -535,17 +640,27 @@ function doSimpan(jenis)
         Swal.fire({
             icon    : 'error',
             title   : 'Terjadi Kesalahan',
-            text    : 'Jenis Pekerjaan harus dipilih',
+            text    : 'Jenis Pekerjaan Harus Dipilih',
         }).then((results)   => {
             if(results.isConfirmed) {
                 programKerjaHarian_pkbSeq.select2('open');
+            }
+        })
+    } else if(programKerjaHarian_pkbID.val() == 'Lainnya' && programKerjaHarian_text.val() == '') {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Jenis Pekerjaan Harus Diisi'
+        }).then((results)=>{
+            if(results.isConfirmed) {
+                programKerjaHarian_text.focus();
             }
         })
     } else if(programKerjaHarian_description.val() == '') {
         Swal.fire({
             icon    : 'error',
             title   : 'Terjadi Kesalahan',
-            text    : 'Tulis Deskripsi Pekrerjaan harian',
+            text    : '',
         }).then((results)   => {
             if(results.isConfirmed) {
                 programKerjaHarian_description.focus();
@@ -563,6 +678,9 @@ function doSimpan(jenis)
             "programKerjaHarian_file"           : penampung.length > 0 ? penampung : [],
             "programKerjaHarian_jenisTrans"     : jenis,
             "programKerjaHarian_act_text"       : programKerjaHarian_text.val(),
+            "programKerjaHarian_pktID"          : current_role == 'umum' ? programKerjaHarian_prokerTahunanID.val() : '',
+            "programKerjaHarian_gdID"           : current_role == 'umum' ? programKerjaHarian_divisi.val() : '',
+            "programKerjaHarian_gd_picID"       : current_role == 'umum' ? programKerjaHarian_divisi_pic.val() : '',
         };
         
         var url         = getURL() + "/doSimpanTransHarian";
@@ -580,7 +698,7 @@ function doSimpan(jenis)
                     if(results.isConfirmed) {
                         closeModal('modalForm')
                         isClick = 0;
-                        showTable('tableListHarian');
+                        showTable('tableListHarian', '%');
                     }
                 })
             })
