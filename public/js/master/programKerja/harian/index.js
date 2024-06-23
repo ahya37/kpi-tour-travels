@@ -157,89 +157,88 @@ function showModal(idModal, jenis, value)
     showDropzone;
     
     if(jenis == 'add'){
-        $("#"+idModal).modal({backdrop: 'static', keyboard: false});
-        $("#"+idModal).modal('show');
-
-        
-        showSelect('programKerjaBulananAktivitas','','');
-
+        showSelect('programKerjaBulananAktivitas','','', true);
         // CHECK APAKAH CURRENT ROLE == 'UMUM'?
         if(current_role == 'umum') {
-            showSelect('programKerjaHarianDivisi', '%', '', true);
+            showSelect('programKerjaHarianDivisi', '%', '', false);
             showSelect('programKerjaTahunanID', '', '', true);
             showSelect('programKerjaBulananID','','', true);
-            showSelect('prograKerjaHarianPIC', '', '', true);
+            showSelect('programKerjaHarianPIC', '', '', true);
         } else {
             showSelect('programKerjaBulananID','%','', true);
         }
 
         $("#formUpload").show();
         $("#formListUpload").hide();
-    } else if(jenis == 'edit') {
-        $("#formUpload").hide();
-        $("#formListUpload").show();
-        $("#programKerjaHarianID").val(value);
-        var url     = getURL() + "/detailDataProkerHarian";
-        var data    = {
-            "pkh_id"    : value,
-        };
-        var type    = "GET";
-        var isAsync = true;
-        var customMessage   = Swal.fire({title:"Data Sedang Dimuat"});Swal.showLoading();
 
-        transData(url, type, data, customMessage, isAsync)
-            .then(function(xhr){
-                Swal.close();
-                $("#"+idModal).modal({backdrop: 'static', keyboard: false});
-                $("#"+idModal).modal('show');
-                var header  = xhr.data.header[0];
-                var detail  = xhr.data.detail;
+        $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+        $("#"+idModal).modal('show');
 
-                console.log(header);
+        Swal.close();
+    } 
+    // else if(jenis == 'edit') {
+    //     $("#formUpload").hide();
+    //     $("#formListUpload").show();
+    //     $("#programKerjaHarianID").val(value);
+    //     var url     = getURL() + "/detailDataProkerHarian";
+    //     var data    = {
+    //         "pkh_id"    : value,
+    //     };
+    //     var type    = "GET";
+    //     var isAsync = true;
+    //     var customMessage   = Swal.fire({title:"Data Sedang Dimuat"});Swal.showLoading();
 
-                // UPDATE HEADER
-                $("#programKerjaHarianTanggal").data('daterangepicker').setStartDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-                $("#programKerjaHarianTanggal").data('daterangepicker').setEndDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-                $("#programKerjaHarianWaktuMulai").val(header.pkh_start_time);
-                $("#programKerjaHarianWaktuAkhir").val(header.pkh_end_time);
-                $("#programKerjaHarianJudul").val(header.pkh_title);
+    //     transData(url, type, data, customMessage, isAsync)
+    //         .then(function(xhr){
+    //             Swal.close();
+    //             $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+    //             $("#"+idModal).modal('show');
+    //             var header  = xhr.data.header[0];
+    //             var detail  = xhr.data.detail;
+
+    //             // UPDATE HEADER
+    //             $("#programKerjaHarianTanggal").data('daterangepicker').setStartDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+    //             $("#programKerjaHarianTanggal").data('daterangepicker').setEndDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+    //             $("#programKerjaHarianWaktuMulai").val(header.pkh_start_time);
+    //             $("#programKerjaHarianWaktuAkhir").val(header.pkh_end_time);
+    //             $("#programKerjaHarianJudul").val(header.pkh_title);
                 
-                if(current_role == 'umum') {
-                    showSelect('programKerjaHarianDivisi', '%', header.pkh_gd_id, false);
-                    showSelect('prograKerjaHarianPIC', header.pkh_gd_id, header.pkh_employee_id, false);
-                    // showSelect('programKerjaTahunanID', '', '', false);
-                    // showSelect('programKerjaBulananID','', '', false);
-                } else {
-                    showSelect('programKerjaBulananID', '%', header.pkb_id, false);
-                    showSelect('programKerjaBulananAktivitas', header.pkb_id, header.pkbd_id, false);
-                }
+    //             if(current_role == 'umum') {
+    //                 showSelect('programKerjaHarianDivisi', '%', header.pkh_gd_id, false);
+    //                 showSelect('prograKerjaHarianPIC', header.pkh_gd_id, header.pkh_employee_id, false);
+    //                 // showSelect('programKerjaTahunanID', '', '', false);
+    //                 // showSelect('programKerjaBulananID','', '', false);
+    //             } else {
+    //                 showSelect('programKerjaBulananID', '%', header.pkb_id, false);
+    //                 showSelect('programKerjaBulananAktivitas', header.pkb_id, header.pkbd_id, false);
+    //             }
 
-                // UPDATE DETAIL
-                if( detail.length > 0 ) {
-                    for(var i = 0; i < detail.length; i++) {
-                        var seq         = i + 1;
-                        var namaFile    = detail[i]['pkhf_name'].length > 80 ? detail[i]['pkhf_name'].substring(0, 80) + "..." : detail[i]['pkhf_name'];
-                        var pathFile    = detail[i]['pkhf_path'].split('/')[1];
-                        var dataFile    = value + " | " + seq;
-                        var button_delete       = "<button class='btn btn-sm btn-danger' type='button' value='"+dataFile+"'><i class='fa fa-trash'></i></button>";
-                        var url         = getURL() + "/downloadFile/" + pathFile;
+    //             // UPDATE DETAIL
+    //             if( detail.length > 0 ) {
+    //                 for(var i = 0; i < detail.length; i++) {
+    //                     var seq         = i + 1;
+    //                     var namaFile    = detail[i]['pkhf_name'].length > 80 ? detail[i]['pkhf_name'].substring(0, 80) + "..." : detail[i]['pkhf_name'];
+    //                     var pathFile    = detail[i]['pkhf_path'].split('/')[1];
+    //                     var dataFile    = value + " | " + seq;
+    //                     var button_delete       = "<button class='btn btn-sm btn-danger' type='button' value='"+dataFile+"'><i class='fa fa-trash'></i></button>";
+    //                     var url         = getURL() + "/downloadFile/" + pathFile;
 
-                        $("#tableListFile").DataTable().row.add([
-                            seq,
-                            "<a href='"+url+"' title='"+detail[i]['pkhf_name']+"' target='_blank'>" + namaFile + "</a>",
-                            button_delete
-                        ]).draw('false');
-                    }
-                }
-            })
-            .catch(function(xhr){
-                Swal.fire({
-                    icon    : 'error',
-                    title   : 'Terjadi Kesalahan',
-                    text    : xhr.statusText,
-                });
-            });
-    }
+    //                     $("#tableListFile").DataTable().row.add([
+    //                         seq,
+    //                         "<a href='"+url+"' title='"+detail[i]['pkhf_name']+"' target='_blank'>" + namaFile + "</a>",
+    //                         button_delete
+    //                     ]).draw('false');
+    //                 }
+    //             }
+    //         })
+    //         .catch(function(xhr){
+    //             Swal.fire({
+    //                 icon    : 'error',
+    //                 title   : 'Terjadi Kesalahan',
+    //                 text    : xhr.statusText,
+    //             });
+    //         });
+    // }
 }
 
 function closeModal(idModal)
@@ -322,262 +321,223 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                 console.log(err.responseJSON);
             })
     } else if(idSelect == 'programKerjaHarianDivisi') {
-        var html    = "<option selected disabled>Pilih Group Divisi</option>";
-
+        var html    = "<option selected disabled>Pilih Divisi</option>";
+        
         // GET DATA
-        const url   = "/master/data/trans/get/groupDivision";
-        const type  = "GET";
+        var url     = "/master/data/trans/get/groupDivision";
+        var type    = "GET";
+        var message = "";
+        var data    = valueCari;
 
-        transData(url, type, valueCari, '', true)
-            .then((success) => {
-                var data    = success.data;
-                $.each(data, function(i,item){
-                    var groupDivision_name  = item.name;
-                    var groupDivision_id    = item.id;
+        // START IF
+        if(valueCari != '') {
+            transData(url, type, data, message, isAsync)
+                .then(function(success){
+                    var getData     = success.data;
+                    // LOOP INTO SELECT
+                    $.each(getData, function(i,item){
+                        var divisi_id   = item.id;
+                        var divisi_name = item.name;
 
-                    html    += "<option value='" + groupDivision_id + "'>" + groupDivision_name + "</option>";
+                        // INSERT TO HTML LOOP
+                        html    += "<option value='" + divisi_id + "'>" + divisi_name + "</option>";
+                    })
+
+                    // REPALCE ON HTML SELECT
+                    $("#"+idSelect).html(html);
+
+                    // VALIDATE IF VALUESELECT IS NOT EMPTY
+                    if(valueSelect == '') {
+                        $("#"+idSelect).on('change', function(){
+                            showSelect('programKerjaHarianPIC', this.value, '', true);
+                        });
+                    }
                 })
-                $("#"+idSelect).html(html);
-                
-                if(valueSelect != '') {
-                    $("#"+idSelect).val(valueSelect);
-                }
-
-                $("#"+idSelect).on('change', function(){
-                    showSelect('prograKerjaHarianPIC', this.value, '', true);
-                    showSelect('programKerjaTahunanID', this.value, '', true);
-                });
-            })
-            .catch((err) => {
-                console.log(err);
-            })
-
-        $("#"+idSelect).html(html);
-    } else if(idSelect == 'prograKerjaHarianPIC') {
-        var html    = "<option selected disabled>Pilih PIC / Penanggung Jawab</option>";
+                .catch(function(err){
+                    console.log(err.responseJSON);
+                })
+        } else {
+            $("#"+idSelect).html(html);
+        }
+        // ENDIF VALUECARI
+    } else if(idSelect == 'programKerjaHarianPIC') {
+        var html    = "<option selected disabled>Pilih PIC / Penanggungjawab</option>";
 
         if(valueCari != '') {
             var url     = "/master/programkerja/bulanan/getDataPICByGroupDivisionID";
-            var data    = {'GroupDivisionID'   : valueCari};
             var type    = "GET";
-            
-            if(isAsync === true) {
-                var message     = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
-            } else {
-                var message     = "";
-            }
-            
-            transData(url, type, data, message, isAsync)
-                .then((success)=>{
-                    $.each(success.data, function(i,item){
-                        const pic_id    = item.employee_id;
-                        const pic_name  = item.employee_name;
+            var data    = { "GroupDivisionID" : valueCari };
+            if(isAsync === true) { var message = Swal.fire({ title : "Data Sedang Dimuat" });Swal.showLoading(); } else { var message = ""; }
 
-                        html    += "<option value='" +pic_id+ "'>" + pic_name + "</option>";
+            // GET DATA
+            transData(url, type, data, message, isAsync)
+                .then((xhr)=>{
+                    var getData     = xhr.data;
+
+                    $.each(getData, function(i,item){
+                        var emp_id      = item.employee_id;
+                        var emp_name    = item.employee_name;
+
+                        html    += "<option value='" + emp_id + "'>" + emp_name + "</option>";
                     })
+
                     $("#"+idSelect).html(html);
 
-                    if(valueSelect != '') {
-                        // JIKA VALUE SELECT != NULL MAKA ISI VALUE SELECT
-                        $("#"+idSelect).val(valueSelect).trigger('change');
-                    } else {
-                        // JIKA VALUE SELECT == '' MAKA OPEN SELECT2 INI
+                    if(valueSelect == '') {
+                        Swal.close();
                         $("#"+idSelect).select2('open');
-                    }
-                    Swal.close();
 
-                    $("#"+idSelect).on('change', function() {
-                        $("#programKerjaTahunanID").select2('open');
-                    })
+                        $("#"+idSelect).on('change', function(){
+                            var divisi  = $("#programKerjaHarianDivisi").val();
+                            showSelect('programKerjaTahunanID', divisi, '', true);
+                        })
+                    }
                 })
                 .catch((xhr)=>{
                     Swal.close();
+                    console.log(xhr);
                 })
-        }
-        $("#"+idSelect).html(html);
-    } else if(idSelect == 'programKerjaTahunanID') {
-        // RESET FORM
-        showSelect('programKerjaBulananAktivitas', '', '', true);
-        showSelect('programKerjaBulananID', '', '', true);
-        $("#programKerjaBulananAktivitasText").val(null);
 
-        // SHOW FORM
-        var html    = "<option selected disabled>Pilih Program Kerja Tahunan</option>";
-
-        if(valueCari != '' ) {
-            var url   = site_url + "/getProgramKerjaTahunan/"+valueCari;
-
-            transData(url, "GET", '', '', isAsync)
-            .then((success)=>{
-                $.each(success.data, function(i,item){
-                    html    += "<option value='" + item.pkt_id + "'>" + item.pkt_title + "</option>";
-                });
-
-                $("#"+idSelect).html(html);
-
-                if(valueSelect != '') {
-                    $("#"+idSelect).val(valueSelect).trigger('change');
-                }
-            })
-            .catch((err)=> {
-                $("#"+idSelect).html(html);
-            })
         } else {
             $("#"+idSelect).html(html);
         }
 
-        $("#"+idSelect).on('change', function(){
-            showSelect('programKerjaBulananID', this.value, '', true);
-        });
-
-        // -- NOTE : BUG DI MDOAL TIDAK MAU SCROLL MODAL
-        // $("#"+idSelect).on('change', function(){
-        //     $("#programKerjaBulananID").select2('open');
-        // })
-    } else if(idSelect == 'programKerjaBulananID') {
-        // RESET FORM
-        showSelect('programKerjaBulananAktivitas', '', '', true);
-        $("#programKerjaBulananAktivitasText").val(null);
+    } else if(idSelect == 'programKerjaTahunanID') {
+        var html    = "<option selected disabled>Pilih Program Kerja Tahunan</option>";
         
-        if(current_role != 'umum') {
-            var html    = [
-                "<option selected disabled>Pilih Program Bulanan</option>",
-            ];
-            
-            // GET DATA
-            var url     = getURL()+"/cariDataProkerBulanan";
-            var data    = {
-                "pkb_uuid"  : valueCari,
-            };
+        if(valueCari != '') {
+            var groupDivisiID   = valueCari;
+            var url     = site_url + "/getProgramKerjaTahunan/"+groupDivisiID;
             var type    = "GET";
-            if(isAsync === true) {
-                var message     =   Swal.fire({
-                                        title    : 'Data Sedang Dimuat..',
-                                    });
-                                    Swal.showLoading();
-            } else {
-                var message     = "";
-            }
+            var data    = "";
+            if(isAsync === true) { var message = Swal.fire({ title:'Data Sedang Dimuat' }); Swal.showLoading(); } else { var message = ""; }
+
             transData(url, type, data, message, isAsync)
-                .then(function(xhr){
-                    Swal.close();
-                    var getDataHeader     = xhr.data.header;
-                    $.each(getDataHeader, function(i,item){
-                        html    += "<option value='" + item['pkb_uuid'] + "'>  [" + moment(item['pkb_date'], 'YYYY-MM-DD').format('DD-MM-YYYY') + "] "+ item['pkb_title'] +"</option>";
+                .then((success)=>{
+                    var getData     = success.data;
+
+                    $.each(getData, function(i, item){
+                        var pkt_id      = item.pkt_id;
+                        var pkt_title   = item.pkt_title;
+
+                        html    += "<option value='" + pkt_id + "'>" + pkt_title + "</option>";
                     })
-    
+
+                    $("#"+idSelect).html(html);
+
+                    if(valueSelect == '') {
+                        Swal.close();
+                        $("#"+idSelect).select2('open');
+                    }
+
+                    $("#"+idSelect).on('change', function(){
+                        showSelect('programKerjaBulananID', this.value, '', isAsync);
+                    });
+                })
+                .catch((err)=>{
+                    console.log(err.responseJSON);
+                    if(valueSelect == '') {
+                        Swal.close();
+                    }
+                })
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'programKerjaBulananID') {
+        // BESOK KERJAIN INI
+        var html    = "<option selected disabled>Pilih Program Kerja Bulanan</option>";
+
+        if(valueCari != '') {
+            var url     = site_url + "/cariDataProkerBulanan";
+            var data    = { "pkt_uid" : valueCari, "pkb_uid": "%"};
+            var type    = "GET";
+            if(isAsync === true) { var message = Swal.fire({title: 'Data Sedang Dimuat'});Swal.showLoading(); } else { var message = ""; }
+
+            transData(url, type, data, message, isAsync)
+                .then((success)=>{
+                    var header  = success.data.header;
+
+                    $.each(header, function(i,item){
+                        var header_pkb_uuid     = item.pkb_uuid;
+                        var header_pkb_date     = item.pkb_date;
+                        var header_pkb_title    = item.pkb_title;
+
+                        html    += "<option value='" + header_pkb_uuid + "'>[" + header_pkb_date + "] " + header_pkb_title + "</option>";
+                    })
+
                     if(current_role == 'umum') {
                         html    += "<option value='Lainnya'>Lainnya</option>";
                     }
-    
+
                     $("#"+idSelect).html(html);
-    
-                    if(valueSelect != '') {
-                        $("#"+idSelect).val(valueSelect);
-                    } else {
+
+                    if(valueSelect == '') {
+                        Swal.close();
                         $("#"+idSelect).select2('open');
+
+                        // $("#"+idSelect).on('change', function(){
+                        //     var selectValue     = this.value;
+                        //     if(selectValue != 'Lainnya') {
+                        //         // SHOW N HIDE FORM
+                        //         $("#formProgramKerjaBulananAktivitas").show();
+                        //         $("#formProgramKerjaBulananAktivitasText").hide();
+                        //         $("#"+idSelect).on('select2:select', function() {
+                        //             showSelect('programKerjaBulananAktivitas', this.value, '', true);
+                        //         })
+                        //     } else {
+                        //         $("#formProgramKerjaBulananAktivitas").hide();
+                        //         $("#formProgramKerjaBulananAktivitasText").show();
+                        //         $("#"+idSelect).on('select2:select', function(){
+                        //             $("#programKerjaBulananAktivitasText").focus();
+                        //         })
+                        //     }
+                        // })
                     }
                 })
-                .catch(function(xhr){
+                .catch((err)=> {
                     Swal.close();
+                    console.log(err);
                     $("#"+idSelect).html(html);
-                });
-        } else if(current_role == 'umum') {
-            var html    = "<option selected disabled>Pilih Program Kerja Bulanan</option>";
-
-            if(valueCari != '') {
-                var url   = site_url + "/getProgramKerjaBulanan/"+valueCari;
-                var type  = "GET";
-                // if(isAsync === true) {
-                //     var message = Swal.fire({title : 'Data Sedang Dimuat'});Swal.showLoading();
-                // } else {
-                //     var message = "";
-                // }
-                
-                transData(url, type, '', '', isAsync)
-                    .then((success)=> {
-                        
-                        $.each(success.data, function(i,item){
-                            var tgl     = moment(item.pkb_date, 'YYYY-MM-DD').format('DD-MM-YYYY');
-                            var text    = "["+tgl+"] "+item.pkb_title;
-                            var id      = item.pkb_id;
-
-                            html        += "<option value='" + id + "'>" + text + "</option>";
-                        })
-
-                        html    += "<option value='Lainnya'>Lainnya</option>";
-
-                        $("#"+idSelect).html(html);
-                        // CLOSE MODAL
-                        Swal.close();
-
-                        if(valueSelect != '') {
-                            $("#"+idSelect).val(valueSelect).trigger('change');
-                        }
-                    })
-                    .catch((error)=> {
-                        console.log(error.responseJSON);
-                        $("#"+idSelect).html(html);
-                    })
-            } else {
-                $("#"+idSelect).html(html);
-            }
-
-            $("#"+idSelect).on('select2:select', function(){
-                $("#programKerjaBulananAktivitasText").focus();
-            })
+                }) 
+        } else {
+            $("#"+idSelect).html(html);
         }
     } else if(idSelect == 'programKerjaBulananAktivitas') {
-        var html    = "<option selected disabled>Jenis Pekerjaan</option>";
+        var html    = "<option selected disabled>Pilih Jenis Pekerjaan</option>";
 
         if(valueCari != '') {
-            // console.log({idSelect, valueCari, valueSelect, isAsync});
-            if(valueCari != 'Lainnya') {
-                $("#formProgramKerjaBulananAktivitas").show();
-                $("#formProgramKerjaBulananAktivitasText").hide();
-                var url     = getURL()+"/cariDataProkerBulanan";
-                var data    = {
-                    "pkb_uuid"  : valueCari,
-                };
-                var type    = "GET";
-                var isAsync = isAsync;
-                if(isAsync === true) {
-                    var message     =   Swal.fire({
-                                            title    : 'Data Sedang Dimuat..',
-                                        });
-                                        Swal.showLoading();
-                } else {
-                    var message     = "";
-                }
-                transData(url, type, data, message, isAsync)
-                    .then(function(xhr){
-                        var getDataDetail     = xhr.data.detail;
-                        $.each(getDataDetail, function(i,item){
-                            html    += "<option value='"+item['pkbd_id']+"'>" + item['pkb_detail'] + "</option>";
-                        })
-                        $("#"+idSelect).html(html);
-                        if(isAsync === true) {
-                            Swal.close();
-                            $("#"+idSelect).select2('open');
-                        }
+            // GET DATA
+            var url     = site_url + "/cariDataProkerBulanan";
+            var data    = { "pkt_uid" : "%", "pkb_uid": valueCari};
+            var type    = "GET";
+            if(isAsync === true) { var message = Swal.fire({title : "Data Sedang Dimuat"}); Swal.showLoading(); } else { var message = ""; }
 
-                        if(valueSelect != '') {
-                            $("#"+idSelect).val(valueSelect);
-                        }
-                    })
-                    .catch(function(xhr){
-                        Swal.close();
-                        console.log(xhr);
+            transData(url, type, data, message, isAsync)
+                .then((success)=>{
+                    var detail  = success.data.detail;
+                    
+                    $.each(detail, function(i,item){
+                        var pkb_detail_id   = item.pkbd_id;
+                        var pkb_detail_name = item.pkb_detail;
+
+                        html    += "<option value='" + pkb_detail_id + "'>" + pkb_detail_name + "</option>";
                     });
-                $("#"+idSelect).html(html);
-                $("#"+idSelect).on('select2:select', function(){
-                    $("#programKerjaHarianJudul").focus();
+
+                    $("#"+idSelect).html(html);
+
+                    if(valueSelect === '') {
+                        Swal.close();
+                        $("#"+idSelect).select2('open');
+                        $("#"+idSelect).on('select2:select', function(){
+                            $("#programKerjaHarianJudul").focus();
+                        })
+                    } else {
+                        $("#"+idSelect).val(valueSelect).trigger('change');
+                    }
                 })
-            } else {
-                $("#formProgramKerjaBulananAktivitas").hide();
-                $("#formProgramKerjaBulananAktivitasText").show();
-                $("#programKerjaBulananAktivitasText").focus();
-            }
+                .catch((err)=>{
+                    console.log(err.responseJSON);
+                })
         } else {
             $("#"+idSelect).html(html);
         }
@@ -597,8 +557,10 @@ function doSimpan(jenis)
     var programKerjaHarian_text             = $("#programKerjaBulananAktivitasText");
     var programKerjaHarian_prokerTahunanID  = $("#programKerjaTahunanID");
     var programKerjaHarian_divisi           = $("#programKerjaHarianDivisi");
-    var programKerjaHarian_divisi_pic       = $("#prograKerjaHarianPIC");
+    var programKerjaHarian_divisi_pic       = $("#programKerjaHarianPIC");
     var programKerjaHarian_file             = penampung;
+
+    console.log(programKerjaHarian_divisi_pic.val());
 
     if(current_role == 'umum' && programKerjaHarian_divisi.val() == null) {
         Swal.fire({

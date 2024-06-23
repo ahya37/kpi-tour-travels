@@ -557,8 +557,9 @@ class ProgramKerjaController extends Controller
     {
         $sendData   = [
             "rolesName"     => Auth::user()->getRoleNames()[0] == ('admin' || 'umum') ? '%' : Auth::user()->getRoleNames()[0],
-            "currentDate"   => date('Y-m-d'),
-            "pkb_uuid"      => $request->all()['sendData']['pkb_uuid'],
+            "currentDate"   => '2024-05-01',
+            "pkt_uuid"      => $request->all()['sendData']['pkt_uid'],
+            "pkb_uuid"      => $request->all()['sendData']['pkb_uid'],
         ];
         $getData    = ProgramKerjaService::getProkerBulanan($sendData);
         if(count($getData) > 0)
@@ -566,25 +567,22 @@ class ProgramKerjaController extends Controller
             $header     = [];
             $detail     = [];
 
-            // PISAHIN ARRAY
-            $keyArray   = [];
-            $tempArray  = [];
             for($i = 0; $i < count($getData); $i++) {
-                if(!in_array($getData[$i]->pkb_uuid, $keyArray)) {
-                    $keyArray[$i]   = $getData[$i]->pkb_uuid;
-                    $tempArray[]  = $getData[$i];
-                }
-            }
-
-            // INSERT KE HEADER
-            // print("<pre>".print_r($tempArray, true)."</pre>");die();
-            for($j = 0; $j < count($tempArray); $j++) {
                 $header[]   = array(
-                    "pkb_uuid"  => $tempArray[$j]->pkb_uuid,
-                    "pkb_title" => $tempArray[$j]->pkb_title,
-                    "pkb_date"  => $tempArray[$j]->pkb_date,
+                    "pkb_uuid"  => $getData[$i]->pkb_uuid,
+                    "pkb_title" => $getData[$i]->pkb_title,
+                    "pkb_date"  => $getData[$i]->pkb_date,
                 );
             }
+            // REMOVE DUPLICATE HEADER
+            $header_remove_duplicate    = array_reduce($header, function($carry, $item){
+                if(!isset($carry[$item['pkb_date']])) {
+                    $carry[$item['pkb_date']] = $item;
+                }
+                return $carry;
+            }, []);
+
+            $header_remove_duplicate    = array_values($header_remove_duplicate);
 
             // INSERT KE DETAIL
             for($k = 0; $k < count($getData); $k++) {
@@ -594,11 +592,32 @@ class ProgramKerjaController extends Controller
                 );
             }
 
+            // print("<pre>" . print_r(array_unique($header), true) . "</pre>");die();
+            // PISAHIN ARRAY
+            // $keyArray   = [];
+            // $tempArray  = [];
+            // for($i = 0; $i < count($getData); $i++) {
+            //     if(!in_array($getData[$i]->pkb_uuid, $keyArray)) {
+            //         $keyArray[$i]   = $getData[$i]->pkb_uuid;
+            //         $tempArray[]  = $getData[$i];
+            //     }
+            // }
+
+            // // INSERT KE HEADER
+            // // print("<pre>".print_r($tempArray, true)."</pre>");die();
+            // for($j = 0; $j < count($tempArray); $j++) {
+            //     $header[]   = array(
+            //         "pkb_uuid"  => $tempArray[$j]->pkb_uuid,
+            //         "pkb_title" => $tempArray[$j]->pkb_title,
+            //         "pkb_date"  => $tempArray[$j]->pkb_date,
+            //     );
+            // }
+
             $output     = array(
                 "success"   => true,
                 "status"    => 200,
                 "data"      => [
-                    "header"    => $header,
+                    "header"    => $header_remove_duplicate,
                     "detail"    => $sendData['pkb_uuid'] == '%' ? [] : $detail
                 ],
             );

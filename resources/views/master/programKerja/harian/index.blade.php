@@ -150,7 +150,7 @@
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>PIC / Penanggung Jawab</label>
-                                <select name="prograKerjaHarianPIC" id="prograKerjaHarianPIC" style="width:100%;"></select>
+                                <select name="programKerjaHarianPIC" id="programKerjaHarianPIC" style="width:100%;"></select>
                             </div>
                         </div>
                     </div>
@@ -170,7 +170,7 @@
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Program Bulanan</label>
-                                <select name="programKerjaBulananID" id="programKerjaBulananID" style="width: 100%;" 
+                                <select name="programKerjaBulananID" id="programKerjaBulananID" style="width: 100%;" onchange="showSelect(`programKerjaBulananAktivitas`, this.value, '', true)"
                                 {{-- onchange="showSelect('programKerjaBulananAktivitas', this.value, '', '')" --}}
                                 ></select>
                             </div>

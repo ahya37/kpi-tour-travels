@@ -187,6 +187,8 @@ class ProgramKerjaService
         $jadwal     = $cari['jadwal'];
         $sub_divisi = $cari['sub_divisi'];
 
+        // print("<pre>" . print_r($cari, true) . "</pre>");die();
+
         // print("<pre>".print_r($data, true)."</pre>");die();
 
         // $query_list  = DB::select(
@@ -285,16 +287,15 @@ class ProgramKerjaService
                                 SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_seq,
                                 d.id as role_id,
                                 d.name as role_name,
-                                e.name as group_division_name,
-                                f.name as sub_division_name,
+                                c.name as group_division_name,
+                                e.name as sub_division_name,
                                 a.created_at
                     FROM 		proker_bulanan a
                     JOIN 		proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ', 1) = b.uid
-                    JOIN 		model_has_roles c ON a.created_by = c.model_id
-                    JOIN 		roles d ON c.role_id = d.id
-                    JOIN 		group_divisions e ON e.roles_id = d.id
-                    JOIN 		sub_divisions f ON f.division_group_id = e.id
-                ) AS pkb
+                    JOIN 		group_divisions c ON c.id = b.division_group_id
+                    JOIN 		roles d ON d.id = c.roles_id
+                    JOIN 		sub_divisions e ON e.division_group_id = c.id
+                    ) AS pkb
             WHERE 	pkb.pkb_uuid LIKE '$uuid'
             AND 	pkb.pkb_start_date BETWEEN '$tgl_awal' AND '$tgl_akhir'
             AND 	pkb.role_name LIKE '$roleName'
@@ -318,13 +319,11 @@ class ProgramKerjaService
                         SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_id_seq,
                         a.pkb_employee_id,
                         b.division_group_id as pkb_gd_id,
-                        (SELECT name FROM group_divisions WHERE id = b.division_group_id) as pkb_gd_name,
-                        e.id
+                        (SELECT name FROM group_divisions WHERE id = b.division_group_id) as pkb_gd_name
                 FROM 	proker_bulanan a
                 JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
-                JOIN 	model_has_roles c ON a.created_by = c.model_id
-                JOIN 	roles d ON c.role_id = d.id
-                JOIN 	group_divisions e ON (e.roles_id = d.id)
+                JOIN	group_divisions c ON c.id = b.division_group_id
+                JOIN 	roles d ON d.id = c.roles_id
                 WHERE 	a.uuid LIKE '$uuid'
                 AND 	d.name LIKE '$roleName'
                 ORDER BY a.created_at DESC
@@ -707,28 +706,52 @@ class ProgramKerjaService
     {
         $currentDate    = $data['currentDate'];
         $roles          = $data['rolesName'];
+        $pkt_uuid       = $data['pkt_uuid'];
         $pkb_uuid       = $data['pkb_uuid'];
 
-        $query          = DB::select(
+        // $query          = DB::select(
+        //     "
+        //     SELECT 	a.uuid as pkb_uuid,
+        //             b.id as pkbd_id,
+        //             a.pkb_title,
+        //             a.pkb_start_date as pkb_date,
+        //             b.pkbd_type as pkb_type_detail,
+        //             e.model_id as role_id,
+        //             f.name as role_name
+        //     FROM 	proker_bulanan a
+        //     JOIN  	proker_bulanan_detail b ON a.id = b.pkb_id
+        //     JOIN  	proker_tahunan c ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = c.uid
+        //     JOIN 	employees d ON d.id = c.pkt_pic_job_employee_id
+        //     JOIN 	model_has_roles e ON d.user_id = e.model_id
+        //     JOIN 	roles f ON e.role_id = f.id
+        //     WHERE 	EXTRACT(MONTH FROM a.pkb_start_date) = EXTRACT(MONTH FROM '$currentDate')
+        //     AND 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM '$currentDate')
+        //     AND 	(e.model_id LIKE '$roles' OR f.name LIKE '$roles')
+        //     AND     c.id LIKE '$pkt_uuid'
+        //     ORDER BY a.pkb_start_date, a.created_at ASC
+        //     "
+        // );
+
+        $query  = DB::select(
             "
             SELECT 	a.uuid as pkb_uuid,
                     b.id as pkbd_id,
-                    a.pkb_title,
-                    a.pkb_start_date as pkb_date,
+                    a.pkb_title, 
+                    a.pkb_start_date as pkb_date, 
                     b.pkbd_type as pkb_type_detail,
-                    e.model_id as role_id,
-                    f.name as role_name
+                    e.id as role_id,
+                    e.name as role_name
             FROM 	proker_bulanan a
-            JOIN  	proker_bulanan_detail b ON a.id = b.pkb_id
-            JOIN  	proker_tahunan c ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = c.uid
-            JOIN 	employees d ON d.id = c.pkt_pic_job_employee_id
-            JOIN 	model_has_roles e ON d.user_id = e.model_id
-            JOIN 	roles f ON e.role_id = f.id
+            JOIN 	proker_bulanan_detail b ON a.id = b.pkb_id
+            JOIN 	proker_tahunan c ON c.uid = SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1)
+            JOIN 	group_divisions d ON d.id = c.division_group_id
+            JOIN 	roles e ON e.id = d.roles_id
             WHERE 	EXTRACT(MONTH FROM a.pkb_start_date) = EXTRACT(MONTH FROM '$currentDate')
             AND 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM '$currentDate')
-            AND 	(e.model_id LIKE '$roles' OR f.name LIKE '$roles')
+            AND 	c.uid LIKE '$pkt_uuid'
             AND     a.uuid LIKE '$pkb_uuid'
-            ORDER BY a.pkb_start_date, a.created_at ASC
+            AND 	(e.name LIKE '$roles' OR e.id LIKE '$roles')
+            ORDER BY a.created_at, a.pkb_start_date ASC
             "
         );
 
@@ -807,11 +830,11 @@ class ProgramKerjaService
         if($data['programKerjaHarian_jenisTrans'] == 'add') {
             $dataSimpan_header  = array(
                 "uuid" => Str::random(30), 
-                "pkh_title"         => $currentRole != 'umum' ? $data['programKerjaHarian_description'] : $data['programKerjaHarian_act_text'],
+                "pkh_title"         => $currentRole != 'umum' ? $data['programKerjaHarian_description'] :  ($data['programKerjaHarian_pkbID'] == 'Lainnya' ? $data['programKerjaHarian_act_text'] : $data['programKerjaHarian_description']),
                 "pkh_date"          => $data['programKerjaHarian_startDate'],
                 "pkh_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
                 "pkh_end_time"      => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_endTime'],
-                "pkh_pkb_id"        => $currentRole != 'umum' ? $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'] : $data['programKerjaHarian_pktID']." | ".$data['programKerjaHarian_pkbID'],
+                "pkh_pkb_id"        => $currentRole != 'umum' ? $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'] : ($data['programKerjaHarian_pkbID'] == 'Lainnya' ? $data['programKerjaHarian_pktID']." | ".$data['programKerjaHarian_pkbID'] : $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'])  ,
                 "created_by"        => Auth::user()->id,
                 "updated_by"        => Auth::user()->id,
                 "created_at"        => date('Y-m-d H:i:s'),
@@ -836,7 +859,7 @@ class ProgramKerjaService
             }
 
             // CEK KETIKA CURRENT ROLE = UMUM MAKA INSERT KE PROKER BULANAN
-            if($currentRole == 'umum') {
+            if($currentRole == 'umum' && $data['programKerjaHarian_pkbID'] == 'Lainnya' ) {
                 // INSERT TO PROKER BULANAN
                 $data_simpan_proker_bulanan  = [
                     "uuid"              => Str::uuid(),
