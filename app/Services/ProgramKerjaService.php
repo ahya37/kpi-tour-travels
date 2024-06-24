@@ -230,7 +230,8 @@ class ProgramKerjaService
                     pkb.pkb_end_date,
                     pkb.pkb_pkt_uuid,
                     pkb.pkb_pkt_seq,
-                    pkb.pkb_created_date
+                    pkb.pkb_created_date,
+                    pkb.pkb_created_by
             FROM 	(
                     SELECT 	a.uuid as pkb_uuid,
                             a.pkb_title,
@@ -243,7 +244,8 @@ class ProgramKerjaService
                             g.name as role_name,
                             c.name as group_division_name,
                             f.name as sub_division_name,
-                            a.created_at as pkb_created_date
+                            a.created_at as pkb_created_date,
+                            a.created_by as pkb_created_by
                     FROM 	proker_bulanan a
                     JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
                     JOIN 	group_divisions c ON b.division_group_id = c.id
@@ -266,7 +268,8 @@ class ProgramKerjaService
                             g.name as role_name,
                             f.name as group_division_name,
                             d.name as pkb_sd_name,
-                            e.created_at
+                            e.created_at,
+                            e.created_by
                     FROM 	tr_prog_jdw a
                     JOIN 	programs_jadwal b ON a.prog_jdw_id = b.jdw_uuid
                     JOIN 	programs_jadwal_rules c ON a.prog_rul_id = c.id
@@ -289,18 +292,22 @@ class ProgramKerjaService
                                 d.name as role_name,
                                 c.name as group_division_name,
                                 e.name as sub_division_name,
-                                a.created_at
+                                a.created_at,
+                                a.created_by
                     FROM 		proker_bulanan a
                     JOIN 		proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ', 1) = b.uid
                     JOIN 		group_divisions c ON c.id = b.division_group_id
                     JOIN 		roles d ON d.id = c.roles_id
                     JOIN 		sub_divisions e ON e.division_group_id = c.id
-                    ) AS pkb
-            WHERE 	pkb.pkb_uuid LIKE '$uuid'
+                ) AS pkb
+            JOIN 	model_has_roles mhr ON mhr.model_id = pkb.pkb_created_by
+            JOIN 	roles r ON mhr.role_id = r.id
+            WHERE 	pkb.pkb_uuid LIKE '%'
             AND 	pkb.pkb_start_date BETWEEN '$tgl_awal' AND '$tgl_akhir'
-            AND 	pkb.role_name LIKE '$roleName'
+            AND 	r.name LIKE '$roleName'
             AND 	LOWER(pkb.sub_division_name) LIKE '$sub_divisi'
             AND 	pkb.pkb_title LIKE '$jadwal%'
+            AND 	LENGTH(pkb.pkb_pkt_seq) < 3
             ORDER BY pkb.pkb_created_date ASC
             "
         );
@@ -678,6 +685,24 @@ class ProgramKerjaService
 
                     UNION ALL
 
+                    SELECT 	DISTINCT a.uuid as pkh_id,
+                            a.pkh_title,
+                            a.pkh_date,
+                            f.id as group_division_id,
+                            f.name as group_divsion_name,
+                            e.name as role_name,
+                            a.created_by as user_id,
+                            a.created_at as created_date
+                    FROM 		proker_harian a
+                    JOIN 		proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = b.uuid
+                    JOIN 		proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1) = c.uid
+                    JOIN 		model_has_roles d ON d.model_id = a.created_by
+                    JOIN 		roles e ON d.role_id = e.id
+                    JOIN 		group_divisions f ON f.roles_id = e.id
+                    WHERE 	e.name = 'umum'
+				
+				    UNION ALL
+
                     SELECT 	a.uuid as pkh_id,
                             a.pkh_title, 
                             a.pkh_date,
@@ -708,6 +733,7 @@ class ProgramKerjaService
         $roles          = $data['rolesName'];
         $pkt_uuid       = $data['pkt_uuid'];
         $pkb_uuid       = $data['pkb_uuid'];
+
 
         // $query          = DB::select(
         //     "
@@ -766,6 +792,7 @@ class ProgramKerjaService
             FROM 	(
                     SELECT 	a.uuid as pkh_id,
                             a.pkh_title,
+                            b.pkb_description,
                             a.pkh_date,
                             SUBSTRING_INDEX(a.pkh_start_time,' ', -1) as pkh_start_time,
                             SUBSTRING_INDEX(a.pkh_end_time,' ', -1) as pkh_end_time,
@@ -783,6 +810,7 @@ class ProgramKerjaService
 
                     SELECT 	a.uuid as pkh_id,
                             a.pkh_title,
+                            b.pkb_description,
                             a.pkh_date,
                             SUBSTRING_INDEX(a.pkh_start_time,' ', -1) as pkh_start_time,
                             SUBSTRING_INDEX(a.pkh_end_time,' ', -1) as pkh_end_time,
@@ -829,12 +857,12 @@ class ProgramKerjaService
         $currentRole    = Auth::user()->getRoleNames()[0];
         if($data['programKerjaHarian_jenisTrans'] == 'add') {
             $dataSimpan_header  = array(
-                "uuid" => Str::random(30), 
-                "pkh_title"         => $currentRole != 'umum' ? $data['programKerjaHarian_description'] :  ($data['programKerjaHarian_pkbID'] == 'Lainnya' ? $data['programKerjaHarian_act_text'] : $data['programKerjaHarian_description']),
+                "uuid"              => Str::random(30), 
+                "pkh_title"         => $currentRole != 'umum' ? $data['programKerjaHarian_description'] : ($data['programKerjaHarian_pkbID'] == 'Lainnya' ? $data['programKerjaHarian_act_text'] : $data['programKerjaHarian_description']),
                 "pkh_date"          => $data['programKerjaHarian_startDate'],
                 "pkh_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
                 "pkh_end_time"      => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_endTime'],
-                "pkh_pkb_id"        => $currentRole != 'umum' ? $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'] : ($data['programKerjaHarian_pkbID'] == 'Lainnya' ? $data['programKerjaHarian_pktID']." | ".$data['programKerjaHarian_pkbID'] : $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'])  ,
+                "pkh_pkb_id"        => $currentRole != 'umum' ? $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'] : ($data['programKerjaHarian_pkbID'] == 'Lainnya' ? $data['programKerjaHarian_pktID']." | ".$data['programKerjaHarian_pkbID'] : $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq']),
                 "created_by"        => Auth::user()->id,
                 "updated_by"        => Auth::user()->id,
                 "created_at"        => date('Y-m-d H:i:s'),
@@ -866,7 +894,7 @@ class ProgramKerjaService
                     "pkb_title"         => $data['programKerjaHarian_act_text'],
                     "pkb_start_date"    => $data['programKerjaHarian_startDate'],
                     "pkb_description"   => $data['programKerjaHarian_description'],
-                    "pkb_pkt_id"        => $data['programKerjaHarian_pktID']. " | Lainnya",
+                    "pkb_pkt_id"        => $data['programKerjaHarian_pktID']. " | ".$dataSimpan_header['uuid'],
                     "pkb_employee_id"   => $data['programKerjaHarian_gd_picID'],
                     "pkb_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
                     "pkb_end_time"      => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_endTime'],
@@ -887,16 +915,36 @@ class ProgramKerjaService
             );
 
             $data_update    = array(
-                "pkh_title"         => $data['programKerjaHarian_description'],
+                "pkh_title"         => $currentRole != 'umum' ? $data['programKerjaHarian_description'] : ($data['programKerjaHarian_pkbID'] == 'Lainnya' ? $data['programKerjaHarian_act_text'] : $data['programKerjaHarian_description']),
                 "pkh_date"          => $data['programKerjaHarian_startDate'],
                 "pkh_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
                 "pkh_end_time"      => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_endTime'],
-                "pkh_pkb_id"        => $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'],
+                "pkh_pkb_id"        => $currentRole != 'umum' ? $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'] : ($data['programKerjaHarian_pkbID'] == 'Lainnya' ? $data['programKerjaHarian_pktID']." | ".$data['programKerjaHarian_pkbID'] : $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq']),
                 "updated_by"        => Auth::user()->id,
                 "updated_at"        => date('Y-m-d H:i:s'),
             );
 
             DB::table('proker_harian')->where($data_where)->update($data_update);
+
+            if($currentRole == 'umum' && $data['programKerjaHarian_pkbID'] == 'Lainnya') {
+                $data_where_bulanan     = array(
+                    "uuid"      => $data['programKerjaHarian_pkbID_Lainnya'],
+                );
+
+                $data_update_bulanan    = array(
+                    "pkb_title"         => $data['programKerjaHarian_act_text'],
+                    "pkb_start_date"    => $data['programKerjaHarian_startDate'],
+                    "pkb_description"   => $data['programKerjaHarian_description'],
+                    "pkb_pkt_id"        => $data['programKerjaHarian_pktID']. " | ".$data_where['uuid'],
+                    "pkb_employee_id"   => $data['programKerjaHarian_gd_picID'],
+                    "pkb_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
+                    "pkb_end_time"      => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_endTime'],
+                    "updated_by"        => Auth::user()->id,
+                    "updated_at"        => date('Y-m-d H:i:s')
+                );
+
+                DB::table('proker_bulanan')->where($data_where_bulanan)->update($data_update_bulanan);
+            }
         }
         
         try {
