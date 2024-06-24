@@ -18,6 +18,12 @@
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/programKerja/harian/index.harian.css') }}">
+
+    <style type="text/css">
+        .ibox-title {
+            padding: 15px;
+        }
+    </style>
 @endpush
 
 @section('breadcrumb')
@@ -35,13 +41,37 @@
                 <div class="ibox ">
                     <div class="ibox-title">
                         <div class="row">
-                            <div class="col-sm-12">
+                            <div class="col-sm-6">
                                 <button class="btn btn-primary" id="btnTambahData" onclick="showModal('modalForm', 'add', '')">Tambah Data</button>
+                            </div>
+                            <div class="col-sm-6 text-right">
+                                <button class="btn btn-secondary" id="btnFilter" onclick="showFilter()" data-toggle="collapse" data-target="#contentId" aria-expanded="false"
+                                    aria-controls="contentId">Filter</button>
                             </div>
                         </div>
                     </div>
                     <div class="ibox-content">
-                        <div class="row">
+                        <div class="collapse" id="contentId">
+                            <div class="card card-body">
+                                <div class="row">
+                                    <div class="col-sm-2"><label>Bulan</label></div>
+                                    <div class="col-sm-3" style="@php echo Auth::user()->hasRole('admin') ? '' : 'display: none;' @endphp"><label>Role</label></div>
+                                    <div class="col-sm-2"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <select name="filterHarianBulan" id="filterHarianBulan" style="width: 100%;"></select>
+                                    </div>
+                                    <div class="col-sm-3" style="@php echo Auth::user()->hasRole('admin') ? '' : 'display: none;' @endphp">
+                                        <select name="filterHarianRole" id="filterHarianRole" style="width: 100%;"></select>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <button type="button" class="btn btn-sm btn-primary" id="filterBtnCari" style="height: 37.5px;" onclick="showFilteredData()">Cari</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
                             <div class="col-sm-12">
                                 <table class="table table-sm table-bordered table-striped" id="tableListHarian">
                                     <thead>
@@ -70,16 +100,19 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Tambah Aktivitas Harian</h4>
-                        <button type="button" class="close" onclick="closeModal('modalForm')">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                    <button type="button" class="close" onclick="closeModal('modalForm')">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
+                    <input type="hidden" id="currentRole" value="@php echo Auth::user()->getRoleNames()[0] @endphp">
                     <div class="form-row mb-2" style="display: none;">
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Proker Harian ID</label>
                                 <input type="text" class="form-control form-control-sm" style="height: 37.5px;" readonly placeholder="ID" id="programKerjaHarianID" name="programKerjaHarianID">
+                                <label class="mt-2">Proker Bulanan ID</label>
+                                <input type="text" class="form-control form-control-sm" style="height: 37.5px" readonly placeholder="ID Bulanan" id="pkbID_Lainnya" name="pkbID_Lainnya">
                             </div>
                         </div>
                     </div>
@@ -106,19 +139,60 @@
                         </div>
                     </div>
 
+                    <div class="form-row mb-2" style="@php echo Auth::user()->hasRole('umum') ? '' : 'display: none;' @endphp">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Divisi</label>
+                                <select name="programKerjaHarianDivisi" id="programKerjaHarianDivisi" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row mb-2" style="@php echo Auth::user()->hasRole('umum') ? '' : 'display: none;' @endphp">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>PIC / Penanggung Jawab</label>
+                                <select name="programKerjaHarianPIC" id="programKerjaHarianPIC" style="width:100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row mb-2" style="@php echo Auth::user()->hasRole('umum') ? '' : 'display: none;' @endphp">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Program Kerja Tahunan</label>
+                                <select name="programKerjaTahunanID" id="programKerjaTahunanID" style="width: 100%;" onchange="showSelect(`programKerjaBulananID`, this.value, '', true)"
+                                {{-- onchange="showSelect(`programKerjaBulananID`, this.value, '', '')" --}}
+                                ></select>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-row mb-2">
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Program Bulanan</label>
-                                <select name="programKerjaBulananID" id="programKerjaBulananID" style="width: 100%;" onchange="showSelect('programKerjaBulananAktivitas', this.value, '', true)"></select>
+                                <select name="programKerjaBulananID" id="programKerjaBulananID" style="width: 100%;" onchange="showSelect(`programKerjaBulananAktivitas`, this.value, '', true)"
+                                {{-- onchange="showSelect('programKerjaBulananAktivitas', this.value, '', '')" --}}
+                                ></select>
                             </div>
                         </div>
                     </div>
-                    <div class="form-row mb-2">
+                    {{-- UNTUK GLOBAL --}}
+                    <div class="form-row mb-2" id="formProgramKerjaBulananAktivitas">
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Jenis Pekerjaan</label>
                                 <select name="programKerjaBulananAktivitas" id="programKerjaBulananAktivitas" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- UNTUK ROLE UMUM SAJA --}}
+                    <div class="form-row mb-2" id="formProgramKerjaBulananAktivitasText" style="display: none;">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Jenis Pekerjaan</label>
+                                <input type="text" class="form-control form-control-sm" name="programKerjaBulananAktivitasText" id="programKerjaBulananAktivitasText" placeholder="Jenis Pekerjaan" style="height: 37.5px;">
                             </div>
                         </div>
                     </div>

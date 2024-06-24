@@ -556,9 +556,10 @@ class ProgramKerjaController extends Controller
     public function dataProkerBulanan(Request $request)
     {
         $sendData   = [
-            "rolesName"     => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0],
+            "rolesName"     => (Auth::user()->getRoleNames()[0] == 'admin' || Auth::user()->getRoleNames()[0] == 'umum') ? '%' : Auth::user()->getRoleNames()[0],
             "currentDate"   => date('Y-m-d'),
-            "pkb_uuid"      => $request->all()['sendData']['pkb_uuid'],
+            "pkt_uuid"      => $request->all()['sendData']['pkt_uid'],
+            "pkb_uuid"      => $request->all()['sendData']['pkb_uid'],
         ];
         $getData    = ProgramKerjaService::getProkerBulanan($sendData);
         if(count($getData) > 0)
@@ -566,25 +567,22 @@ class ProgramKerjaController extends Controller
             $header     = [];
             $detail     = [];
 
-            // PISAHIN ARRAY
-            $keyArray   = [];
-            $tempArray  = [];
             for($i = 0; $i < count($getData); $i++) {
-                if(!in_array($getData[$i]->pkb_uuid, $keyArray)) {
-                    $keyArray[$i]   = $getData[$i]->pkb_uuid;
-                    $tempArray[]  = $getData[$i];
-                }
-            }
-
-            // INSERT KE HEADER
-            // print("<pre>".print_r($tempArray, true)."</pre>");die();
-            for($j = 0; $j < count($tempArray); $j++) {
                 $header[]   = array(
-                    "pkb_uuid"  => $tempArray[$j]->pkb_uuid,
-                    "pkb_title" => $tempArray[$j]->pkb_title,
-                    "pkb_date"  => $tempArray[$j]->pkb_date,
+                    "pkb_uuid"  => $getData[$i]->pkb_uuid,
+                    "pkb_title" => $getData[$i]->pkb_title,
+                    "pkb_date"  => $getData[$i]->pkb_date,
                 );
             }
+            // REMOVE DUPLICATE HEADER
+            $header_remove_duplicate    = array_reduce($header, function($carry, $item){
+                if(!isset($carry[$item['pkb_date']])) {
+                    $carry[$item['pkb_date']] = $item;
+                }
+                return $carry;
+            }, []);
+
+            $header_remove_duplicate    = array_values($header_remove_duplicate);
 
             // INSERT KE DETAIL
             for($k = 0; $k < count($getData); $k++) {
@@ -594,11 +592,32 @@ class ProgramKerjaController extends Controller
                 );
             }
 
+            // print("<pre>" . print_r(array_unique($header), true) . "</pre>");die();
+            // PISAHIN ARRAY
+            // $keyArray   = [];
+            // $tempArray  = [];
+            // for($i = 0; $i < count($getData); $i++) {
+            //     if(!in_array($getData[$i]->pkb_uuid, $keyArray)) {
+            //         $keyArray[$i]   = $getData[$i]->pkb_uuid;
+            //         $tempArray[]  = $getData[$i];
+            //     }
+            // }
+
+            // // INSERT KE HEADER
+            // // print("<pre>".print_r($tempArray, true)."</pre>");die();
+            // for($j = 0; $j < count($tempArray); $j++) {
+            //     $header[]   = array(
+            //         "pkb_uuid"  => $tempArray[$j]->pkb_uuid,
+            //         "pkb_title" => $tempArray[$j]->pkb_title,
+            //         "pkb_date"  => $tempArray[$j]->pkb_date,
+            //     );
+            // }
+
             $output     = array(
                 "success"   => true,
                 "status"    => 200,
                 "data"      => [
-                    "header"    => $header,
+                    "header"    => $header_remove_duplicate,
                     "detail"    => $sendData['pkb_uuid'] == '%' ? [] : $detail
                 ],
             );
@@ -657,6 +676,54 @@ class ProgramKerjaController extends Controller
         } else {
             abort(404);
         }
+    }
+
+    // 21 JUNI 2024
+    // NOTE : PEMBUATAN FUNGSI UNTUK MEMANGGIL PROKER TAHUNAN BERDASARKAN GROUP DIVISI
+    public function getProgramKerjaTahunan($groupDivisionID)
+    {
+        $getData    = ProgramKerjaService::doGetProgramKerjaTahunan($groupDivisionID);
+    
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Mengambil Data Program Kerja Tahunan",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Tidak ada data yang bisa diambil",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function getProgramKerjaBulanan($prokerTahunanID)
+    {
+        $getData    = ProgramKerjaService::doGetProgramKerjaBulanan($prokerTahunanID);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Mengambil Data Program Kerja Bulanan",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Tidak ada data yang bisa diambil",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
     }
 
     // GLOBAL

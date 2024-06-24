@@ -380,7 +380,9 @@ function showModal(idModal, jenis, value)
             var url     = "/master/programkerja/bulanan/getDataAllProkerBulanan";
             var type    = "GET";
             var data    = {
-                "cari"  : value,
+                "cari"      : value,
+                "tgl_awal"  : moment($("#prokerBulananStartDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
+                "tgl_akhir" : moment($("#prokerBulananEndDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
             }
             var isAsync = true;
 
@@ -437,7 +439,7 @@ function showModal(idModal, jenis, value)
                     
                     if(xhr.data.detail.length > 0) {
                         for(var  i = 0; i < xhr.data.detail.length; i++) {
-                            tambah_baris('tableDetailProkerBulanan', xhr.data.detail[i]);
+                            tambah_baris('tableDetailProkerBulanan', xhr.data.detail[i], (i + 1));
                         }
                     }
 
@@ -480,12 +482,12 @@ function showModal(idModal, jenis, value)
 
             transData(url, type, data, customMessage, isAsync)
                 .then(function(xhr){
-                    $("#"+idModal).modal({backdrop: 'static', keyboard: false});
-                    $("#"+idModal).modal('show');
                     var getData     = xhr.data.header;
                     var getFile     = xhr.data.file;
 
                     if(getData.length > 0) {
+                        $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+                        $("#"+idModal).modal('show');
                         // TUTUP MODAL SEBELUMNYA
                         closeModal('modalForm');
                         // OPEN MODAL SELANJUTNYA
@@ -945,6 +947,7 @@ function showDataTable(idTable)
 
 function tambah_baris(idTable, value, seq)
 {
+    console.log(seq);
     if(idTable == 'tableDetailProkerBulanan')
     {
         var inputBtnDelete      = "<button type='button' class='btn btn-sm btn-danger' value='" +seq+ "' title='Hapus Baris' id='btnHapus"+seq+"' disabled><i class='fa fa-trash'></i></button>";
@@ -1015,6 +1018,8 @@ function do_save(jenis, arg, calendar)
         });
     }
 
+    console.log(prokerBulananDetail);
+
     var dataSimpan  = {
         "prokerBulanan_ID"                  : prokerBulananID,
         "prokerBulanan_prokerTahunanID"     : prokerTahunanID,
@@ -1081,7 +1086,7 @@ function do_save(jenis, arg, calendar)
         var data    = dataSimpan;
         var message =   Swal.fire({
                             title   : 'Data Sedang Diproses',
-                            allowOutsideClick: false
+                            // allowOutsideClick: false
                         });
                         Swal.showLoading();
         transData(url, type, data, message, true)
@@ -1102,7 +1107,9 @@ function do_save(jenis, arg, calendar)
                         });
                         isClick = 0;
                         closeModal('modalForm');
-                        showCalendar();
+                        
+                        // SHOW CALENDAR
+                        $(".fc-refreshCustomButton-button").click();
                     }
                 })
             })

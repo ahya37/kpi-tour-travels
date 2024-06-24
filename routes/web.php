@@ -183,6 +183,8 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/cariDataProkerBulanan', [ProgramKerjaController::class,'dataProkerBulanan'])->name('programKerja.harian.dataProkerBulanan');
                 Route::post('/doSimpanTransHarian', [ProgramKerjaController::class,'simpanDataHarian'])->name('programKerja.harian.postDataProkerHarian');
                 Route::get('/downloadFile/{path}', [ProgramKerjaController::class, 'ProkerHarianDownloadFile']);
+                Route::get('/getProgramKerjaTahunan/{groupDivisionID}', [ProgramKerjaController::class, 'getProgramKerjaTahunan']);
+                Route::get('/getProgramKerjaBulanan/{programKerjaTahunanID}', [ProgramKerjaController::class, 'getProgramKerjaBulanan']);
             });
             // GLOBAL
             Route::get('/get/data/PIC', [ProgramKerjaController::class, 'getDataPIC'])->name('programKerja.get.data.pic');
