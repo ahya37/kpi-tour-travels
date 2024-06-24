@@ -228,6 +228,20 @@
                     </ul>
                 </li>
             @endif
+
+            @if(Auth::user()->hasRole('finance'))
+                <li class="{{ request()->is('master/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class="fa fa-database"></i> <span class="nav-label">Presensi</span> <span
+                            class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level">
+                        <li class="{{ (request()->is('presensi') || request()->is('presensi/*')) ? 'active' : '' }}">
+                            <a href={{ route('presensi.report') }}>Laporan</a>
+                        </li>
+                    </ul>
+                </li>
+            @endif
         </ul>
 
     </div>

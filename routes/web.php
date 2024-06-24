@@ -15,6 +15,7 @@ use App\Http\Controllers\ProgramKerjaController;
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DivisiController;
+use App\Http\Controllers\PresensiController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -239,5 +240,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/downloadFile/{path}', [ProgramKerjaController::class, 'ProkerHarianDownloadFile'])->name('programKerja.harian.downloadFile');
         Route::post('/fileUpload', [ProgramKerjaController::class, 'testUpload'])->name('programKerja.harian.upload');
         Route::post('/deleteUpload', [ProgramKerjaController::class, 'deleteUpload'])->name('programKerja.harian.deleteUpload');
+    });
+
+    Route::prefix('presensi')->group(function(){
+        Route::get('report',[PresensiController::class,'report'])->name('presensi.report');
     });
 });
