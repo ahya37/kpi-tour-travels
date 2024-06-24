@@ -13,7 +13,7 @@
         url: 'https://api-percik.perciktours.com/api/employees/presensi/report/multisheet',
         method: 'POST',
         headers: {
-            'x-api-key': 'ZDMwZjMyYTQyMWM2YTcwMDE4MzdiZTAyOTM1YzgzYmM2M2I0OGIwMA==', 
+            'x-api-key': window.appConfig.appUrl, 
         },
         data: {
             start: start_date,
@@ -29,20 +29,20 @@
             Swal.showLoading();
         },
         success: function(response, status, xhr) {
-            var filename = `Presensi - ${start_date}-${end_date}`;
-            // var disposition = xhr.getResponseHeader('Content-Disposition');
-
-            // if (disposition && disposition.indexOf('attachment') !== -1) {
-            //     var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-            //     var matches = filenameRegex.exec(disposition);
-            //     if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
-            // }
+            var filename = '';
+            var disposition = xhr.getResponseHeader('Content-Disposition');
+            
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+                var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                var matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+            }
 
             var blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
             var link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
-            link.download = filename;
+            link.download = filename +'Presensi '+start_date+' to '+end_date;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

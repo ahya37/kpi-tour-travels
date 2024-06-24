@@ -52,6 +52,11 @@
 <script src="{{asset('assets/js/plugins/fullcalendar/moment.min.js')}}"></script>
 <script src="{{asset('assets/js/plugins/daterangepicker/daterangepicker.js')}}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+<script>
+    window.appConfig = {
+        appUrl: '{{ env("API_PERCIK_KEY") }}'
+    };
+</script>
 <script src="{{ asset('js/presensi/report.js') }}"></script>
     {{-- <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/chartJs/Chart.min.js') }}"></script>
