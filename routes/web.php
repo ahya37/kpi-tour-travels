@@ -79,6 +79,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('modal/target','loadModalMarketingTarget');
         Route::get('modal/target/detail','loadModalDetailMarketingTarget');
 
+        // Grafik Laporan Umrah Bulanan
+        Route::post('/pencapaian/bulanan','pencapaianBulanan');
 
     });
 

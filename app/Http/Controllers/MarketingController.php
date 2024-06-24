@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\Months;
 use App\Helpers\NumberFormat;
+use App\Helpers\LogFile;
 use App\Http\Requests\MarketingTargetRequest;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
@@ -18,6 +19,7 @@ use App\Models\MarketingTarget;
 use App\Models\Program;
 use App\Models\Reason;
 use App\Models\DetailMarketingTarget;
+use App\Models\PicDetailMarketingTarget;
 use App\Services\MarketingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -73,9 +75,7 @@ class MarketingController extends Controller
         DB::beginTransaction();
         try {
 
-            
             $id =  $request->id;
-
 
             #get data taregt by id 
             $target = MarketingTarget::select('id','year','total_target','total_realization','total_difference')->where('id', $id)->first();
@@ -122,6 +122,29 @@ class MarketingController extends Controller
                     'realization' => $value['realiasi'],
                     'difference'  => $value['realiasi'] - $DetailMarketingTarget->target
                 ]);
+
+                #simpan pic per program dari API
+                foreach ($value['pic'] as $pic) {
+                    
+                    #jika data pic detail where detailed_marketing_id && employee_id sudah ada, maka update saja
+                    $PicDetailMarketingTarget = PicDetailMarketingTarget::where('detailed_marketing_target_id', $DetailMarketingTarget->id)->where('employee_id', $pic['kpi_percik_employee_id'])->first();
+                    if ($PicDetailMarketingTarget) {
+                        $PicDetailMarketingTarget->update([
+                            'realization' => $pic['realisasi']
+                        ]);
+
+                    }else{
+
+                        #jika belum ada maka buat baru 
+                        PicDetailMarketingTarget::create([
+                            'detailed_marketing_target_id' => $DetailMarketingTarget->id,
+                            'employee_id' => $pic['kpi_percik_employee_id'],
+                            'realization' => $pic['realisasi']
+                        ]);
+                    }
+
+                }
+
            }
 
 
@@ -132,8 +155,9 @@ class MarketingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
+            LogFile::error($e);
             return ResponseFormatter::error([
-                'message' =>  $e->getMessage()
+                'message' =>  'Terjadi kesalahan !'
             ]);
         }
     }
@@ -340,7 +364,7 @@ class MarketingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            Log::channel('daily')->error($e->getMessage());
+            LogFile::error($e);
             return ResponseFormatter::error([
                 'message' => 'Gagal generate alumni'
             ]);
@@ -379,7 +403,7 @@ class MarketingController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::channel('daily')->error($e->getMessage());
+            LogFile::error($e);
             return ResponseFormatter::error([
                 'message' => 'Gagal Singkronkan data!'
             ]);
@@ -536,7 +560,7 @@ class MarketingController extends Controller
             return ResponseFormatter::success($results);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::channel('daily')->error($e->getMessage());
+            LogFile::error($e);
             return ResponseFormatter::error([
                 'message' => 'Gagal kelola jamaah'
             ]);
@@ -614,6 +638,7 @@ class MarketingController extends Controller
     public function reportUmrahBulanan($marketingTargetId)
     {
         // $marketing_target_id = request()->id;
+        $marketing = MarketingTarget::select('year')->where('id', $marketingTargetId)->first();
         
         $targetMarketing = MarketingTarget::getReportUmrahBulanan($marketingTargetId);
 
@@ -676,6 +701,7 @@ class MarketingController extends Controller
             ];
         }
 
+
         // all total 
         $total_target = collect($res_target)->sum(function($q){
             return $q['jml_target'];
@@ -692,8 +718,10 @@ class MarketingController extends Controller
 				$persentage_total_pencapaian  = $formatNumber->persen($persentage_total_pencapaian);  
 			}
 
+        // return $res_target;
+
         $data   = [
-            'title'     => 'Laporan Umrah Bulanan',
+            'title'     => 'Laporan Umrah Bulanan Tahun '.$marketing->year,
             'sub_title' => 'Laporan Umrah Bulanan',
             'marketingTargetId' => $marketingTargetId,
             'countProgram' => $countProgram,
@@ -703,11 +731,156 @@ class MarketingController extends Controller
             'total_realisasi' => $total_realisasi,
             'total_selisih' => $total_selisih,
             'persentage_total_pencapaian' => $persentage_total_pencapaian,
-            'formatNumber' => $formatNumber
+            'formatNumber' => $formatNumber,
         ];
+
+
 
 
         return view('marketings/laporan/report-umrah-bulanan', $data);
 
+    }
+
+    public function pencapaianBulanan()
+    {
+        try {
+            
+
+            $id = request()->id;
+
+            // format number 
+            $fn = new NumberFormat();
+
+            $umrah_program = MarketingTarget::getPencapaianUmrahPerProgramByTahun($id);
+
+            $res_umrah_program = [];
+            foreach ($umrah_program as  $value) {
+
+                $persentage_per_program = $fn->persentage($value->realisasi,$value->target);
+
+				if ($persentage_per_program !== null) {
+						$persentage_per_program  = $fn->persen($persentage_per_program);  
+				}
+
+                $res_umrah_program['label'][]    = $value->name;
+				$res_umrah_program['target'][]   = $value->target;
+				$res_umrah_program['realisasi'][]   = $value->realisasi;
+				$res_umrah_program['persentage_per_program'][]   = $persentage_per_program;
+				$res_umrah_program['color'][] = '#d3d3d3';
+            }
+
+            $chart_umrah_program = array(
+                "labels" => $res_umrah_program['label'],
+                "datasets" => array(
+                        array(
+                            "label" => 'Target',
+                            "data"  => $res_umrah_program['target'],
+                            "color" => $res_umrah_program['color'],
+                            "backgroundColor" => "#DF9E0F",
+                            
+                        ),
+                        array(
+                            "label" => 'Realisasi',
+                            "data"  => $res_umrah_program['realisasi'],
+                            "color" => $res_umrah_program['color'],
+                            "backgroundColor" => "#a3e1d4",
+                            
+                        ),
+                        array(
+                            "label" => 'Persentase',
+                            "data"  => $res_umrah_program['persentage_per_program'],
+                            "type" => 'line',
+                            "borderColor" => "#C00000",
+                            "backgroundColor" => 'rgba(0, 0, 0, 0.0)',
+                            
+                        )
+                    )
+            );
+
+            $umrah_prbulan = MarketingTarget::getPencapaianUmrahPerBulanByTahun($id);
+
+            $res_umrah_bulan = [];
+            foreach ($umrah_prbulan as  $value) {
+                $persentage_per_bulan = $fn->persentage($value->realisasi,$value->target);
+
+				if ($persentage_per_bulan !== null) {
+						$persentage_per_bulan  = $fn->persen($persentage_per_bulan);  
+				}
+
+                $res_umrah_bulan['label'][]    = $value->month_name;
+				$res_umrah_bulan['target'][]   = $value->target;
+				$res_umrah_bulan['realisasi'][]   = $value->realisasi;
+				$res_umrah_bulan['persentage_per_bulan'][]   = $persentage_per_bulan;
+				$res_umrah_bulan['color'][] = '#d3d3d3';
+            }
+
+            $chart_umrah_bulan = array(
+                "labels" => $res_umrah_bulan['label'],
+                "datasets" => array(
+                        array(
+                            "label" => 'Target',
+                            "data"  => $res_umrah_bulan['target'],
+                            "color" => $res_umrah_bulan['color'],
+                            "backgroundColor" => "#DF9E0F",
+                            
+                        ),
+                        array(
+                            "label" => 'Realisasi',
+                            "data"  => $res_umrah_bulan['realisasi'],
+                            "color" => $res_umrah_bulan['color'],
+                            "borderColor" => "#a3e1d4",
+                            "backgroundColor" => "#a3e1d4",
+                            
+                        ),
+                        array(
+                            "label" => 'Persentase',
+                            "data"  => $res_umrah_bulan['persentage_per_bulan'],
+                            "type" => 'line',
+                            "borderColor" => "#C00000",
+                            "backgroundColor" => 'rgba(0, 0, 0, 0.0)',
+                            
+                        )
+                    )
+            );
+
+            $umrah_per_pic = MarketingTarget::getPencapaianUmrahPerPicByTahun($id);
+            $res_umrah_per_pic = [];
+            foreach ($umrah_per_pic as  $value) {
+                // $persentage_per_bulan = $fn->persentage($value->realisasi,$value->target);
+
+				// if ($persentage_per_bulan !== null) {
+				// 		$persentage_per_bulan  = $fn->persen($persentage_per_bulan);  
+				// }
+
+                $res_umrah_per_pic['label'][]    = $value->name;
+				$res_umrah_per_pic['realisasi'][]   = $value->realisasi;
+				// $res_umrah_per_pic['persentage_per_bulan'][]   = $persentage_per_bulan;
+				$res_umrah_per_pic['color'][] = '#d3d3d3';
+            }
+            $chart_umrah_per_pic = array(
+                "labels" => $res_umrah_per_pic['label'],
+                "datasets" => array(
+                        array(
+                            "label" => 'Realisasi',
+                            "data"  => $res_umrah_per_pic['realisasi'],
+                            "color" => $res_umrah_per_pic['color'],
+                            "backgroundColor" => "#a3e1d4",
+                            
+                        )
+                    )
+            );
+
+            return ResponseFormatter::success([
+                'chart_umrah_program' => $chart_umrah_program,
+                'chart_umrah_bulan' => $chart_umrah_bulan,
+                'chart_umrah_per_pic' => $chart_umrah_per_pic
+            ]);
+
+        } catch (\Exception $e) {
+            LogFile::error($e);
+            return ResponseFormatter::error([
+                'message' => 'Terjadi kesalahan!'
+            ]);
+        }
     }
 }
