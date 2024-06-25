@@ -225,8 +225,9 @@ function showModal(idModal, jenis, value)
                     $("#programKerjaBulananAktivitasText").val(header.pkh_title);
                     $("#programKerjaHarianJudul").val(header_pkb_desc);
                 } else {
+                    
                     showSelect('programKerjaBulananID', '%', header.pkb_id, false);
-                    showSelect('programKerjaBulananAktivitas', header.pkb_id, header_pkbd_id, false);
+                    showSelect('programKerjaBulananAktivitas', header.pkb_id, header.pkbd_id, false);
 
                     $("#programKerjaBulananAktivitasText").val(null);
                     $("#programKerjaHarianJudul").val(header.pkh_title);

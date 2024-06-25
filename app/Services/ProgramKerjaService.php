@@ -299,6 +299,7 @@ class ProgramKerjaService
                     JOIN 		group_divisions c ON c.id = b.division_group_id
                     JOIN 		roles d ON d.id = c.roles_id
                     JOIN 		sub_divisions e ON e.division_group_id = c.id
+				    WHERE 		a.pkb_title NOT LIKE '[%]%'
                 ) AS pkb
             JOIN 	model_has_roles mhr ON mhr.model_id = pkb.pkb_created_by
             JOIN 	roles r ON mhr.role_id = r.id
@@ -979,67 +980,56 @@ class ProgramKerjaService
     // NOTE : SUMMARY UNTUK DASHBOARD PROGRAM KERJA
     public static function doGetDataTotalProgramKerja()
     {
-        $roleId     = (Auth::user()->getRoleNames()[0]  == 'admin') || (Auth::user()->getRoleNames()[0]  == 'umum') ? '%' : Auth::user()->getRoleNames()[0];
+        $roleName     = (Auth::user()->getRoleNames()[0]  == 'admin') || (Auth::user()->getRoleNames()[0]  == 'umum') ? '%' : Auth::user()->getRoleNames()[0];
+        $currentYear  = date('Y');
         $query  = DB::select(
             "
             SELECT 	SUM(total_proker_tahunan) as grand_total_proker_tahunan,
                     SUM(total_proker_bulanan) as grand_total_proker_bulanan,
                     SUM(total_proker_harian) as grand_total_proker_harian,
-                    tahun
+                    tahun,
+                    GROUP_CONCAT(distinct d.name SEPARATOR ', ') as role_name
             FROM 	(
                     SELECT 	COUNT(a.id) as total_proker_tahunan,
                             0 as total_proker_bulanan,
                             0 as total_proker_harian,
                             pkt_year as tahun,
-                            c.name as role_name
+                            a.created_by,
+                            b.roles_id
                     FROM 	proker_tahunan a
                     JOIN	group_divisions b ON a.division_group_id = b.id
-                    JOIN 	roles c ON b.roles_id = c.id
-                    GROUP BY pkt_year, c.name
+                    GROUP BY pkt_year, a.created_by, b.roles_id
 
                     UNION
 
                     SELECT 	0 as total_proker_tahunan,
-                            COUNT(a.id) as total_proker_bulanan,
-                            0 as total_proker_harian,
-                            EXTRACT(YEAR FROM a.pkb_start_date) as tahun,
-                            c.name
-                    FROM 	proker_bulanan a
-                    JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
-                    JOIN	group_divisions c ON b.division_group_id = c.id
-                    JOIN 	roles d ON c.roles_id = d.id
-                    GROUP BY EXTRACT(YEAR FROM a.pkb_start_date), c.name
+                                    COUNT(a.id)as total_proker_bulanan,
+                                    0 as total_proker_harian,
+                                    EXTRACT(YEAR FROM a.pkb_start_date) as tahun,
+                                    a.created_by,
+                                    c.id as role_id
+                    FROM 		proker_bulanan a
+                    JOIN 		model_has_roles b ON b.model_id = a.created_by
+                    JOIN 		roles c ON c.id = b.role_id
+                    GROUP BY EXTRACT(YEAR FROM a.pkb_start_date), a.created_by, c.id
 
                     UNION
 
                     SELECT 	0 as total_proker_tahunan,
                             0 as total_proker_bulanan,
-                            count(a.uuid) as total_proker_harian,
+                            COUNT(a.id) as total_proker_harian,
                             EXTRACT(YEAR FROM a.pkh_date) as tahun,
-                            e.name as role_name
+                            a.created_by,
+                            c.id as role_id
                     FROM 	proker_harian a
-                    JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id,' | ',1) = b.uuid
-                    JOIN 	proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id,' | ',1) = c.uid
-                    JOIN 	group_divisions d ON c.division_group_id = d.id
-                    JOIN 	roles e ON d.roles_id = e.id
-                    GROUP BY e.name, EXTRACT(YEAR FROM a.pkh_date)
-                    
-                    UNION
-                    
-                    SELECT 	0 as total_proker_tahunan,
-                            0 as total_proker_bulanan,
-                            count(a.uuid) as total_proker_harian,
-                            EXTRACT(YEAR FROM a.pkb_start_date) as tahun,
-                            d.name as role_name
-                    FROM 	proker_bulanan a
-                    JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
-                    JOIN 	group_divisions c ON b.division_group_id = c.id
-                    JOIN 	roles d ON c.roles_id = d.id
-                    WHERE 	pkb_start_time IS NOT NULL
-                    GROUP BY EXTRACT(YEAR FROM a.pkb_start_date), d.name
+                    JOIN 	model_has_roles b ON b.model_id = a.created_by
+                    JOIN 	roles c ON c.id = b.role_id
+                    GROUP BY EXTRACT(YEAR FROM a.pkh_date), a.created_by, c.id
             ) AS b
-            WHERE   b.role_name LIKE '$roleId'
-            GROUP BY tahun
+            JOIN 	roles d ON (d.id = b.roles_id)
+            WHERE 	d.name LIKE '$roleName'
+            AND 	b.tahun = '$currentYear'
+            GROUP BY b.tahun
             "
         );
 
