@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Collection;
 use function Laravel\Prompts\select;
+use Carbon\Carbon;
 
 class MarketingController extends Controller
 {
@@ -775,18 +776,18 @@ class MarketingController extends Controller
             $chart_umrah_program = array(
                 "labels" => $res_umrah_program['label'],
                 "datasets" => array(
+                    array(
+                        "label" => 'Realisasi',
+                        "data"  => $res_umrah_program['realisasi'],
+                        "color" => $res_umrah_program['color'],
+                        "backgroundColor" => "#a3e1d4",
+                        
+                    ),
                         array(
                             "label" => 'Target',
                             "data"  => $res_umrah_program['target'],
                             "color" => $res_umrah_program['color'],
                             "backgroundColor" => "#DF9E0F",
-                            
-                        ),
-                        array(
-                            "label" => 'Realisasi',
-                            "data"  => $res_umrah_program['realisasi'],
-                            "color" => $res_umrah_program['color'],
-                            "backgroundColor" => "#a3e1d4",
                             
                         ),
                         array(
@@ -820,19 +821,19 @@ class MarketingController extends Controller
             $chart_umrah_bulan = array(
                 "labels" => $res_umrah_bulan['label'],
                 "datasets" => array(
+                    array(
+                        "label" => 'Realisasi',
+                        "data"  => $res_umrah_bulan['realisasi'],
+                        "color" => $res_umrah_bulan['color'],
+                        "borderColor" => "#a3e1d4",
+                        "backgroundColor" => "#a3e1d4",
+                        
+                    ),
                         array(
                             "label" => 'Target',
                             "data"  => $res_umrah_bulan['target'],
                             "color" => $res_umrah_bulan['color'],
                             "backgroundColor" => "#DF9E0F",
-                            
-                        ),
-                        array(
-                            "label" => 'Realisasi',
-                            "data"  => $res_umrah_bulan['realisasi'],
-                            "color" => $res_umrah_bulan['color'],
-                            "borderColor" => "#a3e1d4",
-                            "backgroundColor" => "#a3e1d4",
                             
                         ),
                         array(
@@ -849,6 +850,16 @@ class MarketingController extends Controller
             $umrah_per_pic = MarketingTarget::getPencapaianUmrahPerPicByTahun($id);
             if ($startDate != '' AND $endDate != '') {
 
+                $startDate      = Carbon::parse($startDate)->format('Y-m-d');
+                $endDate        = Carbon::parse($endDate)->format('Y-m-d');
+
+                $carbonStartDate = Carbon::parse($startDate);
+                $startDate       = $carbonStartDate->month;
+
+                $carbonEndDate = Carbon::parse($endDate);
+                $endDate       = $carbonEndDate->month;
+
+
                 $umrah_per_pic = $umrah_per_pic->whereBetWeen('b.month_number',[$startDate, $endDate]);
 
             }
@@ -857,11 +868,6 @@ class MarketingController extends Controller
 
             $res_umrah_per_pic = [];
             foreach ($umrah_per_pic as  $value) {
-                // $persentage_per_bulan = $fn->persentage($value->realisasi,$value->target);
-
-				// if ($persentage_per_bulan !== null) {
-				// 		$persentage_per_bulan  = $fn->persen($persentage_per_bulan);  
-				// }
 
                 $res_umrah_per_pic['label'][]    = $value->name;
 				$res_umrah_per_pic['realisasi'][]   = $value->realisasi;
@@ -884,7 +890,7 @@ class MarketingController extends Controller
             return ResponseFormatter::success([
                 'chart_umrah_program' => $chart_umrah_program,
                 'chart_umrah_bulan' => $chart_umrah_bulan,
-                'chart_umrah_per_pic' => $chart_umrah_per_pic
+                'chart_umrah_per_pic' => $chart_umrah_per_pic,
             ]);
 
         } catch (\Exception $e) {

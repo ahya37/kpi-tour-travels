@@ -1,3 +1,4 @@
+$(document).ready(function () {
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const query = document.URL;
@@ -48,202 +49,89 @@
         });
     }
 
-   function callAPI(data){
-    Swal.fire({
-        title: 'Menampilkan data',
-    });
+    const callApi = async (startDate, endDate) => {
+        try {
 
-    Swal.showLoading();
-
-    fetch('/marketings/pencapaian/bulanan', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        body: JSON.stringify({
-            id: id,
-            start: startDate,
-            end: endDate
-        })
-
-    }).then(response => {
-
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+            const response = await fetch('/marketings/pencapaian/bulanan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    id: id,
+                    start: startDate,
+                    end: endDate
+                })
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            throw error;
         }
-        Swal.close();
-        return response.json();
+    };
 
-    })
+    const showLoading = (element) => {
+        $(`#${element}`).append(
+            ` <div class="spiner-example-${element}">
+                            <div class="sk-spinner sk-spinner-wave">
+                                <div class="sk-rect1"></div>
+                                <div class="sk-rect2"></div>
+                                <div class="sk-rect3"></div>
+                                <div class="sk-rect4"></div>
+                                <div class="sk-rect5"></div>
+                            </div>
+                </div>`
+        )
     }
 
-    // hello()
-
-   function sayHello() {
-       callAPI('eko')
-   }
-
-   sayHello();
-
-   
-    
-    function  initialGrafikJamaahPerbulan() {
-    
-        Swal.fire({
-            title: 'Menampilkan data',
-        });
-
-        Swal.showLoading();
-
-        fetch('/marketings/pencapaian/bulanan', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({
-                id: id,
-                start: startDate,
-                end: endDate
-            })
-
-        }).then(response => {
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            Swal.close();
-            return response.json();
-
-        }).then(data => {
-
-            const results = data.data.chart_umrah_bulan;
-            // initialGrafikJamaahPerPic(results.chart_umrah_per_pic);
-            createChart('jamaahperbulan', 'bar', results);
-            
-        }).catch(error => {
-            Swal.close();
-            Swal.fire({
-                title: "Gagal!",
-                position: "center",
-                type: "danger",
-                text: error.responseJSON.data.message,
-                showConfirmButton: false,
-                width: 500,
-                timer: 900,
-            });
-        }).finally(() => {
-            Swal.close();
-        });
+    const closeLoading = (classElement) => {
+        $(`.spiner-example-${classElement}`).remove();
     }
 
-    initialGrafikJamaahPerbulan();
+    const initialGrafikJamaahPerPic = async (startDate, endDate) => {
 
-    const initialGrafikJamaahPerProgram = () => {
-        Swal.fire({
-            title: 'Menampilkan data',
-        });
-
-        Swal.showLoading();
-
-        fetch('/marketings/pencapaian/bulanan', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({
-                id: id,
-                start: startDate,
-                end: endDate
-            })
-
-        }).then(response => {
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            Swal.close();
-            return response.json();
-        }).then(data => {
-
-            const results = data.data.chart_umrah_program;
-            // initialGrafikJamaahPerPic(results.chart_umrah_per_pic);
-            createChart('jamaahperprogram', 'bar', results);
-            
-        }).catch(error => {
-            Swal.close();
-            Swal.fire({
-                title: "Gagal!",
-                position: "center",
-                type: "danger",
-                text: error.responseJSON.data.message,
-                showConfirmButton: false,
-                width: 500,
-                timer: 900,
-            });
-        }).finally(() => {
-            Swal.close();
-        });
-        
+        try {
+            $('#jamaahperpic').remove();
+            showLoading('graph-container-jamaahperpic');
+            const responses = await callApi(startDate, endDate);
+            closeLoading('graph-container-jamaahperpic')
+            $('#graph-container-jamaahperpic').append('<canvas id="jamaahperpic" height="70"></canvas>');
+            createChart('jamaahperpic', 'bar', responses.data.chart_umrah_per_pic);
+        } catch (error) {
+            console.log(error);
+        }
     }
 
-    initialGrafikJamaahPerProgram();
-
-    const initialGrafikJamaahPerPic = () => {
-
-        $('#jamaahperpic').remove();
-		$('#graph-container-jamaahperpic').append('<canvas id="jamaahperpic" height="70"></canvas>');
-        Swal.fire({
-            title: 'Menampilkan data',
-        });
-
-        Swal.showLoading();
-
-        fetch('/marketings/pencapaian/bulanan', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({
-                id: id,
-                start: startDate,
-                end: endDate
-            })
-
-        }).then(response => {
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            Swal.close();
-            return response.json();
-        }).then(data => {
-
-            const results = data.data.chart_umrah_per_pic;
-            // initialGrafikJamaahPerPic(results.chart_umrah_per_pic);
-            createChart('jamaahperpic', 'bar', results);
-
-        }).catch(error => {
-            Swal.close();
-            Swal.fire({
-                title: "Gagal!",
-                position: "center",
-                type: "danger",
-                text: error.responseJSON.data.message,
-                showConfirmButton: false,
-                width: 500,
-                timer: 900,
-            });
-        }).finally(() => {
-            Swal.close();
-        });
+    const initialGrafikJamaahPerbulan = async (startDate, endDate) => {
+        try {
+            showLoading('graph-container-jamaahperbulan');
+            const responses = await callApi(startDate, endDate);
+            closeLoading('graph-container-jamaahperbulan')
+            createChart('jamaahperbulan', 'bar', responses.data.chart_umrah_bulan);
+        } catch (error) {
+            console.log(error);
+        }
 
     }
 
-    initialGrafikJamaahPerPic();
+    const initialGrafikJamaahPerProgram = async (startDate, endDate) => {
+        try {
+            showLoading('graph-container-jamaahperprogram');
+            const responses = await callApi(startDate, endDate);
+            closeLoading('graph-container-jamaahperprogram')
+            createChart('jamaahperprogram', 'bar', responses.data.chart_umrah_program);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    initialGrafikJamaahPerProgram(startDate, endDate);
+    initialGrafikJamaahPerPic(startDate, endDate);
+    initialGrafikJamaahPerbulan(startDate, endDate);
 
     $('.month-start').datepicker({
         minViewMode: 1,
@@ -264,54 +152,11 @@
         todayHighlight: true,
         format: 'dd-mm-yyyy'
     });
-
     const submitRangeDatePerPic = $('#submitRangeDatePerPic');
     submitRangeDatePerPic.click(function (e) {
         e.preventDefault();
         startDate = $('#month-start').val();
         endDate = $('#month-end').val();
-        Swal.fire({
-            title: 'Menampilkan data',
-        });
-
-        Swal.showLoading();
-
-        fetch('/marketings/pencapaian/bulanan', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({
-                id: id,
-                start: startDate,
-                end: endDate
-            })
-
-        }).then(response => {
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            Swal.close();
-            return response.json();
-        }).then(data => {
-
-            const results = data.data;
-            initialGrafikJamaahPerPic(results.chart_umrah_per_pic);
-
-        }).catch(error => {
-            Swal.close();
-            Swal.fire({
-                title: "Gagal!",
-                position: "center",
-                type: "danger",
-                text: error.responseJSON.data.message,
-                showConfirmButton: false,
-                width: 500,
-                timer: 900,
-            });
-        }).finally(() => {
-            Swal.close();
-        });
+        initialGrafikJamaahPerPic(startDate, endDate);
     });
+});

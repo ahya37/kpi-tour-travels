@@ -86,11 +86,13 @@
         <div class="col-lg-6">
             <div class="ibox ">
                 <div class="ibox-title">
-                    <h5>Pencapaian Per Program</h5>
+                    <h5>Pencapaian Per Bulan</h5>
                 </div>
                 <div class="ibox-content">
                     <div class="text-center">
+                        <div id="graph-container-jamaahperbulan">
                         <canvas id="jamaahperbulan" width="100%"></canvas>
+                        </div>
                     </div>
                 </div>
 
@@ -99,10 +101,12 @@
         <div class="col-lg-6">
             <div class="ibox">
                 <div class="ibox-title">
-                    <h5>Pencapaian Per Bulan</h5>
+                    <h5>Pencapaian Per Program</h5>
                 </div>
                 <div class="ibox-content">
-                    <canvas id="jamaahperprogram" width="100%"></canvas>
+                    <div id="graph-container-jamaahperprogram">
+                        <canvas id="jamaahperprogram" width="100%"></canvas>
+                    </div>
                 </div>
 
             </div>
@@ -113,34 +117,37 @@
         <div class="col-lg-6">
             <div class="ibox">
                 <div class="ibox-title">
-                    <h5>Pencapaian Per PIC</h5>
-                </div>
-                <div class="ibox-content">
-                    <div class="row mb-4">
-                        <div class="col-lg-4">
-                           
+                    <div class="row">
+                        <div class="col-md-5 col-sm-5">
+                            <h5>Pencapaian Per PIC</h5>
                         </div>
-                        <div class="col-lg-3 m-b-xs">
-                            <div class="form-group" id="data_5">
-                                <div class="input-daterange " id="datepicker">
-                                    <input type="text" class="form-control-sm form-control month-start" id="month-start" name="start" value=""/>
+                        <div class="col-md-7 col-sm-7">
+                            <div class="row">
+                                <div class="col-lg-4 m-b-xs">
+                                    <div class="form-group" id="data_5">
+                                        <div class="input-daterange " id="datepicker">
+                                            <input type="text" class="form-control-sm form-control month-start" id="month-start" name="start" value=""/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 m-b-xs">
+                                    <div class="form-group row" id="data_5">
+                                        <div class="input-daterange " id="datepicker">
+                                            <input type="text" class="form-control-sm form-control month-end" name="end" id="month-end" value="" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-1">
+                                    <div class="input-group"> <button type="button" class="btn btn-sm btn-primary" id="submitRangeDatePerPic">Go!
+                                    </button></div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-lg-3 m-b-xs">
-                            <div class="form-group row" id="data_5">
-                                <div class="input-daterange " id="datepicker">
-                                    <input type="text" class="form-control-sm form-control month-end" name="end" id="month-end" value="" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-1">
-                            <div class="input-group"> <button type="button" class="btn btn-sm btn-primary" id="submitRangeDatePerPic">Go!
-                            </button></div>
                         </div>
                     </div>
+                </div>
+                <div class="ibox-content">
                     <div id="graph-container-jamaahperpic">
-                        <canvas id="jamaahperpic" width="100%" height="100%"></canvas>
+                        <canvas id="jamaahperpic" width="100%"></canvas>
                      </div>
                 </div>
 
