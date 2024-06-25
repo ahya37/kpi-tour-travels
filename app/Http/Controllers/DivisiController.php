@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\DivisiService;
+use App\Services\BaseService;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
 
@@ -200,7 +201,7 @@ class DivisiController extends Controller
 
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
-                $button_generate    = "<button type='button' class='btn btn-sm btn-primary' title='Generate Aturan Program Kerja' data-startdate='".$getData[$i]->jdw_depature_date."' data-enddate='".$getData[$i]->jdw_arrival_date."' value='".$getData[$i]->jdw_id."' onclick='generateRules(this, this.value)'><i class='fa fa-cog'></i></button>";
+                $button_generate    = "<button type='button' class='btn btn-sm btn-success' title='Generate Aturan Program Kerja' data-startdate='".$getData[$i]->jdw_depature_date."' data-enddate='".$getData[$i]->jdw_arrival_date."' value='".$getData[$i]->jdw_id."' onclick='generateRules(this, this.value)'><i class='fa fa-cog'></i></button>";
                 $button_success     = "<button type='button' class='btn btn-sm btn-primary' title='Lihat Detail' value='" .$getData[$i]->jdw_id. "' onclick='showModal(`modalForm`, this.value)' title='Berhasil Generate'><i class='fa fa-check'></i></button>";
                 $button         = $getData[$i]->is_generated == 'f' ? $button_generate : $button_success;
                 $data[]     = array(
@@ -309,17 +310,22 @@ class DivisiController extends Controller
 
     public function getDataRulesJadwal($idJadwalProgram)
     {
-        $getData    = DivisiService::doGetDataRulesJadwal($idJadwalProgram);
+        $currentID  = Auth::user()->id;
+        $roleName   = Auth::user()->getRoleNames()[0];
+        $subDivision    = !empty(BaseService::doGetCurrentSubDivision($roleName, $currentID)) ? BaseService::doGetCurrentSubDivision($roleName, $currentID)[0]->sub_division_name : '%';
+
+        $getData    = DivisiService::doGetDataRulesJadwal($idJadwalProgram, $subDivision);
 
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
                 $data[]     = array(
                     $i + 1,
                     $getData[$i]->rules,
-                    date('d-m-Y', strtotime($getData[$i]->start_date_job))." s/d ".date('d-m-Y', strtotime($getData[$i]->end_date_job)),
+                    date('d-M-Y', strtotime($getData[$i]->start_date_job))." s/d ".date('d-M-Y', strtotime($getData[$i]->end_date_job)),
                     $getData[$i]->pic_role,
-                    !empty($getData[$i]->realization_start_date) ? ($getData[$i]->realization_start_date == $getData[$i]->realization_end_date ? date('d-m-Y', strtotime($getData[$i]->realization_start_date)) : date('d-m-Y', strtotime($getData[$i]->realization_start_date))." s/d ".date('d-m-Y', strtotime($getData[$i]->realization_end_date))) : null,
-                    $getData[$i]->duration_day
+                    $getData[$i]->duration_day,
+                    !empty($getData[$i]->realization_start_date) ? ($getData[$i]->realization_start_date == $getData[$i]->realization_end_date ? date('d-M-Y', strtotime($getData[$i]->realization_start_date)) : date('d-M-Y', strtotime($getData[$i]->realization_start_date))." s/d ".date('d-M-Y', strtotime($getData[$i]->realization_end_date))) : null,
+                    $getData[$i]->realization_duration_day != 0 ? ($getData[$i]->realization_duration_day <= $getData[$i]->duration_day_num ? "<span class='badge badge-primary d-block' style='font-size: 0.8rem;'>+" .$getData[$i]->realization_duration_day. " Hari</span>" : "<span class='badge badge-danger d-block' style='font-size: 0.8rem;'>-" .$getData[$i]->realization_duration_day. " Hari</span>") : '',
                 );
             }
 

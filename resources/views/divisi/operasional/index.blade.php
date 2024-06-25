@@ -126,12 +126,13 @@
                                 <table class="table table-sm table-striped table-hover table-bordered" id="table_list_program_kerja">
                                     <thead>
                                         <tr>
-                                            <th>No</th>
-                                            <th>Program Kerja</th>
-                                            <th>Tanggal</th>
-                                            <th>Bagian</th>
-                                            <th>Tanggal Realisasi</th>
-                                            <th>Durasi</th>
+                                            <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Program Kerja</th>
+                                            <th class="text-center align-middle">Tanggal</th>
+                                            <th class="text-center align-middle">Bagian</th>
+                                            <th class="text-center align-middle">Durasi</th>
+                                            <th class="text-center align-middle">Tanggal Realisasi</th>
+                                            <th class="text-center align-middle">Durasi Realisasi</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
