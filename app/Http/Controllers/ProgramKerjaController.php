@@ -746,4 +746,11 @@ class ProgramKerjaController extends Controller
         
         return Response::json($output, $output['status']);
     }
+
+    public function reportPekerjaanMarketing()
+    {
+        // get data pekerjaan harian
+        return 'OK';
+        
+    }
 }

@@ -29,6 +29,42 @@
 @section('content')
 <div class="wrapper wrapper-content animated fadeInRight">
     <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <div class="row">
+                        <div class="col-md-5 col-sm-5">
+                            <h5>Filter (Monthly)</h5>
+                        </div>
+                        <div class="col-md-7 col-sm-7">
+                            <div class="row">
+                                <div class="col-lg-4 m-b-xs">
+                                    <div class="form-group" id="data_5">
+                                        <div class="input-daterange " id="datepicker">
+                                            <input type="text" class="form-control-sm form-control month-start" id="month-start" name="start" value=""/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 m-b-xs">
+                                    <div class="form-group row" id="data_5">
+                                        <div class="input-daterange " id="datepicker">
+                                            <input type="text" class="form-control-sm form-control month-end" name="end" id="month-end" value="" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-1">
+                                    <div class="input-group"> <button type="button" class="btn btn-sm btn-primary" id="submitRangeDatePerPic">Go!
+                                    </button></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-lg-3">
             <div class="ibox ">
                 <div class="ibox-title">
@@ -105,7 +141,7 @@
                 </div>
                 <div class="ibox-content">
                     <div id="graph-container-jamaahperprogram">
-                        <canvas id="jamaahperprogram" width="100%"></canvas>
+                        <canvas id="jamaahperprogram" width="100"></canvas>
                     </div>
                 </div>
 
@@ -117,38 +153,20 @@
         <div class="col-lg-6">
             <div class="ibox">
                 <div class="ibox-title">
-                    <div class="row">
-                        <div class="col-md-5 col-sm-5">
-                            <h5>Pencapaian Per PIC</h5>
-                        </div>
-                        <div class="col-md-7 col-sm-7">
-                            <div class="row">
-                                <div class="col-lg-4 m-b-xs">
-                                    <div class="form-group" id="data_5">
-                                        <div class="input-daterange " id="datepicker">
-                                            <input type="text" class="form-control-sm form-control month-start" id="month-start" name="start" value=""/>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 m-b-xs">
-                                    <div class="form-group row" id="data_5">
-                                        <div class="input-daterange " id="datepicker">
-                                            <input type="text" class="form-control-sm form-control month-end" name="end" id="month-end" value="" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-1">
-                                    <div class="input-group"> <button type="button" class="btn btn-sm btn-primary" id="submitRangeDatePerPic">Go!
-                                    </button></div>
+                    <div class="col-md-5 col-sm-5">
+                        <h5>Pencapaian Per PIC</h5>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="m-t-sm">
+                        <div class="row">
+                            <div class="col-md-12">
+                               <div class="mt-4" id="graph-container-jamaahperpic">
+                                <canvas id="jamaahperpic" width="100"></canvas>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="ibox-content">
-                    <div id="graph-container-jamaahperpic">
-                        <canvas id="jamaahperpic" width="100%"></canvas>
-                     </div>
                 </div>
 
             </div>

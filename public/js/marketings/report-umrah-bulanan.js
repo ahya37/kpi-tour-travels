@@ -99,7 +99,7 @@ $(document).ready(function () {
             showLoading('graph-container-jamaahperpic');
             const responses = await callApi(startDate, endDate);
             closeLoading('graph-container-jamaahperpic')
-            $('#graph-container-jamaahperpic').append('<canvas id="jamaahperpic" height="70"></canvas>');
+            $('#graph-container-jamaahperpic').append('<canvas id="jamaahperpic"  width="100"></canvas>');
             createChart('jamaahperpic', 'bar', responses.data.chart_umrah_per_pic);
         } catch (error) {
             console.log(error);
@@ -108,9 +108,11 @@ $(document).ready(function () {
 
     const initialGrafikJamaahPerbulan = async (startDate, endDate) => {
         try {
+            $('#jamaahperbulan').remove();
             showLoading('graph-container-jamaahperbulan');
             const responses = await callApi(startDate, endDate);
             closeLoading('graph-container-jamaahperbulan')
+            $('#graph-container-jamaahperbulan').append('<canvas id="jamaahperbulan"  width="100"></canvas>');
             createChart('jamaahperbulan', 'bar', responses.data.chart_umrah_bulan);
         } catch (error) {
             console.log(error);
@@ -120,9 +122,11 @@ $(document).ready(function () {
 
     const initialGrafikJamaahPerProgram = async (startDate, endDate) => {
         try {
+            $('#jamaahperprogram').remove();
             showLoading('graph-container-jamaahperprogram');
             const responses = await callApi(startDate, endDate);
             closeLoading('graph-container-jamaahperprogram')
+            $('#graph-container-jamaahperprogram').append('<canvas id="jamaahperprogram"  width="100"></canvas>');
             createChart('jamaahperprogram', 'bar', responses.data.chart_umrah_program);
         } catch (error) {
             console.log(error);
@@ -157,6 +161,8 @@ $(document).ready(function () {
         e.preventDefault();
         startDate = $('#month-start').val();
         endDate = $('#month-end').val();
+        initialGrafikJamaahPerbulan(startDate, endDate);
+        initialGrafikJamaahPerProgram(startDate, endDate);
         initialGrafikJamaahPerPic(startDate, endDate);
     });
 });

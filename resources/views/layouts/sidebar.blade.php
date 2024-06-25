@@ -60,6 +60,9 @@
                     <ul class="nav nav-second-level">
                         <li class="active"><a href="{{ route('marketing.prospectmaterial') }}">Bahan Prospek</a></li>
                     </ul>
+                    <ul class="nav nav-second-level">
+                        <li class="active"><a href="{{ route('marketing.pekerjaan.report') }}">Laporan Pekerjaan</a></li>
+                    </ul>
                 </li>
 
                 {{-- <li class="{{ request()->is('dashboard') ? 'active' : '' }}">

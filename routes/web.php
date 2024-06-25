@@ -71,10 +71,10 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/alumniprospectmaterial/detail/manage/store','manageAlumniProspectMaterialStore')->name('marketing.alumniprospectmaterial.store');
         Route::post('/alumniprospectmaterial/detail/list/{alumniprospectmaterialId}','listAlumniProspectMaterial');
         // laporan
-        Route::prefix('laporan')->controller(MarketingController::class)->group(function(){
-            Route::get('/pelaksanaan_iklan',[MarketingController::class,'laporanPelaksanaanIklan'])->name('marketing.laporan.iklan');
-            Route::post('/trans/store/reportAds', [MarketingController::class, 'simpanLaporanIklan'])->name('marketing.trans.storeDataLaporanIklan');
-        });
+        Route::get('/laporan/pelaksanaan_iklan','laporanPelaksanaanIklan')->name('marketing.laporan.iklan');
+        Route::post('/laporan/trans/store/reportAds','simpanLaporanIklan')->name('marketing.trans.storeDataLaporanIklan');
+
+        Route::get('/pekerjaan/report','reportPekerjaanMarketing')->name('marketing.pekerjaan.report');
 
         //modal 
         Route::get('modal/target','loadModalMarketingTarget');

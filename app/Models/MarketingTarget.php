@@ -69,17 +69,16 @@ class MarketingTarget extends Model
 
     public static function getPencapaianUmrahPerProgramByTahun($marketing_target_id)
     {
-        return DB::table('detailed_marketing_targets as a')
+        $umrah =  DB::table('detailed_marketing_targets as a')
                 ->select('b.name',
                     DB::raw('(sum(a.target)) as target'),
                     DB::raw('(sum(a.realization)) as realisasi'),
                     DB::raw('(sum(a.difference)) as selisih'),
                 )
                 ->join('programs as b','a.program_id','=','b.id')
-                ->where('a.marketing_target_id', $marketing_target_id)
-                ->groupBy('b.name')
-                ->orderBy('realisasi','desc')
-                ->get();
+                ->where('a.marketing_target_id', $marketing_target_id);
+
+        return $umrah;
     }
 
     public static function getPencapaianUmrahPerBulanByTahun($marketing_target_id)
@@ -91,17 +90,14 @@ class MarketingTarget extends Model
                     DB::raw('(sum(a.difference)) as selisih'),
                 )
                 ->join('programs as b','a.program_id','=','b.id')
-                ->where('a.marketing_target_id', $marketing_target_id)
-                ->groupBy('a.month_number', 'a.month_name')
-                ->orderBy('a.month_number','asc')
-                ->get();
+                ->where('a.marketing_target_id', $marketing_target_id);
     }
     
     public static function getPencapaianUmrahPerPicByTahun($marketing_target_id)
     {
         $umrah = DB::table('pic_detailed_marketing_target as a')
                 ->select('c.name',
-                    DB::raw('(sum(a.realization)) as realisasi')
+                    DB::raw('(sum(a.realization)) as realisasi') 
                 )->join('detailed_marketing_targets as b','a.detailed_marketing_target_id','=','b.id')
                 ->join('employees as c','a.employee_id','=','c.id')
                 ->where('b.marketing_target_id', $marketing_target_id);

@@ -755,8 +755,28 @@ class MarketingController extends Controller
             // format number 
             $fn  = new NumberFormat();
 
+            $umrah_prbulan = MarketingTarget::getPencapaianUmrahPerBulanByTahun($id);
             $umrah_program = MarketingTarget::getPencapaianUmrahPerProgramByTahun($id);
+            $umrah_per_pic = MarketingTarget::getPencapaianUmrahPerPicByTahun($id);
+            
+            if ($startDate != '' AND $endDate != '') {
 
+                $startDate      = Carbon::parse($startDate)->format('Y-m-d');
+                $endDate        = Carbon::parse($endDate)->format('Y-m-d');
+
+                $carbonStartDate = Carbon::parse($startDate);
+                $startDate       = $carbonStartDate->month;
+
+                $carbonEndDate = Carbon::parse($endDate);
+                $endDate       = $carbonEndDate->month;
+
+                $umrah_per_pic = $umrah_per_pic->whereBetWeen('b.month_number',[$startDate, $endDate]);
+                $umrah_program = $umrah_program->whereBetWeen('a.month_number',[$startDate, $endDate]);
+                $umrah_prbulan = $umrah_prbulan->whereBetWeen('a.month_number',[$startDate, $endDate]);
+
+            }
+
+            $umrah_program =  $umrah_program->groupBy('b.name')->orderBy('realisasi','desc')->get();
             $res_umrah_program = [];
             foreach ($umrah_program as  $value) {
 
@@ -801,8 +821,7 @@ class MarketingController extends Controller
                     )
             );
 
-            $umrah_prbulan = MarketingTarget::getPencapaianUmrahPerBulanByTahun($id);
-
+            $umrah_prbulan =  $umrah_prbulan->groupBy('a.month_number', 'a.month_name')->orderBy('a.month_number','asc')->get();
             $res_umrah_bulan = [];
             foreach ($umrah_prbulan as  $value) {
                 $persentage_per_bulan = $fn->persentage($value->realisasi,$value->target);
@@ -846,23 +865,6 @@ class MarketingController extends Controller
                         )
                     )
             );
-
-            $umrah_per_pic = MarketingTarget::getPencapaianUmrahPerPicByTahun($id);
-            if ($startDate != '' AND $endDate != '') {
-
-                $startDate      = Carbon::parse($startDate)->format('Y-m-d');
-                $endDate        = Carbon::parse($endDate)->format('Y-m-d');
-
-                $carbonStartDate = Carbon::parse($startDate);
-                $startDate       = $carbonStartDate->month;
-
-                $carbonEndDate = Carbon::parse($endDate);
-                $endDate       = $carbonEndDate->month;
-
-
-                $umrah_per_pic = $umrah_per_pic->whereBetWeen('b.month_number',[$startDate, $endDate]);
-
-            }
 
             $umrah_per_pic = $umrah_per_pic->groupBy('c.name')->orderBy('realisasi','desc')->get();
 
