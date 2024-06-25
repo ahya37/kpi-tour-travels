@@ -576,14 +576,14 @@ class ProgramKerjaController extends Controller
             }
             // REMOVE DUPLICATE HEADER
             $header_remove_duplicate    = array_reduce($header, function($carry, $item){
-                if(!isset($carry[$item['pkb_date']])) {
-                    $carry[$item['pkb_date']] = $item;
+                if(!isset($carry[$item['pkb_title']])) {
+                    $carry[$item['pkb_title']] = $item;
                 }
                 return $carry;
             }, []);
 
             $header_remove_duplicate    = array_values($header_remove_duplicate);
-
+            
             // INSERT KE DETAIL
             for($k = 0; $k < count($getData); $k++) {
                 $detail[]   = array(
