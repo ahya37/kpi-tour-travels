@@ -73,4 +73,21 @@ class BaseService
 
         return $query;
     }
+
+    // 25 JUNI 2024
+    // NOTE : GET DATA FOR doGetCurrentSubDivision
+    public static function doGetCurrentSubDivision($role, $userID)
+    {
+        $query  = DB::select(
+            "
+            SELECT 	LOWER(c.name) AS sub_division_name
+            FROM 	employees a
+            JOIN 	job_employees b ON a.id = b.employee_id
+            JOIN	sub_divisions c ON b.sub_division_id = c.id
+            WHERE 	a.user_id = '$userID'
+            "
+        );
+
+        return $query;
+    }
 }
