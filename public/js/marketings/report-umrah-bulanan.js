@@ -1,7 +1,11 @@
-$(document).ready(function () {
+
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     const query = document.URL;
     const id = query.substring(query.lastIndexOf("/") + 1);
+
+    let startDate = '';
+    let endDate = '';
+
 
     const optionsChart = () => {
         const barOptions = {
@@ -44,18 +48,48 @@ $(document).ready(function () {
         });
     }
 
-    const initialGrafikJamaahPerbulan = (data) => {
-        createChart('jamaahperbulan','bar', data);
+   function callAPI(data){
+    Swal.fire({
+        title: 'Menampilkan data',
+    });
+
+    Swal.showLoading();
+
+    fetch('/marketings/pencapaian/bulanan', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+            id: id,
+            start: startDate,
+            end: endDate
+        })
+
+    }).then(response => {
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        Swal.close();
+        return response.json();
+
+    })
     }
 
-    const initialGrafikJamaahPerProgram = (data) => {
-        createChart('jamaahperprogram','bar', data);
-    }
-    const initialGrafikJamaahPerPic = (data) => {
-        createChart('jamaahperpic','bar', data);
-    }
+    // hello()
 
-    const fetchApi = () => {
+   function sayHello() {
+       callAPI('eko')
+   }
+
+   sayHello();
+
+   
+    
+    function  initialGrafikJamaahPerbulan() {
+    
         Swal.fire({
             title: 'Menampilkan data',
         });
@@ -69,8 +103,11 @@ $(document).ready(function () {
                 'X-CSRF-TOKEN': csrfToken
             },
             body: JSON.stringify({
-                id: id
+                id: id,
+                start: startDate,
+                end: endDate
             })
+
         }).then(response => {
 
             if (!response.ok) {
@@ -80,10 +117,11 @@ $(document).ready(function () {
             return response.json();
 
         }).then(data => {
-            const results = data.data;
-            initialGrafikJamaahPerbulan(results.chart_umrah_program);
-            initialGrafikJamaahPerProgram(results.chart_umrah_bulan);
-            initialGrafikJamaahPerPic(results.chart_umrah_per_pic);
+
+            const results = data.data.chart_umrah_bulan;
+            // initialGrafikJamaahPerPic(results.chart_umrah_per_pic);
+            createChart('jamaahperbulan', 'bar', results);
+            
         }).catch(error => {
             Swal.close();
             Swal.fire({
@@ -100,5 +138,180 @@ $(document).ready(function () {
         });
     }
 
-    fetchApi();
-});
+    initialGrafikJamaahPerbulan();
+
+    const initialGrafikJamaahPerProgram = () => {
+        Swal.fire({
+            title: 'Menampilkan data',
+        });
+
+        Swal.showLoading();
+
+        fetch('/marketings/pencapaian/bulanan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                id: id,
+                start: startDate,
+                end: endDate
+            })
+
+        }).then(response => {
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            Swal.close();
+            return response.json();
+        }).then(data => {
+
+            const results = data.data.chart_umrah_program;
+            // initialGrafikJamaahPerPic(results.chart_umrah_per_pic);
+            createChart('jamaahperprogram', 'bar', results);
+            
+        }).catch(error => {
+            Swal.close();
+            Swal.fire({
+                title: "Gagal!",
+                position: "center",
+                type: "danger",
+                text: error.responseJSON.data.message,
+                showConfirmButton: false,
+                width: 500,
+                timer: 900,
+            });
+        }).finally(() => {
+            Swal.close();
+        });
+        
+    }
+
+    initialGrafikJamaahPerProgram();
+
+    const initialGrafikJamaahPerPic = () => {
+
+        $('#jamaahperpic').remove();
+		$('#graph-container-jamaahperpic').append('<canvas id="jamaahperpic" height="70"></canvas>');
+        Swal.fire({
+            title: 'Menampilkan data',
+        });
+
+        Swal.showLoading();
+
+        fetch('/marketings/pencapaian/bulanan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                id: id,
+                start: startDate,
+                end: endDate
+            })
+
+        }).then(response => {
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            Swal.close();
+            return response.json();
+        }).then(data => {
+
+            const results = data.data.chart_umrah_per_pic;
+            // initialGrafikJamaahPerPic(results.chart_umrah_per_pic);
+            createChart('jamaahperpic', 'bar', results);
+
+        }).catch(error => {
+            Swal.close();
+            Swal.fire({
+                title: "Gagal!",
+                position: "center",
+                type: "danger",
+                text: error.responseJSON.data.message,
+                showConfirmButton: false,
+                width: 500,
+                timer: 900,
+            });
+        }).finally(() => {
+            Swal.close();
+        });
+
+    }
+
+    initialGrafikJamaahPerPic();
+
+    $('.month-start').datepicker({
+        minViewMode: 1,
+        keyboardNavigation: false,
+        forceParse: false,
+        forceParse: false,
+        autoclose: true,
+        todayHighlight: true,
+        format: 'dd-mm-yyyy'
+    });
+
+    $('.month-end').datepicker({
+        minViewMode: 1,
+        keyboardNavigation: false,
+        forceParse: false,
+        forceParse: false,
+        autoclose: true,
+        todayHighlight: true,
+        format: 'dd-mm-yyyy'
+    });
+
+    const submitRangeDatePerPic = $('#submitRangeDatePerPic');
+    submitRangeDatePerPic.click(function (e) {
+        e.preventDefault();
+        startDate = $('#month-start').val();
+        endDate = $('#month-end').val();
+        Swal.fire({
+            title: 'Menampilkan data',
+        });
+
+        Swal.showLoading();
+
+        fetch('/marketings/pencapaian/bulanan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                id: id,
+                start: startDate,
+                end: endDate
+            })
+
+        }).then(response => {
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            Swal.close();
+            return response.json();
+        }).then(data => {
+
+            const results = data.data;
+            initialGrafikJamaahPerPic(results.chart_umrah_per_pic);
+
+        }).catch(error => {
+            Swal.close();
+            Swal.fire({
+                title: "Gagal!",
+                position: "center",
+                type: "danger",
+                text: error.responseJSON.data.message,
+                showConfirmButton: false,
+                width: 500,
+                timer: 900,
+            });
+        }).finally(() => {
+            Swal.close();
+        });
+    });

@@ -32,8 +32,8 @@
                                 <h4>Buat Laporan</h4>
                             </div>
                             <div class="col-lg-3">
-                                <div class="input-group">
-                                    <input class="form-control form-control-sm  filter-sumber-pendaftaran-umrah" type="text" name="filter-sumber-pendaftaran-umrah" placeholder="Filter tanggal"/> 
+                                <div class="input-group" id="data_4">
+                                    <input class="form-control form-control-sm  input-group-date" type="text" name="filter-sumber-pendaftaran-umrah" placeholder="Filter tanggal"/> 
                                 </div>
                             </div>
                        </div>

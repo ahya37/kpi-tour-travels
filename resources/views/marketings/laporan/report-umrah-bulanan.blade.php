@@ -3,6 +3,7 @@
 
 @push('addon-style')
 <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+<link href="{{asset('assets/css/plugins/datapicker/datepicker3.css')}}" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
     th {
@@ -115,7 +116,32 @@
                     <h5>Pencapaian Per PIC</h5>
                 </div>
                 <div class="ibox-content">
-                    <canvas id="jamaahperpic" width="100%"></canvas>
+                    <div class="row mb-4">
+                        <div class="col-lg-4">
+                           
+                        </div>
+                        <div class="col-lg-3 m-b-xs">
+                            <div class="form-group" id="data_5">
+                                <div class="input-daterange " id="datepicker">
+                                    <input type="text" class="form-control-sm form-control month-start" id="month-start" name="start" value=""/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 m-b-xs">
+                            <div class="form-group row" id="data_5">
+                                <div class="input-daterange " id="datepicker">
+                                    <input type="text" class="form-control-sm form-control month-end" name="end" id="month-end" value="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-1">
+                            <div class="input-group"> <button type="button" class="btn btn-sm btn-primary" id="submitRangeDatePerPic">Go!
+                            </button></div>
+                        </div>
+                    </div>
+                    <div id="graph-container-jamaahperpic">
+                        <canvas id="jamaahperpic" width="100%" height="100%"></canvas>
+                     </div>
                 </div>
 
             </div>
@@ -209,6 +235,7 @@
 @push('addon-script')
 <script src="{{asset('assets/js/plugins/fullcalendar/moment.min.js')}}"></script>
 <script src="{{asset('assets/js/plugins/daterangepicker/daterangepicker.js')}}"></script>
+<script src="{{asset('assets/js/plugins/datapicker/bootstrap-datepicker.js')}}"></script>
 <script src="{{asset('assets/js/plugins/select2/select2.full.min.js')}}"></script>
 <script src="{{asset('assets/js/plugins/chartJs/Chart.min.js')}}"></script>
 <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>

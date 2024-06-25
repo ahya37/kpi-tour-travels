@@ -229,7 +229,7 @@
                 </li>
             @endif
 
-            @if(Auth::user()->hasRole('finance'))
+            @if(Auth::user()->hasRole('finance') || Auth::user()->hasRole('admin'))
                 <li class="{{ request()->is('master/*') ? 'active' : '' }}">
                     <a href="#">
                         <i class="fa fa-database"></i> <span class="nav-label">Presensi</span> <span

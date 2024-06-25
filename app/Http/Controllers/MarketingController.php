@@ -746,10 +746,13 @@ class MarketingController extends Controller
         try {
             
 
-            $id = request()->id;
+            $id  = request()->id;
+
+            $startDate  = request()->start;
+            $endDate    = request()->end;
 
             // format number 
-            $fn = new NumberFormat();
+            $fn  = new NumberFormat();
 
             $umrah_program = MarketingTarget::getPencapaianUmrahPerProgramByTahun($id);
 
@@ -844,6 +847,14 @@ class MarketingController extends Controller
             );
 
             $umrah_per_pic = MarketingTarget::getPencapaianUmrahPerPicByTahun($id);
+            if ($startDate != '' AND $endDate != '') {
+
+                $umrah_per_pic = $umrah_per_pic->whereBetWeen('b.month_number',[$startDate, $endDate]);
+
+            }
+
+            $umrah_per_pic = $umrah_per_pic->groupBy('c.name')->orderBy('realisasi','desc')->get();
+
             $res_umrah_per_pic = [];
             foreach ($umrah_per_pic as  $value) {
                 // $persentage_per_bulan = $fn->persentage($value->realisasi,$value->target);

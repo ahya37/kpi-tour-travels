@@ -99,16 +99,14 @@ class MarketingTarget extends Model
     
     public static function getPencapaianUmrahPerPicByTahun($marketing_target_id)
     {
-        return DB::table('pic_detailed_marketing_target as a')
+        $umrah = DB::table('pic_detailed_marketing_target as a')
                 ->select('c.name',
                     DB::raw('(sum(a.realization)) as realisasi')
-                )
-                ->join('detailed_marketing_targets as b','a.detailed_marketing_target_id','=','b.id')
+                )->join('detailed_marketing_targets as b','a.detailed_marketing_target_id','=','b.id')
                 ->join('employees as c','a.employee_id','=','c.id')
-                ->where('b.marketing_target_id', $marketing_target_id)
-                ->groupBy('c.name')
-                ->orderBy('realisasi','desc')
-                ->get();
+                ->where('b.marketing_target_id', $marketing_target_id);
+
+        return $umrah;
     }
 
 }
