@@ -395,11 +395,16 @@ class DivisiService
         return $query;
     }
 
-    public static function doGetDataRulesJadwal($id)
+    public static function doGetDataRulesJadwal($id, $subDivision)
     {
         $queryGetJadwal     = DB::select(
             "
-            SELECT 	*
+            SELECT 	*,
+                    CASE
+                        WHEN rp.realization_start_date IS NOT NULL AND rp.realization_start_date <> rp.realization_end_date THEN DATEDIFF(rp.realization_end_date, rp.realization_start_date)
+                        WHEN rp.realization_start_date IS NOT NULL AND rp.realization_start_date = rp.realization_end_date THEN 1
+                        ELSE 0
+                    END as realization_duration_day
             FROM 	(
                     SELECT 	a.prog_jdw_id as jdw_id,
                             f.name as sub_program_name,
@@ -407,26 +412,27 @@ class DivisiService
                             d.rul_title as rules,
                             CONCAT('H', d.rul_sla) as duration,
                             CONCAT(d.rul_duration_day,' Hari') as duration_day,
+                            d.rul_duration_day as duration_day_num,
                             c.jdw_depature_date as depature_date,
                             c.jdw_arrival_date as arrival_date,
                             CASE
-                                WHEN LEFT(d.rul_sla, 1) = '-' THEN DATE_ADD(c.jdw_depature_date, INTERVAL d.rul_sla DAY)
-                                WHEN LEFT(d.rul_sla, 1) = '+' THEN c.jdw_arrival_date
-                                ELSE c.jdw_depature_date
+                                    WHEN LEFT(d.rul_sla, 1) = '-' THEN DATE_ADD(c.jdw_depature_date, INTERVAL d.rul_sla DAY)
+                                    WHEN LEFT(d.rul_sla, 1) = '+' THEN c.jdw_arrival_date
+                                    ELSE c.jdw_depature_date
                             END as start_date_job,
                             CASE
-                                WHEN LEFT(d.rul_sla, 1) = '-' THEN c.jdw_depature_date
-                                WHEN LEFT(d.rul_sla, 1) = '+' THEN DATE_ADD(c.jdw_arrival_date, INTERVAL d.rul_sla DAY)
+                                    WHEN LEFT(d.rul_sla, 1) = '-' THEN c.jdw_depature_date
+                                    WHEN LEFT(d.rul_sla, 1) = '+' THEN DATE_ADD(c.jdw_arrival_date, INTERVAL d.rul_sla DAY)
                             END as end_date_job,
                             CASE
-                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_start_date
-                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_start_date
-                                ELSE null
+                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_start_date
+                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_start_date
+                                    ELSE null
                             END as realization_start_date,
                             CASE
-                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_end_date
-                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_end_date
-                                ELSE null
+                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_end_date
+                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_end_date
+                                    ELSE null
                             END as realization_end_date,
                             e.name as pic_role
                     FROM 	tr_prog_jdw a
@@ -435,8 +441,9 @@ class DivisiService
                     JOIN 	programs_jadwal_rules d ON a.prog_rul_id = d.id
                     JOIN 	sub_divisions e ON d.rul_pic_sdid = e.id
                     JOIN 	programs f ON c.jdw_programs_id = f.id
-                ) AS rp 
+                    ) AS rp 
             WHERE 	rp.jdw_id LIKE '$id'
+            AND     lower(rp.pic_role) LIKE '$subDivision'
             ORDER BY rp.pic_role, rp.depature_date ASC
             "
         );

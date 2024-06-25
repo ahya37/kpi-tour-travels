@@ -196,6 +196,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/trans/get/groupDivision', [BaseController::class, 'getGroupDivision'])->name('master.data.groupDivision');
             Route::get('/getGroupDivisionWRole', [BaseController::class,'getGroupDivisionWRole'])->name('master.data.groupDivisionWRole');
             Route::get('/getProgramUmrah/{program}', [BaseController::class, 'getProgramUmrah'])->name('master.data.getProgramUmrah');
+            Route::get('/getCurrentSubDivision/{current_role}', [BaseController::class, 'getCurrentSubDivision']);
         });
     });
     

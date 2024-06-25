@@ -2,6 +2,7 @@ var getUrl  = window.location.pathname;
 Dropzone.autoDiscover = false;
 // DROPZONE AREA
 
+var current_role    = $("#roleName").val();
 var isClick         = 0;
 var penampung       = [];
 var uploadSize      = 25; // megabyte
@@ -56,6 +57,23 @@ var showDropzone    = new Dropzone("#myDropzone", {
 $(document).ready(function(){
     moment.locale('id');
 
+    if(current_role == 'operasional') {
+        var url     = "/master/data/getCurrentSubDivision/"+current_role;
+        var type    = "GET";
+        var data    = {
+            "role_name" : current_role,
+            "user_id"   : $("#current_uid").val(),
+        };
+        
+        transData(url, type, data, '', true)
+            .then((success)=>{
+                $("#currentSubDivision").val(success.data[0].sub_division_name);
+            })
+            .catch((err)=>{
+                $("#currentSubDivision").val(null);
+            })
+    }
+
     $("#prokerBulananStartDate").val(moment().startOf('month').format('DD/MM/YYYY'));
     $("#prokerBulananEndDate").val(moment().format('DD/MM/YYYY'));
 
@@ -81,7 +99,7 @@ $(document).ready(function(){
         // SHOW SELECT2
         show_select('groupDivisionName','','');
         show_select('jadwalUmrah', '', '');
-        show_select('bagian','','');
+        show_select('bagian','',$("#currentSubDivision").val());
     });
 
     $("#btnFilter").on('click', function(){
@@ -202,7 +220,7 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                 "tgl_akhir" : tgl_akhir == '' ? moment().endOf('month').format('YYYY-MM-DD') : tgl_akhir,
                 "divisi"    : divisi == null ? '' : divisi,
                 "jadwal"    : jadwal == null ? '%' : jadwal,
-                "sub_divisi": bagian == null ? '%' : bagian,
+                "sub_divisi": bagian == null ? ($("#currentSubDivision").val() == '' ? '%' : $("#currentSubDivision").val()) : bagian,
             };
             var message     =   Swal.fire({title   : 'Data Sedang Dimuat',allowOutsideClick: false});
                                 Swal.showLoading();
@@ -348,7 +366,8 @@ function showModal(idModal, jenis, value)
         $("#prokerBulananCheckSameDay").on('click', function(){
             var tanggal     = $("#prokerBulananTanggal").val();
             if(($(this).is(":checked") == true) && (tanggal != '')) {
-                $("#prokerBulananTanggalAkhir").val(tanggal);
+                $("#prokerBulananTanggalAkhir").data('daterangepicker').setStartDate(tanggal);
+                $("#prokerBulananTanggalAkhir").data('daterangepicker').setEndDate(tanggal);
             } else {
                 $("#prokerBulananTanggalAkhir").val(null);
             }
@@ -553,6 +572,7 @@ function closeModal(idModal) {
             $("#formUpload").hide();
             $("#formWaktuAktivitias_prokerBulanan").hide();
 
+            $("#prokerBulananCheckSameDay").prop('checked', false);
             // REMOVE FILE FROM DROPZONE
             penampung = [];
             if(isClick == 1) {
@@ -717,6 +737,10 @@ function show_select(idSelect, valueCari, valueSelect, isAsync)
         ];
 
         $("#"+idSelect).html(html);
+
+        if(valueSelect != '') {
+            $("#"+idSelect).val(valueSelect).trigger('change');
+        }
     }
 }
 
@@ -947,7 +971,6 @@ function showDataTable(idTable)
 
 function tambah_baris(idTable, value, seq)
 {
-    console.log(seq);
     if(idTable == 'tableDetailProkerBulanan')
     {
         var inputBtnDelete      = "<button type='button' class='btn btn-sm btn-danger' value='" +seq+ "' title='Hapus Baris' id='btnHapus"+seq+"' disabled><i class='fa fa-trash'></i></button>";
@@ -1017,8 +1040,6 @@ function do_save(jenis, arg, calendar)
             "keterangan"        : $("#pkbKeterangan"+seq).val(),
         });
     }
-
-    console.log(prokerBulananDetail);
 
     var dataSimpan  = {
         "prokerBulanan_ID"                  : prokerBulananID,

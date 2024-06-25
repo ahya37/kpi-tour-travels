@@ -33,6 +33,8 @@
     @php
         setlocale(LC_ALL, 'IND');
     @endphp
+    <input type="hidden" name="current_uid" id="current_uid" value={{ Auth::user()->id }}>
+    <input type="hidden" id="currentSubDivision">
     <input type="hidden" id="roleName" value={{ Auth::user()->getRoleNames()[0] }}>
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">

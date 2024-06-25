@@ -1,8 +1,8 @@
 <nav class="navbar-default navbar-static-side" role="navigation">
     <div class="sidebar-collapse">
         <ul class="nav metismenu" id="side-menu">
-            <li class="nav-header text-center" style="padding:0px;">
-                <div id="profile_id" style="margin-top: 32px; margin-bottom: 4px;">
+            <li class="nav-header text-center" style="padding:0px; background-repeat: round;">
+                <div id="profile_id" style="margin-top: 32px; margin-bottom: 32px;">
                     <div class="row">
                         <div class="col-sm-12">
                             <img alt="image" class="rounded-circle" src="{{ asset('assets/img/9187604.png') }}" width="64px" height="64px"/>
@@ -19,7 +19,7 @@
                 </div>
             </li>
             <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
-                <a href="{{ route('dashboard') }}"><i class="fa fa-bar-chart-o"></i> <span
+                <a href="{{ route('dashboard') }}"><i class="fa fa-home"></i> <span
                         class="nav-label">Dashboard</span></a>
             </li>
             @if (Auth::user()->hasRole('admin'))

@@ -70,4 +70,31 @@ class BaseController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 25 JUNI 2024
+    // NOTE : GET SUB DIVISION BY CURRENT ROLE
+    public function getCurrentSubDivision(Request $request)
+    {
+        $role   = $request->all()['sendData']['role_name'];
+        $userID = $request->all()['sendData']['user_id'];
+        $getData    = BaseService::doGetCurrentSubDivision($role, $userID);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 500,
+                "success"   => false,
+                "message"   => "Gagal",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

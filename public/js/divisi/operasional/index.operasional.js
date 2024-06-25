@@ -74,13 +74,16 @@ function showTable(idTable, valueCari)
                 "emptyTable"    : "Tidak ada data yang bisa ditampilkan..",
             },
             columnDefs  : [
-                { "targets" : [0, 5], "className":"text-center" },
+                { "targets" : [0, 4], "className":"text-center align-middle" },
                 { "targets" : [0], "width": "5%" },
-                { "targets" : [2], "width": "18%" },
+                { "targets" : [2, 5], "width": "20%" },
                 { "targets" : [3], "width" : "10%" },
+                { "targets" : [4, 6], "width" : "8%"},
+                { "targets" : [0, 1, 2, 3, 4, 5, 6], "className" : "align-middle" },
             ],
             pageLength : -1,
             autoWidth   : false,
+            paging  : false,
         });
     }
 }
@@ -210,6 +213,7 @@ function showModal(idForm, valueCari)
                             getData[i][3],
                             getData[i][4],
                             getData[i][5],
+                            getData[i][6],
                         ]).draw('false');
                     }
                 }
