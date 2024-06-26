@@ -648,9 +648,11 @@ class MarketingController extends Controller
         $countProgram = count($programs);
 
         $res_target = [];
+        
         foreach ($targetMarketing as $key => $value) {
-
-            $list_programs = MarketingTarget::getProgramBytargetBulanan($value->month_number, $marketingTargetId);
+            
+            $list_programs = MarketingTarget::getProgramBytargetBulanan($marketingTargetId);
+            $list_programs = $list_programs->where('a.month_number', $value->month_number)->orderBy('b.sequence','asc')->get();
             $res = [];
 
             foreach ($list_programs as  $list) {
@@ -755,6 +757,7 @@ class MarketingController extends Controller
             // format number 
             $fn  = new NumberFormat();
 
+            $list_programs = MarketingTarget::getProgramBytargetBulanan($id);
             $umrah_prbulan = MarketingTarget::getPencapaianUmrahPerBulanByTahun($id);
             $umrah_program = MarketingTarget::getPencapaianUmrahPerProgramByTahun($id);
             $umrah_per_pic = MarketingTarget::getPencapaianUmrahPerPicByTahun($id);
@@ -773,6 +776,7 @@ class MarketingController extends Controller
                 $umrah_per_pic = $umrah_per_pic->whereBetWeen('b.month_number',[$startDate, $endDate]);
                 $umrah_program = $umrah_program->whereBetWeen('a.month_number',[$startDate, $endDate]);
                 $umrah_prbulan = $umrah_prbulan->whereBetWeen('a.month_number',[$startDate, $endDate]);
+                $list_programs = $list_programs->whereBetWeen('a.month_number',[$startDate, $endDate]);
 
             }
 
@@ -889,10 +893,33 @@ class MarketingController extends Controller
                     )
             );
 
+
+            $list_programs =$list_programs->orderBy('b.sequence','asc')->get();
+
+           // all total 
+            $total_target = collect($list_programs)->sum(function($q){
+                return $q->target;
+            });
+            $total_realisasi = collect($list_programs)->sum(function($q){
+                return $q->realisasi;
+            });
+            $total_selisih = $total_realisasi - $total_target;
+
+            $persentage_total_pencapaian = $fn->persentage($total_realisasi,$total_target);
+            if ($persentage_total_pencapaian !== null) {
+                    $persentage_total_pencapaian  = $fn->persen($persentage_total_pencapaian);  
+            }
+
+
+
             return ResponseFormatter::success([
                 'chart_umrah_program' => $chart_umrah_program,
                 'chart_umrah_bulan' => $chart_umrah_bulan,
                 'chart_umrah_per_pic' => $chart_umrah_per_pic,
+                'total_target' => $fn->decimalFormat($total_target),
+                'total_realisasi' => $fn->decimalFormat($total_realisasi),
+                'total_selisih' => $fn->decimalFormat($total_selisih),
+                'persentage_total_pencapaian' => $persentage_total_pencapaian
             ]);
 
         } catch (\Exception $e) {

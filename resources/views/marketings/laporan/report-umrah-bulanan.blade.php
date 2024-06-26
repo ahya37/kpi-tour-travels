@@ -73,8 +73,8 @@
                     </div>
                     <h5>Target</h5>
                 </div>
-                <div class="ibox-content">
-                    <h1 class="no-margins" id="totalTarget">{{ $formatNumber->decimalFormat($total_target) }}</h1>
+                <div class="ibox-content" id="graph-container-totalTarget">
+                    <h1 class="no-margins" id="totalTarget"></h1>
                 </div>
             </div>
         </div>
@@ -86,8 +86,8 @@
                     </div>
                     <h5>Realisasi</h5>
                 </div>
-                <div class="ibox-content">
-                    <h1 class="no-margins" id="totalRealisasi">{{ $formatNumber->decimalFormat($total_realisasi) }}</h1>
+                <div class="ibox-content" id="graph-container-totalRealisasi">
+                    <h1 class="no-margins" id="totalRealisasi"></h1>
                 </div>
             </div>
         </div>
@@ -99,8 +99,8 @@
                     </div>
                     <h5>Selisih</h5>
                 </div>
-                <div class="ibox-content">
-                    <h1 class="no-margins" id="totalRealisasi">{{ $formatNumber->decimalFormat($total_selisih) }}</h1>
+                <div class="ibox-content" id="graph-container-totalSelisih">
+                    <h1 class="no-margins" id="totalSelisih"></h1>
                 </div>
             </div>
         </div>
@@ -112,8 +112,8 @@
                     </div>
                     <h5>Persentase <i class="fa fa-bolt text-success"></i></h5>
                 </div>
-                <div class="ibox-content">
-                    <h1 class="text-success">{{ $persentage_total_pencapaian }} %</h1>
+                <div class="ibox-content" id="graph-container-totalPersentage">
+                    <h1 class="text-success" id="totalPersentage"></h1>
                 </div>
             </div>
         </div>
