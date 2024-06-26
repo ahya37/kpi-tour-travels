@@ -74,7 +74,6 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/laporan/pelaksanaan_iklan','laporanPelaksanaanIklan')->name('marketing.laporan.iklan');
         Route::post('/laporan/trans/store/reportAds','simpanLaporanIklan')->name('marketing.trans.storeDataLaporanIklan');
 
-        Route::get('/pekerjaan/report','reportPekerjaanMarketing')->name('marketing.pekerjaan.report');
 
         //modal 
         Route::get('modal/target','loadModalMarketingTarget');
@@ -160,6 +159,11 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/trans/store/dataProkerTahunan/{jenis}', [ProgramKerjaController::class, 'simpanDataProkerTahunan'])->name('programKerja.tahunan.simpan');
                 Route::get('/trans/get/listDataProkerTahunan', [ProgramKerjaController::class, 'ambilListDataProkerTahunan'])->name('programKerja.tahunan.listDataProkerTahunan');
                 Route::get('/trans/get/getDataProkerTahunanDetail/{uid}', [ProgramKerjaController::class, 'ambilDataProkerTahunanDetail'])->name('programKerja.tahunan.getDataProkerTahunanDetail');
+
+                // REPORT PERKERJAAN MARKETING
+                Route::get('/marketing/report',[ProgramKerjaController::class,'reportPekerjaanMarketing'])->name('marketing.pekerjaan.report');
+                Route::post('/marketing/report/list',[ProgramKerjaController::class,'getReportPekerjaanMarketing']);
+
             });
             Route::prefix('bulanan')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'indexBulanan'])->name('programKerja.bulanan.index');

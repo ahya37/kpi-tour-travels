@@ -8,8 +8,14 @@ use App\Services\ProgramKerjaService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ProkerTahunan;
+use App\Models\ProkerBulanan;
+use App\Models\ProkerHarian;
+use App\Models\Employee;
+use App\Helpers\Months;
 use Response;
 use File;
+use Carbon\Carbon;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -749,8 +755,97 @@ class ProgramKerjaController extends Controller
 
     public function reportPekerjaanMarketing()
     {
-        // get data pekerjaan harian
-        return 'OK';
+        $query['created_by'] = request('created_by');
+
+        // get data employee
+        $employees = Employee::getEmployees();
+
+        $data   = [
+            'title'     => 'Laporan Pekerjaan Divisi Marketing',
+            'sub_title' => 'Laporan Pekerjaan Divisi Marketing',
+            // 'html' => $html,
+            'employees' => $employees
+        ];
+
+       return view('marketings.laporan.report-pekerjaan', $data);
         
+    }
+
+    public function getReportPekerjaanMarketing()
+    {
+        $year  = date('Y');
+
+        $results = [];
+
+        // get data employee
+        $employees = Employee::getEmployees();
+
+        // get data pekerjaan harian
+        #Get divisi id marketing 
+        $groupDivisionID = env('APP_GROUPDIV_MARKETING');
+        $proker_tahunan_group_bulan   = ProkerBulanan::prokerGroupBulananByTahunan($groupDivisionID);
+
+        foreach ($proker_tahunan_group_bulan as $annual) {
+
+            $res_proker_harian = ProkerHarian::getAktivitasHarianByBulanTahunAndDivisiByTest($groupDivisionID, $annual->month, $year);
+
+            // if (request()->created_by != '' && request()->date != '') {
+
+            //     $date = Carbon::createFromFormat('d-m-Y',request()->date)->format('Y-m-d');
+
+            //     $res_proker_harian = $res_proker_harian->where('d.id',request()->created_by)->where('a.pkh_date', $date);
+
+            // }elseif (request()->created_by = '' && request()->date != '') {
+
+            //     $date = Carbon::createFromFormat('d-m-Y',request()->date)->format('Y-m-d');
+            //     $res_proker_harian = $res_proker_harian->where('a.pkh_date', $date);
+
+
+            // }elseif (request()->created_by != '' && request()->date = '') {
+
+            //     $res_proker_harian = $res_proker_harian->where('d.id',request()->created_by);
+            // }
+            if (request()->created_by != '') {
+                $res_proker_harian = $res_proker_harian->where('d.id',request()->created_by);
+            }
+
+            $res_proker_harian = $res_proker_harian->orderBy('a.pkh_date','asc')->get();
+            
+            if (count($res_proker_harian) != 0) {
+                $results[] = [
+                    // 'annual' => $annual->pkt_title,
+                    'month_number' => $annual->month,
+                    'month_name' => Months::monthName($annual->month),
+                    'aktivitas' => $res_proker_harian,
+                    'count_aktivitas' => count($res_proker_harian) + 1
+                ];
+            }
+
+        }
+
+        // return $results;
+        $html = "";
+        foreach ($results as $value) {
+            $rowspan = $value['count_aktivitas'];
+            $html = $html.'<tr>';
+            $html = $html.'<td rowspan='.$rowspan.' style="display: table-cell;text-align: center;font-size:14px">'.$value['month_name'].'</td>';
+            $html = $html.'</tr>';
+
+            foreach ($value['aktivitas'] as $aktivitas) {
+                $html = $html.'<tr>';
+                $html = $html.'<td>'.$aktivitas->pkh_date ?? ''.'</td>';
+                $html = $html.'<td>'.$aktivitas->pkh_title ?? ''.'</td>';
+                $html = $html.'<td>'.$aktivitas->pic ??''.'</td>';
+                $html = $html.'</tr>';
+            }
+        }
+
+
+        $data   = [
+            'html' => $html,
+        ];
+
+        return response()->json($data);
+
     }
 }

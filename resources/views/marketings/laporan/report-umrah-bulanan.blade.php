@@ -254,9 +254,6 @@
     </div>
 </div>
 @endsection
-@push('prepend-script')
-@include('layouts.modals.modal-detail-marketing-targets')
-@endpush
 @push('addon-script')
 <script src="{{asset('assets/js/plugins/fullcalendar/moment.min.js')}}"></script>
 <script src="{{asset('assets/js/plugins/daterangepicker/daterangepicker.js')}}"></script>

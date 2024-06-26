@@ -27,4 +27,9 @@ class Employee extends Model
 
         return $cs;
     }
+
+    public static function getEmployees()
+    {
+        return DB::table('employees')->select('name','user_id')->get();
+    }
 }
