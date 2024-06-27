@@ -54,6 +54,60 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <div class="ibox-tools">
+                        <span class="label label-danger float-right" style="background-color: #DF9E0F">Annual</span>
+                    </div>
+                    <h5>Target</h5>
+                </div>
+                <div class="ibox-content" id="graph-container-totalTarget">
+                    <h1 class="no-margins" id="totalTarget"></h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <div class="ibox-tools">
+                        <span class="label label-success float-right" style="background-color: #a3e1d4">Annual</span>
+                    </div>
+                    <h5>Realisasi</h5>
+                </div>
+                <div class="ibox-content" id="graph-container-totalRealisasi">
+                    <h1 class="no-margins" id="totalRealisasi"></h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <div class="ibox-tools">
+                        <span class="label label-success float-right" style="background-color: #828282">Annual</span>
+                    </div>
+                    <h5>Selisih</h5>
+                </div>
+                <div class="ibox-content" id="graph-container-totalSelisih">
+                    <h1 class="no-margins" id="totalSelisih"></h1>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <div class="ibox-tools">
+                        <span class="label label-success float-right" style="background-color: #C00000">Annual</span>
+                    </div>
+                    <h5>Persentase <i class="fa fa-bolt text-success"></i></h5>
+                </div>
+                <div class="ibox-content" id="graph-container-totalPersentage">
+                    <h1 class="text-success" id="totalPersentage"></h1>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="row">
         <div class="col-lg-6">
@@ -107,7 +161,7 @@
                                     <th class="centered" style="background-color: #F5B487">Target</th>
                                     {{-- <th class="centered">Program</th> --}}
                                     <th class="centered" style="background-color: #F5B487">Realisasi</th>
-                                    {{-- <th class="centered">Selisih</th> --}}
+                                    <th class="centered"  style="background-color: #F5B487">Selisih</th>
                                     <th class="centered" style="background-color: #F5B487">Persentase</th>
                                 </tr>
                             </thead>

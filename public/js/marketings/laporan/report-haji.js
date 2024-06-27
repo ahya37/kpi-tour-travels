@@ -157,6 +157,7 @@ $(document).ready(function () {
                 '<td >' + row.month + '</td>' +
                 '<td align="right">' + row.target + '</td>' +
                 '<td align="right">' + row.realisasi_jamaah + '</td>' +
+                '<td align="right">' + row.selisih + '</td>' +
                 '<td align="right">' + row.persentage + '</td>' +
                 '</tr>';
             tableBody.append(newRow);
@@ -189,6 +190,7 @@ $(document).ready(function () {
                                     <th style=" text-align: right;" colspan="2">Jumlah</th>
                                     <th style=" text-align: right;">${responses.data.total_target_jamaah}</th>
                                     <th style=" text-align: right;">${responses.data.total_realisasi_jamaah}</th>
+                                    <th style=" text-align: right;">${responses.data.total_selisih_jamaah}</th>
                                     <th style=" text-align: right;">${responses.data.total_persentaese_jamaah}</th>
                                 </tr>
                             `;
@@ -200,12 +202,38 @@ $(document).ready(function () {
         }
     }
 
+    const initialAllTotal = async (year) => {
+        try {
+            $('#totalTarget').empty();
+            $('#totalRealisasi').empty();
+            $('#totalSelisih').empty();
+            $('#totalPersentage').empty();
+            showLoading('graph-container-totalTarget');
+            showLoading('graph-container-totalRealisasi');
+            showLoading('graph-container-totalSelisih');
+            showLoading('graph-container-totalPersentage');
+            const responses = await callApi(year);
+            closeLoading('graph-container-totalTarget')
+            closeLoading('graph-container-totalRealisasi')
+            closeLoading('graph-container-totalSelisih')
+            closeLoading('graph-container-totalPersentage')
+            $('#totalTarget').text(responses.data.total_target_jamaah);
+            $('#totalRealisasi').text(responses.data.total_realisasi_jamaah);
+            $('#totalSelisih').text(responses.data.total_selisih_jamaah);
+            $('#totalPersentage').text(`${responses.data.total_persentaese_jamaah} %`);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
 
     $('#submitFilter').click(function () {
         const year = $('#tahunHaji').val();
         initialGrafikPerbulan(year);
         initialGrafikPerPic(year);
         initialTable(year);
+        initialAllTotal(year);
     });
 
 });
