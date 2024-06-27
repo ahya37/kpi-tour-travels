@@ -932,6 +932,9 @@ class MarketingController extends Controller
 
     public function reportHaji()
     {
-        return view('marketings.laporan.report-haji');
+    
+        return view('marketings.laporan.report-haji',[
+            'title' => 'Laporan Haji',
+        ]);
     }
 }
