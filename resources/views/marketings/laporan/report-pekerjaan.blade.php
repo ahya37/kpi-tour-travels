@@ -81,10 +81,10 @@
                         <table class="table table-striped table-bordered table-hover data">
                             <thead >
                                 <tr >
-                                    <th class="centered" width="8%" style="background-color: #FFFF00">Bulan</th>
-                                    <th class="centered" width="8%" style="background-color: #FFFF00">Tanggal</th>
-                                    <th class="centered" width="70%" style="background-color: #FFFF00">Aktivitas</th>
-                                    <th class="centered" style="background-color: #FFFF00">PIC</th>
+                                    <th class="centered" width="8%" style="background-color: #F5B487">Bulan</th>
+                                    <th class="centered" width="8%" style="background-color: #F5B487">Tanggal</th>
+                                    <th class="centered" width="70%" style="background-color: #F5B487">Aktivitas</th>
+                                    <th class="centered" style="background-color: #F5B487">PIC</th>
                                 </tr>
                             </thead>
                             <tbody id="dataBody"></tbody>

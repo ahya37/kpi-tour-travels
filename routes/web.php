@@ -82,6 +82,9 @@ Route::group(['middleware' => ['auth']], function () {
         // Grafik Laporan Umrah Bulanan
         Route::post('/pencapaian/bulanan','pencapaianBulanan');
 
+        // HAJI
+        Route::get('/haji/report','reportHaji')->name('marketings.haji.report');
+
     });
 
      // Rencana Kerja

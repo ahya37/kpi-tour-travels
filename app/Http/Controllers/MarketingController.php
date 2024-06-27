@@ -36,7 +36,7 @@ class MarketingController extends Controller
     {
         
         return view('marketings.targets',[
-            'title' => 'Target Marketing'
+            'title' => 'Laporan Umrah'
         ]);
     }
 
@@ -59,13 +59,13 @@ class MarketingController extends Controller
     public function detailMarketingTarget($marketingTargetId)
     {
        
-        $detailMatketingTargets = MarketingService::detailMarketingTarget($marketingTargetId);
+        // $detailMatketingTargets = MarketingService::detailMarketingTarget($marketingTargetId);
 
 
         return view('marketings.detail-marketing-target', [
             'title' => 'Detail Target Marketing',
             'marketingTargetId' => $marketingTargetId,
-            'detailMatketingTargets' => $detailMatketingTargets
+            // 'detailMatketingTargets' => $detailMatketingTargets
         ]);
 
     }
@@ -928,5 +928,10 @@ class MarketingController extends Controller
                 'message' => 'Terjadi kesalahan!'
             ]);
         }
+    }
+
+    public function reportHaji()
+    {
+        return view('marketings.laporan.report-haji');
     }
 }
