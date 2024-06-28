@@ -87,7 +87,6 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-3">
-                                                
                                                 <input type="text" class="form-control date" id="prokerBulananStartDate" placeholder="DD/MM/YYYY" style="cursor: pointer; background: white; height: 38px;" readonly>
                                             </div>
                                             <div class="col-sm-3">
@@ -185,6 +184,26 @@
                             </div>
                         </div>
                     </div>
+                    <div class="collapse" id="collapseLainnya">
+                        <div class="form-row mb-2">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Jadwal Umrah / Haji</label>
+                                    <select class="form-select" name="jadwalProgram" id="jadwalProgram" style="width: 100%;" onchange="show_select(`jadwalProgramUraian`, this.value, '', true)"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row mb-2">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label>Uraian Pekerjaan</label>
+                                    <select class="form-select" name="jadwalProgramUraian" id="jadwalProgramUraian" style="width: 100%;" onchange="show_text(`jadwalProgramUraianPktSeq`, this.value)"></select>
+                                    <input type="hidden" id="jadwalProgramUraianPktSeq">
+                                    <input type="hidden" id="jadwalProgramUraianRulSeq">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-row mb-2" style="display:none;">
                         <div class="col-md-12">
                             <div class="form-group">
@@ -215,7 +234,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-row mb-2">
+                    <div class="form-row mb-2" id="formProkerBulananTitle">
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Uraian Pekerjaan</label>

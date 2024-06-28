@@ -225,12 +225,13 @@ class ProgramKerjaController extends Controller
     public function getProkerBulananAll(Request $request)
     {
         $data_cari  = [
-            "uuid"          => $request->all()['sendData']['cari'],
-            "role_name"     => !empty($request->all()['sendData']['divisi']) && Auth::user()->hasRole('admin') ? ($request->all()['sendData']['divisi'] == 'Semua' ? '%' : $request->all()['sendData']['divisi']) : Auth::user()->getRoleNames()[0],
-            "tgl_awal"      => !empty($request->all()['sendData']['tgl_awal']) ? $request->all()['sendData']['tgl_awal'] : date('Y')."-".date('m')."-01",
-            "tgl_akhir"     => !empty($request->all()['sendData']['tgl_akhir']) ? $request->all()['sendData']['tgl_akhir'] : date('Y-m-d'),
-            "jadwal"        => !empty($request->all()['sendData']['jadwal']) ? $request->all()['sendData']['jadwal'] : null,
-            "sub_divisi"    => !empty($request->all()['sendData']['sub_divisi']) ? $request->all()['sendData']['sub_divisi'] : '%',
+            "uuid"                  => $request->all()['sendData']['cari'],
+            "current_role"          => Auth::user()->getRoleNames()[0],
+            "group_divisi"          => $request->all()['sendData']['divisi'],
+            "tgl_awal"              => !empty($request->all()['sendData']['tgl_awal']) ? $request->all()['sendData']['tgl_awal'] : date('Y')."-".date('m')."-01",
+            "tgl_akhir"             => !empty($request->all()['sendData']['tgl_akhir']) ? $request->all()['sendData']['tgl_akhir'] : date('Y-m-d'),
+            "jadwal"                => !empty($request->all()['sendData']['jadwal']) ? $request->all()['sendData']['jadwal'] : null,
+            "sub_divisi"            => !empty($request->all()['sendData']['sub_divisi']) ? $request->all()['sendData']['sub_divisi'] : '%',
         ];
         $getData    = ProgramKerjaService::getProkerBulananAll($data_cari);
         
@@ -725,6 +726,55 @@ class ProgramKerjaController extends Controller
                 "status"    => 404,
                 "success"   => false,
                 "message"   => "Tidak ada data yang bisa diambil",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 26 JUNI 2024
+    // NOTE : UNTUK MENARIK JADWAL PADA PROGRAM KERJA BULANAN
+    public function listSelectJadwalUmrahForm()
+    {
+        $getData    = ProgramKerjaService::getListSelectJadwalUmrahForm();
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Mengambil Data",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 500,
+                "success"   => false,
+                "message"   => "Terjadi Kesalahan",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function listSelectedJadwalUmrahForm(Request $request)
+    {
+        $jadwalID   = $request->all()['sendData']['prog_jdw_id'];
+        $getData    = ProgramKerjaService::getListSelectedJadwalUmrahForm($jadwalID);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Gagal Mengambil Data",
                 "data"      => [],
             );
         }

@@ -56,7 +56,6 @@ var showDropzone    = new Dropzone("#myDropzone", {
 
 $(document).ready(function(){
     moment.locale('id');
-
     if(current_role == 'operasional') {
         var url     = "/master/data/getCurrentSubDivision/"+current_role;
         var type    = "GET";
@@ -73,6 +72,7 @@ $(document).ready(function(){
                 $("#currentSubDivision").val(null);
             })
     }
+    showCalendarButton('global')
 
     $("#prokerBulananStartDate").val(moment().startOf('month').format('DD/MM/YYYY'));
     $("#prokerBulananEndDate").val(moment().format('DD/MM/YYYY'));
@@ -97,9 +97,10 @@ $(document).ready(function(){
         });
 
         // SHOW SELECT2
+        var current_sub_division    = $("#currentSubDivision").val() == 'pic' ? '%' : $("#currentSubDivision").val();
         show_select('groupDivisionName','','');
         show_select('jadwalUmrah', '', '');
-        show_select('bagian','',$("#currentSubDivision").val());
+        show_select('bagian','', current_sub_division, true);
     });
 
     $("#btnFilter").on('click', function(){
@@ -108,8 +109,6 @@ $(document).ready(function(){
             // console.log('test2');
         });
     });
-    
-    showCalendarButton('global')
 });
 
 function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
@@ -215,12 +214,12 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
             var url         = getUrl + "/getDataAllProkerBulanan";
             var type        = "GET";
             var data        = {
-                "cari"      : "%",
-                "tgl_awal"  : tgl_awal == '' ? moment().startOf('month').format('YYYY-MM-DD') : tgl_awal,
-                "tgl_akhir" : tgl_akhir == '' ? moment().endOf('month').format('YYYY-MM-DD') : tgl_akhir,
-                "divisi"    : divisi == null ? '' : divisi,
-                "jadwal"    : jadwal == null ? '%' : jadwal,
-                "sub_divisi": bagian == null ? ($("#currentSubDivision").val() == '' ? '%' : $("#currentSubDivision").val()) : bagian,
+                "cari"                  : "%",
+                "tgl_awal"              : tgl_awal == '' ? moment().startOf('month').format('YYYY-MM-DD') : tgl_awal,
+                "tgl_akhir"             : tgl_akhir == '' ? moment().endOf('month').format('YYYY-MM-DD') : tgl_akhir,
+                "divisi"                : divisi == null ? '' : divisi,
+                "jadwal"                : jadwal == null ? '%' : jadwal,
+                "sub_divisi"            : bagian == null ? '%' : bagian,
             };
             var message     =   Swal.fire({title   : 'Data Sedang Dimuat',allowOutsideClick: false});
                                 Swal.showLoading();
@@ -242,9 +241,9 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                         }
                         
                         tempData.push({
-                            title   : xhr.data.list[i]['pkb_title'],
+                            title   : (xhr.data.list[i]['pkb_title'].includes('[') === true && current_role == 'operasional') ? (xhr.data.list[i]['pkb_title'].split(' ')[0] + " " + xhr.data.list[i]['pkb_description']) : xhr.data.list[i]['pkb_title'],
                             start   : xhr.data.list[i]['pkb_start_date'], 
-                            end     : xhr.data.list[i]['pkb_end_date'],
+                            end     : moment(xhr.data.list[i]['pkb_end_date'], 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD'),
                             allDay  : true,
                             id      : xhr.data.list[i]['pkb_uuid'],
                             roleId  : xhr.data.list[i]['role_id'],
@@ -404,7 +403,6 @@ function showModal(idModal, jenis, value)
                 "tgl_akhir" : moment($("#prokerBulananEndDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
             }
             var isAsync = true;
-
             
             // SHOW MESSAGE
             if(isAsync == true) {
@@ -578,6 +576,11 @@ function closeModal(idModal) {
             if(isClick == 1) {
                 showDropzone.removeAllFiles(true);
             } 
+
+            $("#collapseLainnya").collapse('hide');
+            $("#jadwalProgramUraianPktSeq").val(null);
+            $("#jadwalProgramUraianRulSeq").val(null);
+            $("#formProkerBulananTitle").show();
         });
         if(isClick == 0) {
             showDropzone.removeAllFiles(true);
@@ -671,7 +674,13 @@ function show_select(idSelect, valueCari, valueSelect, isAsync)
                 $.each(xhr.data['detail'], function(i,item){
                     html    += "<option value='"+ item['detail_seq'] +"'>" + item['detail_title'] + "</option>";
                 })
+                
+                if(current_role == 'operasional') {
+                    html    += "<option value='lainnya'>Lainnya (Umrah / Haji)</option>";
+                }
+
                 $("#"+idSelect).html(html);
+                
                 if(valueSelect != '') {
                     $("#"+idSelect).val(valueSelect).trigger('change');
                 }
@@ -702,7 +711,7 @@ function show_select(idSelect, valueCari, valueSelect, isAsync)
             })
     } else if(idSelect == 'jadwalUmrah') {
         
-        moment.locale('en');
+        moment.locale('id');
         var html    = [
             "<option selected disabled>Pilih Jadwal</option>",
             "<option value='%'>Semua</option>"
@@ -729,6 +738,7 @@ function show_select(idSelect, valueCari, valueSelect, isAsync)
                 $("#"+idSelect).html(html);
             })
     } else if(idSelect == 'bagian') {
+        console.log({idSelect, valueCari, valueSelect, isAsync});
         var html    = [
             "<option selected disabled>Pilih Sub-Divisi</option>",
             "<option value='%'>Semua</option>",
@@ -741,6 +751,78 @@ function show_select(idSelect, valueCari, valueSelect, isAsync)
         if(valueSelect != '') {
             $("#"+idSelect).val(valueSelect).trigger('change');
         }
+    } else if(idSelect == 'jadwalProgram') {
+        var html    = "<option selected disabled>Pilih Jadwal Umrah / Haji</option>";
+
+        // GET DATA
+        var url     = getUrl + "/listSelectJadwalUmrahForm";
+        var type    = "GET";
+        var data    = "";
+        var message = "";
+
+        if(valueCari != '') {
+            transData(url, type, data, message, false)
+                .then((success)=> {
+                    $.each(success.data, function(i,item){
+                        var jdw_id          = item.prog_jdw_id;
+                        var jdw_prog_name   = item.prog_jdw_name;
+                        var jdw_arv_date    = moment(item.prog_jdw_arrival_date, 'YYYY-MM-DD').format('DD/MMM/YYYY');
+                        var jdw_dpt_date    = moment(item.prog_jdw_depature_date, 'YYYY-MM-DD').format('DD/MMM/YYYY');
+
+                        var text            = "[" + jdw_prog_name.toUpperCase() + "] (" + jdw_dpt_date + " s/d " + jdw_arv_date + ")";
+                        html                += "<option value='"+jdw_id+"'>" + text + "</option>";
+                    })
+                    $("#"+idSelect).html(html);
+                })
+                .catch((err)=>{
+                    $("#"+idSelect).html(html);
+                })
+
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'jadwalProgramUraian') {
+        var html    = "<option selected disabled>Pilih Uraian Pekerjaan</option>";
+        
+        if(valueCari != '') {
+            // GET DATA
+            var url     = getUrl+"/listSelectedJadwalUmrahForm";
+            var type    = "GET";
+            var data    = {
+                "prog_jdw_id"   : valueCari,
+            };
+            // if ( isAsync === true ) { var message = Swal.fire({ title : 'Data Sedang Dimuat' }); Swal.close(); } else { var message = ""; }
+            var message     = "";
+            
+            transData(url, type, data, message, isAsync)
+                .then(( success ) => {
+                    var getData     = success.data;
+                    $.each(getData, (i, item)=> {
+                        var prog_jdw_seq            = item.prog_jdw_seq;
+                        var prog_jdw_title          = item.prog_jdw_title;
+                        var prog_jdw_sub_pkt_seq    = item.prog_pkt_seq;
+
+                        html    += "<option value='" + prog_jdw_seq +"|"+ prog_jdw_sub_pkt_seq + "'>" + (i + 1) + ". " + prog_jdw_title + "</option>";
+                    });
+
+                    $("#"+idSelect).html(html);
+
+                    if(valueSelect != '') {
+                        $("#"+idSelect).val(valueSelect);
+                    }
+                    
+                    Swal.close();
+                })
+                .catch(( error ) => {
+                    console.log(error.responseJSON);
+                    $("#"+idSelect).html(html);
+                    Swal.close();
+                })
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'jadwalProgramUraianPktSeq') {
+        $("#"+idSelect).val(valueCari);
     }
 }
 
@@ -768,9 +850,23 @@ function show_select_detail(idSelect, valueCari) {
         show_select('subProkerTahunanSeq', valueCari, '');
     } else if(idSelect == 'subProkerTahunanSeq') {
         var divisi  = $("#prokerTahunanGroupDivisionName").val();
-        if(divisi == 'operasionl') {
+        var button  = $("#btnSimpan").val();
+        if((divisi == 'operasionl') && (button == 'edit')) {
             var selected_text   = $("#subProkerTahunanSeq option:selected").text();
             $("#prokerBulananTitle").val(selected_text);
+        } else if(button == 'add') {
+            if(current_role == 'operasional') {
+                if(valueCari == 'lainnya') {
+                    $("#collapseLainnya").collapse('show');
+                    $("#formProkerBulananTitle").hide();
+
+                    show_select('jadwalProgram', '%', '', true);
+                    show_select('jadwalProgramUraian', '', '', true);
+                } else {
+                    $("#collapseLainnya").collapse('hide');
+                    $("#formProkerBulananTitle").show();
+                }
+            }
         }
     } else if(idSelect == 'groupDivisionName') {
         // console.log(idSelect, valueCari);
@@ -1012,6 +1108,17 @@ function tambah_baris(idTable, value, seq)
     }
 }
 
+function show_text(idText, valueCari)
+{
+    if(idText == 'jadwalProgramUraianPktSeq') {
+        // $("#"+idText).val(valueCari);
+        var split   = valueCari.split('|');
+        
+        $("#"+idText).val(split[1]);
+        $("#jadwalProgramUraianRulSeq").val(split[0]);
+    }
+}
+
 function do_save(jenis, arg, calendar)
 {
     var prokerBulananID         = $("#prokerBulananID").val();
@@ -1028,6 +1135,11 @@ function do_save(jenis, arg, calendar)
     var prokerBulananEndTime    = $("#prokerBulananEndTime").val();
     var prokerBulananStartDate  = $("#prokerBulananTanggal").val() === undefined ? moment(arg.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY') : $("#prokerBulananTanggal").val();
     var prokerBulananEndDate    = $("#prokerBulananTanggalAkhir").val() === undefined ? moment(arg.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY') :  $("#prokerBulananTanggalAkhir").val();
+    // UNTUK UPDATE LAINNYA
+    var programJadwalID         = (current_role != 'operasional') ? '' : $("#jadwalProgram").val();
+    var programJadwalText       = (current_role != 'operasional') ? '' : $("#jadwalProgram option:selected").text()+" "+$("#jadwalProgramUraian option:selected").text();
+    var programJadwalRulSeq     = (current_role != 'operasional') ? '' : $("#jadwalProgramUraianRulSeq").val();
+    var programJadwalPktSeq     = (current_role != 'operasional') ? '' : $("#jadwalProgramUraianPktSeq").val();
     var totalDetail             = $("#tableDetailProkerBulanan").DataTable().rows().count();
     var prokerBulananDetail     = [];
     for(var i = 0; i < totalDetail; i++) {
@@ -1044,13 +1156,13 @@ function do_save(jenis, arg, calendar)
     var dataSimpan  = {
         "prokerBulanan_ID"                  : prokerBulananID,
         "prokerBulanan_prokerTahunanID"     : prokerTahunanID,
-        "prokerBulanan_subProkerTahunan"    : prokerSubTahunanID,
+        "prokerBulanan_subProkerTahunan"    : prokerSubTahunanID == 'lainnya' ? programJadwalPktSeq : prokerSubTahunanID,
         "prokerBulanan_groupDivisionID"     : groupDivisionID,
         "prokerBulanan_groupDivisionName"   : groupDivisionName,
         "prokerBulanan_subDivisionID"       : subDivisionID,
         "prokerBulanan_subDivisionName"     : subDivisionName,
         "prokerBulanan_employeeID"          : prokerBulananPIC,
-        "prokerBulanan_title"               : prokerBulananTitle,
+        "prokerBulanan_title"               : prokerSubTahunanID == 'lainnya' ? programJadwalText.split('. ')[1] : prokerBulananTitle,
         "prokerBulanan_description"         : prokerBulananDesc,
         "prokerBulanan_startDate"           : (prokerBulananStartDate == '' || prokerBulananStartDate === undefined) ? arg.startStr : moment(prokerBulananStartDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
         "prokerBulanan_endDate"             : (prokerBulananEndDate == '' || prokerBulananEndDate === undefined) ? arg.startStr : moment(prokerBulananEndDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
@@ -1059,7 +1171,11 @@ function do_save(jenis, arg, calendar)
         "prokerBulanan_startActivity"       : prokerBulananStartTime,
         "prokerBulanan_endActivity"         : prokerBulananEndTime,
         "prokerBulanan_file_list"           : penampung.length > 0 ? penampung : null,
+        "prokerBulanan_programJadwalID"     : programJadwalID,
+        "prokerBulanan_programJadwalRulSeq" : programJadwalRulSeq,
     };
+
+    console.log(dataSimpan);
     // CREATE VALIDATE
     if(prokerTahunanID == null) {
         Swal.fire({
@@ -1091,7 +1207,7 @@ function do_save(jenis, arg, calendar)
                 $("#prokerBulananPIC").select2('open');
             }
         })
-    } else if(prokerBulananTitle == '') {
+    } else if(prokerBulananTitle == '' && prokerSubTahunanID != 'lainnya') {
         Swal.fire({
             icon    : 'error',
             title   : 'Terjadi Kesalahan',

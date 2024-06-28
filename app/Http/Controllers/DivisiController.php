@@ -202,6 +202,7 @@ class DivisiController extends Controller
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
                 $button_generate    = "<button type='button' class='btn btn-sm btn-success' title='Generate Aturan Program Kerja' data-startdate='".$getData[$i]->jdw_depature_date."' data-enddate='".$getData[$i]->jdw_arrival_date."' value='".$getData[$i]->jdw_id."' onclick='generateRules(this, this.value)'><i class='fa fa-cog'></i></button>";
+                // $button_generate    = "<button type='button' class='btn btn-sm btn-success' title='Generate Aturan Program Kerja' value='".$getData[$i]->jdw_id."' onclick='showModal(`modaGenerateRules`, this.value)'><i class='fa fa-cog'></i></button>";
                 $button_success     = "<button type='button' class='btn btn-sm btn-primary' title='Lihat Detail' value='" .$getData[$i]->jdw_id. "' onclick='showModal(`modalForm`, this.value)' title='Berhasil Generate'><i class='fa fa-check'></i></button>";
                 $button         = $getData[$i]->is_generated == 'f' ? $button_generate : $button_success;
                 $data[]     = array(
@@ -310,11 +311,11 @@ class DivisiController extends Controller
 
     public function getDataRulesJadwal($idJadwalProgram)
     {
-        $currentID  = Auth::user()->id;
-        $roleName   = Auth::user()->getRoleNames()[0];
+        $currentID      = Auth::user()->id;
+        $roleName       = Auth::user()->getRoleNames()[0];
         $subDivision    = !empty(BaseService::doGetCurrentSubDivision($roleName, $currentID)) ? BaseService::doGetCurrentSubDivision($roleName, $currentID)[0]->sub_division_name : '%';
 
-        $getData    = DivisiService::doGetDataRulesJadwal($idJadwalProgram, $subDivision);
+        $getData        = DivisiService::doGetDataRulesJadwal($idJadwalProgram, $subDivision);
 
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
@@ -346,6 +347,67 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
 
+    }
+
+    // 26 JUNI 2024
+    // NOTE : PENGAMBILAN DATA UNTUK ATURAN JADWAL
+    // STATUS : HOLD
+    public function getDataRulesJadwalDetail(Request $request)
+    {
+        $jadwalID   = $request->all()['sendData']['jadwalID'];
+        
+        $getData    = DivisiService::doGetDataRulesJadwalDetail($jadwalID);
+        
+        if(!empty($getData['jadwal']) && !empty($getData['jadwal_rules']))
+        {
+            $dataJadwal     = $getData['jadwal'];
+            $dataJadwalRules= $getData['jadwal_rules'];
+            
+            $data_header    = $dataJadwal;
+
+            $tgl_keberangkatan  = $dataJadwal[0]->jdw_depature_date;
+            $tgl_kepulangan     = $dataJadwal[0]->jdw_arrival_date;
+
+            for($i = 0; $i < count($dataJadwalRules); $i++) {
+                $rules_seq      = $dataJadwalRules[$i]->jdw_rules_id;
+                $rules_title    = $dataJadwalRules[$i]->jdw_rules_title;
+                $rules_pic      = $dataJadwalRules[$i]->jdw_rules_sub_division_name;
+                $rules_duration_day     = $dataJadwalRules[$i]->jdw_rules_duration_day;
+                $rules_deadline_day     = $dataJadwalRules[$i]->jdw_rules_deadline_day;
+                $cond_1         = $dataJadwalRules[$i]->jdw_rules_deadline_cond_1;
+                $cond_2         = $dataJadwalRules[$i]->jdw_rules_deadline_cond_2;
+
+                $data_detail[]         = array(
+                    $rules_title,
+                    $rules_duration_day." Hari",
+                    "H".$cond_1." ".$rules_deadline_day,
+                    "",
+                    $rules_pic
+                );
+            }
+
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => [
+                    "header"    => $data_header,
+                    "detail"    => $data_detail
+                ],
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data",
+                "data"      => [
+                    "header"    => [],
+                    "detail"    => [],
+                ],
+            );
+        }
+
+        return Response::json($output, $output['status']);
     }
 
     // MASTER ZONE
