@@ -731,6 +731,7 @@ function show_select(idSelect, valueCari, valueSelect, isAsync)
             .then((xhr)=>{
                 var getData     = xhr.data;
                 $.each(getData, function(i,item){
+                    var program_jdw_id          = item['jdw_uuid'];
                     var program_name            = item['name'];
                     var program_depature_date   = item['jdw_depature_date'];
                     var program_arrival_date    = item['jdw_arrival_date'];
@@ -738,7 +739,7 @@ function show_select(idSelect, valueCari, valueSelect, isAsync)
                     var customVal               = "[" + program_name.toUpperCase() + "] (" + moment(program_depature_date, 'YYYY-MM-DD').format('DD/MMM/YYYY') + " s/d " + moment(program_arrival_date, 'YYYY-MM-DD').format('DD/MMM/YYYY') + ")";
                     var customText              = program_name+" - "+moment(program_depature_date,'YYYY-MM-DD').format('DD/MM/YYYY')+" s/d "+moment(program_arrival_date, 'YYYY-MM-DD').format('DD/MM/YYYY');
 
-                    html                        += "<option value='" +customVal+ "'>" +customText+ "</option>";
+                    html                        += "<option value='" + program_jdw_id + "'>" +customText+ "</option>";
                 });
                 $("#"+idSelect).html(html);
             })
@@ -747,7 +748,10 @@ function show_select(idSelect, valueCari, valueSelect, isAsync)
                 $("#"+idSelect).html(html);
             })
     } else if(idSelect == 'bagian') {
-        console.log({idSelect, valueCari, valueSelect, isAsync});
+        console.log({
+            "currentSubDivision"    : $("#currentSubDivision").val(),
+            "current_rol"           : current_role,
+        });
         var html    = [
             "<option selected disabled>Pilih Sub-Divisi</option>",
             "<option value='%'>Semua</option>",

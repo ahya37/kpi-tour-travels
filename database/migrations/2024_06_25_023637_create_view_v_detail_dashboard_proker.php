@@ -74,7 +74,7 @@ return new class extends Migration
             FROM 		proker_harian a
             JOIN 		model_has_roles b ON b.model_id = a.created_by
             JOIN 		roles c ON c.id = b.role_id
-            ) AS B
+            ) AS b
             ORDER BY LEFT(b.trans_type, 1), b.created_at ASC
             "
         );
