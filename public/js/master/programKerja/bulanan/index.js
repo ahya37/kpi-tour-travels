@@ -241,7 +241,7 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                         }
                         
                         tempData.push({
-                            title   : (xhr.data.list[i]['pkb_title'].includes('[') === true && current_role == 'operasional') ? (xhr.data.list[i]['pkb_title'].split(' ')[0] + " " + xhr.data.list[i]['pkb_description']) : xhr.data.list[i]['pkb_title'],
+                            title   : xhr.data.list[i]['pkb_title'],
                             start   : xhr.data.list[i]['pkb_start_date'], 
                             end     : moment(xhr.data.list[i]['pkb_end_date'], 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD'),
                             allDay  : true,
@@ -401,6 +401,9 @@ function showModal(idModal, jenis, value)
                 "cari"      : value,
                 "tgl_awal"  : moment($("#prokerBulananStartDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
                 "tgl_akhir" : moment($("#prokerBulananEndDate").val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
+                "divisi"    : '%',
+                "jadwal"    : '%',
+                "sub_divisi": '%',
             }
             var isAsync = true;
             
@@ -430,6 +433,12 @@ function showModal(idModal, jenis, value)
                     $("#prokerBulananDesc").val(resultData['pkb_description']);
                     $("#prokerBulananStartTime").val(start_time);
                     $("#prokerBulananEndTime").val(end_time); 
+
+                    if(start_date == end_date) {
+                        $("#prokerBulananCheckSameDay").prop('checked', true);
+                    } else {
+                        $("#prokerBulananCheckSameDay").prop('checked', false);
+                    }
 
                     if(($("#prokerBulananTanggal").val() !== undefined) && ($("#prokerBulananTanggalAkhir").val() !== undefined)) {
                         if(start_date != null) {
@@ -1137,7 +1146,7 @@ function do_save(jenis, arg, calendar)
     var prokerBulananEndDate    = $("#prokerBulananTanggalAkhir").val() === undefined ? moment(arg.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY') :  $("#prokerBulananTanggalAkhir").val();
     // UNTUK UPDATE LAINNYA
     var programJadwalID         = (current_role != 'operasional') ? '' : $("#jadwalProgram").val();
-    var programJadwalText       = (current_role != 'operasional') ? '' : $("#jadwalProgram option:selected").text()+" "+$("#jadwalProgramUraian option:selected").text();
+    var programJadwalText       = (current_role != 'operasional') ? '' : $("#jadwalProgram option:selected").text()+" "+$("#jadwalProgramUraian option:selected").text().split('. ')[1];
     var programJadwalRulSeq     = (current_role != 'operasional') ? '' : $("#jadwalProgramUraianRulSeq").val();
     var programJadwalPktSeq     = (current_role != 'operasional') ? '' : $("#jadwalProgramUraianPktSeq").val();
     var totalDetail             = $("#tableDetailProkerBulanan").DataTable().rows().count();
@@ -1162,7 +1171,7 @@ function do_save(jenis, arg, calendar)
         "prokerBulanan_subDivisionID"       : subDivisionID,
         "prokerBulanan_subDivisionName"     : subDivisionName,
         "prokerBulanan_employeeID"          : prokerBulananPIC,
-        "prokerBulanan_title"               : prokerSubTahunanID == 'lainnya' ? programJadwalText.split('. ')[1] : prokerBulananTitle,
+        "prokerBulanan_title"               : prokerSubTahunanID == 'lainnya' ? programJadwalText : prokerBulananTitle,
         "prokerBulanan_description"         : prokerBulananDesc,
         "prokerBulanan_startDate"           : (prokerBulananStartDate == '' || prokerBulananStartDate === undefined) ? arg.startStr : moment(prokerBulananStartDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
         "prokerBulanan_endDate"             : (prokerBulananEndDate == '' || prokerBulananEndDate === undefined) ? arg.startStr : moment(prokerBulananEndDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),

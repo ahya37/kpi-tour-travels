@@ -195,7 +195,7 @@ class ProgramKerjaService
         $jadwal         = $cari['jadwal'];
         $group_divisi   = !empty($cari['group_divisi']) ? $cari['group_divisi'] : '%';
         $sub_divisi     = $current_sub_division;
-        $user_id        = $cari['current_role'] == 'admin' ? '%' : $current_sub_division;
+        $user_id        = $cari['current_role'] == 'admin' ? '%' : Auth::user()->id;
         
         // FOR DEBUGGING
         // print("<pre>" . print_r($cari, true) . "</pre>");die();
@@ -249,7 +249,7 @@ class ProgramKerjaService
                     UNION ALL
 
                     SELECT 	e.uuid as pkb_uuid,
-                            e.pkb_title,
+                            CONCAT(SUBSTRING_INDEX(SUBSTRING_INDEX(e.pkb_title, ')', 1), '(', 1),'', UPPER(e.pkb_description)) as pkb_title,
                             e.pkb_description,
                             e.pkb_start_date,
                             e.pkb_end_date,
