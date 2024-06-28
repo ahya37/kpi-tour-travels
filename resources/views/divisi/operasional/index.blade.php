@@ -148,6 +148,69 @@
             </div>
         </div>
     </div>
+    
+    <!-- Modal -->
+    {{-- STATUS HOLD --}}
+    <div class="modal fade" id="modaGenerateRules" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Generate Rules untuk Jadwal Umrah</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="card card-body">
+                            <input type="hidden" class="form-control form-contorl-sm" id="jdw_id">
+                            <div class="col-sm-6">
+                                <div class="row mb-2">
+                                    <span class="col-sm-4"><label>Program Umrah</label></span>
+                                    <span class="col-sm-1">:</span>
+                                    <span class="col-sm-7" id="programUmrah_text"></span>
+                                </div>
+                                <div class="row mb-2">
+                                    <span class="col-sm-4"><label>Jadwal</label></span>
+                                    <span class="col-sm-1">:</span>
+                                    <span class="col-sm-7" id="programUmrah_Jadwal"></span>
+                                </div>
+                                <div class="row mb-2">
+                                    <span class="col-sm-4"><label>Pembimbing</label></span>
+                                    <span class="col-sm-1">:</span>
+                                    <span class="col-sm-7" id="programUmrah_Pembimbing"></span>
+                                </div>
+                            </div>
+                            <div class="col-sm-6"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="table-responsive">
+                                <table class="table table-hover no-margins table-striped" style="width: 100%;" id="tableListRules">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle"><input type="checkbox" name="selectAll" id="selectAll" title='Pilih Semua' onclick='selectAllTable(`tableListRules`, this.id)'></th>
+                                            <th class="text-left align-middle">Uraian</th>
+                                            <th class="text-center align-middle">Durasi</th>
+                                            <th class="text-center align-middle">SLA</th>
+                                            <th class="text-center align-middle">Estimasi Tgl</th>
+                                            <th class="text-center align-middle">PIC</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeModal('modaGenerateRules')">Close</button>
+                    <button type="button" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 

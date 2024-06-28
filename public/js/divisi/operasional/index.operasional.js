@@ -1,3 +1,7 @@
+moment.locale('id');
+
+var temp_rules  = [];
+
 $(document).ready(function(){
     console.log('test');
 
@@ -85,6 +89,23 @@ function showTable(idTable, valueCari)
             autoWidth   : false,
             paging  : false,
         });
+    } else if(idTable == 'tableListRules') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                "processing"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                "emptyTable"    : "Tidak ada data yang bisa dimunculkan..",
+                "zeroRecords"   : "Tidak ada data yang bisa dimunculkan.."
+            },
+            pageLength  : -1,
+            paging      : false,
+            ordering    : false,
+            bInfo       : false,
+            columnDefs  : [
+                { "targets" : [0, 2, 3, 4, 5], "className" : "text-center align-middle"},
+                { "targets" : [0], "width" : "5%" },
+            ],
+        })
     }
 }
 
@@ -225,12 +246,106 @@ function showModal(idForm, valueCari)
                 });
             })
 
+    } else if (idForm == 'modaGenerateRules') {
+        // GET DATA
+        var url     = site_url + "/getDataRulesJadwalDetail";
+        var type    = "GET";
+        var data    = {
+            "jadwalID"  : valueCari,
+        };
+        var isAsync = true;
+        if(isAsync === true) { var message = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading(); } else { var message = ""; }
+        
+        doTrans(url, type, data, message, isAsync)
+            .then((success)=>{
+                $("#"+idForm).modal('show');
+
+                var header  = success.data.header[0];
+                var detail  = success.data.detail;
+                // INSERT TO HEADER
+                $("#jdw_id").val(valueCari);
+                $("#programUmrah_text").html(header.jdw_programs_name);
+                $("#programUmrah_Jadwal").html(moment(header.jdw_depature_date, 'YYYY-MM-DD').format('DD-MMMM-YYYY')+" s/d "+moment(header.jdw_arrival_date, 'YYYY-MM-DD').format('DD-MMMM-YYYY'));
+                $("#programUmrah_Pembimbing").html(header.jdw_mentor_name);
+                showTable('tableListRules', valueCari);
+                
+                for(var i = 0; i < detail.length; i++) {
+                    var seq     = i + 1;
+                    $("#tableListRules").DataTable().row.add([
+                        "<input type='checkbox' id='check_"+seq+"' onclick='transTempData(`check`, "+seq+")'>",
+                        detail[i][0],
+                        detail[i][1],
+                        detail[i][2],
+                        detail[i][3],
+                        detail[i][4],
+                    ]).draw('false')
+                }
+
+                for(var i = 0; i < $("#tableListRules").DataTable().rows().count(); i++) {
+                    var data_temp_rules     = {
+                        "prog_jdw_id"   : $("#jdw_id").val(),
+                        "prog_rul_id"   : ""
+                    };
+
+                    temp_rules.push(data_temp_rules);
+                }
+                Swal.close();
+            })
+            .catch((err)=>{
+                console.log(err.responseJSON);
+                Swal.close();
+            })
     }
 }
 
 function closeModal(idForm) {
     if(idForm == 'modalForm') {
         $("#"+idForm).modal('hide');
+        
+    } else if(idForm = 'modaGenerateRules') {
+        $("#selectAll").prop('checked', false);
+        
+        temp_rules  = [];
+    }
+}
+
+function selectAllTable(idTable, idCheck)
+{
+    if(idTable == 'tableListRules') {
+        if($("#"+idCheck).is(":checked") === true) {
+            for(var i = 0; i < temp_rules.length; i++) {
+                var seq     = i + 1;
+                $("#check_"+seq).prop('checked', true);
+
+                temp_rules[i]['prog_rul_id'] = seq;
+            }
+        } else {
+            for(var i = 0; i < temp_rules.length; i++) {
+                var seq     = i + 1;
+                $("#check_"+seq).prop('checked', false);
+
+                temp_rules[i]['prog_rul_id'] = "";
+            }
+        }
+    }
+}
+
+function transTempData(idCheck, seq)
+{
+    if(temp_rules.length > 0) {
+        var new_seq     = seq - 1;
+        if($("#"+idCheck+"_"+seq).is(":checked") == true) {
+            temp_rules[new_seq]['prog_rul_id'] = seq;
+        } else if($("#"+idCheck+"_"+seq).is(":checked") == false) {
+            temp_rules[new_seq]['prog_rul_id'] = '';
+        } 
+    } else {
+        var data    = {
+            "prog_jdw_id"       : $("#jdw_id").val(),
+            "prog_rul_id"       : seq,
+        };
+
+        temp_rules.push(data);
     }
 }
 

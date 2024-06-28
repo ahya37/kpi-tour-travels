@@ -67,7 +67,17 @@ class BaseService
             JOIN 	products b ON a.product_id = b.id
             WHERE 	a.id LIKE '$valueCari'
             AND 	(a.product_id LIKE '$program_name' or lower(b.name) LIKE '$program_name')
-            ORDER BY a.name ASC
+
+            UNION
+
+            SELECT 	a.id as program_id,
+                    a.name as program_name,
+                    a.product_id as product_id,
+                    b.name as product_name
+            FROM 	programs a
+            JOIN 	products b ON a.product_id = b.id
+            WHERE 	a.id LIKE '$valueCari'
+            AND 	(a.product_id LIKE 'Haji' or lower(b.name) LIKE 'Haji')
             "
         );
 
