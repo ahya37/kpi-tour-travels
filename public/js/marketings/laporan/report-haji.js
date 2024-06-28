@@ -1,4 +1,6 @@
 $(document).ready(function () {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    console.log(csrfToken);
     $(".tahunHaji").select2({
         theme: "bootstrap4",
         width: $(this).data("width")
@@ -146,6 +148,19 @@ $(document).ready(function () {
         }
     }
 
+    const initialGrafikPerProgram = async (year) => {
+        try {
+            showLoading('graph-container-jamaahperprogram');
+            $('#jamaahperprogram').remove();
+            const responses = await callApi(year);
+            closeLoading('graph-container-jamaahperprogram')
+            $('#graph-container-jamaahperprogram').append('<canvas id="jamaahperprogram"  width="100"></canvas>');
+            createChart('jamaahperprogram', 'bar', responses.data.chart_haji_program);
+        } catch (error) {
+            closeLoading('graph-container-jamaahperprogram')
+        }
+    }
+
     const populateTable = (data) => {
         const tableBody = $('#dataBody');
         tableBody.empty(); // Bersihkan isi tbody sebelum menambahkan data baru
@@ -226,15 +241,16 @@ $(document).ready(function () {
         }
     }
 
-
-
     $('#submitFilter').click(function () {
         const year = $('#tahunHaji').val();
         initialGrafikPerbulan(year);
         initialGrafikPerPic(year);
         initialTable(year);
         initialAllTotal(year);
+        initialGrafikPerProgram(year);
     });
 
+
+   
 });
 

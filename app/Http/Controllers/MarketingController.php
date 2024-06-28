@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Helpers\Months;
 use App\Helpers\NumberFormat;
-use App\Helpers\LogFile;
 use App\Http\Requests\MarketingTargetRequest;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseFormatter;
@@ -156,7 +155,7 @@ class MarketingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            LogFile::error($e);
+            Log::channel('daily')->error($message);
             return ResponseFormatter::error([
                 'message' =>  'Terjadi kesalahan !'
             ]);
@@ -365,7 +364,7 @@ class MarketingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            LogFile::error($e);
+            Log::channel('daily')->error($message);
             return ResponseFormatter::error([
                 'message' => 'Gagal generate alumni'
             ]);
@@ -404,7 +403,7 @@ class MarketingController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            LogFile::error($e);
+            Log::channel('daily')->error($message);
             return ResponseFormatter::error([
                 'message' => 'Gagal Singkronkan data!'
             ]);
@@ -561,7 +560,7 @@ class MarketingController extends Controller
             return ResponseFormatter::success($results);
         } catch (\Exception $e) {
             DB::rollBack();
-            LogFile::error($e);
+            Log::channel('daily')->error($message);
             return ResponseFormatter::error([
                 'message' => 'Gagal kelola jamaah'
             ]);
@@ -923,7 +922,7 @@ class MarketingController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            LogFile::error($e);
+            Log::channel('daily')->error($message);
             return ResponseFormatter::error([
                 'message' => 'Terjadi kesalahan!'
             ]);
@@ -936,5 +935,25 @@ class MarketingController extends Controller
         return view('marketings.laporan.report-haji',[
             'title' => 'Laporan Haji',
         ]);
+    }
+
+    public function saveTargetHaji(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+
+           // save target haji
+
+           DB::commit();
+           return ResponseFormatter::success([
+            'messages' => 'Berhasil simpan target haji !'
+        ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($message);
+            return ResponseFormatter::error([
+                'message' => 'Terjadi kesalahan!'
+            ]);
+        }
     }
 }

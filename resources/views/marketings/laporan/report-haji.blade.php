@@ -144,6 +144,25 @@
 
     </div>
 
+    <div class="row"> 
+        <div class="col-lg-6">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h5>Pencapaian Per Program</h5>
+                </div>
+                <div class="ibox-content">
+                    <div class="text-center">
+                        <div id="graph-container-jamaahperprogram">
+                            <canvas id="jamaahperprogram" width="100%"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
     <div class="row">
         <div class="col-lg-12">
 
