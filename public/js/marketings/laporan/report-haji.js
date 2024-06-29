@@ -1,6 +1,4 @@
 $(document).ready(function () {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    console.log(csrfToken);
     $(".tahunHaji").select2({
         theme: "bootstrap4",
         width: $(this).data("width")
@@ -173,7 +171,7 @@ $(document).ready(function () {
                 '<td align="right">' + row.target + '</td>' +
                 '<td align="right">' + row.realisasi_jamaah + '</td>' +
                 '<td align="right">' + row.selisih + '</td>' +
-                '<td align="right">' + row.persentage + '</td>' +
+                '<td align="right">' + row.persentage + ' %</td>' +
                 '</tr>';
             tableBody.append(newRow);
         });
@@ -206,7 +204,7 @@ $(document).ready(function () {
                                     <th style=" text-align: right;">${responses.data.total_target_jamaah}</th>
                                     <th style=" text-align: right;">${responses.data.total_realisasi_jamaah}</th>
                                     <th style=" text-align: right;">${responses.data.total_selisih_jamaah}</th>
-                                    <th style=" text-align: right;">${responses.data.total_persentaese_jamaah}</th>
+                                    <th style=" text-align: right;">${responses.data.total_persentaese_jamaah} %</th>
                                 </tr>
                             `;
             dataFooter.append(newFooterData)

@@ -65,6 +65,9 @@
                     <li class="active"><a href="{{ route('marketings.haji.report') }}">Laporan Haji</a></li>
                 </ul>
                 <ul class="nav nav-second-level">
+                    <li class="active"><a href="{{ route('marketings.haji.target') }}">Setting Target Haji</a></li>
+                </ul>
+                <ul class="nav nav-second-level">
                     <li class="active"><a href="{{ route('marketing.pekerjaan.report') }}">Laporan Pekerjaan</a></li>
                 </ul>
             </li>
@@ -131,6 +134,9 @@
                 </ul>
                 <ul class="nav nav-second-level">
                     <li class="active"><a href="{{ route('marketings.haji.report') }}">Laporan Haji</a></li>
+                </ul>
+                <ul class="nav nav-second-level">
+                    <li class="active"><a href="{{ route('marketings.haji.target') }}">Setting Target Haji</a></li>
                 </ul>
                 <ul class="nav nav-second-level">
                     <li class="active"><a href="{{ route('marketing.pekerjaan.report') }}">Laporan Pekerjaan</a></li>

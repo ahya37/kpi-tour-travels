@@ -359,5 +359,34 @@ class MarketingService
             return  response()->json($data);
         }
     }
+
+    public static function saveTargethajiToUmhaj($year, $months)
+    {
+        $response = Http::withHeaders([
+            'x-api-key' => env('API_PERCIK_KEY')
+        ])->post(env('API_PERCIK').'/haji/target/save',[
+            'year' => $year,
+            'user_id' => '1',
+            'month' => $months
+        ]);
+        
+        // Check if the request was successful
+        if ($response->successful()) {
+            $data = $response->json();
+            return $data;
+
+        } else {
+
+            $errorCode    = $response->status();
+            $errorMessage = $response->body();
+
+            $data = [
+                'error' => $errorCode,
+                'message' => $errorMessage
+            ];
+
+            return  response()->json($data);
+        }
+    }
 	
 }

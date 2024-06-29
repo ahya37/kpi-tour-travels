@@ -155,7 +155,7 @@ class MarketingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            Log::channel('daily')->error($message);
+            Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
                 'message' =>  'Terjadi kesalahan !'
             ]);
@@ -364,7 +364,7 @@ class MarketingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            Log::channel('daily')->error($message);
+            Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
                 'message' => 'Gagal generate alumni'
             ]);
@@ -403,7 +403,7 @@ class MarketingController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::channel('daily')->error($message);
+            Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
                 'message' => 'Gagal Singkronkan data!'
             ]);
@@ -560,7 +560,7 @@ class MarketingController extends Controller
             return ResponseFormatter::success($results);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::channel('daily')->error($message);
+            Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
                 'message' => 'Gagal kelola jamaah'
             ]);
@@ -922,7 +922,7 @@ class MarketingController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::channel('daily')->error($message);
+            Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
                 'message' => 'Terjadi kesalahan!'
             ]);
@@ -937,23 +937,72 @@ class MarketingController extends Controller
         ]);
     }
 
+    public function settingTargetHaji()
+    {
+    
+        return view('marketings.setting-target-haji',[
+            'title' => 'Setting Target Haji',
+        ]);
+    }
+
+    
+    public function loadModalTargetHaji()
+    {
+        // sleep(1);
+
+        #get data bulan 
+        $months = Months::Months();
+        
+        $modalContent = '<form id="form" method="POST" enctype="multipart/form-data">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label"><b>Tahun</b></label>
+                                <div class="col-sm-9">
+                                    <input type="hidden" name="_token" value="'.csrf_token().'">
+                                    <input type="number" class="form-control form-control-sm" name="year" id="year">
+                                </div>
+                            </div>';
+                                foreach ($months as $key => $value) {
+                                    $modalContent = $modalContent.'<div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">'.$value['month'].'</label>
+                                        <div class="col-sm-9">';
+        
+                                    $modalContent = $modalContent.'<input type="number" class="form-control form-control-sm" name="month[]" id="month">';
+                                    $modalContent = $modalContent.'
+                                                                </div>
+                                                            </div>';
+                                    }
+
+        $modalContent = $modalContent.'
+                            <div class="hr-line-dashed"></div>
+                        </form>';
+
+        return response()->json([
+            'modalContent' => $modalContent,
+        ]);
+
+    }
+
     public function saveTargetHaji(Request $request)
     {
-        DB::beginTransaction();
         try {
 
            // save target haji
+           $months['month'] = $request->months;
 
-           DB::commit();
-           return ResponseFormatter::success([
-            'messages' => 'Berhasil simpan target haji !'
-        ]);
+           array_unshift($months['month'], '');
+           unset($months['month'][0]);
+
+           $response = MarketingService::saveTargethajiToUmhaj($request->year, $months['month']);
+
+           return $response;
 
         } catch (\Exception $e) {
-            Log::channel('daily')->error($message);
+            Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
-                'message' => 'Terjadi kesalahan!'
+                'message' => 'Gagal menyimpan target haji'
             ]);
+
         }
     }
+
 }

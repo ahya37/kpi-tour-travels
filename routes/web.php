@@ -84,7 +84,10 @@ Route::group(['middleware' => ['auth']], function () {
 
         // HAJI
         Route::get('/haji/report','reportHaji')->name('marketings.haji.report');
-        Route::post('/haji/target/save','getReportHaji');
+        Route::get('/haji/target/create','settingTargetHaji')->name('marketings.haji.target');
+        Route::post('/haji/target/save','saveTargetHaji');
+        Route::get('modal/target/haji','loadModalTargetHaji');
+
 
     });
 
