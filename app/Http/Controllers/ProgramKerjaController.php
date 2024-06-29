@@ -224,6 +224,7 @@ class ProgramKerjaController extends Controller
 
     public function getProkerBulananAll(Request $request)
     {
+        // var_dump($request->all()['sendData']);die();
         $data_cari  = [
             "uuid"                  => $request->all()['sendData']['cari'],
             "current_role"          => Auth::user()->getRoleNames()[0],

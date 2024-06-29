@@ -185,8 +185,8 @@ class ProgramKerjaService
                                         ->where('a.user_id', Auth::user()->id)
                                         ->join('job_employees AS b', 'b.employee_id', '=', 'a.id')
                                         ->join('sub_divisions AS c', 'c.id', '=', 'b.sub_division_id')
-                                        ->get();
-        $current_sub_division   = !empty($query_get_sub_division) ? '%' : strtolower($query_get_sub_division[0]->sub_division_name);
+                                        ->get()->toArray();
+        $current_sub_division   = !empty($query_get_sub_division) ? strtolower($query_get_sub_division[0]->sub_division_name) : '%';
 
         $uuid           = $cari['uuid'];
         $roleName       = $cari['current_role'] == 'admin' ? '%' : $cari['current_role'];
@@ -194,8 +194,8 @@ class ProgramKerjaService
         $tgl_akhir      = $cari['tgl_akhir'];
         $jadwal         = $cari['jadwal'];
         $group_divisi   = !empty($cari['group_divisi']) ? $cari['group_divisi'] : '%';
-        $sub_divisi     = $current_sub_division;
-        $user_id        = $cari['current_role'] == 'admin' ? '%' : $current_sub_division;
+        $sub_divisi     = $current_sub_division == 'pic' ? '%' : $current_sub_division;
+        $user_id        = $cari['current_role'] == 'admin' ? '%' : ($current_sub_division != 'pic' ? Auth::user()->id : '%');
         
         // FOR DEBUGGING
         // print("<pre>" . print_r($cari, true) . "</pre>");die();
@@ -212,98 +212,146 @@ class ProgramKerjaService
         // ]);die();
 
 
-        $query_list     = DB::select(
-            "
-            SELECT 	DISTINCT pkb.pkb_uuid,
-                    pkb.pkb_title,
-                    pkb.pkb_description,
-                    pkb.pkb_start_date,
-                    pkb.pkb_end_date,
-                    pkb.pkb_pkt_uuid,
-                    pkb.pkb_pkt_seq,
-                    pkb.pkb_created_date,
-                    pkb.pkb_created_by
-            FROM 	(
-                    SELECT 	a.uuid as pkb_uuid,
-                            a.pkb_title,
-                            a.pkb_description,
-                            a.pkb_start_date,
-                            a.pkb_end_date,
-                            SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_uuid,
-                            SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_seq,
-                            g.id as role_id,
-                            g.name as role_name,
-                            c.name as group_division_name,
-                            f.name as sub_division_name,
-                            a.created_at as pkb_created_date,
-                            a.created_by as pkb_created_by
-                    FROM 	proker_bulanan a
-                    JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
-                    JOIN 	group_divisions c ON b.division_group_id = c.id
-                    JOIN 	job_employees d ON d.group_division_id = c.id
-                    JOIN 	employees e ON d.employee_id = e.id
-                    JOIN 	sub_divisions f ON d.sub_division_id = f.id
-                    JOIN 	roles g ON g.id = c.roles_id
-                    WHERE 	a.pkb_title NOT LIKE '[%]%'
-
-                    UNION ALL
-
-                    SELECT 	e.uuid as pkb_uuid,
-                            e.pkb_title,
-                            e.pkb_description,
-                            e.pkb_start_date,
-                            e.pkb_end_date,
-                            SUBSTRING_INDEX(e.pkb_pkt_id, ' | ', 1) as pkb_pkt_uuid,
-                            SUBSTRING_INDEX(e.pkb_pkt_id, ' | ', -1) as pkb_pkt_seq,
-                            g.id as role_id,
-                            g.name as role_name,
-                            f.name as group_division_name,
-                            d.name as pkb_sd_name,
-                            e.created_at,
-                            e.created_by
-                    FROM 	tr_prog_jdw a
-                    JOIN 	programs_jadwal b ON a.prog_jdw_id = b.jdw_uuid
-                    JOIN 	programs_jadwal_rules c ON a.prog_rul_id = c.id
-                    JOIN 	sub_divisions d ON d.id = c.rul_pic_sdid
-                    JOIN 	proker_bulanan e ON a.prog_pkb_id = e.uuid
-                    JOIN 	group_divisions f ON f.id = d.division_group_id
-                    JOIN 	roles g ON f.roles_id = g.id
-                    WHERE 	e.pkb_title LIKE '[%]%'
-                    
-                    UNION ALL
-                    
-                    SELECT 		a.uuid as pkb_uuid,
+        if($jadwal == '%') {
+            $query_list     = DB::select(
+                "
+                SELECT 	DISTINCT pkb.pkb_uuid,
+                        pkb.pkb_title,
+                        pkb.pkb_description,
+                        pkb.pkb_start_date,
+                        pkb.pkb_end_date,
+                        pkb.pkb_pkt_uuid,
+                        pkb.pkb_pkt_seq,
+                        pkb.pkb_created_date,
+                        pkb.pkb_created_by
+                FROM 	(
+                        SELECT 	a.uuid as pkb_uuid,
                                 a.pkb_title,
                                 a.pkb_description,
                                 a.pkb_start_date,
                                 a.pkb_end_date,
                                 SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_uuid,
                                 SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_seq,
-                                d.id as role_id,
-                                d.name as role_name,
+                                g.id as role_id,
+                                g.name as role_name,
                                 c.name as group_division_name,
-                                e.name as sub_division_name,
-                                a.created_at,
-                                a.created_by
-                    FROM 		proker_bulanan a
-                    JOIN 		proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ', 1) = b.uid
-                    JOIN 		group_divisions c ON c.id = b.division_group_id
-                    JOIN 		roles d ON d.id = c.roles_id
-                    JOIN 		sub_divisions e ON e.division_group_id = c.id
-				    WHERE 		a.pkb_title NOT LIKE '[%]%'
-                ) AS pkb
-            JOIN 	model_has_roles mhr ON mhr.model_id = pkb.pkb_created_by
-            JOIN 	roles r ON mhr.role_id = r.id
-            WHERE 	pkb.pkb_uuid LIKE '$uuid'
-            AND 	pkb.pkb_start_date BETWEEN '$tgl_awal' AND '$tgl_akhir'
-            AND 	r.name LIKE '$roleName'
-            AND 	LOWER(pkb.sub_division_name) LIKE '$sub_divisi'
-            AND     pkb.group_division_name LIKE '$group_divisi'
-            AND 	pkb.pkb_title LIKE '$jadwal%'
-            AND     mhr.model_id LIKE '$user_id'
-            ORDER BY pkb.pkb_created_date ASC
-            "
-        );
+                                f.name as sub_division_name,
+                                a.created_at as pkb_created_date,
+                                a.created_by as pkb_created_by
+                        FROM 	proker_bulanan a
+                        JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
+                        JOIN 	group_divisions c ON b.division_group_id = c.id
+                        JOIN 	job_employees d ON d.group_division_id = c.id
+                        JOIN 	employees e ON d.employee_id = e.id
+                        JOIN 	sub_divisions f ON d.sub_division_id = f.id
+                        JOIN 	roles g ON g.id = c.roles_id
+                        WHERE 	a.pkb_title NOT LIKE '[%]%'
+    
+                        UNION ALL
+    
+                        SELECT 	e.uuid as pkb_uuid,
+                                CONCAT(SUBSTRING_INDEX(SUBSTRING_INDEX(e.pkb_title, ')', 1), '(', 1),'', UPPER(e.pkb_description)) as pkb_title,
+                                e.pkb_description,
+                                e.pkb_start_date,
+                                e.pkb_end_date,
+                                SUBSTRING_INDEX(e.pkb_pkt_id, ' | ', 1) as pkb_pkt_uuid,
+                                SUBSTRING_INDEX(e.pkb_pkt_id, ' | ', -1) as pkb_pkt_seq,
+                                g.id as role_id,
+                                g.name as role_name,
+                                f.name as group_division_name,
+                                d.name as pkb_sd_name,
+                                e.created_at,
+                                e.created_by
+                        FROM 	tr_prog_jdw a
+                        JOIN 	programs_jadwal b ON a.prog_jdw_id = b.jdw_uuid
+                        JOIN 	programs_jadwal_rules c ON a.prog_rul_id = c.id
+                        JOIN 	sub_divisions d ON d.id = c.rul_pic_sdid
+                        JOIN 	proker_bulanan e ON a.prog_pkb_id = e.uuid
+                        JOIN 	group_divisions f ON f.id = d.division_group_id
+                        JOIN 	roles g ON f.roles_id = g.id
+                        WHERE 	e.pkb_title LIKE '[%]%'
+                        
+                        UNION ALL
+                        
+                        SELECT 		a.uuid as pkb_uuid,
+                                    a.pkb_title,
+                                    a.pkb_description,
+                                    a.pkb_start_date,
+                                    a.pkb_end_date,
+                                    SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkb_pkt_uuid,
+                                    SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) as pkb_pkt_seq,
+                                    d.id as role_id,
+                                    d.name as role_name,
+                                    c.name as group_division_name,
+                                    e.name as sub_division_name,
+                                    a.created_at,
+                                    a.created_by
+                        FROM 		proker_bulanan a
+                        JOIN 		proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ', 1) = b.uid
+                        JOIN 		group_divisions c ON c.id = b.division_group_id
+                        JOIN 		roles d ON d.id = c.roles_id
+                        JOIN 		sub_divisions e ON e.division_group_id = c.id
+                        WHERE 		a.pkb_title NOT LIKE '[%]%'
+                    ) AS pkb
+                JOIN 	model_has_roles mhr ON mhr.model_id = pkb.pkb_created_by
+                JOIN 	roles r ON mhr.role_id = r.id
+                WHERE 	pkb.pkb_uuid LIKE '$uuid'
+                AND 	pkb.pkb_start_date BETWEEN '$tgl_awal' AND '$tgl_akhir'
+                AND 	r.name LIKE '$roleName'
+                AND 	LOWER(pkb.sub_division_name) LIKE '$sub_divisi'
+                AND     pkb.group_division_name LIKE '$group_divisi'
+                AND     mhr.model_id LIKE '$user_id'
+                ORDER BY pkb.pkb_created_date ASC
+                "
+            );
+        } else {
+            $query_list     = DB::select(
+                "
+                SELECT 	DISTINCT pkb.pkb_uuid,
+                        pkb.pkb_title,
+                        pkb.pkb_description,
+                        pkb.pkb_start_date,
+                        pkb.pkb_end_date,
+                        pkb.pkb_pkt_uuid,
+                        pkb.pkb_pkt_seq,
+                        pkb.pkb_created_date,
+                        pkb.pkb_created_by
+                FROM 	(
+                        SELECT 	e.uuid as pkb_uuid,
+                                CONCAT(SUBSTRING_INDEX(SUBSTRING_INDEX(e.pkb_title, ')', 1), '(', 1),'', UPPER(e.pkb_description)) as pkb_title,
+                                e.pkb_description,
+                                e.pkb_start_date,
+                                e.pkb_end_date,
+                                SUBSTRING_INDEX(e.pkb_pkt_id, ' | ', 1) as pkb_pkt_uuid,
+                                SUBSTRING_INDEX(e.pkb_pkt_id, ' | ', -1) as pkb_pkt_seq,
+                                g.id as role_id,
+                                g.name as role_name,
+                                f.name as group_division_name,
+                                d.name as sub_division_name,
+                                e.created_at as pkb_created_date,
+                                e.created_by as pkb_created_by
+                        FROM 	tr_prog_jdw a
+                        JOIN 	programs_jadwal b ON a.prog_jdw_id = b.jdw_uuid
+                        JOIN 	programs_jadwal_rules c ON a.prog_rul_id = c.id
+                        JOIN 	sub_divisions d ON d.id = c.rul_pic_sdid
+                        JOIN 	proker_bulanan e ON a.prog_pkb_id = e.uuid
+                        JOIN 	group_divisions f ON f.id = d.division_group_id
+                        JOIN 	roles g ON f.roles_id = g.id
+                        WHERE 	e.pkb_title LIKE '[%]%'
+                        AND     b.jdw_uuid = '$jadwal'
+                    ) AS pkb
+                JOIN 	model_has_roles mhr ON mhr.model_id = pkb.pkb_created_by
+                JOIN 	roles r ON mhr.role_id = r.id
+                WHERE 	pkb.pkb_uuid LIKE '$uuid'
+                AND 	pkb.pkb_start_date BETWEEN '$tgl_awal' AND '$tgl_akhir'
+                AND 	r.name LIKE '$roleName'
+                AND 	LOWER(pkb.sub_division_name) LIKE '$sub_divisi'
+                AND     pkb.group_division_name LIKE '$group_divisi'
+                AND     mhr.model_id LIKE '$user_id'
+                ORDER BY pkb.pkb_created_date ASC
+                "
+            );
+        }
 
         if($cari['uuid'] != '%') {
             // var_dump($cari['uuid']);die();
@@ -655,7 +703,8 @@ class ProgramKerjaService
     {
         $query  = DB::select(
             "
-            SELECT 	c.name,
+            SELECT 	d.jdw_uuid,
+                    c.name,
                     d.jdw_depature_date,
                     d.jdw_arrival_date
             FROM 	(
