@@ -511,23 +511,25 @@ class ProgramKerjaService
             }
 
             // CHECK APAKAH SUDAH MASUK TR_PROG_JDW 
-            $check  = DB::table('tr_prog_jdw')
-                        ->select('prog_pkb_id')
+            if(!empty($dataProkerBulananInput['prokerBulanan_programJadwalID'])) {
+                $check  = DB::table('tr_prog_jdw')
+                            ->select('prog_pkb_id')
+                            ->where(['prog_jdw_id' =>$dataProkerBulananInput['prokerBulanan_programJadwalID'], "prog_rul_id"=> $dataProkerBulananInput['prokerBulanan_programJadwalRulSeq'] ])
+                            ->get();
+                if( $check[0]->prog_pkb_id == "" ) {
+                    // UPDATE TABLE TSB
+                    DB::table('tr_prog_jdw')
                         ->where(['prog_jdw_id' =>$dataProkerBulananInput['prokerBulanan_programJadwalID'], "prog_rul_id"=> $dataProkerBulananInput['prokerBulanan_programJadwalRulSeq'] ])
-                        ->get();
-            if( $check[0]->prog_pkb_id == "" ) {
-                // UPDATE TABLE TSB
-                DB::table('tr_prog_jdw')
-                    ->where(['prog_jdw_id' =>$dataProkerBulananInput['prokerBulanan_programJadwalID'], "prog_rul_id"=> $dataProkerBulananInput['prokerBulanan_programJadwalRulSeq'] ])
-                    ->update(['prog_pkb_id' => $data_insert['uuid']]);
-            } else {
-                $data_insert     = array(
-                    "prog_jdw_id"   => $dataProkerBulananInput['prokerBulanan_programJadwalID'],
-                    "prog_rul_id"   => $dataProkerBulananInput['prokerBulanan_programJadwalRulSeq'],
-                    "prog_pkb_id"   => $data_insert['uuid'],
-                );
+                        ->update(['prog_pkb_id' => $data_insert['uuid']]);
+                } else {
+                    $data_insert     = array(
+                        "prog_jdw_id"   => $dataProkerBulananInput['prokerBulanan_programJadwalID'],
+                        "prog_rul_id"   => $dataProkerBulananInput['prokerBulanan_programJadwalRulSeq'],
+                        "prog_pkb_id"   => $data_insert['uuid'],
+                    );
 
-                DB::table('tr_prog_jdw')->insert($data_insert);
+                    DB::table('tr_prog_jdw')->insert($data_insert);
+                }
             }
 
         } else if($dataProkerBulananInput['prokerBulanan_typeTrans'] == 'edit') {
