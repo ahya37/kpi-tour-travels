@@ -52,6 +52,18 @@ saveButton.click(function (e) {
     formData.append('months[]', input.value);
   });
 
+  const InitialSwall = (text, icon, title) => {
+      Swal.fire({
+        title: title,
+        text: text,
+        icon: icon,
+        position: "center",
+        showConfirmButton: true,
+        width: 500,
+        timer: 3000,
+      });
+  }
+
   $.ajax({
     method: 'POST',
     url: `/marketings/haji/target/save`,
@@ -66,50 +78,37 @@ saveButton.click(function (e) {
     Swal.showLoading();
     },
     success: (response) => {
-      const responses = JSON.parse(response)
-      console.log(responses);
+
       let text = "";
-      let type = "";
+      let icon = "";
       let title = "";
-      if (responses.data.code === 4) {
-        text = responses.data.message;
-        type ="warning";
-        title ="Gagal";
-
-      }else if(responses.data.code === 5){
-          text = responses.data.message;
-          type ="warning";
-          title ="Gagal";
+      if (response.data.code === 4) {
+        text = response.data.message;
+        icon ="warning";
+        title ="Warning";
+        InitialSwall(text, icon, title);
       }else{
-
-        text = "Berhasil simpan target haji";
-        type ="success";
+        text = response.data.message;
+        icon ="success";
         title ="Success";
-      }
-     
-      Swal.fire({
-        title: title,
-        text: text,
-        type: type,
-        position: "center",
-        showConfirmButton: true,
-        width: 500,
-        timer: 3000,
-      });
 
-      closeModal();
-        // window.location.reload();
+        InitialSwall(text, icon, title);
+        closeModal();
+        window.location.reload();
+
+      }
     },
     error: function (error) {
       Swal.fire({
         title: "Gagal!",
         position: "center",
-        type: "danger",
-        text: error.responseJSON.data.message,
+        icon: "danger",
+        text: 'Gagal simpan target Haji',
         showConfirmButton: false,
         width: 500,
         timer: 900,
       });
     }
   });
+
 });
