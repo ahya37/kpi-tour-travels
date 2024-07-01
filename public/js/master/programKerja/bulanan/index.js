@@ -401,7 +401,7 @@ function showModal(idModal, jenis, value)
 
             var title   = "Tambah Uraian Pekerjaan Tgl. "+moment(value.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY');
             $("#modalTitle").html(title);
-            $("#prokerTahunanaID").prop('disabled', false);
+            $("#prokerTahunanID").prop('disabled', false);
         } else if(jenis == 'edit') {
             $("#prokerTahunanID").prop('disabled', true);
 
