@@ -30,8 +30,8 @@ $(document).ready(function () {
             $.each(response.data.notifications, function (index, row) {
                 const newList = `
                         <li>
-                            <a href="/marketings/notifications/show/detail/user/${row.user_id}" class="dropdown-item">
-                                <div>
+                            <a href="/marketings/notifications/show/detail/user/notification/${row.id}" class="dropdown-item">
+                                <div class="${row.is_read === null ? 'text-info' :''}">
                                     <h5>${row.title}</h5>
                                     <h6 class="float-right text-muted small">${row.detail}</h6>
                                 </div>

@@ -45,7 +45,7 @@ Route::group(['middleware' => ['auth']], function () {
     // NOTIFICATIONS
     Route::get('/notifications/show/user/{userId}',[NotificationController::class, 'showNotificationByUserLogin']);
      // Notification
-     Route::get('/marketings/notifications/show/detail/user/{userId}',[NotificationController::class, 'detailShowNotificationAlumni']);
+     Route::get('/marketings/notifications/show/detail/user/notification/{notificationId}',[NotificationController::class, 'detailShowNotificationAlumni']);
         
 
     //marketing
