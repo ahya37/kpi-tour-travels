@@ -16,6 +16,7 @@ use App\Http\Controllers\BaseController;
 use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\PresensiController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -40,6 +41,12 @@ Route::group(['middleware' => ['auth']], function () {
     //route dashboard
     Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class,'logout'])->name('logout.store');
+    
+    // NOTIFICATIONS
+    Route::get('/notifications/show/user/{userId}',[NotificationController::class, 'showNotificationByUserLogin']);
+     // Notification
+     Route::get('/marketings/notifications/show/detail/user/{userId}',[NotificationController::class, 'detailShowNotificationAlumni']);
+        
 
     //marketing
     Route::prefix('marketings')->controller(MarketingController::class)->group(function(){
@@ -88,7 +95,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/haji/target/save','saveTargetHaji');
         Route::get('modal/target/haji','loadModalTargetHaji');
 
+       
 
+        
     });
 
      // Rencana Kerja

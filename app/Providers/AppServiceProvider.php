@@ -15,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        require_once app_path('Helpers/GetAuthUserId.php');
     }
 
     /**
@@ -28,7 +28,8 @@ class AppServiceProvider extends ServiceProvider
         // $userMenus = $gF->getUserId();
 
         // dd($userMenus);
-        // $user_id = Auth::user();
+        // $user_id = GetAuthUserId();
+        // dd($user_id);
         // $notifications = Notifications::prospekAlumniByAccount($user_id);
 
         // view()->composer('*', function($view){
@@ -47,6 +48,15 @@ class AppServiceProvider extends ServiceProvider
         //         dd($userId);
         //     }
         // });
+        // $userId = app('user_id');
+        // dd($userId);
+        // if (Auth::check()) {
+        //     $userId = Auth::id();
+        //     // Lakukan sesuatu dengan $userId, seperti mendaftarkan view composer
+        //     view()->composer('*', function ($view) use ($userId) {
+        //         $view->with('userId', $userId);
+        //     });
+        // }
 
     }
 }

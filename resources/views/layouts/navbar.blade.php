@@ -7,17 +7,17 @@
         <ul class="nav navbar-top-links navbar-right">
             <li class="dropdown">
                 <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#">
-                    <i class="fa fa-bell"></i>  <span class="label label-primary">8</span>
+                    <i class="fa fa-bell"></i>  <span class="" id="countNotification"></span>
                 </a>
-                <ul class="dropdown-menu dropdown-alerts">
-                    <li>
+                <ul class="dropdown-menu dropdown-alerts" id="dropdownNotification">
+                    {{-- <li>
                         <a href="mailbox.html" class="dropdown-item">
                             <div>
                                 <i class="fa fa-envelope fa-fw"></i> You have 16 messages
                                 <span class="float-right text-muted small">4 minutes ago</span>
                             </div>
                         </a>
-                    </li>
+                    </li> --}}
                 </ul>
             </li>
 

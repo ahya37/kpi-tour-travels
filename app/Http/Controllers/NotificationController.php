@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\NotificationRequest;
 use App\Helpers\ResponseFormatter;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
@@ -63,5 +64,60 @@ class NotificationController extends Controller
             ]);
 
         }
+    }
+
+    public function showNotificationByUserLogin($user_id)
+    {
+
+        DB::beginTransaction();
+        try {
+
+            $notifications = DB::table('notification')->select('title','detail','user_id')->where('user_id', $user_id)->get();
+
+            return ResponseFormatter::success([
+                'notifications' =>  $notifications,
+                'count_notification' => count($notifications)
+            ]);
+
+        } catch (\Exceprion $e) {
+           return ResponseFormatter::error([
+                'message' =>  $e->getMessage()
+            ]);
+
+        }
+    }
+
+    public function detailShowNotificationAlumni()
+    {
+        // get almuni prospek materil by user_id
+         // get data alumin yang remember = 'Y'
+         $user_id = Auth::user()->id;
+
+         $alumni   = DB::table('alumni_prospect_material as a')
+                    ->select('a.id','a.label')
+                    ->join('job_employees as b','a.job_employee_id','=','b.id')
+                    ->join('employees as c','b.employee_id','=','c.id')
+                    ->where('c.user_id',$user_id)
+                    ->get();
+
+        $results = [];
+        foreach ($alumni as $key => $value) {
+            $list_alumni = DB::table('detail_alumni_prospect_material as a')
+                            ->select('a.name','a.telp','notes')->where('remember','Y')
+                            ->where('alumni_prospect_material_id', $value->id)
+                            ->get();
+            $results[] = [
+                'label' => $value->label,
+                'list_alumni' => $list_alumni
+            ];
+        }
+
+        $data = [
+            'title' => 'Daftar Alumni',
+            'subtitle' => 'Daftar alumni untuk dihubungi kembali',
+            'alumni' => $results
+        ];
+
+        return view('marketings.list-remember-prospect-alumni',$data);
     }
 }
