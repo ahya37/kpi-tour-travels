@@ -171,8 +171,8 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Program Kerja Tahunan</label>
-                                <input type="hidden" name="currentRole" id="currentRole" value="@php echo Auth::user()->name; @endphp">
-                                <select class="form-select" name="prokerTahunanID" id="prokerTahunanID" onchange="show_select_detail(this.id, this.value)" style="width:100%;"></select>
+                                <input type="hidden" name="currentRole" id="currentRole" value="{{ Auth::user()->name }}">
+                                <select class="form-select" name="prokerTahunanID" id="prokerTahunanID" onchange="show_select_detail(this.id, this.value, true)" style="width:100%;"></select>
                             </div>
                         </div>
                     </div>
