@@ -28,6 +28,7 @@
                     </div>
                     <div class="ibox-content">
                         @foreach ($alumni as $item)
+                        @if (count($item['list_alumni']) > 0)
                         <h3>{{ $item['label'] }}</h3>
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered table-hover data">
@@ -54,6 +55,7 @@
                                 </tbody>
                             </table>
                         </div>
+                        @endif
                         @endforeach
                     </div>
                 </div>
