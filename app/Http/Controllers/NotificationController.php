@@ -59,6 +59,7 @@ class NotificationController extends Controller
 
         } catch (\Exceprion $e) {
            DB::rollback();
+           Log::chanel('daily')->error( $e->getMessage());
            return ResponseFormatter::error([
                 'message' =>  $e->getMessage()
             ]);
