@@ -401,8 +401,9 @@ function showModal(idModal, jenis, value)
 
             var title   = "Tambah Uraian Pekerjaan Tgl. "+moment(value.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY');
             $("#modalTitle").html(title);
+            $("#prokerTahunanID").prop('disabled', false);
         } else if(jenis == 'edit') {
-            $("#prokerTahunanID").prop('disabled',true);
+            $("#prokerTahunanID").prop('disabled', true);
 
             var url     = "/master/programkerja/bulanan/getDataAllProkerBulanan";
             var type    = "GET";
