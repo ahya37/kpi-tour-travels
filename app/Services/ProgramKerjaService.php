@@ -153,7 +153,7 @@ class ProgramKerjaService
             "
             SELECT 	pt.*
             FROM 	proker_tahunan pt
-            WHERE 	pt.uid = '".$id."'
+            WHERE 	pt.uid = '$id'
             "
         );
 
@@ -223,7 +223,8 @@ class ProgramKerjaService
                         pkb.pkb_pkt_uuid,
                         pkb.pkb_pkt_seq,
                         pkb.pkb_created_date,
-                        pkb.pkb_created_by
+                        pkb.pkb_created_by,
+                        pkb.group_division_name
                 FROM 	(
                         SELECT 	a.uuid as pkb_uuid,
                                 a.pkb_title,
