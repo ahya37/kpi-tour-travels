@@ -99,10 +99,7 @@ $(document).ready(function(){
 
         // SHOW SELECT2
         var current_sub_division    = $("#currentSubDivision").val() == 'pic' ? '%' : $("#currentSubDivision").val();
-        show_select('groupDivisionName', '', '', true);
-        $("#filterCalendar").on('shown.bs.collapse', function(){
-            show_select('groupDivisionName', '%', '', false);
-        });
+        show_select('groupDivisionName', '%', '', true);
         show_select('jadwalUmrah', '', '');
         show_select('bagian','', current_sub_division, true);
     });
@@ -469,9 +466,9 @@ function showModal(idModal, jenis, value)
                     var title   = "Preview Uraian Pekerjaan Tgl. "+moment(resultData['pkb_start_date'],'YYYY-MM-DD').format('DD/MM/YYYY');
                     $("#modalTitle").html(title);
 
-                    show_select('prokerTahunanID','%', resultData['pkb_pkt_id']);
-                    show_select('prokerBulananPIC', resultData['pkb_gd_id'], resultData['pkb_employee_id']);
-                    show_select('subProkerTahunanSeq',resultData['pkb_pkt_id'], resultData['pkb_pkt_id_seq']);
+                    show_select('prokerTahunanID','%', resultData['pkb_pkt_id'], false);
+                    show_select('prokerBulananPIC', resultData['pkb_gd_id'], resultData['pkb_employee_id'], false);
+                    show_select('subProkerTahunanSeq',resultData['pkb_pkt_id'], resultData['pkb_pkt_id_seq'], false);
                     
                     if(xhr.data.detail.length > 0) {
                         for(var  i = 0; i < xhr.data.detail.length; i++) {
@@ -938,6 +935,20 @@ function show_table(idTable, jmlTable)
                 { "targets":[1, 2, 3, 4], "width":"17%" },
             ],
         })
+
+        // HAPUS DATA
+        $("#"+idTable+" tbody").on('click', '.deleteRow', function(){
+            var row     = $(this).closest('tr');
+            var ke      = row.prevObject[0].value;
+            
+            if(ke != 1) {
+                if(current_seq - parseInt(ke) == 1) {
+                    $("#"+idTable).DataTable().row(row).remove().draw('false');
+                    current_seq     =  current_seq - 1;
+                }
+            }
+            
+        })
     } else if(idTable == 'tableActivityUser') {
         $("#"+idTable).DataTable().clear().destroy();
         $("#"+idTable).DataTable({
@@ -1109,7 +1120,7 @@ function tambah_baris(idTable, value)
     if(idTable == 'tableDetailProkerBulanan')
     {
         var seq                 = current_seq
-        var inputBtnDelete      = "<button type='button' class='btn btn-sm btn-danger' value='" +seq+ "' title='Hapus Baris' id='btnHapus"+seq+"' onclick='hapus_baris(`tableDetailProkerBulanan`, "+seq+")'><i class='fa fa-trash'></i></button>";
+        var inputBtnDelete      = "<button type='button' class='btn btn-sm btn-danger deleteRow' value='" +seq+ "' title='Hapus Baris' id='btnHapus"+seq+"' value='"+seq+"'><i class='fa fa-trash'></i></button>";
         var inputBtnPreview     = "<button type='button' class='btn btn-sm btn-primary' value='"+seq+"' title='Lihat Aktivitas' onclick='showModal(`modalAktivitas`,``, this.value)'><i class='fa fa-eye'></i></button>";
         var inputDetailID       = "<input type='hidden' id='idDetail"+seq+"'>";
         var inputJenisPekerjaan = "<input type='text' class='form-control form-control-sm' id='pkbJenisPekerjaan" +seq+ "' placeholder='Jenis Pekerjaan' autocomplete='off'>";
@@ -1119,7 +1130,7 @@ function tambah_baris(idTable, value)
         var inputKeterangan     = "<input type='text' class='form-control form-control-sm' id='pkbKeterangan" +seq+ "' placeholder='Keterangan' autocomplete='off'>";
 
         $("#"+idTable).DataTable().row.add([
-            inputBtnPreview,
+            inputBtnDelete+" "+inputBtnPreview,
             inputJenisPekerjaan+""+inputDetailID,
             inputTargetSasaran,
             inputHasil,
@@ -1144,18 +1155,6 @@ function tambah_baris(idTable, value)
             $("#pkbKeterangan"+seq).val(value.keterangan);
         }
         current_seq     = current_seq + 1;
-    }
-}
-
-function hapus_baris(idTable, seq)
-{
-    if(seq != 1) {
-        if(current_seq - seq == 1) {
-            $("#"+idTable).DataTable().row(seq - 1).remove().draw('false');
-            current_seq     = current_seq - 1;
-        } else {
-            console.log('Row Tidak Bisa Dihapus');
-        }
     }
 }
 
