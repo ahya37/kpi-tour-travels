@@ -6,12 +6,19 @@
     <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
     <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+    <link href="https://unpkg.com/nprogress@0.2.0/nprogress.css" rel="stylesheet">
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
     <style>
     label {
         font-weight: bold;
+    }
+
+    .menengah { 
+        display     : flex;
+        align-items : center;
+        justify-content: center;
     }
     </style>
 @endpush
@@ -62,6 +69,96 @@
                     <div class="card-header">
                         <div class="row">
                             <div class="col-sm-6">
+                                <h3 class="card-title pt-1">
+                                    <i class="fa fa-bar-chart"></i> Chart
+                                </h3>
+                            </div>
+                            <div class="col-sm-6"></div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row d-flex">
+                            <div class="col-sm-6">
+                                <div class="card">
+                                    <div class="card-header bg-success">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <h4 class="my-2">Chart Pekerjaan Tahun {{ date('Y') }}</h4>
+                                            </div>
+                                            {{-- <div class="col-sm-6 text-right">
+                                                <div class="dropdown">
+                                                    <a class="btn btn-success dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+                                                        <i class='fa fa-filter'></i> Filter
+                                                    </a>
+                                                    <div class="dropdown-menu">
+                                                        <a class="dropdown-item" href="#FilterChartAll">Semua</a>
+                                                        <a class="dropdown-item" href="#FilterBulanan">Bulanan</a>
+                                                        <a class="dropdown-item" href="#FilterChartHarian">Harian</a>
+                                                    </div>
+                                                    </div>
+                                            </div> --}}
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="menengah" style="height: 350px;" id="showLoading_chart">
+                                            <div class="text-center">
+                                                <div class="spinner-border" id="showLoading_chart_icon">
+                                                    <span class="sr-only">Loading...</span>
+                                                </div>
+                                                <br>
+                                                <h4 id="showLoading_chart_text">Chart Sedang Dimuat</h4>
+                                            </div>
+                                        </div>
+                                        <div class="wrapper" style="height: 350px; display: none;" id="showView_chart">
+                                            <div class="text-center">
+                                                <canvas id="myChart" height="350"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="card my-auto">
+                                    <div class="card-header bg-primary">
+                                        <h4 class="my-2">List User Divisi Operasional</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="menengah" style="height: 350px;" id="showLoading_table">
+                                            <div class="text-center">
+                                                <div class="spinner-border" id="showLoading_table_icon">
+                                                    <span class="sr-only">Loading...</span>
+                                                </div>
+                                                <br>
+                                                <h4 id="showLoading_table_text">Table Sedang Dimuat</h4>
+                                            </div>
+                                        </div>
+                                        <div class="wrapper" style="height: 350px; display: none;" id="showView_table">
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-hover" id="table_ListUser">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="text-center align-middle">No</th>
+                                                            <th class="text-left align-middle">Nama</th>
+                                                            <th class="text-left align-middle">Posisi</th>
+                                                        </tr>
+                                                    </thead>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="padding-top: 24px;">
+            <div class="col-sm-12">
+                <div class="card bg-white">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-sm-6">
                                 <h3 class="card-title pt-1"><i class='fa fa-cog'></i> Generate Program Kerja Bulanan</h3>
                             </div>
                             <div class="col-sm-6 text-right pt-1">
@@ -82,7 +179,7 @@
                                         <div class="row">
                                             <div class="col-sm-2"><select name="programFilterBulan" id="programFilterBulan" style="width: 100%;"></select></div>
                                             <div class="col-sm-2"><select name="programFilterTahun" id="programFilterTahun" style="width: 100%;"></select></div>
-                                            <div class="col-sm-3"><select name="programFilterPaket" id="programFlterPaket" style="width: 100%;"></select></div>
+                                            <div class="col-sm-3"><select name="programFilterPaket" id="programFilterPaket" style="width: 100%;"></select></div>
                                             <div class="col-sm-2"><input type='button' id='programFilterBtnCari' class='btn btn-primary' value='Tampilkan' style='height: 37px;'></div>
                                         </div>
                                     </div>
@@ -110,7 +207,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalForm" >
+    <div class="modal fade" id="modalForm">
         <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -141,10 +238,6 @@
                         </div>
                     </div>
                 </div>
-                {{-- <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary">Tutup</button>
-                    <button type="button" class="btn btn-primary">Save</button>
-                </div> --}}
             </div>
         </div>
     </div>
@@ -223,5 +316,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/id.js"></script> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.36/moment-timezone-with-data.min.js"></script>
+    {{-- NPROGRESS --}}
+    <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
+    {{-- CHART JS --}}
+    <script src="{{ asset('assets/js/plugins/chartJs/Chart.min.js') }}"></script>
     <script src="{{ asset('js/divisi/operasional/index.operasional.js') }}"></script>
 @endpush

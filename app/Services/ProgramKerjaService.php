@@ -189,7 +189,7 @@ class ProgramKerjaService
         $current_sub_division   = !empty($query_get_sub_division) ? strtolower($query_get_sub_division[0]->sub_division_name) : '%';
 
         $uuid           = $cari['uuid'];
-        $roleName       = $cari['current_role'] == 'admin' ? '%' : $cari['current_role'];
+        $roleName       = $cari['current_role'] == 'admin' || $cari['current_role'] == 'umum' ? '%' : $cari['current_role'];
         $tgl_awal       = $cari['tgl_awal'];
         $tgl_akhir      = $cari['tgl_akhir'];
         $jadwal         = $cari['jadwal'];
@@ -316,7 +316,8 @@ class ProgramKerjaService
                         pkb.pkb_pkt_uuid,
                         pkb.pkb_pkt_seq,
                         pkb.pkb_created_date,
-                        pkb.pkb_created_by
+                        pkb.pkb_created_by,
+                        pkb.group_division_name
                 FROM 	(
                         SELECT 	e.uuid as pkb_uuid,
                                 CONCAT(SUBSTRING_INDEX(SUBSTRING_INDEX(e.pkb_title, ')', 1), '(', 1),'', UPPER(e.pkb_description)) as pkb_title,
@@ -803,6 +804,7 @@ class ProgramKerjaService
         $roles          = $data['rolesName'];
         $pkt_uuid       = $data['pkt_uuid'];
         $pkb_uuid       = $data['pkb_uuid'];
+        $current_user   = $roles == '%' ? '%' : Auth::user()->id;
 
 
         // $query          = DB::select(
@@ -847,7 +849,8 @@ class ProgramKerjaService
             AND 	c.uid LIKE '$pkt_uuid'
             AND     a.uuid LIKE '$pkb_uuid'
             AND 	(e.name LIKE '$roles' OR e.id LIKE '$roles')
-            ORDER BY a.created_at, a.pkb_start_date ASC
+            AND     a.created_by LIKE '$current_user'
+            ORDER BY a.pkb_start_date, a.created_at ASC
             "
         );
 

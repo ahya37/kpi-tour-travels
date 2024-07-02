@@ -318,15 +318,15 @@ class DivisiController extends Controller
         $getData        = DivisiService::doGetDataRulesJadwal($idJadwalProgram, $subDivision);
 
         if(!empty($getData)) {
-            for($i = 0; $i < count($getData); $i++) {
-                $data[]     = array(
+            for($i = 0; $i < count($getData['jadwal']); $i++) {
+                $data[$i]     = array(
                     $i + 1,
-                    $getData[$i]->rules,
-                    date('d-M-Y', strtotime($getData[$i]->start_date_job))." s/d ".date('d-M-Y', strtotime($getData[$i]->end_date_job)),
-                    $getData[$i]->pic_role,
-                    $getData[$i]->duration_day,
-                    !empty($getData[$i]->realization_start_date) ? ($getData[$i]->realization_start_date == $getData[$i]->realization_end_date ? date('d-M-Y', strtotime($getData[$i]->realization_start_date)) : date('d-M-Y', strtotime($getData[$i]->realization_start_date))." s/d ".date('d-M-Y', strtotime($getData[$i]->realization_end_date))) : null,
-                    $getData[$i]->realization_duration_day != 0 ? ($getData[$i]->realization_duration_day <= $getData[$i]->duration_day_num ? "<span class='badge badge-primary d-block' style='font-size: 0.8rem;'>+" .$getData[$i]->realization_duration_day. " Hari</span>" : "<span class='badge badge-danger d-block' style='font-size: 0.8rem;'>-" .$getData[$i]->realization_duration_day. " Hari</span>") : '',
+                    $getData['jadwal'][$i]->rules,
+                    date('d-M-Y', strtotime($getData['jadwal'][$i]->start_date_job))." s/d ".date('d-M-Y', strtotime($getData['jadwal'][$i]->end_date_job)),
+                    $getData['jadwal'][$i]->pic_role,
+                    $getData['jadwal'][$i]->duration_day,
+                    !empty($getData['jadwal'][$i]->realization_start_date) ? ($getData['jadwal'][$i]->realization_start_date == $getData['jadwal'][$i]->realization_end_date ? date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_start_date)) : date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_start_date))." s/d ".date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_end_date))) : null,
+                    $getData['jadwal'][$i]->realization_duration_day != 0 ? ($getData['jadwal'][$i]->realization_duration_day <= $getData['jadwal'][$i]->duration_day_num ? "<span class='badge badge-primary d-block' style='font-size: 0.8rem;'>+" .$getData['jadwal'][$i]->realization_duration_day. " Hari</span>" : "<span class='badge badge-danger d-block' style='font-size: 0.8rem;'>-" .$getData['jadwal'][$i]->realization_duration_day. " Hari</span>") : '',
                 );
             }
 
@@ -454,6 +454,37 @@ class DivisiController extends Controller
                 "success"   => false,
                 "message"   => "Tidak ada data Sub Divisi ".$roleId,
                 "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 1 JULI 2024
+    
+    public function getDataJobUser()
+    {
+        $getData    = DivisiService::doGetDataJobUser();
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"        => 200,
+                "success"       => true,
+                "message"       => "Berhasil",
+                "data"          => [
+                    "chart"     => $getData['chart'],
+                    "table"     => $getData['table']
+                ],
+            );
+        } else {
+            $output     = array(
+                "status"        => 500,
+                "success"       => false,
+                "message"       => "Terjadi Kesalahan",
+                "data"          => [
+                    "chart"     => $getData['chart'],
+                    "table"     => $getData['table'],
+                ]
             );
         }
 

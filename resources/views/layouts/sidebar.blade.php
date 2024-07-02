@@ -51,7 +51,7 @@
                     </li>
                 </ul>
                 <ul class="nav nav-second-level">
-                    <li class="active"><a href="{{ route('marketing.prospectmaterial') }}">Generate Bahan Prospek Alumni</a></li>
+                    <li class="{{ request()->is('marketings/prospectmaterial/') || request()->is('marketings/prospectmaterial/*') ? 'active' : '' }}"><a href="{{ route('marketing.prospectmaterial') }}">Generate Bahan Prospek Alumni</a></li>
                 </ul>
             </li>
 
