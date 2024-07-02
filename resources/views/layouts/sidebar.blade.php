@@ -50,13 +50,16 @@
                         <a href={{ route('programKerja.index') }}>Program Kerja</a>
                     </li>
                 </ul>
+                <ul class="nav nav-second-level">
+                    <li class="active"><a href="{{ route('marketing.prospectmaterial') }}">Generate Bahan Prospek Alumni</a></li>
+                </ul>
             </li>
 
             <li class="{{ request()->is('marketings/*') ? 'active' : '' }}">
                 <a href="#"><i class="fa fa-diamond"></i> <span class="nav-label">Marketing</span> <span
                         class="fa arrow"></span></a>
                 <ul class="nav nav-second-level">
-                    <li class="active"><a href="{{ route('marketing.prospectmaterial') }}">Bahan Prospek Alumni</a></li>
+                    <li class="active"><a href="{{ route('marketing.alumniprospectmaterial') }}">Bahan Prospek Alumni</a></li>
                 </ul>
                 <ul class="nav nav-second-level">
                     <li class="active"><a href="{{ route('marketing.target') }}">Laporan Umrah</a></li>
@@ -121,13 +124,16 @@
                         <a href={{ route('programKerja.index') }}>Program Kerja</a>
                     </li>
                 </ul>
+                <ul class="nav nav-second-level">
+                    <li class="active"><a href="{{ route('marketing.prospectmaterial') }}">Generate Bahan Prospek Alumni</a></li>
+                </ul>
             </li>
 
             <li class="{{ request()->is('marketings/*') ? 'active' : '' }}">
                 <a href="#"><i class="fa fa-diamond"></i> <span class="nav-label">Marketing</span> <span
                         class="fa arrow"></span></a>
                 <ul class="nav nav-second-level">
-                    <li class="active"><a href="{{ route('marketing.prospectmaterial') }}">Bahan Prospek Alumni</a></li>
+                    <li class="active"><a href="{{ route('marketing.alumniprospectmaterial') }}">Bahan Prospek Alumni</a></li>
                 </ul>
                 <ul class="nav nav-second-level">
                     <li class="active"><a href="{{ route('marketing.target') }}">Laporan Umrah</a></li>
@@ -186,7 +192,7 @@
                 </ul>
             </li>
 
-            <li class="{{ request()->is('marketings/*') ? 'active' : '' }}">
+            {{-- <li class="{{ request()->is('marketings/*') ? 'active' : '' }}">
                 <a href="#"><i class="fa fa-diamond"></i> <span class="nav-label">Marketing</span> <span
                         class="fa arrow"></span></a>
                 <ul class="nav nav-second-level">
@@ -210,7 +216,7 @@
                         </ul>
                     </li>
                 </ul>
-            </li>
+            </li> --}}
 
             <li class="{{ request()->is('aktivitas') ? 'active' : '' }}">
                 <a href="{{ route('aktivitas.harian.index') }}"><i class="fa fa-pencil"></i> <span

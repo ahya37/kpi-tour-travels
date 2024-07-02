@@ -27,7 +27,7 @@
 	@include('layouts.sidebar')
 
         <div id="page-wrapper" class="gray-bg">
-        
+
 		@include('layouts.navbar')
 		
 		@yield('breadcrumb')
@@ -51,7 +51,10 @@
     <!-- Custom and plugin javascript -->
     <script src="{{asset('assets/js/inspinia.js')}}"></script>
     <!-- <script src="{{asset('assets/js/plugins/pace/pace.min.js')}}"></script> -->
-	
+    <script>
+        const User = {{ Auth::user()->id }};
+    </script>
+    <script src="{{asset('js/app.js')}}"></script>
 	
 	<!-- ChartJS-->
 	@stack('addon-script')
