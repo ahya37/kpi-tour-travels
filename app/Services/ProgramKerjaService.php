@@ -804,6 +804,7 @@ class ProgramKerjaService
         $roles          = $data['rolesName'];
         $pkt_uuid       = $data['pkt_uuid'];
         $pkb_uuid       = $data['pkb_uuid'];
+        $current_user   = $roles == '%' ? '%' : Auth::user()->id;
 
 
         // $query          = DB::select(
@@ -848,7 +849,8 @@ class ProgramKerjaService
             AND 	c.uid LIKE '$pkt_uuid'
             AND     a.uuid LIKE '$pkb_uuid'
             AND 	(e.name LIKE '$roles' OR e.id LIKE '$roles')
-            ORDER BY a.created_at, a.pkb_start_date ASC
+            AND     a.created_by LIKE '$current_user'
+            ORDER BY a.pkb_start_date, a.created_at ASC
             "
         );
 

@@ -585,8 +585,8 @@ class ProgramKerjaController extends Controller
             }
             // REMOVE DUPLICATE HEADER
             $header_remove_duplicate    = array_reduce($header, function($carry, $item){
-                if(!isset($carry[$item['pkb_title']])) {
-                    $carry[$item['pkb_title']] = $item;
+                if(!isset($carry[$item['pkb_uuid']])) {
+                    $carry[$item['pkb_uuid']] = $item;
                 }
                 return $carry;
             }, []);
