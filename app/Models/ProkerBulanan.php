@@ -51,4 +51,29 @@ class ProkerBulanan extends Model
 
         return $proker_harian;
     }
+	
+	public static function getProkerBulananMarkering($groupDivisionID, $month, $year)
+	{
+		$proker_bulanan = DB::table('proker_bulanan as a')
+						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','d.name as created_by_name','a.created_by')
+						  ->join('proker_tahunan as b', function($join1){
+							  $join1->on(DB::raw('SUBSTRING_INDEX(a.pkb_pkt_id, "|",1)'), '=', 'b.uid');
+						  })
+						  ->join('users as d','a.created_by','=','d.id')
+						  ->where('b.division_group_id', $groupDivisionID)
+						  ->whereYear('a.pkb_start_date', $year)
+						  ->whereMonth('a.pkb_start_date', $month)
+						  ->orderBy('a.pkb_start_date','asc')
+						  ->get();
+						  
+		return $proker_bulanan;
+	}
+	
+	public static function getProkerBulananDetail($pkb_id)
+	{
+		$proker_bulanan_detail = DB::table('proker_bulanan_detail')->where('pkb_id', $pkb_id)->get();
+						
+						  
+		return $proker_bulanan_detail;
+	}
 }
