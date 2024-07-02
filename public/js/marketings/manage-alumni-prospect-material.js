@@ -2,89 +2,69 @@
 const query = document.URL;
 const  alumniprospectmaterialId = query.substring(query.lastIndexOf("/") + 1);
 
+$(document).ready(function(){
+  showTable('tableListAlumni');
+});
+
+
 $.ajaxSetup({
   headers: {
     'X-CSRF-TOKEN': CSRF_TOKEN
   }
 });
 
-const table = $(".data").DataTable({
-  pageLength: 10,
+function getURL()
+{
+    return window.location.pathname;
+}
 
-  bLengthChange: true,
-  bFilter: true,
-  bInfo: true,
-  processing: true,
-  bServerSide: true,
-  order: [[1, "desc"]],
-  autoWidth: false,
-  ajax: {
-    url: `/marketings/alumniprospectmaterial/detail/list/${alumniprospectmaterialId}`,
-    type: "POST",
-    data: function (q) {
-      q._token = CSRF_TOKEN;
-      return q;
-    },
-  },
-  columnDefs: [
-    {
-      targets: 0,
-      visible: false,
-      render: function (data, type, row, meta) {
-        return `<p>${row.id}</p>`;
-      },
-    },
-    {
-      targets: 1,
-      render: function (data, type, row, meta) {
-        return `<p>${row.no}</p>`;
-      },
-    },
-    {
-      targets: 2,
-      render: function (data, type, row, meta) {
-        return `<p>${row.name}</p>`;
-      },
-    },
-    {
-      targets: 3,
-      render: function (data, type, row, meta) {
-        return `<p>${row.telp}</p>`;
-      },
-    },
-    {
-      targets: 4,
-      render: function (data, type, row, meta) {
-        return `<p>${row.address}</p>`;
-      },
-    },
-    {
-      targets: 5,
-      render: function (data, type, row, meta) {
-        return `<p>${row.is_respone ?? ''}</p>`;
-      },
-    },
-    {
-      targets: 6,
-      render: function (data, type, row, meta) {
-        return `<p>${row.reason ?? ''}</p>`;
-      },
-    },
-    {
-      targets: 7,
-      render: function (data, type, row, meta) {
-        return `<p>${row.notes ?? ''}</p>`;
-      },
-    },
-    {
-      targets: 8,
-      render: function (data, type, row, meta) {
-        return ` <button type="button" data-id="${row.id}" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#myModal5">Kelola</button>`;
-      },
-    },
-  ],
-
-});
+function showTable(idTable)
+{
+    $("#"+idTable).DataTable().clear().destroy();
+    if(idTable == 'tableListAlumni') {
+        $("#"+idTable).DataTable({
+            language    : {
+                "zeroRecords"   : "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                "emptyTable"    : "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                "processing"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+            },
+            processing  : true,
+            serverSide  : false,
+            ajax        : {
+                type    : "POST",
+                dataType: "json",
+                url     : `/marketings/alumniprospectmaterial/detail/list/${alumniprospectmaterialId}`,
+            },
+            autoWidth   : false,
+            columnDefs  : 
+            [
+                {"targets" : [0], "className" : "text-center", "width" : "5%"},
+                { "targets" : [1], "width" : "15%" },
+                { "targets" : [3], "width" : "30%" },
+                { "targets" : [2], "className" : "text-center", "width" : "10%" },
+                {"targets" : [4], "className" : "text-center", "width" : "8%"},
+            ],
+        });
+    } else if(idTable == 'tableListFile') {
+        $("#"+idTable).DataTable({
+            language    : {
+                "zeroRecords"   : "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                "emptyTable"    : "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                "processing"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+            },
+            processing  : true,
+            serverSide  : false,
+            autoWidth   : false,
+            bInfo       : false,
+            ordering    : false,
+            searching   : false,
+            paging      : false,
+            columnDefs  : [
+                { "targets":[0, 2], "className":"text-center","width":"8%" },
+            ],
+        })
+    }
+}
 
 const activeSelect2 = () => {
   $('#myModal5 select.select2').select2({
@@ -279,7 +259,7 @@ saveButton.click(function (e) {
           timer: 900,
         });
         closeModal();
-        table.ajax.reload();
+        showTable('tableListAlumni');
       }
     },
     error: function (error) {

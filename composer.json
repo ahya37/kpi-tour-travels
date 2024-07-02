@@ -36,7 +36,8 @@
             "Tests\\": "tests/"
         },
         "files": [
-            "app/Http/Helpers/LogHelper.php"
+            "app/Http/Helpers/LogHelper.php",
+            "app/Helpers/GetAuthUserId.php"
         ]
     },
     "scripts": {

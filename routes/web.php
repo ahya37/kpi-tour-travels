@@ -15,6 +15,8 @@ use App\Http\Controllers\ProgramKerjaController;
 use App\Http\Controllers\BaseController;
 use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DivisiController;
+use App\Http\Controllers\PresensiController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -39,6 +41,14 @@ Route::group(['middleware' => ['auth']], function () {
     //route dashboard
     Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class,'logout'])->name('logout.store');
+    
+    // NOTIFICATIONS
+    Route::get('/notifications/show/user/{userId}',[NotificationController::class, 'showNotificationByUserLogin']);
+     // Notification
+     Route::get('/marketings/notifications/show/detail/user/notification/{notificationId}',[NotificationController::class, 'detailShowNotificationAlumni']);
+	 
+	 Route::get('/marketings/rencanakerja/report',[ProgramKerjaController::class, 'reportRencanaKerjaMarekting'])->name('marketings.rencancakerja.report');
+	 Route::get('/marketings/rencanakerja/report/data',[ProgramKerjaController::class, 'getReportRencanaKerjaMarekting']);
 
     //marketing
     Route::prefix('marketings')->controller(MarketingController::class)->group(function(){
@@ -70,16 +80,25 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/alumniprospectmaterial/detail/manage/store','manageAlumniProspectMaterialStore')->name('marketing.alumniprospectmaterial.store');
         Route::post('/alumniprospectmaterial/detail/list/{alumniprospectmaterialId}','listAlumniProspectMaterial');
         // laporan
-        Route::prefix('laporan')->controller(MarketingController::class)->group(function(){
-            Route::get('/pelaksanaan_iklan',[MarketingController::class,'laporanPelaksanaanIklan'])->name('marketing.laporan.iklan');
-            Route::post('/trans/store/reportAds', [MarketingController::class, 'simpanLaporanIklan'])->name('marketing.trans.storeDataLaporanIklan');
-        });
+        Route::get('/laporan/pelaksanaan_iklan','laporanPelaksanaanIklan')->name('marketing.laporan.iklan');
+        Route::post('/laporan/trans/store/reportAds','simpanLaporanIklan')->name('marketing.trans.storeDataLaporanIklan');
+
 
         //modal 
         Route::get('modal/target','loadModalMarketingTarget');
         Route::get('modal/target/detail','loadModalDetailMarketingTarget');
 
+        // Grafik Laporan Umrah Bulanan
+        Route::post('/pencapaian/bulanan','pencapaianBulanan');
 
+        // HAJI
+        Route::get('/haji/report','reportHaji')->name('marketings.haji.report');
+        Route::get('/haji/target/create','settingTargetHaji')->name('marketings.haji.target');
+        Route::post('/haji/target/save','saveTargetHaji');
+        Route::get('modal/target/haji','loadModalTargetHaji');
+		
+		
+        
     });
 
      // Rencana Kerja
@@ -157,6 +176,11 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/trans/store/dataProkerTahunan/{jenis}', [ProgramKerjaController::class, 'simpanDataProkerTahunan'])->name('programKerja.tahunan.simpan');
                 Route::get('/trans/get/listDataProkerTahunan', [ProgramKerjaController::class, 'ambilListDataProkerTahunan'])->name('programKerja.tahunan.listDataProkerTahunan');
                 Route::get('/trans/get/getDataProkerTahunanDetail/{uid}', [ProgramKerjaController::class, 'ambilDataProkerTahunanDetail'])->name('programKerja.tahunan.getDataProkerTahunanDetail');
+
+                // REPORT PERKERJAAN MARKETING
+                Route::get('/marketing/report',[ProgramKerjaController::class,'reportPekerjaanMarketing'])->name('marketing.pekerjaan.report');
+                Route::post('/marketing/report/list',[ProgramKerjaController::class,'getReportPekerjaanMarketing']);
+
             });
             Route::prefix('bulanan')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'indexBulanan'])->name('programKerja.bulanan.index');
@@ -171,6 +195,8 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/listProkerTahunan', [ProgramKerjaController::class, 'listProkerTahunan']);
                 Route::get('/cellProkerBulanan', [ProgramKerjaController::class, 'cellProkerBulanan']);
                 Route::get('/listSelectJadwalUmrah', [ProgramKerjaController::class, 'listSelectJadwalUmrah']);
+                Route::get('/listSelectJadwalUmrahForm', [ProgramKerjaController::class, 'listSelectJadwalUmrahForm']);
+                Route::get('/listSelectedJadwalUmrahForm', [ProgramKerjaController::class, 'listSelectedJadwalUmrahForm']);
             });
             Route::prefix('harian')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('programKerja.harian.index');
@@ -193,6 +219,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/trans/get/groupDivision', [BaseController::class, 'getGroupDivision'])->name('master.data.groupDivision');
             Route::get('/getGroupDivisionWRole', [BaseController::class,'getGroupDivisionWRole'])->name('master.data.groupDivisionWRole');
             Route::get('/getProgramUmrah/{program}', [BaseController::class, 'getProgramUmrah'])->name('master.data.getProgramUmrah');
+            Route::get('/getCurrentSubDivision/{current_role}', [BaseController::class, 'getCurrentSubDivision']);
         });
     });
     
@@ -203,6 +230,8 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/generateRules', [DivisiController::class, 'generateRules']);
             Route::get('/getDataDashboard/{year}', [DivisiController::class, 'getDataDashboard']);
             Route::get('/getDataRulesJadwal/{idJadwalProgram}', [DivisiController::class, 'getDataRulesJadwal']);
+            Route::get('/getDataRulesJadwalDetail', [DivisiController::class, 'getDataRulesJadwalDetail']);
+            Route::get('/getJobUser', [DivisiController::class, 'getDataJobUser']);
 
             Route::prefix('program')->group(function(){
                 Route::get('/', [DivisiController::class, 'indexProgram'])->name('index.operasional.program');
@@ -237,5 +266,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/downloadFile/{path}', [ProgramKerjaController::class, 'ProkerHarianDownloadFile'])->name('programKerja.harian.downloadFile');
         Route::post('/fileUpload', [ProgramKerjaController::class, 'testUpload'])->name('programKerja.harian.upload');
         Route::post('/deleteUpload', [ProgramKerjaController::class, 'deleteUpload'])->name('programKerja.harian.deleteUpload');
+    });
+
+    Route::prefix('presensi')->group(function(){
+        Route::get('report',[PresensiController::class,'report'])->name('presensi.report');
     });
 });

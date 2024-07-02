@@ -11,4 +11,5 @@ class ProkerTahunan extends Model
 
     protected $table = 'proker_tahunan';
 	protected $guarded = [];
+
 }

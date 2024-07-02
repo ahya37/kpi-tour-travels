@@ -8,8 +8,16 @@ use App\Services\ProgramKerjaService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ProkerTahunan;
+use App\Models\ProkerBulanan;
+use App\Models\ProkerHarian;
+use App\Models\Employee;
+use App\Helpers\Months;
 use Response;
 use File;
+use Carbon\Carbon;
+use App\Helpers\ResponseFormatter;
+use Illuminate\Support\Facades\Log;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -218,13 +226,15 @@ class ProgramKerjaController extends Controller
 
     public function getProkerBulananAll(Request $request)
     {
+        // var_dump($request->all()['sendData']);die();
         $data_cari  = [
-            "uuid"          => $request->all()['sendData']['cari'],
-            "role_name"     => !empty($request->all()['sendData']['divisi']) && Auth::user()->hasRole('admin') ? ($request->all()['sendData']['divisi'] == 'Semua' ? '%' : $request->all()['sendData']['divisi']) : Auth::user()->getRoleNames()[0],
-            "tgl_awal"      => !empty($request->all()['sendData']['tgl_awal']) ? $request->all()['sendData']['tgl_awal'] : date('Y')."-".date('m')."-01",
-            "tgl_akhir"     => !empty($request->all()['sendData']['tgl_akhir']) ? $request->all()['sendData']['tgl_akhir'] : date('Y-m-d'),
-            "jadwal"        => !empty($request->all()['sendData']['jadwal']) ? $request->all()['sendData']['jadwal'] : null,
-            "sub_divisi"    => !empty($request->all()['sendData']['sub_divisi']) ? $request->all()['sendData']['sub_divisi'] : '%',
+            "uuid"                  => $request->all()['sendData']['cari'],
+            "current_role"          => Auth::user()->getRoleNames()[0],
+            "group_divisi"          => $request->all()['sendData']['divisi'],
+            "tgl_awal"              => !empty($request->all()['sendData']['tgl_awal']) ? $request->all()['sendData']['tgl_awal'] : date('Y')."-".date('m')."-01",
+            "tgl_akhir"             => !empty($request->all()['sendData']['tgl_akhir']) ? $request->all()['sendData']['tgl_akhir'] : date('Y-m-d'),
+            "jadwal"                => !empty($request->all()['sendData']['jadwal']) ? $request->all()['sendData']['jadwal'] : null,
+            "sub_divisi"            => !empty($request->all()['sendData']['sub_divisi']) ? $request->all()['sendData']['sub_divisi'] : '%',
         ];
         $getData    = ProgramKerjaService::getProkerBulananAll($data_cari);
         
@@ -556,8 +566,8 @@ class ProgramKerjaController extends Controller
     public function dataProkerBulanan(Request $request)
     {
         $sendData   = [
-            "rolesName"     => Auth::user()->getRoleNames()[0] == ('admin' || 'umum') ? '%' : Auth::user()->getRoleNames()[0],
-            "currentDate"   => '2024-05-01',
+            "rolesName"     => (Auth::user()->getRoleNames()[0] == 'admin' || Auth::user()->getRoleNames()[0] == 'umum') ? '%' : Auth::user()->getRoleNames()[0],
+            "currentDate"   => date('Y-m-d'),
             "pkt_uuid"      => $request->all()['sendData']['pkt_uid'],
             "pkb_uuid"      => $request->all()['sendData']['pkb_uid'],
         ];
@@ -576,14 +586,14 @@ class ProgramKerjaController extends Controller
             }
             // REMOVE DUPLICATE HEADER
             $header_remove_duplicate    = array_reduce($header, function($carry, $item){
-                if(!isset($carry[$item['pkb_date']])) {
-                    $carry[$item['pkb_date']] = $item;
+                if(!isset($carry[$item['pkb_uuid']])) {
+                    $carry[$item['pkb_uuid']] = $item;
                 }
                 return $carry;
             }, []);
 
             $header_remove_duplicate    = array_values($header_remove_duplicate);
-
+            
             // INSERT KE DETAIL
             for($k = 0; $k < count($getData); $k++) {
                 $detail[]   = array(
@@ -726,6 +736,55 @@ class ProgramKerjaController extends Controller
         return Response::json($output, $output['status']);
     }
 
+    // 26 JUNI 2024
+    // NOTE : UNTUK MENARIK JADWAL PADA PROGRAM KERJA BULANAN
+    public function listSelectJadwalUmrahForm()
+    {
+        $getData    = ProgramKerjaService::getListSelectJadwalUmrahForm();
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Mengambil Data",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 500,
+                "success"   => false,
+                "message"   => "Terjadi Kesalahan",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function listSelectedJadwalUmrahForm(Request $request)
+    {
+        $jadwalID   = $request->all()['sendData']['prog_jdw_id'];
+        $getData    = ProgramKerjaService::getListSelectedJadwalUmrahForm($jadwalID);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Gagal Mengambil Data",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     // GLOBAL
     public function getDataPIC(Request $request)
     {
@@ -746,4 +805,292 @@ class ProgramKerjaController extends Controller
         
         return Response::json($output, $output['status']);
     }
+
+    public function reportPekerjaanMarketing()
+    {
+        $query['created_by'] = request('created_by');
+
+        // get data employee
+        $employees = Employee::getEmployees();
+
+        $data   = [
+            'title'     => 'Laporan Pekerjaan Divisi Marketing',
+            'sub_title' => 'Laporan Pekerjaan Divisi Marketing',
+            // 'html' => $html,
+            'employees' => $employees
+        ];
+
+       return view('marketings.laporan.report-pekerjaan', $data);
+        
+    }
+
+    public function getReportPekerjaanMarketing()
+    {
+        $year  = date('Y');
+
+        $results = [];
+
+        // get data employee
+        $employees = Employee::getEmployees();
+
+        // get data pekerjaan harian
+        #Get divisi id marketing 
+        $groupDivisionID = env('APP_GROUPDIV_MARKETING');
+        $proker_tahunan_group_bulan   = ProkerBulanan::prokerGroupBulananByTahunan($groupDivisionID);
+
+        foreach ($proker_tahunan_group_bulan as $annual) {
+
+            $res_proker_harian = ProkerHarian::getAktivitasHarianByBulanTahunAndDivisiByTest($groupDivisionID, $annual->month, $year);
+
+            // if (request()->created_by != '' && request()->date != '') {
+
+            //     $date = Carbon::createFromFormat('d-m-Y',request()->date)->format('Y-m-d');
+
+            //     $res_proker_harian = $res_proker_harian->where('d.id',request()->created_by)->where('a.pkh_date', $date);
+
+            // }elseif (request()->created_by = '' && request()->date != '') {
+
+            //     $date = Carbon::createFromFormat('d-m-Y',request()->date)->format('Y-m-d');
+            //     $res_proker_harian = $res_proker_harian->where('a.pkh_date', $date);
+
+
+            // }elseif (request()->created_by != '' && request()->date = '') {
+
+            //     $res_proker_harian = $res_proker_harian->where('d.id',request()->created_by);
+            // }
+            if (request()->created_by != '') {
+                $res_proker_harian = $res_proker_harian->where('d.id',request()->created_by);
+            }
+
+            $res_proker_harian = $res_proker_harian->orderBy('a.pkh_date','asc')->get();
+            
+            if (count($res_proker_harian) != 0) {
+                $results[] = [
+                    // 'annual' => $annual->pkt_title,
+                    'month_number' => $annual->month,
+                    'month_name' => Months::monthName($annual->month),
+                    'aktivitas' => $res_proker_harian,
+                    'count_aktivitas' => count($res_proker_harian) + 1
+                ];
+            }
+
+        }
+
+        // return $results;
+        $html = "";
+        foreach ($results as $value) {
+            $rowspan = $value['count_aktivitas'];
+            $html = $html.'<tr>';
+            $html = $html.'<td rowspan='.$rowspan.' style="display: table-cell;text-align: center;font-size:14px">'.$value['month_name'].'</td>';
+            $html = $html.'</tr>';
+
+            foreach ($value['aktivitas'] as $aktivitas) {
+                $html = $html.'<tr>';
+                $html = $html.'<td>'.$aktivitas->pkh_date ?? ''.'</td>';
+                $html = $html.'<td>'.$aktivitas->pkh_title ?? ''.'</td>';
+                $html = $html.'<td>'.$aktivitas->pic ??''.'</td>';
+                $html = $html.'</tr>';
+            }
+        }
+
+
+        $data   = [
+            'html' => $html,
+        ];
+
+        return response()->json($data);
+
+    }
+
+    public function reportRencanaKerjaMarekting()
+    {
+        $data   = [
+            'title'     => 'Laporan Rencana Kerja Marketing',
+            'sub_title' => 'Laporan Rencana Kerja Marketing',
+        ];
+
+       return view('marketings.laporan.report-rencana-kerja', $data);
+    }
+	
+	public function getReportRencanaKerjaMarekting()
+	{
+        try {
+			
+			$groupDivisionID = env('APP_GROUPDIV_MARKETING');
+			
+			$year  = date('Y');
+
+			$results = [];
+
+			// get data employee
+			// $employees = Employee::getEmployees();
+
+			// get data pekerjaan harian
+			#Get divisi id marketing 
+			$groupDivisionID = env('APP_GROUPDIV_MARKETING');
+			$proker_tahunan_group_bulan   = ProkerBulanan::prokerGroupBulananByTahunan($groupDivisionID);
+
+			foreach ($proker_tahunan_group_bulan as $annual) {
+				$prokerBulanan = ProkerBulanan::getProkerBulananMarkering($groupDivisionID, $annual->month, $year);
+
+				// group per tanggal
+				$grouped = $prokerBulanan->groupBy('pkb_start_date');
+
+				$res_grouped = [];
+				foreach ($grouped as $key => $value) {
+
+					// get jenis pekerjaan 
+					$res_jenis_pekerjaan = [];
+					foreach ($value as $item) {
+
+						$prokerBulananDetail = ProkerBulanan::getProkerBulananDetail($item->id);
+
+						// GET HARIAN BERDASARKAN BULANAN DAN CREATED_BY NYA 
+						$aktivitas_harian = ProkerHarian::getProkerHarianByBulananAndUser($item->uuid,$item->created_by);
+
+
+						$res_jenis_pekerjaan[] = [
+							'id' => $item->id,
+							'pkb_start_date' => $item->pkb_start_date,
+							'pkb_title' => $item->pkb_title,
+							'created_by_name' => $item->created_by_name,
+							'created_by' => $item->created_by,
+							'jenis_pekerjaan' => $prokerBulananDetail,
+							'aktivitas_harian' => $aktivitas_harian
+						];
+					}
+					$res_grouped[] = [
+						'tanggal' => $key,
+						'uraian_pekerjaan' => $res_jenis_pekerjaan
+					];
+				}
+				
+				$results[] = [
+						'month_number' => $annual->month,
+						'month_name' => Months::monthName($annual->month),
+						'rencana_kerja_bulanan' => $res_grouped,
+                        'count_rencana_kerja_bulanan' => count($res_grouped) + 1
+					];
+
+			}
+
+            $html = "";
+            foreach ($results as $value) {
+                $rowspan = $value['count_rencana_kerja_bulanan'];
+                $html = $html.'<tr>';
+                // $html = $html.'<td>'.$value['month_name'].'</td>';
+                $html = $html.'<td rowspan='.$rowspan.' style="display: table-cell;text-align: center;font-size:14px">'.$value['month_name'] ?? ''.'</td>';
+                $html = $html.'</tr>';
+
+
+                foreach ($value['rencana_kerja_bulanan'] as $key => $bulanan) {
+                    $rowspan_uraian = count($bulanan['uraian_pekerjaan']) + 1;
+                    $html = $html.'<tr>';
+                    $html = $html.'<td  style="display: table-cell;text-align: center;font-size:14px">'.$bulanan['tanggal'] ?? ''.'</td>';
+                    
+                    // foreach($bulanan['uraian_pekerjaan'] as $uraian_pekerjaan){
+                    //     $html = $html.'<td>OK</td>';
+                    // }
+                    $html = $html.'</td>';
+                    $html = $html.'</tr>';
+                    
+                }
+
+            }
+
+            return ResponseFormatter::success([  
+				'rencanakerja'  => $html,
+                'message' => 'Laporan percenaan kerja marketing'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal Singkronkan data!'
+            ]);
+        }
+	} 
+
+    public function getReportRencanaKerjaMarektingCopy()
+	{
+        try {
+			
+			$groupDivisionID = env('APP_GROUPDIV_MARKETING');
+			
+			$year  = date('Y');
+
+			$results = [];
+
+			// get data employee
+			// $employees = Employee::getEmployees();
+
+			// get data pekerjaan harian
+			#Get divisi id marketing 
+			$groupDivisionID = env('APP_GROUPDIV_MARKETING');
+			$proker_tahunan_group_bulan   = ProkerBulanan::prokerGroupBulananByTahunan($groupDivisionID);
+
+			foreach ($proker_tahunan_group_bulan as $annual) {
+
+				// $res_proker_harian = ProkerHarian::getAktivitasHarianByBulanTahunAndDivisiByTest($groupDivisionID, $annual->month, $year);
+				// $res_proker_harian = $res_proker_harian->orderBy('a.pkh_date','asc')->get();
+				
+				// get kegiatan berdasarkan bulanan dan divisinya
+				$prokerBulanan = ProkerBulanan::getProkerBulananMarkering($groupDivisionID, $annual->month, $year);
+				
+				$res_proker_bulanan = [];
+				foreach($prokerBulanan as $item){
+					// GET HARIAN BERDASARKAN BULANAN DAN CREATED_BY NYA 
+					$aktivitas_harian = ProkerHarian::getProkerHarianByBulananAndUser($item->uuid,$item->created_by);
+				
+					// get jenis pekerjaan nya di table bulanan detail berdasarkan id bulan nya
+					$prokerBulananDetail = ProkerBulanan::getProkerBulananDetail($item->id);
+					$res_proker_bulanan[] = [
+						'pkb_start_date' => $item->pkb_start_date,
+						'pkb_title' => $item->pkb_title,
+						'created_by_name' => $item->created_by_name,
+						'created_by' => $item->created_by,
+						'janis_pekerjaan' => $prokerBulananDetail,
+						'aktivitas_harian' => $aktivitas_harian 
+					];
+				}
+				
+				
+				$results[] = [
+						// 'annual' => $annual->pkt_title,
+						'month_number' => $annual->month,
+						'month_name' => Months::monthName($annual->month),
+						'rencana_kerja_bulanan' => $res_proker_bulanan,
+                        'count_uraian_kerja' => count($res_proker_bulanan) + 1
+					];
+
+			}
+
+            $html = "";
+            foreach ($results as $value) {
+                $rowspan = $value['count_uraian_kerja'];
+                $html = $html.'<tr>';
+                $html = $html.'<td rowspan='.$rowspan.' style="display: table-cell;text-align: center;font-size:14px">'.$value['month_name'].'</td>';
+                $html = $html.'</tr>';
+
+                foreach ($value['rencana_kerja_bulanan'] as $bulanan) {
+                    $html = $html.'<tr>';
+                    $html = $html.'<td>'.$bulanan['pkb_start_date'] ?? ''.'</td>';
+                    $html = $html.'<td>'.$bulanan['pkb_title'] ?? ''.'</td>';
+                    $html = $html.'</tr>';
+                }
+            }
+
+            return ResponseFormatter::success([  
+				'rencanakerja'  => $html,
+                'message' => 'Laporan percenaan kerja marketing'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+			return $e->getMessage();
+            return ResponseFormatter::error([
+                'message' => 'Gagal Singkronkan data!'
+            ]);
+        }
+	} 
 }

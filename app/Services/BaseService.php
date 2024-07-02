@@ -67,7 +67,34 @@ class BaseService
             JOIN 	products b ON a.product_id = b.id
             WHERE 	a.id LIKE '$valueCari'
             AND 	(a.product_id LIKE '$program_name' or lower(b.name) LIKE '$program_name')
-            ORDER BY a.name ASC
+
+            UNION
+
+            SELECT 	a.id as program_id,
+                    a.name as program_name,
+                    a.product_id as product_id,
+                    b.name as product_name
+            FROM 	programs a
+            JOIN 	products b ON a.product_id = b.id
+            WHERE 	a.id LIKE '$valueCari'
+            AND 	(a.product_id LIKE 'Haji' or lower(b.name) LIKE 'Haji')
+            "
+        );
+
+        return $query;
+    }
+
+    // 25 JUNI 2024
+    // NOTE : GET DATA FOR doGetCurrentSubDivision
+    public static function doGetCurrentSubDivision($role, $userID)
+    {
+        $query  = DB::select(
+            "
+            SELECT 	LOWER(c.name) AS sub_division_name
+            FROM 	employees a
+            JOIN 	job_employees b ON a.id = b.employee_id
+            JOIN	sub_divisions c ON b.sub_division_id = c.id
+            WHERE 	a.user_id = '$userID'
             "
         );
 

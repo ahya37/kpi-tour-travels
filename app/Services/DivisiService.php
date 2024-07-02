@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Helpers\LogHelper;
 use Illuminate\Support\Facades\Log;
 use Route;
+use Str;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -221,7 +222,8 @@ class DivisiService
             SELECT 	a.jdw_uuid as jdw_id,
                     CONCAT('Program ', c.name, ' (', b.name,') ', DATE_FORMAT(a.jdw_depature_date,'%d %M %Y'), ' s/d ', DATE_FORMAT(a.jdw_arrival_date,'%d %M %Y')) as jdw_description,
                     a.jdw_mentor_name,
-                    UPPER(b.name) as program_name
+                    UPPER(b.name) as program_name,
+                    c.name as product_name
             FROM 	programs_jadwal a
             JOIN 	programs b on a.jdw_programs_id = b.id
             JOIN 	products c on b.product_id = c.id
@@ -236,66 +238,90 @@ class DivisiService
                 "jdw_depature_date" => $depature_date,
                 "jdw_arrival_date"  => $arrival_date,
                 "jdw_mentor_name"   => $query_getDataProgram[0]->jdw_mentor_name,
-                "jdw_program_name"  => $query_getDataProgram[0]->program_name
+                "jdw_program_name"  => $query_getDataProgram[0]->program_name,
+                "jdw_product_name"  => $query_getDataProgram[0]->product_name,
             ];
         } else {
             $dataProgram    = [];
         }
 
-        $query_getDataRules     = DB::select(
-            "
-            SELECT 	a.id,
-                    a.rul_title,
-                    a.rul_duration_day,
-                    a.rul_sla,
-                    LEFT(a.rul_sla, 1) as custom_sla_condition,
-                    SUBSTRING_INDEX(SUBSTRING_INDEX(a.rul_sla,'-',-1),'+',-1) AS custom_sla,
-                    a.rul_pkt_id,
-                    a.rul_condition
-            FROM 	programs_jadwal_rules a
-            ORDER BY a.id ASC
-            "
-        );
+        if(!empty($dataProgram['jdw_product_name']))
+        {
+            if($dataProgram['jdw_product_name'] == 'Umrah') {
+                $query_getDataRules     = DB::select(
+                    "
+                    SELECT 	a.id,
+                            a.rul_title,
+                            a.rul_duration_day,
+                            a.rul_sla,
+                            LEFT(a.rul_sla, 1) as custom_sla_condition,
+                            SUBSTRING_INDEX(SUBSTRING_INDEX(a.rul_sla,'-',-1),'+',-1) AS custom_sla,
+                            a.rul_pkt_id,
+                            a.rul_condition
+                    FROM 	programs_jadwal_rules a
+                    ORDER BY a.id ASC
+                    "
+                );
+            } else if($dataProgram['jdw_product_name'] == 'Haji') {
+                $query_getDataRules     = DB::select(
+                    "
+                    SELECT 	a.id,
+                            a.rul_title,
+                            a.rul_duration_day,
+                            a.rul_sla,
+                            LEFT(a.rul_sla, 1) as custom_sla_condition,
+                            SUBSTRING_INDEX(SUBSTRING_INDEX(a.rul_sla,'-',-1),'+',-1) AS custom_sla,
+                            a.rul_pkt_id,
+                            a.rul_condition
+                    FROM 	programs_jadwal_rules a
+                    WHERE 	a.rul_condition IS NULL
+                    ORDER BY a.id ASC
+                    "
+                );
+            }
+        }
 
         if(!empty($query_getDataRules)) {
             for($i = 0; $i < count($query_getDataRules); $i++) {
                 $dataRules  = $query_getDataRules[$i];
-                if($dataRules->custom_sla_condition == '-') {
-                    $rulesCondition     = $dataRules->rul_condition == 'bf-dpt' ? $dataProgram['jdw_depature_date'] : $dataProgram['jdw_arrival_date'];
-                    $dataSimpan         = [
-                        "pkb_title"         => "[".$dataProgram['jdw_program_name']."] (".date('d/M/Y', strtotime($dataProgram['jdw_depature_date']))." s/d ".date('d/M/Y', strtotime($dataProgram['jdw_arrival_date'])).") ".$dataRules->rul_title,
-                        "pkb_start_date"    => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' -'.$dataRules->custom_sla.' days', strtotime($rulesCondition))) : '1970-01-01',
-                        "pkb_end_date"      => count($dataProgram) > 0 ? $rulesCondition : '1970-01-01',
-                        "pkb_description"   => count($dataProgram) > 0 ? $dataProgram['jdw_description'] : '',
-                        "pkb_pkt_id"        => $dataRules->rul_pkt_id,
-                        "pkb_employee_id"   => '',
-                        "created_by"        => Auth::user()->id,
-                        "updated_by"        => Auth::user()->id,
-                        "created_at"        => date('Y-m-d H:i:s'),
-                        "updated_at"        => date('Y-m-d H:i:s'),
-                    ];
-                } else {
-                    $rulesCondition     = $dataRules->rul_condition == 'af-dpt' ? $dataProgram['jdw_depature_date'] : $dataProgram['jdw_arrival_date'];
-                    $dataSimpan         = [
-                        "pkb_title"         => "[".$dataProgram['jdw_program_name']."] (".date('d/M/Y', strtotime($dataProgram['jdw_depature_date']))." s/d ".date('d/M/Y', strtotime($dataProgram['jdw_arrival_date'])).") ".$dataRules->rul_title,
-                        "pkb_start_date"    => count($dataProgram) > 0 ? $rulesCondition : '1970-01-01',
-                        "pkb_end_date"      => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' +'.$dataRules->custom_sla.' days', strtotime($rulesCondition))) : '1970-01-01',
-                        "pkb_description"   => count($dataProgram) > 0 ? $dataProgram['jdw_description'] : '',
-                        "pkb_pkt_id"        => $dataRules->rul_pkt_id,
-                        "pkb_employee_id"   => '',
-                        "created_by"        => Auth::user()->id,
-                        "updated_by"        => Auth::user()->id,
-                        "created_at"        => date('Y-m-d H:i:s'),
-                        "updated_at"        => date('Y-m-d H:i:s'),
-                    ];
-                }
-                $idProkerBulanan   = DB::table('proker_bulanan')->insertGetId($dataSimpan);
-                $uuidProkerBulanan = DB::table('proker_bulanan')->where('id', $idProkerBulanan)->value('uuid');
+                // if($dataRules->custom_sla_condition == '-') {
+                //     $rulesCondition     = $dataRules->rul_condition == 'bf-dpt' ? $dataProgram['jdw_depature_date'] : $dataProgram['jdw_arrival_date'];
+                //     $dataSimpan         = [
+                //         "uuid"              => Str::random(30),
+                //         "pkb_title"         => "[".$dataProgram['jdw_program_name']."] (".date('d/M/Y', strtotime($dataProgram['jdw_depature_date']))." s/d ".date('d/M/Y', strtotime($dataProgram['jdw_arrival_date'])).") ".$dataRules->rul_title,
+                //         "pkb_start_date"    => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' -'.$dataRules->custom_sla.' days', strtotime($rulesCondition))) : '1970-01-01',
+                //         "pkb_end_date"      => count($dataProgram) > 0 ? $rulesCondition : '1970-01-01',
+                //         "pkb_description"   => count($dataProgram) > 0 ? $dataProgram['jdw_description'] : '',
+                //         "pkb_pkt_id"        => $dataRules->rul_pkt_id,
+                //         "pkb_employee_id"   => '',
+                //         "created_by"        => Auth::user()->id,
+                //         "updated_by"        => Auth::user()->id,
+                //         "created_at"        => date('Y-m-d H:i:s'),
+                //         "updated_at"        => date('Y-m-d H:i:s'),
+                //     ];
+                // } else {
+                //     $rulesCondition     = $dataRules->rul_condition == 'af-dpt' ? $dataProgram['jdw_depature_date'] : $dataProgram['jdw_arrival_date'];
+                //     $dataSimpan         = [
+                //         "uuid"              => Str::random(30),
+                //         "pkb_title"         => "[".$dataProgram['jdw_program_name']."] (".date('d/M/Y', strtotime($dataProgram['jdw_depature_date']))." s/d ".date('d/M/Y', strtotime($dataProgram['jdw_arrival_date'])).") ".$dataRules->rul_title,
+                //         "pkb_start_date"    => count($dataProgram) > 0 ? $rulesCondition : '1970-01-01',
+                //         "pkb_end_date"      => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' +'.$dataRules->custom_sla.' days', strtotime($rulesCondition))) : '1970-01-01',
+                //         "pkb_description"   => count($dataProgram) > 0 ? $dataProgram['jdw_description'] : '',
+                //         "pkb_pkt_id"        => $dataRules->rul_pkt_id,
+                //         "pkb_employee_id"   => '',
+                //         "created_by"        => Auth::user()->id,
+                //         "updated_by"        => Auth::user()->id,
+                //         "created_at"        => date('Y-m-d H:i:s'),
+                //         "updated_at"        => date('Y-m-d H:i:s'),
+                //     ];
+                // }
+                // $idProkerBulanan   = DB::table('proker_bulanan')->insertGetId($dataSimpan);
+                // $uuidProkerBulanan = DB::table('proker_bulanan')->where('id', $idProkerBulanan)->value('uuid');
 
                 $insert_trans       = array(
                     "prog_jdw_id"   => $query_getDataProgram[0]->jdw_id,
                     "prog_rul_id"   => $dataRules->id,
-                    "prog_pkb_id"   => $uuidProkerBulanan,
+                    "prog_pkb_id"   => "",
                 );
 
                 DB::table('tr_prog_jdw')->insert($insert_trans);
@@ -395,38 +421,60 @@ class DivisiService
         return $query;
     }
 
-    public static function doGetDataRulesJadwal($id)
+    public static function doGetDataRulesJadwal($id, $subDivision)
     {
+        $subDivision == 'pic' ? $subDivision = '%' : $subDivision;
+        
+        $query_get_rule_all     = DB::select(
+            "
+            SELECT 	a.prog_jdw_id,
+                    a.prog_rul_id,
+                    b.rul_title
+            FROM 	tr_prog_jdw a
+            JOIN 	programs_jadwal_rules b ON a.prog_rul_id = b.id
+            WHERE 	prog_jdw_id = '$id'
+            GROUP BY a.prog_jdw_id, a.prog_rul_id, b.rul_title
+            ORDER BY CAST(a.prog_rul_id AS SIGNED) ASC
+            "
+        );
+
         $queryGetJadwal     = DB::select(
             "
-            SELECT 	*
+            SELECT 	*,
+                    CASE
+                        WHEN rp.realization_start_date IS NOT NULL AND rp.realization_start_date <> rp.realization_end_date THEN DATEDIFF(rp.realization_end_date, rp.realization_start_date)
+                        WHEN rp.realization_start_date IS NOT NULL AND rp.realization_start_date = rp.realization_end_date THEN 1
+                        ELSE 0
+                    END as realization_duration_day
             FROM 	(
                     SELECT 	a.prog_jdw_id as jdw_id,
                             f.name as sub_program_name,
                             c.jdw_mentor_name as mentor_name,
+                            d.id as rules_id,
                             d.rul_title as rules,
                             CONCAT('H', d.rul_sla) as duration,
                             CONCAT(d.rul_duration_day,' Hari') as duration_day,
+                            d.rul_duration_day as duration_day_num,
                             c.jdw_depature_date as depature_date,
                             c.jdw_arrival_date as arrival_date,
                             CASE
-                                WHEN LEFT(d.rul_sla, 1) = '-' THEN DATE_ADD(c.jdw_depature_date, INTERVAL d.rul_sla DAY)
-                                WHEN LEFT(d.rul_sla, 1) = '+' THEN c.jdw_arrival_date
-                                ELSE c.jdw_depature_date
+                                    WHEN LEFT(d.rul_sla, 1) = '-' THEN DATE_ADD(c.jdw_depature_date, INTERVAL d.rul_sla DAY)
+                                    WHEN LEFT(d.rul_sla, 1) = '+' THEN c.jdw_arrival_date
+                                    ELSE c.jdw_depature_date
                             END as start_date_job,
                             CASE
-                                WHEN LEFT(d.rul_sla, 1) = '-' THEN c.jdw_depature_date
-                                WHEN LEFT(d.rul_sla, 1) = '+' THEN DATE_ADD(c.jdw_arrival_date, INTERVAL d.rul_sla DAY)
+                                    WHEN LEFT(d.rul_sla, 1) = '-' THEN c.jdw_depature_date
+                                    WHEN LEFT(d.rul_sla, 1) = '+' THEN DATE_ADD(c.jdw_arrival_date, INTERVAL d.rul_sla DAY)
                             END as end_date_job,
                             CASE
-                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_start_date
-                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_start_date
-                                ELSE null
+                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_start_date
+                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_start_date
+                                    ELSE null
                             END as realization_start_date,
                             CASE
-                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_end_date
-                                WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_end_date
-                                ELSE null
+                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '-' THEN b.pkb_end_date
+                                    WHEN (b.pkb_start_time IS NOT NULL OR b.pkb_end_time IS NOT NULL) AND LEFT(d.rul_sla, 1) = '+' THEN b.pkb_end_date
+                                    ELSE null
                             END as realization_end_date,
                             e.name as pic_role
                     FROM 	tr_prog_jdw a
@@ -435,13 +483,18 @@ class DivisiService
                     JOIN 	programs_jadwal_rules d ON a.prog_rul_id = d.id
                     JOIN 	sub_divisions e ON d.rul_pic_sdid = e.id
                     JOIN 	programs f ON c.jdw_programs_id = f.id
-                ) AS rp 
+                    ) AS rp 
             WHERE 	rp.jdw_id LIKE '$id'
+            AND     lower(rp.pic_role) LIKE '$subDivision'
             ORDER BY rp.pic_role, rp.depature_date ASC
             "
         );
         
-        return $queryGetJadwal;
+        $output     = array(
+            "list_rules"    => $query_get_rule_all,
+            "jadwal"        => $queryGetJadwal
+        );
+       return $output;
     }
 
     // MASTER
@@ -486,5 +539,90 @@ class DivisiService
         );
 
         return $getData;
+    }
+
+    // 26 JUNI 2024
+    // NOTE : PENGAMBILAN DATA UNTUK CONTOLLER DIVISICONTROLER > getDataRulesJadwalDetail
+    public static function doGetDataRulesJadwalDetail($id)
+    {
+        $query_get_jadwal   = DB::select(
+            "
+            SELECT 	a.jdw_uuid,
+                    a.jdw_programs_id,
+                    b.name as jdw_programs_name,
+                    a.jdw_mentor_name,
+                    a.jdw_depature_date,
+                    a.jdw_arrival_date,
+                    a.is_generated as jdw_status_generate_rules
+            FROM 	programs_jadwal a
+            JOIN 	programs b ON a.jdw_programs_id = b.id
+            WHERE 	a.jdw_uuid = '$id'
+            "
+        );
+
+        $query_get_rules    = DB::select(
+            "
+            SELECT 	a.id as jdw_rules_id,
+                    a.rul_title as jdw_rules_title,
+                    SUBSTRING_INDEX(a.rul_pkt_id, ' | ', 1) as jdw_rules_pkt_id,
+                    SUBSTRING_INDEX(a.rul_pkt_id, ' | ', -1) as jdw_rules_pkt_seq,
+                    a.rul_pic_sdid as jdw_rules_sub_division_id,
+                    b.name as jdw_rules_sub_division_name,
+                    a.rul_duration_day as jdw_rules_duration_day,
+                    SUBSTRING_INDEX(SUBSTRING_INDEX(a.rul_sla,'-', -1), '+', -1) as jdw_rules_deadline_day,
+                    LEFT(a.rul_sla, 1) as jdw_rules_deadline_cond_1,
+                    a.rul_condition as jdw_rules_deadline_cond_2
+            FROM 	programs_jadwal_rules a
+            JOIN 	sub_divisions b ON a.rul_pic_sdid = b.id
+            ORDER BY CAST(a.id as SIGNED) ASC
+            "
+        );
+
+        $output     = array(
+            "jadwal"        => !empty($query_get_jadwal) ? $query_get_jadwal : null,
+            "jadwal_rules"  => !empty($query_get_rules) ? $query_get_rules : null
+        );
+
+        return $output;
+    }
+
+    public static function doGetDataJobUser()
+    {
+        $query_for_chart  = DB::select(
+            "
+            SELECT 	b.name as employee_name,
+                    count(a.id) as total_job
+            FROM 	proker_bulanan a
+            JOIN 	employees b ON a.created_by = b.user_id
+            JOIN 	job_employees c ON c.employee_id = b.id
+            JOIN 	group_divisions d ON c.group_division_id = d.id
+            WHERE 	d.name LIKE 'Operasional'
+            AND 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+            GROUP BY b.name
+            ORDER BY count(a.id) DESC
+            "
+        );
+
+        $query_for_table    = DB::select(
+            "
+            SELECT 	b.name as full_name,
+                    c.name as group_division_name,
+                    d.name as sub_division_name
+            FROM 	job_employees a
+            JOIN 	employees b ON a.employee_id = b.id
+            JOIN 	group_divisions c ON a.group_division_id = c.id
+            JOIN 	sub_divisions d ON a.sub_division_id = d.id
+            WHERE 	c.name = 'Operasional'
+            ORDER BY b.name ASC
+            "
+        );
+
+
+        $output     = array(
+            "chart" => !empty($query_for_chart) ? $query_for_chart : "",
+            "table" => !empty($query_for_table) ? $query_for_table : "",
+        );
+
+        return $output;
     }
 }

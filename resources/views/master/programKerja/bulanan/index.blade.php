@@ -33,6 +33,8 @@
     @php
         setlocale(LC_ALL, 'IND');
     @endphp
+    <input type="hidden" name="current_uid" id="current_uid" value={{ Auth::user()->id }}>
+    <input type="hidden" id="currentSubDivision">
     <input type="hidden" id="roleName" value={{ Auth::user()->getRoleNames()[0] }}>
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
@@ -85,7 +87,6 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-sm-3">
-                                                
                                                 <input type="text" class="form-control date" id="prokerBulananStartDate" placeholder="DD/MM/YYYY" style="cursor: pointer; background: white; height: 38px;" readonly>
                                             </div>
                                             <div class="col-sm-3">
@@ -170,8 +171,8 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Program Kerja Tahunan</label>
-                                <input type="hidden" name="currentRole" id="currentRole" value="@php echo Auth::user()->name; @endphp">
-                                <select class="form-select" name="prokerTahunanID" id="prokerTahunanID" onchange="show_select_detail(this.id, this.value)" style="width:100%;"></select>
+                                <input type="hidden" name="currentRole" id="currentRole" value="{{ Auth::user()->name }}">
+                                <select class="form-select" name="prokerTahunanID" id="prokerTahunanID" onchange="show_select_detail(this.id, this.value, true)" style="width:100%;"></select>
                             </div>
                         </div>
                     </div>
@@ -180,6 +181,26 @@
                             <div class="form-group">
                                 <label>Sub-Program Kerja Tahunan</label>
                                 <select class="form-select" name="subProkerTahunanSeq" id="subProkerTahunanSeq" style="width: 100%;" onchange="show_select_detail(this.id, this.value)"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collapse" id="collapseLainnya">
+                        <div class="form-row mb-2">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Jadwal Umrah / Haji</label>
+                                    <select class="form-select" name="jadwalProgram" id="jadwalProgram" style="width: 100%;" onchange="show_select(`jadwalProgramUraian`, this.value, '', true)"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row mb-2">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label>Uraian Pekerjaan</label>
+                                    <select class="form-select" name="jadwalProgramUraian" id="jadwalProgramUraian" style="width: 100%;" onchange="show_text(`jadwalProgramUraianPktSeq`, this.value)"></select>
+                                    <input type="hidden" id="jadwalProgramUraianPktSeq">
+                                    <input type="hidden" id="jadwalProgramUraianRulSeq">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -213,7 +234,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-row mb-2">
+                    <div class="form-row mb-2" id="formProkerBulananTitle">
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Uraian Pekerjaan</label>
@@ -226,7 +247,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Tanggal Aktivitas</label>
-                                    <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggal" id="prokerBulananTanggal" placeholder="DD/MM/YYYY">
+                                    <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggal" id="prokerBulananTanggal" placeholder="DD/MM/YYYY" style="height: 37.5px;">
                                     <div class="form-check mt-2">
                                         <input class="form-check-input" type="checkbox" id="prokerBulananCheckSameDay">
                                         <label class="form-check-label" style="padding-top: 2px;">Di hari yang sama?</label>
@@ -236,7 +257,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Tanggal Akhir Aktivitas</label>
-                                    <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggalAkhir" id="prokerBulananTanggalAkhir" placeholder="DD/MM/YYYY">
+                                    <input type="text" class="form-control form-control-sm tanggal" name="prokerBulananTanggalAkhir" id="prokerBulananTanggalAkhir" placeholder="DD/MM/YYYY" style="height: 37.5px;">
                                 </div>
                             </div>
                         </div>
@@ -245,13 +266,13 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Waktu Awal Aktivitas</label>
-                                <input type="text" name="prokerBulananStartTime" id="prokerBulananStartTime" class="form-control form-control-sm waktu" placeholder="HH:MM:SS" style="height: 37.5px;" onclick="this.setSelectionRange(0, 2)">
+                                <input type="text" name="prokerBulananStartTime" id="prokerBulananStartTime" class="form-control form-control-sm waktu" placeholder="HH:MM:SS" style="height: 37.5px; cursor: pointer; background: white;" onclick="this.setSelectionRange(0, 2)" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Waktu Akhir Aktivitas</label>
-                                <input type="text" name="prokerBulananEndTime" id="prokerBulananEndTime" class="form-control form-control-sm waktu" placeholder="HH:MM:SS" style="height: 37.5px;" onclick="this.setSelectionRange(0, 2)">
+                                <input type="text" name="prokerBulananEndTime" id="prokerBulananEndTime" class="form-control form-control-sm waktu" placeholder="HH:MM:SS" style="height: 37.5px; cursor: pointer; background: white;" onclick="this.setSelectionRange(0, 2)" readonly>
                             </div>
                         </div>
                     </div>

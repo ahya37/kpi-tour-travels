@@ -176,93 +176,127 @@ function showModal(idModal, jenis, value)
 
         Swal.close();
     } 
-    // else if(jenis == 'edit') {
-    //     $("#formUpload").hide();
-    //     $("#formListUpload").show();
-    //     $("#programKerjaHarianID").val(value);
-    //     var url     = getURL() + "/detailDataProkerHarian";
-    //     var data    = {
-    //         "pkh_id"    : value,
-    //     };
-    //     var type    = "GET";
-    //     var isAsync = true;
-    //     var customMessage   = Swal.fire({title:"Data Sedang Dimuat"});Swal.showLoading();
+    else if(jenis == 'edit') {
+        $("#formUpload").hide();
+        $("#formListUpload").show();
+        $("#programKerjaHarianID").val(value);
+        var url     = getURL() + "/detailDataProkerHarian";
+        var data    = {
+            "pkh_id"    : value,
+        };
+        var type    = "GET";
+        var isAsync = true;
+        var customMessage   = Swal.fire({title:"Data Sedang Dimuat"});Swal.showLoading();
 
-    //     transData(url, type, data, customMessage, isAsync)
-    //         .then(function(xhr){
-    //             Swal.close();
-    //             $("#"+idModal).modal({backdrop: 'static', keyboard: false});
-    //             $("#"+idModal).modal('show');
-    //             var header  = xhr.data.header[0];
-    //             var detail  = xhr.data.detail;
+        transData(url, type, data, customMessage, isAsync)
+            .then(function(xhr){
+                Swal.close();
+                $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+                $("#"+idModal).modal('show');
+                var header  = xhr.data.header[0];
+                var detail  = xhr.data.detail;
 
-    //             // UPDATE HEADER
-    //             $("#programKerjaHarianTanggal").data('daterangepicker').setStartDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-    //             $("#programKerjaHarianTanggal").data('daterangepicker').setEndDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-    //             $("#programKerjaHarianWaktuMulai").val(header.pkh_start_time);
-    //             $("#programKerjaHarianWaktuAkhir").val(header.pkh_end_time);
-    //             $("#programKerjaHarianJudul").val(header.pkh_title);
+                // UPDATE HEADER
+                $("#programKerjaHarianTanggal").data('daterangepicker').setStartDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                $("#programKerjaHarianTanggal").data('daterangepicker').setEndDate(moment(header.pkh_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                $("#programKerjaHarianWaktuMulai").val(header.pkh_start_time);
+                $("#programKerjaHarianWaktuAkhir").val(header.pkh_end_time);
+
+                $("#programKerjaTahunanID").prop('disabled', true);
+                $("#programKerjaBulananID").prop('disabled', true);
+                $("#programKerjaHarianDivisi").prop('disabled', true);
                 
-    //             if(current_role == 'umum') {
-    //                 showSelect('programKerjaHarianDivisi', '%', header.pkh_gd_id, false);
-    //                 showSelect('prograKerjaHarianPIC', header.pkh_gd_id, header.pkh_employee_id, false);
-    //                 // showSelect('programKerjaTahunanID', '', '', false);
-    //                 // showSelect('programKerjaBulananID','', '', false);
-    //             } else {
-    //                 showSelect('programKerjaBulananID', '%', header.pkb_id, false);
-    //                 showSelect('programKerjaBulananAktivitas', header.pkb_id, header.pkbd_id, false);
-    //             }
+                if(current_role == 'umum') {
 
-    //             // UPDATE DETAIL
-    //             if( detail.length > 0 ) {
-    //                 for(var i = 0; i < detail.length; i++) {
-    //                     var seq         = i + 1;
-    //                     var namaFile    = detail[i]['pkhf_name'].length > 80 ? detail[i]['pkhf_name'].substring(0, 80) + "..." : detail[i]['pkhf_name'];
-    //                     var pathFile    = detail[i]['pkhf_path'].split('/')[1];
-    //                     var dataFile    = value + " | " + seq;
-    //                     var button_delete       = "<button class='btn btn-sm btn-danger' type='button' value='"+dataFile+"'><i class='fa fa-trash'></i></button>";
-    //                     var url         = getURL() + "/downloadFile/" + pathFile;
+                    var header_pkb_id;
+                    var header_pkbd_id;
+                    var header_pkb_desc;
+                    header.pkbd_id == 'Lainnya' ? header_pkb_id = header.pkbd_id : header_pkb_id = header.pkb_id;
+                    header.pkbd_id == 'Lainnya' ? header_pkbd_id = header.pkh_title : header_pkbd_id = header.pkbd_id;
+                    header.pkbd_id == 'Lainnya' ? header_pkb_desc = header.pkb_description : header_pkb_desc = header.pkh_title;
+                    header.pkbd_id == 'Lainnya' ? $("#pkbID_Lainnya").val(header.pkb_id) : $("#pkbID_Lainnya").val('');
 
-    //                     $("#tableListFile").DataTable().row.add([
-    //                         seq,
-    //                         "<a href='"+url+"' title='"+detail[i]['pkhf_name']+"' target='_blank'>" + namaFile + "</a>",
-    //                         button_delete
-    //                     ]).draw('false');
-    //                 }
-    //             }
-    //         })
-    //         .catch(function(xhr){
-    //             Swal.fire({
-    //                 icon    : 'error',
-    //                 title   : 'Terjadi Kesalahan',
-    //                 text    : xhr.statusText,
-    //             });
-    //         });
-    // }
+                    showSelect('programKerjaHarianDivisi', '%', header.pkh_gd_id, false);
+                    showSelect('programKerjaHarianPIC', header.pkh_gd_id, header.pkh_employee_id, false);
+                    showSelect('programKerjaTahunanID', header.pkh_gd_id, header.pkh_pkt_id, false);
+                    showSelect('programKerjaBulananID', header.pkh_pkt_id, header_pkb_id, false);
+                    showSelect('programKerjaBulananAktivitas', header_pkb_id, header_pkbd_id, false);
+
+                    $("#programKerjaBulananAktivitasText").val(header.pkh_title);
+                    $("#programKerjaHarianJudul").val(header_pkb_desc);
+                } else {
+                    
+                    showSelect('programKerjaBulananID', '%', header.pkb_id, false);
+                    showSelect('programKerjaBulananAktivitas', header.pkb_id, header.pkbd_id, false);
+
+                    $("#programKerjaBulananAktivitasText").val(null);
+                    $("#programKerjaHarianJudul").val(header.pkh_title);
+                }
+
+                // UPDATE DETAIL
+                if( detail.length > 0 ) {
+                    for(var i = 0; i < detail.length; i++) {
+                        var seq         = i + 1;
+                        var namaFile    = detail[i]['pkhf_name'].length > 80 ? detail[i]['pkhf_name'].substring(0, 80) + "..." : detail[i]['pkhf_name'];
+                        var pathFile    = detail[i]['pkhf_path'].split('/')[1];
+                        var dataFile    = value + " | " + seq;
+                        var button_delete       = "<button class='btn btn-sm btn-danger' type='button' value='"+dataFile+"'><i class='fa fa-trash'></i></button>";
+                        var url         = getURL() + "/downloadFile/" + pathFile;
+
+                        $("#tableListFile").DataTable().row.add([
+                            seq,
+                            "<a href='"+url+"' title='"+detail[i]['pkhf_name']+"' target='_blank'>" + namaFile + "</a>",
+                            button_delete
+                        ]).draw('false');
+                    }
+                }
+            })
+            .catch(function(xhr){
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : xhr.statusText,
+                });
+            });
+    }
 }
 
 function closeModal(idModal)
 {
-    var jenis = $("#btnSimpan").val();
-    $("#"+idModal).modal('hide');
-    if(jenis == 'add')
-    {
+    if(idModal == 'modalForm') {
+        var jenis = $("#btnSimpan").val();
+
         $("#"+idModal).on('hidden.bs.modal', function(){
-            penampung = [];
-            if(isClick == 1) {
-                showDropzone.removeAllFiles(true);
-            } 
             $(".waktu").val("00:00:00");
             $("#programKerjaHarianJudul").val(null);
+            $("#formProgramKerjaBulananAktivitas").show();
+            $("#formProgramKerjaBulananAktivitasText").hide();
+            $("#programKerjaBulananAktivitasText").val(null);
+            $("#programKerjaHarianJudul").val(null);
+
+            $("#programKerjaTahunanID").prop('disabled', false);
+            $("#programKerjaBulananID").prop('disabled', false);
+            $("#programKerjaHarianDivisi").prop('disabled', false);
         });
 
-        if(isClick == 0) {
-            showDropzone.removeAllFiles(true);
+        $("#"+idModal).modal('hide');
+        if(jenis == 'add')
+        {
+            $("#"+idModal).on('hidden.bs.modal', function(){
+                penampung = [];
+                if(isClick == 1) {
+                    showDropzone.removeAllFiles(true);
+                } 
+            });
+
+            if(isClick == 0) {
+                showDropzone.removeAllFiles(true);
+            }
+        } else if(jenis == 'edit') {
+            $("#"+idModal).on('hidden.bs.modal', function(){
+                $("#programKerjaHarianID").val(null);
+            });
         }
-    } else if(jenis == 'edit') {
-        $("#"+idModal).on('hidden.bs.modal', function(){
-            $("#programKerjaHarianID").val(null);
-        });
     }
 }
 
@@ -351,6 +385,8 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                         $("#"+idSelect).on('change', function(){
                             showSelect('programKerjaHarianPIC', this.value, '', true);
                         });
+                    } else {
+                        $("#"+idSelect).val(valueSelect);
                     }
                 })
                 .catch(function(err){
@@ -391,6 +427,8 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                             var divisi  = $("#programKerjaHarianDivisi").val();
                             showSelect('programKerjaTahunanID', divisi, '', true);
                         })
+                    } else {
+                        $("#"+idSelect).val(valueSelect);
                     }
                 })
                 .catch((xhr)=>{
@@ -428,11 +466,10 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                     if(valueSelect == '') {
                         Swal.close();
                         $("#"+idSelect).select2('open');
+                    } else {
+                        $("#"+idSelect).val(valueSelect);
                     }
 
-                    $("#"+idSelect).on('change', function(){
-                        showSelect('programKerjaBulananID', this.value, '', isAsync);
-                    });
                 })
                 .catch((err)=>{
                     console.log(err.responseJSON);
@@ -474,24 +511,8 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                     if(valueSelect == '') {
                         Swal.close();
                         $("#"+idSelect).select2('open');
-
-                        // $("#"+idSelect).on('change', function(){
-                        //     var selectValue     = this.value;
-                        //     if(selectValue != 'Lainnya') {
-                        //         // SHOW N HIDE FORM
-                        //         $("#formProgramKerjaBulananAktivitas").show();
-                        //         $("#formProgramKerjaBulananAktivitasText").hide();
-                        //         $("#"+idSelect).on('select2:select', function() {
-                        //             showSelect('programKerjaBulananAktivitas', this.value, '', true);
-                        //         })
-                        //     } else {
-                        //         $("#formProgramKerjaBulananAktivitas").hide();
-                        //         $("#formProgramKerjaBulananAktivitasText").show();
-                        //         $("#"+idSelect).on('select2:select', function(){
-                        //             $("#programKerjaBulananAktivitasText").focus();
-                        //         })
-                        //     }
-                        // })
+                    } else {
+                        $("#"+idSelect).val(valueSelect);
                     }
                 })
                 .catch((err)=> {
@@ -507,37 +528,49 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
 
         if(valueCari != '') {
             // GET DATA
-            var url     = site_url + "/cariDataProkerBulanan";
-            var data    = { "pkt_uid" : "%", "pkb_uid": valueCari};
-            var type    = "GET";
-            if(isAsync === true) { var message = Swal.fire({title : "Data Sedang Dimuat"}); Swal.showLoading(); } else { var message = ""; }
+            if(valueCari != 'Lainnya') {
+                $("#formProgramKerjaBulananAktivitas").show();
+                $("#formProgramKerjaBulananAktivitasText").hide();
 
-            transData(url, type, data, message, isAsync)
-                .then((success)=>{
-                    var detail  = success.data.detail;
-                    
-                    $.each(detail, function(i,item){
-                        var pkb_detail_id   = item.pkbd_id;
-                        var pkb_detail_name = item.pkb_detail;
+                var url     = site_url + "/cariDataProkerBulanan";
+                var data    = { "pkt_uid" : "%", "pkb_uid": valueCari};
+                var type    = "GET";
+                if(isAsync === true) { var message = Swal.fire({title : "Data Sedang Dimuat"}); Swal.showLoading(); } else { var message = ""; }
 
-                        html    += "<option value='" + pkb_detail_id + "'>" + pkb_detail_name + "</option>";
-                    });
+                transData(url, type, data, message, isAsync)
+                    .then((success)=>{
+                        var detail  = success.data.detail;
+                        
+                        $.each(detail, function(i,item){
+                            var pkb_detail_id   = item.pkbd_id;
+                            var pkb_detail_name = item.pkb_detail;
 
-                    $("#"+idSelect).html(html);
+                            html    += "<option value='" + pkb_detail_id + "'>" + pkb_detail_name + "</option>";
+                        });
 
-                    if(valueSelect === '') {
-                        Swal.close();
-                        $("#"+idSelect).select2('open');
-                        $("#"+idSelect).on('select2:select', function(){
-                            $("#programKerjaHarianJudul").focus();
-                        })
-                    } else {
-                        $("#"+idSelect).val(valueSelect).trigger('change');
-                    }
+                        $("#"+idSelect).html(html);
+
+                        if(valueSelect == '') {
+                            Swal.close();
+                            $("#"+idSelect).select2('open');
+                            $("#"+idSelect).on('select2:select', function(){
+                                $("#programKerjaHarianJudul").focus();
+                            })
+                        } else {
+                            $("#"+idSelect).val(valueSelect);
+                        }
+                    })
+                    .catch((err)=>{
+                        console.log(err.responseJSON);
+                    })
+            } else {
+                $("#formProgramKerjaBulananAktivitas").hide();
+                $("#formProgramKerjaBulananAktivitasText").show();
+
+                $("#programKerjaBulananID").on('select2:select', function(){
+                    $("#programKerjaBulananAktivitasText").focus();
                 })
-                .catch((err)=>{
-                    console.log(err.responseJSON);
-                })
+            }
         } else {
             $("#"+idSelect).html(html);
         }
@@ -558,9 +591,8 @@ function doSimpan(jenis)
     var programKerjaHarian_prokerTahunanID  = $("#programKerjaTahunanID");
     var programKerjaHarian_divisi           = $("#programKerjaHarianDivisi");
     var programKerjaHarian_divisi_pic       = $("#programKerjaHarianPIC");
+    var programKerjaHarian_pkbIDLainnya     = $("#pkbID_Lainnya");
     var programKerjaHarian_file             = penampung;
-
-    console.log(programKerjaHarian_divisi_pic.val());
 
     if(current_role == 'umum' && programKerjaHarian_divisi.val() == null) {
         Swal.fire({
@@ -643,6 +675,7 @@ function doSimpan(jenis)
             "programKerjaHarian_pktID"          : current_role == 'umum' ? programKerjaHarian_prokerTahunanID.val() : '',
             "programKerjaHarian_gdID"           : current_role == 'umum' ? programKerjaHarian_divisi.val() : '',
             "programKerjaHarian_gd_picID"       : current_role == 'umum' ? programKerjaHarian_divisi_pic.val() : '',
+            "programKerjaHarian_pkbID_Lainnya"  : programKerjaHarian_pkbIDLainnya.val(),
         };
         
         var url         = getURL() + "/doSimpanTransHarian";

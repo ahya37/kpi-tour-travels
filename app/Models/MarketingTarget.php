@@ -42,16 +42,16 @@ class MarketingTarget extends Model
                ->get();
     }
 
-    public static function getProgramBytargetBulanan($bulan, $marketing_target_id)
+    public static function getProgramBytargetBulanan($marketing_target_id)
     {
         return DB::table('detailed_marketing_targets as a')
                ->select('b.name as program', 'a.target' , 'a.realization as realisasi' , 'a.difference as selisih','b.color')
                ->join('programs as b','a.program_id','=','b.id')
-               ->where('a.month_number', $bulan)
                ->where('b.is_active', 'Y')
-               ->where('a.marketing_target_id', $marketing_target_id)
-               ->orderBy('b.sequence','asc')
-               ->get();
+               ->where('a.marketing_target_id', $marketing_target_id);
+            //    ->where('a.month_number', $bulan)
+            //    ->orderBy('b.sequence','asc')
+            //    ->get();
     }
 
     public static function getProgramBytargetBulananAndProgramId($bulan, $marketing_target_id, $program_id)
@@ -66,4 +66,43 @@ class MarketingTarget extends Model
                ->orderBy('b.sequence','asc')
                ->first();
     }
+
+    public static function getPencapaianUmrahPerProgramByTahun($marketing_target_id)
+    {
+        $umrah =  DB::table('detailed_marketing_targets as a')
+                ->select('b.name',
+                    DB::raw('(sum(a.target)) as target'),
+                    DB::raw('(sum(a.realization)) as realisasi'),
+                    DB::raw('(sum(a.difference)) as selisih'),
+                )
+                ->join('programs as b','a.program_id','=','b.id')
+                ->where('a.marketing_target_id', $marketing_target_id);
+
+        return $umrah;
+    }
+
+    public static function getPencapaianUmrahPerBulanByTahun($marketing_target_id)
+    {
+        return DB::table('detailed_marketing_targets as a')
+                ->select('a.month_number', 'a.month_name',
+                    DB::raw('(sum(a.target)) as target'),
+                    DB::raw('(sum(a.realization)) as realisasi'),
+                    DB::raw('(sum(a.difference)) as selisih'),
+                )
+                ->join('programs as b','a.program_id','=','b.id')
+                ->where('a.marketing_target_id', $marketing_target_id);
+    }
+    
+    public static function getPencapaianUmrahPerPicByTahun($marketing_target_id)
+    {
+        $umrah = DB::table('pic_detailed_marketing_target as a')
+                ->select('c.name',
+                    DB::raw('(sum(a.realization)) as realisasi') 
+                )->join('detailed_marketing_targets as b','a.detailed_marketing_target_id','=','b.id')
+                ->join('employees as c','a.employee_id','=','c.id')
+                ->where('b.marketing_target_id', $marketing_target_id);
+
+        return $umrah;
+    }
+
 }

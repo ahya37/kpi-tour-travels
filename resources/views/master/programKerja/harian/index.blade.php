@@ -111,6 +111,8 @@
                             <div class="form-group">
                                 <label>Proker Harian ID</label>
                                 <input type="text" class="form-control form-control-sm" style="height: 37.5px;" readonly placeholder="ID" id="programKerjaHarianID" name="programKerjaHarianID">
+                                <label class="mt-2">Proker Bulanan ID</label>
+                                <input type="text" class="form-control form-control-sm" style="height: 37.5px" readonly placeholder="ID Bulanan" id="pkbID_Lainnya" name="pkbID_Lainnya">
                             </div>
                         </div>
                     </div>
@@ -159,7 +161,7 @@
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Program Kerja Tahunan</label>
-                                <select name="programKerjaTahunanID" id="programKerjaTahunanID" style="width: 100%;" 
+                                <select name="programKerjaTahunanID" id="programKerjaTahunanID" style="width: 100%;" onchange="showSelect(`programKerjaBulananID`, this.value, '', true)"
                                 {{-- onchange="showSelect(`programKerjaBulananID`, this.value, '', '')" --}}
                                 ></select>
                             </div>

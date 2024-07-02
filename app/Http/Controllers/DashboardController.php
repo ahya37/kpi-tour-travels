@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\BaseService;
 use Response;
+// use Illuminate\Support\Facades\Session;
 
 class DashboardController extends Controller
 {
@@ -14,6 +15,7 @@ class DashboardController extends Controller
         $data = [
             'title' => 'Home'
         ];
+
         return view('home', $data);
     }
 }

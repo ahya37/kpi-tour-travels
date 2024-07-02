@@ -18,6 +18,7 @@ use App\Models\MarketingTarget;
 use App\Models\Program;
 use App\Models\Reason;
 use App\Models\DetailMarketingTarget;
+use App\Models\PicDetailMarketingTarget;
 use App\Services\MarketingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Collection;
 use function Laravel\Prompts\select;
+use Carbon\Carbon;
 
 class MarketingController extends Controller
 {
@@ -33,7 +35,7 @@ class MarketingController extends Controller
     {
         
         return view('marketings.targets',[
-            'title' => 'Target Marketing'
+            'title' => 'Laporan Umrah'
         ]);
     }
 
@@ -56,13 +58,13 @@ class MarketingController extends Controller
     public function detailMarketingTarget($marketingTargetId)
     {
        
-        $detailMatketingTargets = MarketingService::detailMarketingTarget($marketingTargetId);
+        // $detailMatketingTargets = MarketingService::detailMarketingTarget($marketingTargetId);
 
 
         return view('marketings.detail-marketing-target', [
             'title' => 'Detail Target Marketing',
             'marketingTargetId' => $marketingTargetId,
-            'detailMatketingTargets' => $detailMatketingTargets
+            // 'detailMatketingTargets' => $detailMatketingTargets
         ]);
 
     }
@@ -73,9 +75,7 @@ class MarketingController extends Controller
         DB::beginTransaction();
         try {
 
-            
             $id =  $request->id;
-
 
             #get data taregt by id 
             $target = MarketingTarget::select('id','year','total_target','total_realization','total_difference')->where('id', $id)->first();
@@ -122,6 +122,29 @@ class MarketingController extends Controller
                     'realization' => $value['realiasi'],
                     'difference'  => $value['realiasi'] - $DetailMarketingTarget->target
                 ]);
+
+                #simpan pic per program dari API
+                foreach ($value['pic'] as $pic) {
+                    
+                    #jika data pic detail where detailed_marketing_id && employee_id sudah ada, maka update saja
+                    $PicDetailMarketingTarget = PicDetailMarketingTarget::where('detailed_marketing_target_id', $DetailMarketingTarget->id)->where('employee_id', $pic['kpi_percik_employee_id'])->first();
+                    if ($PicDetailMarketingTarget) {
+                        $PicDetailMarketingTarget->update([
+                            'realization' => $pic['realisasi']
+                        ]);
+
+                    }else{
+
+                        #jika belum ada maka buat baru 
+                        PicDetailMarketingTarget::create([
+                            'detailed_marketing_target_id' => $DetailMarketingTarget->id,
+                            'employee_id' => $pic['kpi_percik_employee_id'],
+                            'realization' => $pic['realisasi']
+                        ]);
+                    }
+
+                }
+
            }
 
 
@@ -132,8 +155,9 @@ class MarketingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
+            Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
-                'message' =>  $e->getMessage()
+                'message' =>  'Terjadi kesalahan !'
             ]);
         }
     }
@@ -614,6 +638,7 @@ class MarketingController extends Controller
     public function reportUmrahBulanan($marketingTargetId)
     {
         // $marketing_target_id = request()->id;
+        $marketing = MarketingTarget::select('year')->where('id', $marketingTargetId)->first();
         
         $targetMarketing = MarketingTarget::getReportUmrahBulanan($marketingTargetId);
 
@@ -622,9 +647,11 @@ class MarketingController extends Controller
         $countProgram = count($programs);
 
         $res_target = [];
+        
         foreach ($targetMarketing as $key => $value) {
-
-            $list_programs = MarketingTarget::getProgramBytargetBulanan($value->month_number, $marketingTargetId);
+            
+            $list_programs = MarketingTarget::getProgramBytargetBulanan($marketingTargetId);
+            $list_programs = $list_programs->where('a.month_number', $value->month_number)->orderBy('b.sequence','asc')->get();
             $res = [];
 
             foreach ($list_programs as  $list) {
@@ -676,6 +703,7 @@ class MarketingController extends Controller
             ];
         }
 
+
         // all total 
         $total_target = collect($res_target)->sum(function($q){
             return $q['jml_target'];
@@ -692,8 +720,10 @@ class MarketingController extends Controller
 				$persentage_total_pencapaian  = $formatNumber->persen($persentage_total_pencapaian);  
 			}
 
+        // return $res_target;
+
         $data   = [
-            'title'     => 'Laporan Umrah Bulanan',
+            'title'     => 'Laporan Umrah Bulanan Tahun '.$marketing->year,
             'sub_title' => 'Laporan Umrah Bulanan',
             'marketingTargetId' => $marketingTargetId,
             'countProgram' => $countProgram,
@@ -703,11 +733,276 @@ class MarketingController extends Controller
             'total_realisasi' => $total_realisasi,
             'total_selisih' => $total_selisih,
             'persentage_total_pencapaian' => $persentage_total_pencapaian,
-            'formatNumber' => $formatNumber
+            'formatNumber' => $formatNumber,
         ];
+
+
 
 
         return view('marketings/laporan/report-umrah-bulanan', $data);
 
     }
+
+    public function pencapaianBulanan()
+    {
+        try {
+            
+
+            $id  = request()->id;
+
+            $startDate  = request()->start;
+            $endDate    = request()->end;
+
+            // format number 
+            $fn  = new NumberFormat();
+
+            $list_programs = MarketingTarget::getProgramBytargetBulanan($id);
+            $umrah_prbulan = MarketingTarget::getPencapaianUmrahPerBulanByTahun($id);
+            $umrah_program = MarketingTarget::getPencapaianUmrahPerProgramByTahun($id);
+            $umrah_per_pic = MarketingTarget::getPencapaianUmrahPerPicByTahun($id);
+            
+            if ($startDate != '' AND $endDate != '') {
+
+                $startDate      = Carbon::parse($startDate)->format('Y-m-d');
+                $endDate        = Carbon::parse($endDate)->format('Y-m-d');
+
+                $carbonStartDate = Carbon::parse($startDate);
+                $startDate       = $carbonStartDate->month;
+
+                $carbonEndDate = Carbon::parse($endDate);
+                $endDate       = $carbonEndDate->month;
+
+                $umrah_per_pic = $umrah_per_pic->whereBetWeen('b.month_number',[$startDate, $endDate]);
+                $umrah_program = $umrah_program->whereBetWeen('a.month_number',[$startDate, $endDate]);
+                $umrah_prbulan = $umrah_prbulan->whereBetWeen('a.month_number',[$startDate, $endDate]);
+                $list_programs = $list_programs->whereBetWeen('a.month_number',[$startDate, $endDate]);
+
+            }
+
+            $umrah_program =  $umrah_program->groupBy('b.name')->orderBy('realisasi','desc')->get();
+            $res_umrah_program = [];
+            foreach ($umrah_program as  $value) {
+
+                $persentage_per_program = $fn->persentage($value->realisasi,$value->target);
+
+				if ($persentage_per_program !== null) {
+						$persentage_per_program  = $fn->persen($persentage_per_program);  
+				}
+
+                $res_umrah_program['label'][]    = $value->name;
+				$res_umrah_program['target'][]   = $value->target;
+				$res_umrah_program['realisasi'][]   = $value->realisasi;
+				$res_umrah_program['persentage_per_program'][]   = $persentage_per_program;
+				$res_umrah_program['color'][] = '#d3d3d3';
+            }
+
+            $chart_umrah_program = array(
+                "labels" => $res_umrah_program['label'],
+                "datasets" => array(
+                    array(
+                        "label" => 'Realisasi',
+                        "data"  => $res_umrah_program['realisasi'],
+                        "color" => $res_umrah_program['color'],
+                        "backgroundColor" => "#a3e1d4",
+                        
+                    ),
+                        array(
+                            "label" => 'Target',
+                            "data"  => $res_umrah_program['target'],
+                            "color" => $res_umrah_program['color'],
+                            "backgroundColor" => "#DF9E0F",
+                            
+                        ),
+                        array(
+                            "label" => 'Persentase',
+                            "data"  => $res_umrah_program['persentage_per_program'],
+                            "type" => 'line',
+                            "borderColor" => "#C00000",
+                            "backgroundColor" => 'rgba(0, 0, 0, 0.0)',
+                            
+                        )
+                    )
+            );
+
+            $umrah_prbulan =  $umrah_prbulan->groupBy('a.month_number', 'a.month_name')->orderBy('a.month_number','asc')->get();
+            $res_umrah_bulan = [];
+            foreach ($umrah_prbulan as  $value) {
+                $persentage_per_bulan = $fn->persentage($value->realisasi,$value->target);
+
+				if ($persentage_per_bulan !== null) {
+						$persentage_per_bulan  = $fn->persen($persentage_per_bulan);  
+				}
+
+                $res_umrah_bulan['label'][]    = $value->month_name;
+				$res_umrah_bulan['target'][]   = $value->target;
+				$res_umrah_bulan['realisasi'][]   = $value->realisasi;
+				$res_umrah_bulan['persentage_per_bulan'][]   = $persentage_per_bulan;
+				$res_umrah_bulan['color'][] = '#d3d3d3';
+            }
+
+            $chart_umrah_bulan = array(
+                "labels" => $res_umrah_bulan['label'],
+                "datasets" => array(
+                    array(
+                        "label" => 'Realisasi',
+                        "data"  => $res_umrah_bulan['realisasi'],
+                        "color" => $res_umrah_bulan['color'],
+                        "borderColor" => "#a3e1d4",
+                        "backgroundColor" => "#a3e1d4",
+                        
+                    ),
+                        array(
+                            "label" => 'Target',
+                            "data"  => $res_umrah_bulan['target'],
+                            "color" => $res_umrah_bulan['color'],
+                            "backgroundColor" => "#DF9E0F",
+                            
+                        ),
+                        array(
+                            "label" => 'Persentase',
+                            "data"  => $res_umrah_bulan['persentage_per_bulan'],
+                            "type" => 'line',
+                            "borderColor" => "#C00000",
+                            "backgroundColor" => 'rgba(0, 0, 0, 0.0)',
+                            
+                        )
+                    )
+            );
+
+            $umrah_per_pic = $umrah_per_pic->groupBy('c.name')->orderBy('realisasi','desc')->get();
+
+            $res_umrah_per_pic = [];
+            foreach ($umrah_per_pic as  $value) {
+
+                $res_umrah_per_pic['label'][]    = $value->name;
+				$res_umrah_per_pic['realisasi'][]   = $value->realisasi;
+				// $res_umrah_per_pic['persentage_per_bulan'][]   = $persentage_per_bulan;
+				$res_umrah_per_pic['color'][] = '#d3d3d3';
+            }
+            $chart_umrah_per_pic = array(
+                "labels" => $res_umrah_per_pic['label'],
+                "datasets" => array(
+                        array(
+                            "label" => 'Realisasi',
+                            "data"  => $res_umrah_per_pic['realisasi'],
+                            "color" => $res_umrah_per_pic['color'],
+                            "backgroundColor" => "#a3e1d4",
+                            
+                        )
+                    )
+            );
+
+
+            $list_programs =$list_programs->orderBy('b.sequence','asc')->get();
+
+           // all total 
+            $total_target = collect($list_programs)->sum(function($q){
+                return $q->target;
+            });
+            $total_realisasi = collect($list_programs)->sum(function($q){
+                return $q->realisasi;
+            });
+            $total_selisih = $total_realisasi - $total_target;
+
+            $persentage_total_pencapaian = $fn->persentage($total_realisasi,$total_target);
+            if ($persentage_total_pencapaian !== null) {
+                    $persentage_total_pencapaian  = $fn->persen($persentage_total_pencapaian);  
+            }
+
+
+
+            return ResponseFormatter::success([
+                'chart_umrah_program' => $chart_umrah_program,
+                'chart_umrah_bulan' => $chart_umrah_bulan,
+                'chart_umrah_per_pic' => $chart_umrah_per_pic,
+                'total_target' => $fn->decimalFormat($total_target),
+                'total_realisasi' => $fn->decimalFormat($total_realisasi),
+                'total_selisih' => $fn->decimalFormat($total_selisih),
+                'persentage_total_pencapaian' => $persentage_total_pencapaian
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Terjadi kesalahan!'
+            ]);
+        }
+    }
+
+    public function reportHaji()
+    {
+    
+        return view('marketings.laporan.report-haji',[
+            'title' => 'Laporan Haji',
+        ]);
+    }
+
+    public function settingTargetHaji()
+    {
+    
+        return view('marketings.setting-target-haji',[
+            'title' => 'Setting Target Haji',
+        ]);
+    }
+
+    
+    public function loadModalTargetHaji()
+    {
+        // sleep(1);
+
+        #get data bulan 
+        $months = Months::Months();
+        
+        $modalContent = '<form id="form" method="POST" enctype="multipart/form-data">
+                            <div class="form-group row">
+                                <label class="col-sm-3 col-form-label"><b>Tahun</b></label>
+                                <div class="col-sm-9">
+                                    <input type="hidden" name="_token" value="'.csrf_token().'">
+                                    <input type="number" class="form-control form-control-sm" name="year" id="year">
+                                </div>
+                            </div>';
+                                foreach ($months as $key => $value) {
+                                    $modalContent = $modalContent.'<div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">'.$value['month'].'</label>
+                                        <div class="col-sm-9">';
+        
+                                    $modalContent = $modalContent.'<input type="number" class="form-control form-control-sm" name="month[]" id="month">';
+                                    $modalContent = $modalContent.'
+                                                                </div>
+                                                            </div>';
+                                    }
+
+        $modalContent = $modalContent.'
+                            <div class="hr-line-dashed"></div>
+                        </form>';
+
+        return response()->json([
+            'modalContent' => $modalContent,
+        ]);
+
+    }
+
+    public function saveTargetHaji(Request $request)
+    {
+        try {
+
+           // save target haji
+           $months['month'] = $request->months;
+
+           array_unshift($months['month'], '');
+           unset($months['month'][0]);
+
+           $response = MarketingService::saveTargethajiToUmhaj($request->year, $months['month']);
+
+           return $response;
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal menyimpan target haji'
+            ]);
+
+        }
+    }
+
 }

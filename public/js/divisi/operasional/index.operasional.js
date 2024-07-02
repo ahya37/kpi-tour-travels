@@ -1,3 +1,8 @@
+moment.locale('id');
+
+var temp_rules  = [];
+var site_url    = window.location.pathname;
+
 $(document).ready(function(){
     console.log('test');
 
@@ -8,21 +13,24 @@ $(document).ready(function(){
     // SHOW DATA DASHBOARD
     var url     = site_url + "/getDataDashboard/"+currYear;
     var type    = "GET";
+    var message = NProgress.start();
 
-    doTrans(url, type, '', '', false)
+    doTrans(url, type, '', message, true)
         .then((xhr)=>{
             var getData     = xhr.data[0];
             $("#dashboard_jadwal_umrah").html(getData.grand_total_jadwal_umrah);
             $("#dashboard_rules").html(getData.grand_total_rule);
+            NProgress.done();
         })
         .catch((xhr)=>{
             $("#dashboard_jadwal_umrah").html(0);
             $("#dashboard_rules").html(0);
+            NProgress.done();
         })
 
     showSelect('programFilterBulan', '%', '%', '');
     showSelect('programFilterTahun', '%', currYear, '');
-    showSelect('programFlterPaket', '%', currPaket, true);
+    showSelect('programFilterPaket', '%', currPaket, true);
 
     var inputCurrMonth  = $("#programFilterBulan").val();
 
@@ -31,12 +39,95 @@ $(document).ready(function(){
     $("#programFilterBtnCari").on('click', function(){
         var selectedMonth   = $("#programFilterBulan").val();
         var selectedYear    = $("#programFilterTahun").val();
-        var selectedPaket   = $("#programFlterPaket").val();
+        var selectedPaket   = $("#programFilterPaket").val();
         showTable('table_jadwal_umrah', [selectedMonth, selectedYear, '%', selectedPaket])
     });
+    showDataOperasional();
 });
 
-var site_url    = window.location.pathname;
+function showDataOperasional()
+{
+    var url     = site_url + "/getJobUser";
+    var type    = "GET";
+    
+    doTrans(url, type, '', '', true)
+        .then((success)=>{
+            // SHOW CART
+            $("#showLoading_chart").hide();
+            $("#showView_chart").show();
+
+            var getData     = success.data;
+            var dataLabels      = [];
+            var data_DataSets   = [];
+
+            if(getData['chart'].length > 0) {
+                for(var i = 0; i < getData['chart'].length; i++) {
+                    dataLabels.push(getData['chart'][i]['employee_name']);
+                    data_DataSets.push(getData['chart'][i]['total_job']);
+                }
+            }
+
+            // SHOW CHART
+            const canvas    = document.getElementById('myChart');
+            var ctx = canvas.getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                maintainAspectRatio: false,
+                data: {
+                    labels: dataLabels,
+                    datasets: [{
+                        label: 'Program Kerja Bulanan',
+                        data: data_DataSets,
+                        backgroundColor: "#1AB394",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    },
+                    responsive  : true,
+                    maintainAspectRatio  : false
+                }
+            });
+
+            ctx.canvas.onclick = function(evt) {
+                var activePoints = myChart.getElementsAtEvent(evt);
+                if (activePoints.length > 0) {
+                    var clickedDatasetIndex = activePoints[0]._datasetIndex;
+                    var clickedElementindex = activePoints[0]._index;
+                    var label = myChart.data.labels[clickedElementindex];
+                    var value = myChart.data.datasets[clickedDatasetIndex].data[clickedElementindex];
+                }
+            }
+
+            // SHOW TABLE
+            $("#showLoading_table").hide();
+            $("#showView_table").show();
+            showTable('table_ListUser', '');
+            if(getData['table'].length > 0) {
+                for(var i = 0; i < getData['table'].length; i++) {
+                    $("#table_ListUser").DataTable().row.add([
+                        i + 1,
+                        getData['table'][i]['full_name'],
+                        getData['table'][i]['sub_division_name'],
+                    ]).draw('false');
+                }
+            }
+
+        })
+        .catch((error)=>{
+            console.log(error);
+            showTable('table_ListUser', '');
+            $("#showLoading_chart_icon").hide();
+            $("#showLoading_chart_text").html('Tidak Ada Data');
+            
+        })
+}
 
 function showTable(idTable, valueCari)
 {
@@ -63,7 +154,7 @@ function showTable(idTable, valueCari)
                         cari    : valueCari,
                     },
                 },
-                url     : '/divisi/operasional/dataTableGenerateJadwalUmrah'
+                url     : site_url + '/dataTableGenerateJadwalUmrah'
             },
         })
     } else if(idTable == 'table_list_program_kerja') {
@@ -74,13 +165,50 @@ function showTable(idTable, valueCari)
                 "emptyTable"    : "Tidak ada data yang bisa ditampilkan..",
             },
             columnDefs  : [
-                { "targets" : [0, 5], "className":"text-center" },
+                { "targets" : [0, 4], "className":"text-center align-middle" },
                 { "targets" : [0], "width": "5%" },
-                { "targets" : [2], "width": "18%" },
+                { "targets" : [2, 5], "width": "20%" },
                 { "targets" : [3], "width" : "10%" },
+                { "targets" : [4, 6], "width" : "8%"},
+                { "targets" : [0, 1, 2, 3, 4, 5, 6], "className" : "align-middle" },
             ],
             pageLength : -1,
             autoWidth   : false,
+            paging  : false,
+        });
+    } else if(idTable == 'tableListRules') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                "processing"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                "emptyTable"    : "Tidak ada data yang bisa dimunculkan..",
+                "zeroRecords"   : "Tidak ada data yang bisa dimunculkan.."
+            },
+            pageLength  : -1,
+            paging      : false,
+            ordering    : false,
+            bInfo       : false,
+            columnDefs  : [
+                { "targets" : [0, 2, 3, 4, 5], "className" : "text-center align-middle"},
+                { "targets" : [0], "width" : "5%" },
+            ],
+        })
+    } else if(idTable == 'table_ListUser') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                "processing"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                "emptyTable"    : "Tidak ada data yang bisa ditampilkan..",
+                "zeroRecords"   : "Tidak ada data yang bisa ditampilkan..",
+            },
+            searching   : false,
+            pageLength  : -1,
+            scrollY: '250px',
+            scrollCollapse: true,
+            paging: false,
+            columnDefs  : [
+                { "targets" : [0], "width" : "5%", "className" : "text-center align-middle" },
+            ],
         });
     }
 }
@@ -120,7 +248,7 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
         if(valueCari != '') {
             $("#"+idSelect).val(valueSelect).trigger('change');
         }
-    } else if(idSelect == 'programFlterPaket') {
+    } else if(idSelect == 'programFilterPaket') {
         var html    = [
             "<option selected disabled>Pilih Paket Program Umrah</option>",
             "<option value='%'>Semua</option>"
@@ -210,6 +338,7 @@ function showModal(idForm, valueCari)
                             getData[i][3],
                             getData[i][4],
                             getData[i][5],
+                            getData[i][6],
                         ]).draw('false');
                     }
                 }
@@ -217,16 +346,111 @@ function showModal(idForm, valueCari)
             .catch((xhr)=>{
                 Swal.fire({
                     icon    : 'error',
-                    title   : xhr.statusText
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Tidak ada List yang bisa ditampilkan'
                 });
             })
 
+    } else if (idForm == 'modaGenerateRules') {
+        // GET DATA
+        var url     = site_url + "/getDataRulesJadwalDetail";
+        var type    = "GET";
+        var data    = {
+            "jadwalID"  : valueCari,
+        };
+        var isAsync = true;
+        if(isAsync === true) { var message = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading(); } else { var message = ""; }
+        
+        doTrans(url, type, data, message, isAsync)
+            .then((success)=>{
+                $("#"+idForm).modal('show');
+
+                var header  = success.data.header[0];
+                var detail  = success.data.detail;
+                // INSERT TO HEADER
+                $("#jdw_id").val(valueCari);
+                $("#programUmrah_text").html(header.jdw_programs_name);
+                $("#programUmrah_Jadwal").html(moment(header.jdw_depature_date, 'YYYY-MM-DD').format('DD-MMMM-YYYY')+" s/d "+moment(header.jdw_arrival_date, 'YYYY-MM-DD').format('DD-MMMM-YYYY'));
+                $("#programUmrah_Pembimbing").html(header.jdw_mentor_name);
+                showTable('tableListRules', valueCari);
+                
+                for(var i = 0; i < detail.length; i++) {
+                    var seq     = i + 1;
+                    $("#tableListRules").DataTable().row.add([
+                        "<input type='checkbox' id='check_"+seq+"' onclick='transTempData(`check`, "+seq+")'>",
+                        detail[i][0],
+                        detail[i][1],
+                        detail[i][2],
+                        detail[i][3],
+                        detail[i][4],
+                    ]).draw('false')
+                }
+
+                for(var i = 0; i < $("#tableListRules").DataTable().rows().count(); i++) {
+                    var data_temp_rules     = {
+                        "prog_jdw_id"   : $("#jdw_id").val(),
+                        "prog_rul_id"   : ""
+                    };
+
+                    temp_rules.push(data_temp_rules);
+                }
+                Swal.close();
+            })
+            .catch((err)=>{
+                console.log(err.responseJSON);
+                Swal.close();
+            })
     }
 }
 
 function closeModal(idForm) {
     if(idForm == 'modalForm') {
         $("#"+idForm).modal('hide');
+        
+    } else if(idForm = 'modaGenerateRules') {
+        $("#selectAll").prop('checked', false);
+        
+        temp_rules  = [];
+    }
+}
+
+function selectAllTable(idTable, idCheck)
+{
+    if(idTable == 'tableListRules') {
+        if($("#"+idCheck).is(":checked") === true) {
+            for(var i = 0; i < temp_rules.length; i++) {
+                var seq     = i + 1;
+                $("#check_"+seq).prop('checked', true);
+
+                temp_rules[i]['prog_rul_id'] = seq;
+            }
+        } else {
+            for(var i = 0; i < temp_rules.length; i++) {
+                var seq     = i + 1;
+                $("#check_"+seq).prop('checked', false);
+
+                temp_rules[i]['prog_rul_id'] = "";
+            }
+        }
+    }
+}
+
+function transTempData(idCheck, seq)
+{
+    if(temp_rules.length > 0) {
+        var new_seq     = seq - 1;
+        if($("#"+idCheck+"_"+seq).is(":checked") == true) {
+            temp_rules[new_seq]['prog_rul_id'] = seq;
+        } else if($("#"+idCheck+"_"+seq).is(":checked") == false) {
+            temp_rules[new_seq]['prog_rul_id'] = '';
+        } 
+    } else {
+        var data    = {
+            "prog_jdw_id"       : $("#jdw_id").val(),
+            "prog_rul_id"       : seq,
+        };
+
+        temp_rules.push(data);
     }
 }
 

@@ -77,3 +77,8 @@ label {
     background: white;
     padding: 20px 20px;
 }
+
+.fc-daygrid-day-top {
+    display: flex;
+    justify-content: flex-end;
+}
