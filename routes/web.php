@@ -46,7 +46,8 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/notifications/show/user/{userId}',[NotificationController::class, 'showNotificationByUserLogin']);
      // Notification
      Route::get('/marketings/notifications/show/detail/user/notification/{notificationId}',[NotificationController::class, 'detailShowNotificationAlumni']);
-        
+	 
+	 Route::get('/marketings/rencanakerja/report',[ProgramKerjaController::class, 'reportRencanaKerjaMarekting'])->name('marketings.rencancakerja.report');
 
     //marketing
     Route::prefix('marketings')->controller(MarketingController::class)->group(function(){
@@ -94,9 +95,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/haji/target/create','settingTargetHaji')->name('marketings.haji.target');
         Route::post('/haji/target/save','saveTargetHaji');
         Route::get('modal/target/haji','loadModalTargetHaji');
-
-       
-
+		
+		
         
     });
 

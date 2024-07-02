@@ -78,4 +78,17 @@ class ProkerHarian extends Model
 
         return $aktivitas;
     }
+	
+	public static function getProkerHarianByBulananAndUser($pkh_pkb_id,$created_by)
+	{
+		$proker_harian = DB::table('proker_harian as a')
+						->select('a.pkh_date','a.pkh_start_time', 'a.pkh_end_time', 'a.pkh_title', 'b.name')
+						->join('users as b','a.created_by','=','b.id')
+						->where(DB::raw("SUBSTRING_INDEX(a.pkh_pkb_id, '|', 1)"),'=', $pkh_pkb_id)
+						->where('a.created_by', $created_by)
+						->get();
+						
+		return $proker_harian;
+					
+	}
 }
