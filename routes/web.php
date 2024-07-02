@@ -48,6 +48,7 @@ Route::group(['middleware' => ['auth']], function () {
      Route::get('/marketings/notifications/show/detail/user/notification/{notificationId}',[NotificationController::class, 'detailShowNotificationAlumni']);
 	 
 	 Route::get('/marketings/rencanakerja/report',[ProgramKerjaController::class, 'reportRencanaKerjaMarekting'])->name('marketings.rencancakerja.report');
+	 Route::get('/marketings/rencanakerja/report/data',[ProgramKerjaController::class, 'getReportRencanaKerjaMarekting']);
 
     //marketing
     Route::prefix('marketings')->controller(MarketingController::class)->group(function(){

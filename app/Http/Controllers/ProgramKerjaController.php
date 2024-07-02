@@ -17,6 +17,7 @@ use Response;
 use File;
 use Carbon\Carbon;
 use App\Helpers\ResponseFormatter;
+use Illuminate\Support\Facades\Log;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -900,8 +901,117 @@ class ProgramKerjaController extends Controller
         return response()->json($data);
 
     }
+
+    public function reportRencanaKerjaMarekting()
+    {
+        $data   = [
+            'title'     => 'Laporan Rencana Kerja Marketing',
+            'sub_title' => 'Laporan Rencana Kerja Marketing',
+        ];
+
+       return view('marketings.laporan.report-rencana-kerja', $data);
+    }
 	
-	public function reportRencanaKerjaMarekting()
+	public function getReportRencanaKerjaMarekting()
+	{
+        try {
+			
+			$groupDivisionID = env('APP_GROUPDIV_MARKETING');
+			
+			$year  = date('Y');
+
+			$results = [];
+
+			// get data employee
+			// $employees = Employee::getEmployees();
+
+			// get data pekerjaan harian
+			#Get divisi id marketing 
+			$groupDivisionID = env('APP_GROUPDIV_MARKETING');
+			$proker_tahunan_group_bulan   = ProkerBulanan::prokerGroupBulananByTahunan($groupDivisionID);
+
+			foreach ($proker_tahunan_group_bulan as $annual) {
+				$prokerBulanan = ProkerBulanan::getProkerBulananMarkering($groupDivisionID, $annual->month, $year);
+
+				// group per tanggal
+				$grouped = $prokerBulanan->groupBy('pkb_start_date');
+
+				$res_grouped = [];
+				foreach ($grouped as $key => $value) {
+
+					// get jenis pekerjaan 
+					$res_jenis_pekerjaan = [];
+					foreach ($value as $item) {
+
+						$prokerBulananDetail = ProkerBulanan::getProkerBulananDetail($item->id);
+
+						// GET HARIAN BERDASARKAN BULANAN DAN CREATED_BY NYA 
+						$aktivitas_harian = ProkerHarian::getProkerHarianByBulananAndUser($item->uuid,$item->created_by);
+
+
+						$res_jenis_pekerjaan[] = [
+							'id' => $item->id,
+							'pkb_start_date' => $item->pkb_start_date,
+							'pkb_title' => $item->pkb_title,
+							'created_by_name' => $item->created_by_name,
+							'created_by' => $item->created_by,
+							'jenis_pekerjaan' => $prokerBulananDetail,
+							'aktivitas_harian' => $aktivitas_harian
+						];
+					}
+					$res_grouped[] = [
+						'tanggal' => $key,
+						'uraian_pekerjaan' => $res_jenis_pekerjaan
+					];
+				}
+				
+				$results[] = [
+						'month_number' => $annual->month,
+						'month_name' => Months::monthName($annual->month),
+						'rencana_kerja_bulanan' => $res_grouped,
+                        'count_rencana_kerja_bulanan' => count($res_grouped) + 1
+					];
+
+			}
+
+            $html = "";
+            foreach ($results as $value) {
+                $rowspan = $value['count_rencana_kerja_bulanan'];
+                $html = $html.'<tr>';
+                // $html = $html.'<td>'.$value['month_name'].'</td>';
+                $html = $html.'<td rowspan='.$rowspan.' style="display: table-cell;text-align: center;font-size:14px">'.$value['month_name'] ?? ''.'</td>';
+                $html = $html.'</tr>';
+
+
+                foreach ($value['rencana_kerja_bulanan'] as $key => $bulanan) {
+                    $rowspan_uraian = count($bulanan['uraian_pekerjaan']) + 1;
+                    $html = $html.'<tr>';
+                    $html = $html.'<td  style="display: table-cell;text-align: center;font-size:14px">'.$bulanan['tanggal'] ?? ''.'</td>';
+                    
+                    // foreach($bulanan['uraian_pekerjaan'] as $uraian_pekerjaan){
+                    //     $html = $html.'<td>OK</td>';
+                    // }
+                    $html = $html.'</td>';
+                    $html = $html.'</tr>';
+                    
+                }
+
+            }
+
+            return ResponseFormatter::success([  
+				'rencanakerja'  => $html,
+                'message' => 'Laporan percenaan kerja marketing'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal Singkronkan data!'
+            ]);
+        }
+	} 
+
+    public function getReportRencanaKerjaMarektingCopy()
 	{
         try {
 			
@@ -949,13 +1059,29 @@ class ProgramKerjaController extends Controller
 						// 'annual' => $annual->pkt_title,
 						'month_number' => $annual->month,
 						'month_name' => Months::monthName($annual->month),
-						'rencana_kerja_bulanan' => $res_proker_bulanan
+						'rencana_kerja_bulanan' => $res_proker_bulanan,
+                        'count_uraian_kerja' => count($res_proker_bulanan) + 1
 					];
 
 			}
-			
+
+            $html = "";
+            foreach ($results as $value) {
+                $rowspan = $value['count_uraian_kerja'];
+                $html = $html.'<tr>';
+                $html = $html.'<td rowspan='.$rowspan.' style="display: table-cell;text-align: center;font-size:14px">'.$value['month_name'].'</td>';
+                $html = $html.'</tr>';
+
+                foreach ($value['rencana_kerja_bulanan'] as $bulanan) {
+                    $html = $html.'<tr>';
+                    $html = $html.'<td>'.$bulanan['pkb_start_date'] ?? ''.'</td>';
+                    $html = $html.'<td>'.$bulanan['pkb_title'] ?? ''.'</td>';
+                    $html = $html.'</tr>';
+                }
+            }
+
             return ResponseFormatter::success([  
-				'rencanakerja'  => $results,
+				'rencanakerja'  => $html,
                 'message' => 'Laporan percenaan kerja marketing'
             ]);
 

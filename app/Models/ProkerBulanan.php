@@ -76,4 +76,5 @@ class ProkerBulanan extends Model
 						  
 		return $proker_bulanan_detail;
 	}
+
 }
