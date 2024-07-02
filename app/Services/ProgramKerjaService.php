@@ -189,7 +189,7 @@ class ProgramKerjaService
         $current_sub_division   = !empty($query_get_sub_division) ? strtolower($query_get_sub_division[0]->sub_division_name) : '%';
 
         $uuid           = $cari['uuid'];
-        $roleName       = $cari['current_role'] == 'admin' ? '%' : $cari['current_role'];
+        $roleName       = $cari['current_role'] == 'admin' || $cari['current_role'] == 'umum' ? '%' : $cari['current_role'];
         $tgl_awal       = $cari['tgl_awal'];
         $tgl_akhir      = $cari['tgl_akhir'];
         $jadwal         = $cari['jadwal'];

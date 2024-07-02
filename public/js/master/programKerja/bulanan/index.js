@@ -24,7 +24,7 @@ var showDropzone    = new Dropzone("#myDropzone", {
     parallelUploads : 5,
     acceptedFiles   : jenisFile,
     dictDefaultMessage  : "Tarik dan Lepaskan file disini atau klik untuk mencari data yang akan diunggah",
-    dictFileTooBig      : "Ukuran file melebihi batas maksimal unaggah. Batas maksimal ukuran untuk unggh adalah "+uploadSize+"MegaByte",
+    dictFileTooBig      : "Ukuran file melebihi batas maksimal unaggah. Batas maksimal ukuran untuk unggah adalah "+uploadSize+"MegaByte",
     init            : function() {
         var dropzone    = this;
         this.on("success", function(file, response){
@@ -396,13 +396,18 @@ function showModal(idModal, jenis, value)
             
             tambah_baris('tableDetailProkerBulanan','');
 
+            $("#prokerTahunanID").prop('disabled', false);
+
+            // SHOW DATE
+            const current_date  = moment(value.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY');
             var title   = "Tambah Uraian Pekerjaan Tgl. "+moment(value.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY');
             $("#modalTitle").html(title);
-            $("#prokerTahunanID").prop('disabled', false);
+            $("#prokerBulananTanggal").data('daterangepicker').setStartDate(current_date);
+            $("#prokerBulananTanggal").data('daterangepicker').setEndDate(current_date);
         } else if(jenis == 'edit') {
             $("#prokerTahunanID").prop('disabled', true);
 
-            var url     = "/master/programkerja/bulanan/getDataAllProkerBulanan";
+            var url     = getUrl + "/getDataAllProkerBulanan";
             var type    = "GET";
             var data    = {
                 "cari"      : value,
@@ -789,14 +794,13 @@ function show_select(idSelect, valueCari, valueSelect, isAsync)
     } else if(idSelect == 'jadwalProgram') {
         var html    = "<option selected disabled>Pilih Jadwal Umrah / Haji</option>";
 
-        // GET DATA
-        var url     = getUrl + "/listSelectJadwalUmrahForm";
-        var type    = "GET";
-        var data    = "";
-        var message = "";
-
         if(valueCari != '') {
-            transData(url, type, data, message, false)
+        // GET DATA
+            var url     = getUrl + "/listSelectJadwalUmrahForm";
+            var type    = "GET";
+            var data    = "";
+            if(isAsync === true) { var message = Swal.fire({ title : 'Data Sedang Dimuat' }); Swal.showLoading(); } else { var message = "" };
+            transData(url, type, data, message, isAsync)
                 .then((success)=> {
                     $.each(success.data, function(i,item){
                         var jdw_id          = item.prog_jdw_id;
@@ -806,6 +810,8 @@ function show_select(idSelect, valueCari, valueSelect, isAsync)
 
                         var text            = "[" + jdw_prog_name.toUpperCase() + "] (" + jdw_dpt_date + " s/d " + jdw_arv_date + ")";
                         html                += "<option value='"+jdw_id+"'>" + text + "</option>";
+                        
+                        isAsync === true ? Swal.close() : "";
                     })
                     $("#"+idSelect).html(html);
                 })

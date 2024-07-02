@@ -424,6 +424,20 @@ class DivisiService
     public static function doGetDataRulesJadwal($id, $subDivision)
     {
         $subDivision == 'pic' ? $subDivision = '%' : $subDivision;
+        
+        $query_get_rule_all     = DB::select(
+            "
+            SELECT 	a.prog_jdw_id,
+                    a.prog_rul_id,
+                    b.rul_title
+            FROM 	tr_prog_jdw a
+            JOIN 	programs_jadwal_rules b ON a.prog_rul_id = b.id
+            WHERE 	prog_jdw_id = '$id'
+            GROUP BY a.prog_jdw_id, a.prog_rul_id, b.rul_title
+            ORDER BY CAST(a.prog_rul_id AS SIGNED) ASC
+            "
+        );
+
         $queryGetJadwal     = DB::select(
             "
             SELECT 	*,
@@ -436,6 +450,7 @@ class DivisiService
                     SELECT 	a.prog_jdw_id as jdw_id,
                             f.name as sub_program_name,
                             c.jdw_mentor_name as mentor_name,
+                            d.id as rules_id,
                             d.rul_title as rules,
                             CONCAT('H', d.rul_sla) as duration,
                             CONCAT(d.rul_duration_day,' Hari') as duration_day,
@@ -475,7 +490,11 @@ class DivisiService
             "
         );
         
-        return $queryGetJadwal;
+        $output     = array(
+            "list_rules"    => $query_get_rule_all,
+            "jadwal"        => $queryGetJadwal
+        );
+       return $output;
     }
 
     // MASTER
@@ -562,6 +581,46 @@ class DivisiService
         $output     = array(
             "jadwal"        => !empty($query_get_jadwal) ? $query_get_jadwal : null,
             "jadwal_rules"  => !empty($query_get_rules) ? $query_get_rules : null
+        );
+
+        return $output;
+    }
+
+    public static function doGetDataJobUser()
+    {
+        $query_for_chart  = DB::select(
+            "
+            SELECT 	b.name as employee_name,
+                    count(a.id) as total_job
+            FROM 	proker_bulanan a
+            JOIN 	employees b ON a.created_by = b.user_id
+            JOIN 	job_employees c ON c.employee_id = b.id
+            JOIN 	group_divisions d ON c.group_division_id = d.id
+            WHERE 	d.name LIKE 'Operasional'
+            AND 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+            GROUP BY b.name
+            ORDER BY count(a.id) DESC
+            "
+        );
+
+        $query_for_table    = DB::select(
+            "
+            SELECT 	b.name as full_name,
+                    c.name as group_division_name,
+                    d.name as sub_division_name
+            FROM 	job_employees a
+            JOIN 	employees b ON a.employee_id = b.id
+            JOIN 	group_divisions c ON a.group_division_id = c.id
+            JOIN 	sub_divisions d ON a.sub_division_id = d.id
+            WHERE 	c.name = 'Operasional'
+            ORDER BY b.name ASC
+            "
+        );
+
+
+        $output     = array(
+            "chart" => !empty($query_for_chart) ? $query_for_chart : "",
+            "table" => !empty($query_for_table) ? $query_for_table : "",
         );
 
         return $output;
