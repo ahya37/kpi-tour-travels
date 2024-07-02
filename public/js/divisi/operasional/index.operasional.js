@@ -165,12 +165,13 @@ function showTable(idTable, valueCari)
                 "emptyTable"    : "Tidak ada data yang bisa ditampilkan..",
             },
             columnDefs  : [
-                { "targets" : [0, 4], "className":"text-center align-middle" },
+                { "targets" : [0, 4], "className":"text-center" },
                 { "targets" : [0], "width": "5%" },
-                { "targets" : [2, 5], "width": "20%" },
-                { "targets" : [3], "width" : "10%" },
+                { "targets" : [2], "width": "18%" },
+                { "targets" : [3], "width": "10%" },
+                { "targets" : [5], "width": "22%" },
                 { "targets" : [4, 6], "width" : "8%"},
-                { "targets" : [0, 1, 2, 3, 4, 5, 6], "className" : "align-middle" },
+                { "targets" : [0, 1, 2, 3, 4, 5, 6]},
             ],
             pageLength : -1,
             autoWidth   : false,
@@ -328,22 +329,52 @@ function showModal(idForm, valueCari)
                 Swal.close();
                 $("#"+idForm).modal('show');
                 var getData     = xhr.data;
+                console.log(getData);
 
-                if(getData.length > 0) {
-                    for(var i = 0; i < getData.length; i++) {
+                // GENERATE JADWAL TO TABLE
+                if(getData['list_rules'].length > 0) {
+                    for(var i = 0; i < getData['list_rules'].length; i++) {
+                        var data_rules  = getData['list_rules'][i];
+                        var rules_id    = data_rules['rul_id'];
+                        var rules_title = data_rules['rul_title'];
+                        var rules_date  = moment(data_rules['start_date_job'], 'YYYY-MM-DD').format('DD-MMM-YYYY')+" s/d "+moment(data_rules['end_date_job'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
+                        var rules_pic   = data_rules['pic_role_name'];
+                        var rules_duration  = data_rules['number_of_processing_day']+" Hari";
+                        var rules_realization_date  = "";
+                        if(getData['proker_bulanan'].length > 0) {
+                            rules_realization_date  += "<ul>";
+                            for(var j = 0; j < getData['proker_bulanan'].length; j++) {
+                                var data_pkb    = getData['proker_bulanan'][j];
+                                var pkb_rul_id  = data_pkb['prog_rul_id'];
+                                var pkb_start_date  = moment(data_pkb['pkb_start_date'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
+                                var pkb_end_date    = moment(data_pkb['pkb_end_date'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
+
+                                if(rules_id == pkb_rul_id)
+                                {
+                                    if(pkb_start_date == pkb_end_date) {
+                                        rules_realization_date  += "<li>" + pkb_start_date + "</li>";
+                                    } else {
+                                        rules_realization_date  += "<li>" + pkb_start_date + " s/d " + pkb_end_date + "</li>";
+                                    }
+                                }
+                            }
+                            rules_realization_date  += "</ul>"
+                        }
+
                         $("#table_list_program_kerja").DataTable().row.add([
-                            getData[i][0],
-                            getData[i][1],
-                            getData[i][2],
-                            getData[i][3],
-                            getData[i][4],
-                            getData[i][5],
-                            getData[i][6],
+                            i + 1,
+                            rules_title,
+                            rules_date,
+                            rules_pic,
+                            rules_duration,
+                            rules_realization_date,
+                            null,
                         ]).draw('false');
                     }
                 }
             }) 
             .catch((xhr)=>{
+                console.log(xhr);
                 Swal.fire({
                     icon    : 'error',
                     title   : 'Terjadi Kesalahan',

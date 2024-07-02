@@ -63,90 +63,72 @@
             <div class="col-sm-3"></div>
             <div class="col-sm-3"></div>
         </div>
-        <div class="row" style="padding-top: 24px;">
-            <div class="col-sm-12">
-                <div class="card bg-white">
-                    <div class="card-header">
+        <div class="row mt-4">
+            <div class="col-sm-6">
+                <div class="card">
+                    <div class="card-header bg-success">
                         <div class="row">
                             <div class="col-sm-6">
-                                <h3 class="card-title pt-1">
-                                    <i class="fa fa-bar-chart"></i> Chart
-                                </h3>
+                                <h4 class="my-2">Chart Pekerjaan Tahun {{ date('Y') }}</h4>
                             </div>
-                            <div class="col-sm-6"></div>
+                            {{-- <div class="col-sm-6 text-right">
+                                <div class="dropdown">
+                                    <a class="btn btn-success dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+                                        <i class='fa fa-filter'></i> Filter
+                                    </a>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="#FilterChartAll">Semua</a>
+                                        <a class="dropdown-item" href="#FilterBulanan">Bulanan</a>
+                                        <a class="dropdown-item" href="#FilterChartHarian">Harian</a>
+                                    </div>
+                                    </div>
+                            </div> --}}
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="row d-flex">
-                            <div class="col-sm-6">
-                                <div class="card">
-                                    <div class="card-header bg-success">
-                                        <div class="row">
-                                            <div class="col-sm-6">
-                                                <h4 class="my-2">Chart Pekerjaan Tahun {{ date('Y') }}</h4>
-                                            </div>
-                                            {{-- <div class="col-sm-6 text-right">
-                                                <div class="dropdown">
-                                                    <a class="btn btn-success dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-                                                        <i class='fa fa-filter'></i> Filter
-                                                    </a>
-                                                    <div class="dropdown-menu">
-                                                        <a class="dropdown-item" href="#FilterChartAll">Semua</a>
-                                                        <a class="dropdown-item" href="#FilterBulanan">Bulanan</a>
-                                                        <a class="dropdown-item" href="#FilterChartHarian">Harian</a>
-                                                    </div>
-                                                    </div>
-                                            </div> --}}
-                                        </div>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="menengah" style="height: 350px;" id="showLoading_chart">
-                                            <div class="text-center">
-                                                <div class="spinner-border" id="showLoading_chart_icon">
-                                                    <span class="sr-only">Loading...</span>
-                                                </div>
-                                                <br>
-                                                <h4 id="showLoading_chart_text">Chart Sedang Dimuat</h4>
-                                            </div>
-                                        </div>
-                                        <div class="wrapper" style="height: 350px; display: none;" id="showView_chart">
-                                            <div class="text-center">
-                                                <canvas id="myChart" height="350"></canvas>
-                                            </div>
-                                        </div>
-                                    </div>
+                        <div class="menengah" style="height: 350px;" id="showLoading_chart">
+                            <div class="text-center">
+                                <div class="spinner-border" id="showLoading_chart_icon">
+                                    <span class="sr-only">Loading...</span>
                                 </div>
+                                <br>
+                                <h4 id="showLoading_chart_text">Chart Sedang Dimuat</h4>
                             </div>
-                            <div class="col-sm-6">
-                                <div class="card my-auto">
-                                    <div class="card-header bg-primary">
-                                        <h4 class="my-2">List User Divisi Operasional</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="menengah" style="height: 350px;" id="showLoading_table">
-                                            <div class="text-center">
-                                                <div class="spinner-border" id="showLoading_table_icon">
-                                                    <span class="sr-only">Loading...</span>
-                                                </div>
-                                                <br>
-                                                <h4 id="showLoading_table_text">Table Sedang Dimuat</h4>
-                                            </div>
-                                        </div>
-                                        <div class="wrapper" style="height: 350px; display: none;" id="showView_table">
-                                            <div class="table-responsive">
-                                                <table class="table table-sm table-hover" id="table_ListUser">
-                                                    <thead>
-                                                        <tr>
-                                                            <th class="text-center align-middle">No</th>
-                                                            <th class="text-left align-middle">Nama</th>
-                                                            <th class="text-left align-middle">Posisi</th>
-                                                        </tr>
-                                                    </thead>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
+                        </div>
+                        <div class="wrapper" style="height: 350px; display: none;" id="showView_chart">
+                            <div class="text-center">
+                                <canvas id="myChart" height="350"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="card my-auto">
+                    <div class="card-header bg-primary">
+                        <h4 class="my-2">List User Divisi Operasional</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="menengah" style="height: 350px;" id="showLoading_table">
+                            <div class="text-center">
+                                <div class="spinner-border" id="showLoading_table_icon">
+                                    <span class="sr-only">Loading...</span>
                                 </div>
+                                <br>
+                                <h4 id="showLoading_table_text">Table Sedang Dimuat</h4>
+                            </div>
+                        </div>
+                        <div class="wrapper" style="height: 350px; display: none;" id="showView_table">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover" id="table_ListUser">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle">No</th>
+                                            <th class="text-left align-middle">Nama</th>
+                                            <th class="text-left align-middle">Posisi</th>
+                                        </tr>
+                                    </thead>
+                                </table>
                             </div>
                         </div>
                     </div>
