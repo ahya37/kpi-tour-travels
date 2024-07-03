@@ -43,7 +43,6 @@ $(document).ready(function () {
     const intialShowtable = async (month, year) => {
 
         try {
-            console.log('Loading..');
 
             $('#dataBody').empty();
             $('#divLoading').append(`
@@ -60,11 +59,9 @@ $(document).ready(function () {
                 </div>
                 `)
             const responses = await callApi(month, year);
-            console.log(responses.data.results);
             $(`.spiner-example`).remove();
             $('#dataBody').append(responses.data.rencanakerja);
             $('#title').text('Daftar Rencana Kerja Marketing Bulan '+responses.data.bulan)
-            console.log('Done..');
         } catch (error) {
             console.log(error);
         }

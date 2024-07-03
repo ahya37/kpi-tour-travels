@@ -987,7 +987,13 @@ class ProgramKerjaController extends Controller
                     $rowspan_pkb_title = $aktivitas['count_jenis_pekerjaan'] + 1;
                     $html = $html.'<tr>';
                     $html = $html.'<td rowspan='.$rowspan_pkb_title.'>'.$aktivitas['pkb_title'] ?? ''.'</td>';
-                    // $html = $html.'<td></td>';
+
+                    if($aktivitas['count_jenis_pekerjaan'] == 0){
+                        $html = $html.'<td></td>';
+                        $html = $html.'<td></td>';
+                        $html = $html.'<td></td>';
+                        $html = $html.'<td></td>';
+                    }
                     $html = $html.'</tr>';
 
                     foreach ($aktivitas['jenis_pekerjaan'] as $jenis_pekerjaan) {
@@ -999,7 +1005,6 @@ class ProgramKerjaController extends Controller
                         $html = $html.'</tr>';
 
                     }
- 
                 }
             }
 
