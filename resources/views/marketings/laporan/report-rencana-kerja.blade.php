@@ -30,23 +30,50 @@
 @section('content')
 <div class="wrapper wrapper-content animated fadeInRight">
     <div class="row">
-       
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <div class="row">
+                        <div class="col-md-5 col-sm-5">
+                            <h5>Filter (Monthly)</h5>
+                        </div>
+                        <div class="col-md-7 col-sm-7">
+                            <div class="row">
+                                <div class="col-lg-4 m-b-xs">
+                                    <div class="form-group" id="data_5">
+                                        <div class="input-daterange " id="datepicker">
+                                            <input type="text" class="form-control-sm form-control month-start" id="month-start" name="start" value=""/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-1">
+                                    <div class="input-group"> <button type="button" class="btn btn-sm btn-primary" id="submitFilter">Go!
+                                    </button></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="row">
         <div class="col-lg-12">
             <div class="ibox ">
                 <div class="ibox-title">
-                    <h5>Daftar Rencana Kerja Marketing</h5>
+                    <h5 id="title"></h5>
                 </div>
                 <div class="ibox-content">
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered table-hover data">
                             <thead >
                                 <tr >
-                                    <th class="centered" width="8%" style="background-color: #F5B487">Bulan</th>
                                     <th class="centered" width="8%" style="background-color: #F5B487">Tanggal Perencanaan</th>
-                                    <th class="centered" width="70%" style="background-color: #F5B487">Uraian Tugas</th>
-                                    {{-- <th class="centered" style="background-color: #F5B487">Tanggal Pelaksanaan</th> --}}
+                                    <th class="centered" width="25%" style="background-color: #F5B487">Tugas</th>
+                                    <th class="centered" width="25%" style="background-color: #F5B487">Jenis Pekerjaan</th>
+                                    <th class="centered" width="15%" style="background-color: #F5B487">Target / Sasaran</th>
+                                    <th class="centered" style="background-color: #F5B487">Hasil</th>
+                                    <th class="centered" style="background-color: #F5B487">Evaluasi</th>
                                 </tr>
                             </thead>
                             <tbody id="dataBody"></tbody>

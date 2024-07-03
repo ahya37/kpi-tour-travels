@@ -1,27 +1,34 @@
 $(document).ready(function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    $('#data_1 .input-group.date').datepicker({
-        todayBtn: "linked",
+    $('.month-start').datepicker({
+        minViewMode: 1,
         keyboardNavigation: false,
         forceParse: false,
-        calendarWeeks: true,
+        forceParse: false,
         autoclose: true,
+        todayHighlight: true,
         format: 'dd-mm-yyyy'
     });
 
-    let createdBy = '';
-    let date = '';
 
     $(".select2_demo_2").select2({
         theme: 'bootstrap4',
     });
 
-    const callApi = async () => {
+    const callApi = async (month, year) => {
         try {
 
             const response = await fetch('/marketings/rencanakerja/report/data', {
-                method: 'GET'
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    year: year,
+                    month: month
+                })
             });
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -33,7 +40,7 @@ $(document).ready(function () {
         }
     };
 
-    const intialShowtable = async () => {
+    const intialShowtable = async (month, year) => {
 
         try {
             console.log('Loading..');
@@ -52,23 +59,26 @@ $(document).ready(function () {
                     </div>
                 </div>
                 `)
-            const responses = await callApi();
+            const responses = await callApi(month, year);
+            console.log(responses.data.results);
             $(`.spiner-example`).remove();
             $('#dataBody').append(responses.data.rencanakerja);
+            $('#title').text('Daftar Rencana Kerja Marketing Bulan '+responses.data.bulan)
             console.log('Done..');
         } catch (error) {
             console.log(error);
         }
     }
 
-    intialShowtable();
+    $('#submitFilter').click(function () {
+        const date = $('#month-start').val();
+        // date = $('#date').val();
+        const dateParts = date.split("-");
+        const month = dateParts[1]; // 06
+        const year = dateParts[2];  // 2024
 
-    // $('#submitFilter').click(function () {
-    //     createdBy = $('#created_by').val();
-    //     // date = $('#date').val();
-
-    //     intialShowtable();
-    // });
+        intialShowtable(month, year);
+    });
     // $('#submitClear').click(function () {
     //     createdBy = '';
     //     // date = $('#date').val();

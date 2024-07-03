@@ -13,7 +13,7 @@ Route::get('/marketings/pekerjaan/report',[ProgramKerjaController::class, 'repor
 Route::post('/notifications/alumni/create',[NotificationController::class, 'createNotificationAlumniJamaah']);
 Route::get('/notifications/show/user/{userId}',[NotificationController::class, 'showNotificationByUserLogin']);
 
-Route::get('/marketings/rencanakerja/report',[TestController::class, 'reportRencanaKerjaMarekting']);
+Route::post('/marketings/rencanakerja/report',[TestController::class, 'reportRencanaKerjaMarekting']);
 
 
 Route::get('/user', function (Request $request) {
