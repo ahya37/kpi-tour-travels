@@ -594,11 +594,6 @@ function doSimpan(jenis)
     var programKerjaHarian_pkbIDLainnya     = $("#pkbID_Lainnya");
     var programKerjaHarian_file             = penampung;
 
-    var target                             = $("#target");
-    var hasil                              = $("#hasil");
-    var evaluasi                           = $("#hasil");
-
-
     if(current_role == 'umum' && programKerjaHarian_divisi.val() == null) {
         Swal.fire({
             icon    : 'error',
