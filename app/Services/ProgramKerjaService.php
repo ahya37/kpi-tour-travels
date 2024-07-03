@@ -188,14 +188,43 @@ class ProgramKerjaService
                                         ->get()->toArray();
         $current_sub_division   = !empty($query_get_sub_division) ? strtolower($query_get_sub_division[0]->sub_division_name) : '%';
 
-        $uuid           = $cari['uuid'];
-        $roleName       = $cari['current_role'] == 'admin' || $cari['current_role'] == 'umum' ? '%' : $cari['current_role'];
-        $tgl_awal       = $cari['tgl_awal'];
-        $tgl_akhir      = $cari['tgl_akhir'];
-        $jadwal         = $cari['jadwal'];
-        $group_divisi   = !empty($cari['group_divisi']) ? $cari['group_divisi'] : '%';
-        $sub_divisi     = $current_sub_division == 'pic' ? '%' : $current_sub_division;
-        $user_id        = $cari['current_role'] == 'admin' ? '%' : ($current_sub_division != 'pic' ? Auth::user()->id : '%');
+        if($cari['group_divisi'] == '') {
+            $current_user   = Auth::user()->id;
+            $query_get_group_division   = DB::select(
+                "
+                    SELECT 	c.name as group_division_name
+                    FROM 	employees a
+                    JOIN 	job_employees b ON a.id = b.employee_id
+                    JOIN 	group_divisions c ON b.group_division_id = c.id
+                    WHERE 	a.user_id = '$current_user'
+                "
+            );
+            
+            $group_division     = !empty($query_get_group_division) ? $query_get_group_division[0]->group_division_name : null;
+        } else {
+            $group_division     = '%';
+        }
+
+        if($current_sub_division == 'pic' || $current_sub_division == 'manager')
+        {
+            $uuid           = $cari['uuid'];
+            $roleName       = $cari['current_role'] == 'admin' ? '%' : $cari['current_role'];
+            $tgl_awal       = $cari['tgl_awal'];
+            $tgl_akhir      = $cari['tgl_akhir'];
+            $jadwal         = $cari['jadwal'];
+            $group_divisi   = !empty($cari['group_divisi']) ? $cari['group_divisi'] : $group_division;
+            $sub_divisi     = '%';
+            $user_id        = '%';
+        } else {
+            $uuid           = $cari['uuid'];
+            $roleName       = $cari['current_role'] == 'admin' || $cari['current_role'] == 'umum' ? '%' : $cari['current_role'];
+            $tgl_awal       = $cari['tgl_awal'];
+            $tgl_akhir      = $cari['tgl_akhir'];
+            $jadwal         = $cari['jadwal'];
+            $group_divisi   = !empty($cari['group_divisi']) ? $cari['group_divisi'] : '%';
+            $sub_divisi     = $current_sub_division;
+            $user_id        = $cari['current_role'] == 'admin' ? '%' : Auth::user()->id;
+        }
         
         // FOR DEBUGGING
         // print("<pre>" . print_r($cari, true) . "</pre>");die();
@@ -209,6 +238,7 @@ class ProgramKerjaService
         //     "group_divisi"  => $group_divisi,
         //     "sub_divisi"    => $sub_divisi,
         //     "user_id"       => $user_id,
+        //     "current_sub_division"  => $current_sub_division
         // ]);die();
 
 
@@ -849,7 +879,6 @@ class ProgramKerjaService
             AND 	c.uid LIKE '$pkt_uuid'
             AND     a.uuid LIKE '$pkb_uuid'
             AND 	(e.name LIKE '$roles' OR e.id LIKE '$roles')
-            AND     a.created_by LIKE '$current_user'
             ORDER BY a.pkb_start_date, a.created_at ASC
             "
         );

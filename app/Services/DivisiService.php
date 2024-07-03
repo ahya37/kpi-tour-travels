@@ -425,16 +425,56 @@ class DivisiService
     {
         $subDivision == 'pic' ? $subDivision = '%' : $subDivision;
         
+        // $query_get_rule_all     = DB::select(
+        //     "
+        //     SELECT 	a.prog_jdw_id,
+        //             a.prog_rul_id,
+        //             b.rul_title
+        //     FROM 	tr_prog_jdw a
+        //     JOIN 	programs_jadwal_rules b ON a.prog_rul_id = b.id
+        //     WHERE 	prog_jdw_id = '$id'
+        //     GROUP BY a.prog_jdw_id, a.prog_rul_id, b.rul_title
+        //     ORDER BY CAST(a.prog_rul_id AS SIGNED) ASC
+        //     "
+        // );
+
         $query_get_rule_all     = DB::select(
             "
-            SELECT 	a.prog_jdw_id,
-                    a.prog_rul_id,
-                    b.rul_title
+            SELECT 	DISTINCT d.id as rul_id,
+                    d.rul_title,
+                    b.jdw_depature_date as depature_date,
+                    b.jdw_arrival_date as arrival_date,
+                    d.rul_duration_day as number_of_processing_day,
+                    SUBSTRING_INDEX(SUBSTRING_INDEX(d.rul_sla, '-', -1), '+', -1) as duration_day,
+                    LEFT(d.rul_sla, 1) as duration_cond,
+                    d.rul_condition,
+                    CASE
+                        WHEN LEFT(d.rul_sla, 1) = '-' THEN DATE_ADD(b.jdw_depature_date, INTERVAL d.rul_sla DAY)
+                        WHEN LEFT(d.rul_sla, 1) = '+' THEN b.jdw_arrival_date
+                        ELSE b.jdw_depature_date
+                    END as start_date_job,
+                    CASE
+                        WHEN LEFT(d.rul_sla, 1) = '-' THEN b.jdw_depature_date
+                        WHEN LEFT(d.rul_sla, 1) = '+' THEN DATE_ADD(b.jdw_arrival_date, INTERVAL d.rul_sla DAY)
+                    END as end_date_job,
+				    e.name as pic_role_name
             FROM 	tr_prog_jdw a
-            JOIN 	programs_jadwal_rules b ON a.prog_rul_id = b.id
-            WHERE 	prog_jdw_id = '$id'
-            GROUP BY a.prog_jdw_id, a.prog_rul_id, b.rul_title
-            ORDER BY CAST(a.prog_rul_id AS SIGNED) ASC
+            JOIN 	programs_jadwal b ON a.prog_jdw_id = b.jdw_uuid
+            JOIN 	programs_jadwal_rules d ON a.prog_rul_id = d.id
+            JOIN  sub_divisions e ON d.rul_pic_sdid = e.id
+            WHERE 	a.prog_jdw_id = '$id'
+            ORDER BY d.id ASC
+            "
+        );
+
+        $query_get_jdw_in_pkb  = DB::select(
+            "
+            SELECT 	b.prog_rul_id,
+                    a.pkb_start_date,
+                    a.pkb_end_date
+            FROM 	proker_bulanan a
+            JOIN 	tr_prog_jdw b ON a.uuid = b.prog_pkb_id
+            WHERE 	b.prog_jdw_id = '$id'
             "
         );
 
@@ -492,7 +532,8 @@ class DivisiService
         
         $output     = array(
             "list_rules"    => $query_get_rule_all,
-            "jadwal"        => $queryGetJadwal
+            "proker_bulanan"=> $query_get_jdw_in_pkb,
+            "jadwal"        => $queryGetJadwal,
         );
        return $output;
     }

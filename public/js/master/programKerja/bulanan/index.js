@@ -402,8 +402,10 @@ function showModal(idModal, jenis, value)
             const current_date  = moment(value.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY');
             var title   = "Tambah Uraian Pekerjaan Tgl. "+moment(value.startStr, 'YYYY-MM-DD').format('DD/MM/YYYY');
             $("#modalTitle").html(title);
-            $("#prokerBulananTanggal").data('daterangepicker').setStartDate(current_date);
-            $("#prokerBulananTanggal").data('daterangepicker').setEndDate(current_date);
+            if(current_role == 'admin' || current_role == 'operasional') {
+                $("#prokerBulananTanggal").data('daterangepicker').setStartDate(current_date);
+                $("#prokerBulananTanggal").data('daterangepicker').setEndDate(current_date);
+            }
         } else if(jenis == 'edit') {
             $("#prokerTahunanID").prop('disabled', true);
 
