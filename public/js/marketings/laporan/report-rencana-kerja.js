@@ -81,8 +81,7 @@ $(document).ready(function () {
                             </div>
                         </div>
                         `)
-                        let dataModalBody = $('#dataModalBody');
-                        dataModalBody.empty(); // Bersihkan isi tbody sebelum menambahkan data baru
+                        // Bersihkan isi tbody sebelum menambahkan data baru
     
                     $('#myModal').modal('show');
 
@@ -102,11 +101,13 @@ $(document).ready(function () {
                     const data = await response.json();
                     $(`.spiner-example`).remove();
                     // tampilkan di modal
-
+                    let dataModalBody = $('#dataModalBody');
+                        dataModalBody.empty(); 
                     // Loop melalui data dan tambahkan ke dalam tabel
                     $.each(data.data.rincian_kegiatan, function (index, row) {
                         const newRow = '<tr>' +
                             '<td align="center">' + row.no + '</td>' +
+
                             '<td>' + row.pkh_date + '</td>' +
                             '<td>' + row.pkh_title + '</td>' +
                             '<td>' + row.cs + '</td>' +
