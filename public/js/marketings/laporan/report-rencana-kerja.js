@@ -68,6 +68,10 @@ $(document).ready(function () {
                 // Mendapatkan ID elemen yang diklik
                 const id = $(this).attr('id');
                 try {
+                     // tampilkan di modal
+                     let dataModalBody = $('#dataModalBody');
+                     dataModalBody.empty(); 
+                     
                     $('#divLoadingModal').append(`
                         <div class="col text-center">
                              <div class="spiner-example">
@@ -100,9 +104,7 @@ $(document).ready(function () {
                     }
                     const data = await response.json();
                     $(`.spiner-example`).remove();
-                    // tampilkan di modal
-                    let dataModalBody = $('#dataModalBody');
-                        dataModalBody.empty(); 
+                   
                     // Loop melalui data dan tambahkan ke dalam tabel
                     $.each(data.data.rincian_kegiatan, function (index, row) {
                         const newRow = '<tr>' +
