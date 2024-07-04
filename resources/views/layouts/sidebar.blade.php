@@ -138,13 +138,17 @@
                     <li class="active"><a href="{{ route('marketing.alumniprospectmaterial') }}">Bahan Prospek Alumni</a></li>
                 </ul>
                 <ul class="nav nav-second-level">
+                    <li class="active"><a href="{{ route('marketings.haji.target') }}">Setting Target Haji</a></li>
+                </ul>
+                <ul class="nav nav-second-level">
                     <li class="active"><a href="{{ route('marketing.target') }}">Laporan Umrah</a></li>
                 </ul>
                 <ul class="nav nav-second-level">
                     <li class="active"><a href="{{ route('marketings.haji.report') }}">Laporan Haji</a></li>
                 </ul>
+              
                 <ul class="nav nav-second-level">
-                    <li class="active"><a href="{{ route('marketings.haji.target') }}">Setting Target Haji</a></li>
+                    <li class="active"><a href="{{ route('marketings.rencancakerja.report')}}">Laporan Rencana Kerja</a></li>
                 </ul>
                 <ul class="nav nav-second-level">
                     <li class="active"><a href="{{ route('marketing.pekerjaan.report') }}">Laporan Pekerjaan Harian</a></li>
