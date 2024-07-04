@@ -255,6 +255,10 @@
                     </li>
                 </ul>
             </li>
+            <li class="{{ request()->is('aktivitas') ? 'active' : '' }}">
+                <a href="{{ route('aktivitas.harian.index') }}"><i class="fa fa-pencil"></i> <span
+                        class="nav-label">Aktivitas Harian</span></a>
+            </li>
             <li class="{{ request()->is('presensi/*') ? 'active' : '' }}">
                 <a href="#">
                     <i class="fa fa-database"></i> <span class="nav-label">Presensi</span> <span
