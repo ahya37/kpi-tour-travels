@@ -8,6 +8,8 @@ use App\Services\BaseService;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
 
+use function PHPSTORM_META\map;
+
 class DivisiController extends Controller
 {
     // MARKETING
@@ -317,33 +319,50 @@ class DivisiController extends Controller
 
         $getData        = DivisiService::doGetDataRulesJadwal($idJadwalProgram, $subDivision);
 
-        if(!empty($getData)) {
-            for($i = 0; $i < count($getData['jadwal']); $i++) {
-                $data[$i]     = array(
-                    $i + 1,
-                    $getData['jadwal'][$i]->rules,
-                    date('d-M-Y', strtotime($getData['jadwal'][$i]->start_date_job))." s/d ".date('d-M-Y', strtotime($getData['jadwal'][$i]->end_date_job)),
-                    $getData['jadwal'][$i]->pic_role,
-                    $getData['jadwal'][$i]->duration_day,
-                    !empty($getData['jadwal'][$i]->realization_start_date) ? ($getData['jadwal'][$i]->realization_start_date == $getData['jadwal'][$i]->realization_end_date ? date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_start_date)) : date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_start_date))." s/d ".date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_end_date))) : null,
-                    $getData['jadwal'][$i]->realization_duration_day != 0 ? ($getData['jadwal'][$i]->realization_duration_day <= $getData['jadwal'][$i]->duration_day_num ? "<span class='badge badge-primary d-block' style='font-size: 0.8rem;'>+" .$getData['jadwal'][$i]->realization_duration_day. " Hari</span>" : "<span class='badge badge-danger d-block' style='font-size: 0.8rem;'>-" .$getData['jadwal'][$i]->realization_duration_day. " Hari</span>") : '',
-                );
-            }
-
+        if(!empty($getData))
+        {
             $output     = array(
-                "status"    => 200,
                 "success"   => true,
-                "message"   => "Berhasil Ambil Data",
-                "data"      => $data,
+                "status"    => 200,
+                "message"   => "Berhasil",
+                "data"      => $getData
             );
         } else {
             $output     = array(
-                "status"    => 404,
                 "success"   => false,
-                "message"   => "Gagal Mengambil Data",
-                "data"      => [],
+                "status"    => 404,
+                "message"   => "Terjadi Kesalahan",
+                "data"      => []
             );
         }
+
+        // if(!empty($getData)) {
+        //     for($i = 0; $i < count($getData['jadwal']); $i++) {
+        //         $data[$i]     = array(
+        //             $i + 1,
+        //             $getData['jadwal'][$i]->rules,
+        //             date('d-M-Y', strtotime($getData['jadwal'][$i]->start_date_job))." s/d ".date('d-M-Y', strtotime($getData['jadwal'][$i]->end_date_job)),
+        //             $getData['jadwal'][$i]->pic_role,
+        //             $getData['jadwal'][$i]->duration_day,
+        //             !empty($getData['jadwal'][$i]->realization_start_date) ? ($getData['jadwal'][$i]->realization_start_date == $getData['jadwal'][$i]->realization_end_date ? date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_start_date)) : date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_start_date))." s/d ".date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_end_date))) : null,
+        //             $getData['jadwal'][$i]->realization_duration_day != 0 ? ($getData['jadwal'][$i]->realization_duration_day <= $getData['jadwal'][$i]->duration_day_num ? "<span class='badge badge-primary d-block' style='font-size: 0.8rem;'>+" .$getData['jadwal'][$i]->realization_duration_day. " Hari</span>" : "<span class='badge badge-danger d-block' style='font-size: 0.8rem;'>-" .$getData['jadwal'][$i]->realization_duration_day. " Hari</span>") : '',
+        //         );
+        //     }
+
+        //     $output     = array(
+        //         "status"    => 200,
+        //         "success"   => true,
+        //         "message"   => "Berhasil Ambil Data",
+        //         "data"      => $data,
+        //     );
+        // } else {
+        //     $output     = array(
+        //         "status"    => 404,
+        //         "success"   => false,
+        //         "message"   => "Gagal Mengambil Data",
+        //         "data"      => [],
+        //     );
+        // }
 
         return Response::json($output, $output['status']);
 

@@ -790,7 +790,8 @@ class MarketingController extends Controller
 				}
 
                 $res_umrah_program['label'][]    = $value->name;
-				$res_umrah_program['target'][]   = $value->target;
+				// $res_umrah_program['target'][]   = $value->target;
+				$res_umrah_program['target'][]   = $value->target - $value->realisasi;
 				$res_umrah_program['realisasi'][]   = $value->realisasi;
 				$res_umrah_program['persentage_per_program'][]   = $persentage_per_program;
 				$res_umrah_program['color'][] = '#d3d3d3';
@@ -823,7 +824,7 @@ class MarketingController extends Controller
                         )
                     )
             );
-
+           
             $umrah_prbulan =  $umrah_prbulan->groupBy('a.month_number', 'a.month_name')->orderBy('a.month_number','asc')->get();
             $res_umrah_bulan = [];
             foreach ($umrah_prbulan as  $value) {
@@ -834,7 +835,8 @@ class MarketingController extends Controller
 				}
 
                 $res_umrah_bulan['label'][]    = $value->month_name;
-				$res_umrah_bulan['target'][]   = $value->target;
+				// $res_umrah_bulan['target'][]   = $value->target;
+				$res_umrah_bulan['target'][]   = $value->target - $value->realisasi;
 				$res_umrah_bulan['realisasi'][]   = $value->realisasi;
 				$res_umrah_bulan['persentage_per_bulan'][]   = $persentage_per_bulan;
 				$res_umrah_bulan['color'][] = '#d3d3d3';

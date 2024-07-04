@@ -9,11 +9,13 @@ use App\Http\Controllers\TestController;
 
 #All test fitur
 Route::get('/marketings/report/monthly', [MarketingController::class, 'reportUmrahBulanan']); 
+Route::post('/marketings/pencapaian/bulanan', [MarketingController::class, 'pencapaianBulanan']); 
+
 Route::get('/marketings/pekerjaan/report',[ProgramKerjaController::class, 'reportPekerjaanMarketing']);
 Route::post('/notifications/alumni/create',[NotificationController::class, 'createNotificationAlumniJamaah']);
 Route::get('/notifications/show/user/{userId}',[NotificationController::class, 'showNotificationByUserLogin']);
 
-Route::get('/marketings/rencanakerja/report',[TestController::class, 'reportRencanaKerjaMarekting']);
+Route::post('/marketings/rencanakerja/report',[TestController::class, 'reportRencanaKerjaMarekting']);
 
 
 Route::get('/user', function (Request $request) {

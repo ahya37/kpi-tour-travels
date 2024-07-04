@@ -74,16 +74,77 @@
                     </div>
                 </div>
             </div>
+            <div class="col-lg-12" id="v_table_programKerja_bulanan" style="display: none;">
+                <div class="card shadow my-4">
+                    <div class="card-header bg-secondary text-white">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <h4 style="padding: 0px;" class="pt-2"><i class="fa fa-table"></i> &nbsp; Table List Program Kerja Bulanan</h4>
+                            </div>
+                            <div class="col-sm-6 text-right">
+                                <button class="btn btn-secondary font-bold" data-toggle="collapse" data-target="#filter">
+                                    <h4> <i class="fa fa-filter"></i> Filter</h4>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="collapse" id="filter">
+                                    <div class="card card-body">
+                                        <div class="row">
+                                            <div class="col-sm-3">
+                                                <label>Bulan</label>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <label>Divisi</label>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <label>Dibuat Oleh</label>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-4">
+                                                <select ></select>
+                                            </div>
+                                            <div class="col-sm-4"></div>
+                                            <div class="col-sm-4"></div>
+                                            <div class="col-sm-4"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mt-4">
+                                <div class="table-responsive">
+                                    <table class="table-sm table-hover table-bordered" style="width: 100%;" id="table_programKerja_bulanan">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center align-middle">No</th>
+                                                <th class="text-left align-middle">Uraian</th>
+                                                <th class="text-left align-middle">Tanggal</th>
+                                                <th class="text-center align-middle">Divisi</th>
+                                                <th class="text-center align-middle">Dibuat Oleh</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
 
 
 @push('addon-script')
+    @include('layouts.js')
+
     <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
     <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
-    <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
     <script src="{{ asset('js/master/programKerja/dashboard/index.js') }}"></script>
 @endpush
