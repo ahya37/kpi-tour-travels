@@ -49,6 +49,7 @@ Route::group(['middleware' => ['auth']], function () {
 	 
 	 Route::get('/marketings/rencanakerja/report',[ProgramKerjaController::class, 'reportRencanaKerjaMarekting'])->name('marketings.rencancakerja.report');
 	 Route::post('/marketings/rencanakerja/report/data',[ProgramKerjaController::class, 'getReportRencanaKerjaMarekting']);
+	 Route::post('/marketings/rencanakerja/report/rinciankegiatan',[ProgramKerjaController::class, 'getRincianKegiatanByJenisPekerjaan']);
 
     //marketing
     Route::prefix('marketings')->controller(MarketingController::class)->group(function(){

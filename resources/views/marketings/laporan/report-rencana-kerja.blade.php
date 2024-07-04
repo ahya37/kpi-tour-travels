@@ -74,6 +74,7 @@
                                     <th class="centered" width="15%" style="background-color: #F5B487">Target / Sasaran</th>
                                     <th class="centered" style="background-color: #F5B487">Hasil</th>
                                     <th class="centered" style="background-color: #F5B487">Evaluasi</th>
+                                    <th class="centered" style="background-color: #F5B487">Rincian Kegiatan</th>
                                 </tr>
                             </thead>
                             <tbody id="dataBody"></tbody>
@@ -85,6 +86,41 @@
         </div>
     </div>
 </div>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Contoh Modal</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover data">
+                    <thead >
+                        <tr >
+                            <th class="centered" width="8%" style="background-color: #F5B487">No.</th>
+                            <th class="centered" width="8%" style="background-color: #F5B487">Tanggal Pelaksanaan</th>
+                            <th class="centered" width="25%" style="background-color: #F5B487">Kegiatan</th>
+                            <th class="centered" style="background-color: #F5B487">Pelaksana</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataModalBody"></tbody>
+                </table>
+            </div>
+            <div id="divLoadingModal"></div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 @endsection
 @push('addon-script')
 {{-- <script src="{{asset('assets/js/plugins/fullcalendar/moment.min.js')}}"></script>

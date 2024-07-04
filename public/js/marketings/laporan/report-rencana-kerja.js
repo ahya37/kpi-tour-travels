@@ -62,6 +62,65 @@ $(document).ready(function () {
             $(`.spiner-example`).remove();
             $('#dataBody').append(responses.data.rencanakerja);
             $('#title').text('Daftar Rencana Kerja Marketing Bulan '+responses.data.bulan)
+
+
+           $('.onDetail').on('click', async function() {
+                // Mendapatkan ID elemen yang diklik
+                const id = $(this).attr('id');
+                try {
+                    $('#divLoadingModal').append(`
+                        <div class="col text-center">
+                             <div class="spiner-example">
+                                    <div class="sk-spinner sk-spinner-wave">
+                                        <div class="sk-rect1"></div>
+                                        <div class="sk-rect2"></div>
+                                        <div class="sk-rect3"></div>
+                                        <div class="sk-rect4"></div>
+                                        <div class="sk-rect5"></div>
+                                    </div>
+                            </div>
+                        </div>
+                        `)
+                        let dataModalBody = $('#dataModalBody');
+                        dataModalBody.empty(); // Bersihkan isi tbody sebelum menambahkan data baru
+    
+                    $('#myModal').modal('show');
+
+                    const response = await fetch('/marketings/rencanakerja/report/rinciankegiatan', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            id: id,
+                        })
+                    });
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    $(`.spiner-example`).remove();
+                    // tampilkan di modal
+
+                    // Loop melalui data dan tambahkan ke dalam tabel
+                    $.each(data.data.rincian_kegiatan, function (index, row) {
+                        const newRow = '<tr>' +
+                            '<td align="center">' + row.no + '</td>' +
+                            '<td>' + row.pkh_date + '</td>' +
+                            '<td>' + row.pkh_title + '</td>' +
+                            '<td>' + row.cs + '</td>' +
+                            '</tr>';
+                        dataModalBody.append(newRow);
+                    });
+
+
+                } catch (error) {
+                    throw error;
+                }
+            });
+
+            
         } catch (error) {
             console.log(error);
         }
@@ -82,6 +141,7 @@ $(document).ready(function () {
     //     intialShowtable();
     // });
 
+    
 })
 
 
