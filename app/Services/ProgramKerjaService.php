@@ -254,7 +254,8 @@ class ProgramKerjaService
                         pkb.pkb_pkt_seq,
                         pkb.pkb_created_date,
                         pkb.pkb_created_by,
-                        pkb.group_division_name
+                        pkb.group_division_name,
+				        pkb.status_created
                 FROM 	(
                         SELECT 	a.uuid as pkb_uuid,
                                 a.pkb_title,
@@ -268,7 +269,8 @@ class ProgramKerjaService
                                 c.name as group_division_name,
                                 f.name as sub_division_name,
                                 a.created_at as pkb_created_date,
-                                a.created_by as pkb_created_by
+                                a.created_by as pkb_created_by,
+								null as status_created
                         FROM 	proker_bulanan a
                         JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
                         JOIN 	group_divisions c ON b.division_group_id = c.id
@@ -292,7 +294,8 @@ class ProgramKerjaService
                                 f.name as group_division_name,
                                 d.name as pkb_sd_name,
                                 e.created_at,
-                                e.created_by
+                                e.created_by,
+                                a.prog_pkb_is_created as status_created
                         FROM 	tr_prog_jdw a
                         JOIN 	programs_jadwal b ON a.prog_jdw_id = b.jdw_uuid
                         JOIN 	programs_jadwal_rules c ON a.prog_rul_id = c.id
@@ -316,7 +319,8 @@ class ProgramKerjaService
                                     c.name as group_division_name,
                                     e.name as sub_division_name,
                                     a.created_at,
-                                    a.created_by
+                                    a.created_by,
+								    null as status_created
                         FROM 		proker_bulanan a
                         JOIN 		proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ', 1) = b.uid
                         JOIN 		group_divisions c ON c.id = b.division_group_id
@@ -331,7 +335,6 @@ class ProgramKerjaService
                 AND 	r.name LIKE '$roleName'
                 AND 	LOWER(pkb.sub_division_name) LIKE '$sub_divisi'
                 AND     pkb.group_division_name LIKE '$group_divisi'
-                AND     mhr.model_id LIKE '$user_id'
                 ORDER BY pkb.pkb_created_date ASC
                 "
             );
@@ -379,7 +382,6 @@ class ProgramKerjaService
                 AND 	r.name LIKE '$roleName'
                 AND 	LOWER(pkb.sub_division_name) LIKE '$sub_divisi'
                 AND     pkb.group_division_name LIKE '$group_divisi'
-                AND     mhr.model_id LIKE '$user_id'
                 ORDER BY pkb.pkb_created_date ASC
                 "
             );
@@ -759,6 +761,32 @@ class ProgramKerjaService
         return $query;
     }
 
+    public static function doGetDataTableDashboad($data)
+    {
+        $query  = DB::select(
+            "
+            SELECT 	a.uuid,
+                    a.pkb_title,
+                    a.pkb_start_date,
+                    a.pkb_end_date,
+                    EXTRACT(MONTH FROM pkb_start_date) as pkb_bulan,
+                    b.pkt_year as pkb_tahun,
+                    c.id as group_division_id,
+                    c.name as group_division_name,
+                    d.name as created_by
+            FROM 	proker_bulanan a
+            JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
+            JOIN 	group_divisions c ON b.division_group_id = c.id
+            JOIN 	employees d ON d.user_id = a.created_by
+            WHERE 	b.pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
+            AND 	LOWER(c.name) LIKE '%'
+            ORDER BY a.pkb_start_date ASC
+            "
+        );
+
+        return !empty($query) ? $query : null;
+    }
+
     // HARIAN
     public static function listProkerHarian($data)
     {
@@ -874,8 +902,7 @@ class ProgramKerjaService
             JOIN 	proker_tahunan c ON c.uid = SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1)
             JOIN 	group_divisions d ON d.id = c.division_group_id
             JOIN 	roles e ON e.id = d.roles_id
-            WHERE 	EXTRACT(MONTH FROM a.pkb_start_date) = EXTRACT(MONTH FROM '$currentDate')
-            AND 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM '$currentDate')
+            WHERE 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM '$currentDate')
             AND 	c.uid LIKE '$pkt_uuid'
             AND     a.uuid LIKE '$pkb_uuid'
             AND 	(e.name LIKE '$roles' OR e.id LIKE '$roles')

@@ -234,7 +234,11 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                         if(xhr.data.list[i]['group_division_name'] == 'Marketing') {
                             roleColor   = "#80B9AD";
                         } else if(xhr.data.list[i]['group_division_name'] == 'Operasional') {
-                            roleColor   = "#538392";
+                            if(xhr.data.list[i]['status_created'] == 't') {
+                                roleColor   = "#1ab394";
+                            } else if(xhr.data.list[i]['status_created'] == 'f') {
+                                roleColor   = "#dc3545";
+                            }
                         }
 
                         // if(xhr.data.list[i]['role_id'] == '2') {
@@ -245,7 +249,7 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                         //     roleColor   = '#00A7AC';
                         // } else if(xhr.data.list[i]['role_id'] == '5') {
                         //     roleColor   = '#43A6EE';
-                        // }
+                        // }ibndex
                         
                         tempData.push({
                             title   : xhr.data.list[i]['pkb_title'],

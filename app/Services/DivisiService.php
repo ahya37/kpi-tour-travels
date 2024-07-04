@@ -259,9 +259,12 @@ class DivisiService
                             a.rul_pkt_id,
                             a.rul_condition
                     FROM 	programs_jadwal_rules a
+                    WHERE 	a.rul_condition IS NOT NULL
                     ORDER BY a.id ASC
                     "
                 );
+
+                // print("<pre>".print_r($query_getDataRules, true)."</pre>");die();
             } else if($dataProgram['jdw_product_name'] == 'Haji') {
                 $query_getDataRules     = DB::select(
                     "
@@ -284,44 +287,56 @@ class DivisiService
         if(!empty($query_getDataRules)) {
             for($i = 0; $i < count($query_getDataRules); $i++) {
                 $dataRules  = $query_getDataRules[$i];
-                // if($dataRules->custom_sla_condition == '-') {
-                //     $rulesCondition     = $dataRules->rul_condition == 'bf-dpt' ? $dataProgram['jdw_depature_date'] : $dataProgram['jdw_arrival_date'];
-                //     $dataSimpan         = [
-                //         "uuid"              => Str::random(30),
-                //         "pkb_title"         => "[".$dataProgram['jdw_program_name']."] (".date('d/M/Y', strtotime($dataProgram['jdw_depature_date']))." s/d ".date('d/M/Y', strtotime($dataProgram['jdw_arrival_date'])).") ".$dataRules->rul_title,
-                //         "pkb_start_date"    => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' -'.$dataRules->custom_sla.' days', strtotime($rulesCondition))) : '1970-01-01',
-                //         "pkb_end_date"      => count($dataProgram) > 0 ? $rulesCondition : '1970-01-01',
-                //         "pkb_description"   => count($dataProgram) > 0 ? $dataProgram['jdw_description'] : '',
-                //         "pkb_pkt_id"        => $dataRules->rul_pkt_id,
-                //         "pkb_employee_id"   => '',
-                //         "created_by"        => Auth::user()->id,
-                //         "updated_by"        => Auth::user()->id,
-                //         "created_at"        => date('Y-m-d H:i:s'),
-                //         "updated_at"        => date('Y-m-d H:i:s'),
-                //     ];
-                // } else {
-                //     $rulesCondition     = $dataRules->rul_condition == 'af-dpt' ? $dataProgram['jdw_depature_date'] : $dataProgram['jdw_arrival_date'];
-                //     $dataSimpan         = [
-                //         "uuid"              => Str::random(30),
-                //         "pkb_title"         => "[".$dataProgram['jdw_program_name']."] (".date('d/M/Y', strtotime($dataProgram['jdw_depature_date']))." s/d ".date('d/M/Y', strtotime($dataProgram['jdw_arrival_date'])).") ".$dataRules->rul_title,
-                //         "pkb_start_date"    => count($dataProgram) > 0 ? $rulesCondition : '1970-01-01',
-                //         "pkb_end_date"      => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' +'.$dataRules->custom_sla.' days', strtotime($rulesCondition))) : '1970-01-01',
-                //         "pkb_description"   => count($dataProgram) > 0 ? $dataProgram['jdw_description'] : '',
-                //         "pkb_pkt_id"        => $dataRules->rul_pkt_id,
-                //         "pkb_employee_id"   => '',
-                //         "created_by"        => Auth::user()->id,
-                //         "updated_by"        => Auth::user()->id,
-                //         "created_at"        => date('Y-m-d H:i:s'),
-                //         "updated_at"        => date('Y-m-d H:i:s'),
-                //     ];
-                // }
-                // $idProkerBulanan   = DB::table('proker_bulanan')->insertGetId($dataSimpan);
-                // $uuidProkerBulanan = DB::table('proker_bulanan')->where('id', $idProkerBulanan)->value('uuid');
+                if($dataProgram['jdw_product_name'] == 'Umrah') {
+                    if($dataRules->custom_sla_condition == '-') {
+                        $rulesCondition     = $dataRules->rul_condition == 'bf-dpt' ? $dataProgram['jdw_depature_date'] : $dataProgram['jdw_arrival_date'];
+                        $dataSimpan         = [
+                            "uuid"              => Str::random(30),
+                            "pkb_title"         => "[".$dataProgram['jdw_program_name']."] (".date('d/M/Y', strtotime($dataProgram['jdw_depature_date']))." s/d ".date('d/M/Y', strtotime($dataProgram['jdw_arrival_date'])).") ".$dataRules->rul_title,
+                            "pkb_start_date"    => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' -'.$dataRules->custom_sla.' days', strtotime($rulesCondition))) : '1970-01-01',
+                            "pkb_end_date"      => count($dataProgram) > 0 ? $rulesCondition : '1970-01-01',
+                            "pkb_description"   => count($dataProgram) > 0 ? $dataRules->rul_title : '',
+                            "pkb_pkt_id"        => $dataRules->rul_pkt_id,
+                            "pkb_employee_id"   => '',
+                            "created_by"        => Auth::user()->id,
+                            "updated_by"        => Auth::user()->id,
+                            "created_at"        => date('Y-m-d H:i:s'),
+                            "updated_at"        => date('Y-m-d H:i:s'),
+                        ];
+                    } else {
+                        $rulesCondition     = $dataRules->rul_condition == 'af-dpt' ? $dataProgram['jdw_depature_date'] : $dataProgram['jdw_arrival_date'];
+                        $dataSimpan         = [
+                            "uuid"              => Str::random(30),
+                            "pkb_title"         => "[".$dataProgram['jdw_program_name']."] (".date('d/M/Y', strtotime($dataProgram['jdw_depature_date']))." s/d ".date('d/M/Y', strtotime($dataProgram['jdw_arrival_date'])).") ".$dataRules->rul_title,
+                            "pkb_start_date"    => count($dataProgram) > 0 ? $rulesCondition : '1970-01-01',
+                            "pkb_end_date"      => count($dataProgram) > 0 ? date('Y-m-d', strtotime(' +'.$dataRules->custom_sla.' days', strtotime($rulesCondition))) : '1970-01-01',
+                            "pkb_description"   => count($dataProgram) > 0 ? $dataRules->rul_title : '',
+                            "pkb_pkt_id"        => $dataRules->rul_pkt_id,
+                            "pkb_employee_id"   => '',
+                            "created_by"        => Auth::user()->id,
+                            "updated_by"        => Auth::user()->id,
+                            "created_at"        => date('Y-m-d H:i:s'),
+                            "updated_at"        => date('Y-m-d H:i:s'),
+                        ];
+                    }
+                    $idProkerBulanan   = DB::table('proker_bulanan')->insertGetId($dataSimpan);
+                    $uuidProkerBulanan = DB::table('proker_bulanan')->where('id', $idProkerBulanan)->value('uuid');
+
+                    // INSERT TO DETAIL
+                    $simpan_detail  = array(
+                        "pkb_id"        => $idProkerBulanan,
+                        "pkbd_type"     => $dataRules->rul_title
+                    );
+                    DB::table('proker_bulanan_detail')->insert($simpan_detail);
+                } else {
+                    $uuidProkerBulanan  = null;
+                }
 
                 $insert_trans       = array(
                     "prog_jdw_id"   => $query_getDataProgram[0]->jdw_id,
                     "prog_rul_id"   => $dataRules->id,
-                    "prog_pkb_id"   => "",
+                    "prog_pkb_id"   => $uuidProkerBulanan,
+                    "prog_pkb_is_created"   => "f"
                 );
 
                 DB::table('tr_prog_jdw')->insert($insert_trans);
