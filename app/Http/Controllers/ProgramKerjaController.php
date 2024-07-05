@@ -810,6 +810,44 @@ class ProgramKerjaController extends Controller
         return Response::json($output, $output['status']);
     }
 
+    // 07 JULI 2024
+    // NOTE : HAPUS DATA HARIAN
+    public function hapusDataHarian($id, Request $request)
+    {
+        $ip     = $request->ip();
+        $doUpdate   = ProgramKerjaService::doHapusDataHarian($id, $ip);
+
+        if($doUpdate['status'] == 'success') {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"  => "success",
+                    "message"   => [
+                        "title" => "Berhasil",
+                        "text"  => "Berhasil Hapus Data",
+                    ],
+                ],
+                "errMsg"    => [],
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"  => "error",
+                    "message"   => [
+                        "title" => "Terjadi Kesalahan",
+                        "text"  => "Data Gagal Dihapus",
+                    ],
+                ],
+                "errMsg"    => $doUpdate['errMsg'],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
     // GLOBAL
     public function getDataPIC(Request $request)
     {

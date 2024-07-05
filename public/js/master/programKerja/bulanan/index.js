@@ -249,7 +249,7 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                         //     roleColor   = '#00A7AC';
                         // } else if(xhr.data.list[i]['role_id'] == '5') {
                         //     roleColor   = '#43A6EE';
-                        // }ibndex
+                        // }
                         
                         tempData.push({
                             title   : xhr.data.list[i]['pkb_title'],
@@ -781,10 +781,10 @@ function show_select(idSelect, valueCari, valueSelect, isAsync)
                 $("#"+idSelect).html(html);
             })
     } else if(idSelect == 'bagian') {
-        console.log({
-            "currentSubDivision"    : $("#currentSubDivision").val(),
-            "current_role"          : current_role,
-        });
+        // console.log({
+        //     "currentSubDivision"    : $("#currentSubDivision").val(),
+        //     "current_role"          : current_role,
+        // });
         var html    = [
             "<option selected disabled>Pilih Sub-Divisi</option>",
             "<option value='%'>Semua</option>",

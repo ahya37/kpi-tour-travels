@@ -219,6 +219,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="doHapus()" id="btnHapus">Hapus Data</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalForm')">Batal</button>
                     <button type="button" class="btn btn-primary" id="btnSimpan" onclick="doSimpan(this.value)">Simpan</button>
                 </div>

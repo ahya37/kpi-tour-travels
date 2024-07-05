@@ -223,7 +223,7 @@ class ProgramKerjaService
             $jadwal         = $cari['jadwal'];
             $group_divisi   = !empty($cari['group_divisi']) ? $cari['group_divisi'] : '%';
             $sub_divisi     = $current_sub_division;
-            $user_id        = $cari['current_role'] == 'admin' ? '%' : Auth::user()->id;
+            $user_id        = $cari['current_role'] == 'admin' || $cari['current_role'] == 'operasional' || $cari['current_role'] == 'umum' ? '%' : Auth::user()->id;
         }
         
         // FOR DEBUGGING
@@ -335,6 +335,7 @@ class ProgramKerjaService
                 AND 	r.name LIKE '$roleName'
                 AND 	LOWER(pkb.sub_division_name) LIKE '$sub_divisi'
                 AND     pkb.group_division_name LIKE '$group_divisi'
+                AND     pkb.pkb_created_by LIKE '$user_id'
                 ORDER BY pkb.pkb_created_date ASC
                 "
             );
@@ -606,7 +607,7 @@ class ProgramKerjaService
                     if(!empty($check_detail)) {
                         DB::table('proker_bulanan_detail')
                             ->where('pkb_id','=', $getIDProkerBulanan[0]->id)
-                            ->delete();
+                        ->delete();
                     }
 
                     for($i = 0; $i < count($dataProkerBulananInput['prokerBulanan_detail']); $i++) {
@@ -625,6 +626,32 @@ class ProgramKerjaService
                         }
                     }
                 }
+            }
+
+            // UPDATE TR-PROG-JDW STATUS
+            $prokerBulananID    = $dataProkerBulananInput['prokerBulanan_ID'];
+            $queryGetDataProgramJadwal  = DB::select(
+                "
+                SELECT  *
+                FROM    tr_prog_jdw
+                WHERE   prog_pkb_id = '$prokerBulananID'
+                "
+            );
+
+            // var_dump($queryGetDataProgramJadwal);die();
+            if(!empty($queryGetDataProgramJadwal)) {
+                // UPDATE TR PROG JDW STATUS
+                $prog_jdw_where     = array(
+                    "prog_jdw_id"   => $queryGetDataProgramJadwal[0]->prog_jdw_id,
+                    "prog_rul_id"   => $queryGetDataProgramJadwal[0]->prog_rul_id,
+                    "prog_pkb_id"   => $queryGetDataProgramJadwal[0]->prog_pkb_id
+                );
+
+                $prog_update        = array(
+                    "prog_pkb_is_created"    => "t",
+                );
+                
+                DB::table('tr_prog_jdw')->where($prog_jdw_where)->update($prog_update);
             }
         }
 
@@ -805,7 +832,8 @@ class ProgramKerjaService
                             d.name as group_division,
                             e.name as role_name,
                             a.created_by as user_id,
-                            a.created_at as created_date
+                            a.created_at as created_date,
+                            a.pkh_is_active as status_active
                     FROM 	proker_harian a
                     JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = b.uuid
                     JOIN 	proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1) = c.uid
@@ -821,13 +849,14 @@ class ProgramKerjaService
                             f.name as group_divsion_name,
                             e.name as role_name,
                             a.created_by as user_id,
-                            a.created_at as created_date
-                    FROM 		proker_harian a
-                    JOIN 		proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = b.uuid
-                    JOIN 		proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1) = c.uid
-                    JOIN 		model_has_roles d ON d.model_id = a.created_by
-                    JOIN 		roles e ON d.role_id = e.id
-                    JOIN 		group_divisions f ON f.roles_id = e.id
+                            a.created_at as created_date,
+                            a.pkh_is_active
+                    FROM 	proker_harian a
+                    JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = b.uuid
+                    JOIN 	proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1) = c.uid
+                    JOIN 	model_has_roles d ON d.model_id = a.created_by
+                    JOIN 	roles e ON d.role_id = e.id
+                    JOIN 	group_divisions f ON f.roles_id = e.id
                     WHERE 	e.name = 'umum'
 				
 				    UNION ALL
@@ -839,7 +868,8 @@ class ProgramKerjaService
                             d.name as group_division_name,
                             c.name as role_name,
                             a.created_by as user_id,
-                            a.created_at as created_date
+                            a.created_at as created_date,
+                            a.pkh_is_active
                     FROM 	proker_harian a
                     JOIN 	model_has_roles b ON a.created_by = b.model_id
                     JOIN 	roles c ON b.role_id = c.id
@@ -849,6 +879,7 @@ class ProgramKerjaService
             WHERE 	harian.role_name LIKE '$rolesName'
             AND 	harian.user_id LIKE '$userId'
             AND 	EXTRACT(MONTH FROM harian.pkh_date) = '$getMonth'
+            AND     harian.status_active = 't'
             ORDER BY harian.created_date DESC
             "
         );
@@ -992,6 +1023,7 @@ class ProgramKerjaService
                 "pkh_start_time"    => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_startTime'],
                 "pkh_end_time"      => $data['programKerjaHarian_startDate']." ".$data['programKerjaHarian_endTime'],
                 "pkh_pkb_id"        => $currentRole != 'umum' ? $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq'] : ($data['programKerjaHarian_pkbID'] == 'Lainnya' ? $data['programKerjaHarian_pktID']." | ".$data['programKerjaHarian_pkbID'] : $data['programKerjaHarian_pkbID']." | ".$data['programKerjaHarian_pkbSeq']),
+                "pkh_is_active"     => "t",
                 "created_by"        => Auth::user()->id,
                 "updated_by"        => Auth::user()->id,
                 "created_at"        => date('Y-m-d H:i:s'),
@@ -1268,5 +1300,66 @@ class ProgramKerjaService
         );
 
         return $query_get_selected_jadwal;
+    }
+
+    // 07 JULI 2024
+    // NOTE : FUNGSI HAPUS DATA PRORAM KERJA HARIAN
+    public static function doHapusDataHarian($id, $ip)
+    {
+        DB::beginTransaction();
+        $prokerHarianID     = $id;
+        $ip                 = $ip;
+
+        $data_where         = array(
+            "uuid"          => $prokerHarianID,
+        );
+
+        $data_update        = array(
+            "pkh_is_active" => "f",
+            "updated_by"    => Auth::user()->id,
+            "updated_at"    => date('Y-m-d H:i:s'),
+        );
+
+        DB::table('proker_harian')->where($data_where)->update($data_update);
+
+        try {
+            DB::commit();
+            $output     = array(
+                "status"    => "success",
+                "errMsg"    => [],
+            );
+            LogHelper::create("delete", "Berhasil Menghapus Data Harian dengan ID : ".$prokerHarianID, $ip);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            $output     = array(
+                "status"    => "error",
+                "errMsg"    => $e->getMessage(),
+            );
+            LogHelper::create("error_system", "Gagal Mengapus Data Harian", $ip);
+        }
+
+        return $output;
+
+        // try {
+        //     DB::commit();
+        //     $output     = array(
+        //         'transStatus'   => 'berhasil',
+        //         'errMsg'        => '',
+        //     );
+        //     if($jenis == 'add') {
+        //         $message    = "Berhasil Menambahkan Program Kerja Tahunan";
+        //     } else {
+        //         $message    = "Berhasil Mengubah Program Kerja Tahunan";
+        //     }
+        //     LogHelper::create($jenis, $message, $ip);
+        // } catch(\Exception $e) {
+        //     DB::rollback();
+        //     // Log::channel('daily')->error($e->getMessage());
+        //     $output     = array(
+        //         'transStatus'   => 'gagal',
+        //         'errMsg'        => $e->getMessage(),
+        //     );
+        //     LogHelper::create("error_system", $e->getMessage(), $ip);
+        // }
     }
 }

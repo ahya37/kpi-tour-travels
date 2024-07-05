@@ -1,6 +1,9 @@
 $(document).ready(function(){
     // GET DATA
     dashboard();
+    // showSelect('dashboard_bulan', '%', '', true);
+    // showSelect('dashboard_divisi', '', '', true);
+    // showSelect('dashboard_create', '', '', true);
 })
 
 var base_url    = window.location.pathname;
@@ -18,7 +21,7 @@ function dashboard() {
             $("#pk_bulanan").text(xhr.data[0].grand_total_proker_bulanan+" Program Kerja");
             $("#pk_harian").text(xhr.data[0].grand_total_proker_harian+" Program Kerja");
             $("#summary_header").show();
-            showData('table_programKerja_bulanan', true);
+            // showData('table_programKerja_bulanan', true);
             NProgress.done();
         })
         .catch(function(err){
@@ -27,7 +30,7 @@ function dashboard() {
             $("#pk_bulanan").text("0 Program Kerja");
             $("#pk_harian").text("0 Program Kerja");
             $("#summary_header").show();
-            showData('table_programKerja_bulanan', true);
+            // showData('table_programKerja_bulanan', true);
             NProgress.done();
         })
 }
@@ -80,6 +83,82 @@ function showData(id, asyncStatus)
                 Swal.close();
                 console.log(xhr);
             })
+    } else if(id == 'btnFilter') {
+        var current_month   = moment().format('MM');
+
+        console.log($("#filter").data('isopen'));
+        var areFilterOpen   = $("#filter").data('isopen');
+        if(areFilterOpen == "f") {
+            showSelect('dashboard_divisi', '%', '', true);
+            $("#filter").data('isopen', "t");
+        }
+        $("#filter").on('shown.bs.collapse', function(){
+            showSelect('dashboard_bulan', '%', current_month, true);
+            showSelect('dashboard_create', '', '', true);
+        })
+
+        $("#filter").on('hidden.bs.collapse', function(){
+            showSelect('dashboard_bulan', '%', '', true);
+            showSelect('dashboard_create', '', '', true);
+            $("#filter").data('isopen', "f");
+        })
+    }
+}
+
+function showSelect(idSelect, valueCari, valueSelect, isAsync)
+{
+    $("#"+idSelect).select2({
+        theme   : 'bootstrap4',
+    });
+    
+    if(idSelect == 'dashboard_bulan') {
+        var html    = "<option selected disabled>Pilih Bulan</option>";
+        if(valueCari != '') {
+            $("#"+idSelect).html(html);
+            var allMonth    = moment.months();
+            $.each(allMonth, function(i,item){
+                var monthNumber     = moment(item, 'MMM').format('MM');
+                var monthName       = item;
+                html    += "<option value='" + monthNumber + "'>" + monthName + "</option>"
+            });
+            $("#"+idSelect).html(html);
+
+            if(valueSelect != '') {
+                $("#"+idSelect).val(valueSelect);
+            }
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'dashboard_divisi') {
+        var html    = "<option selected disabled>Pilih Divisi</option>";
+        if(valueCari != '') {
+            $("#"+idSelect).html(html);
+
+            var url     = "/master/data/trans/get/groupDivision";
+            var type    = "GET";
+            var message = "";
+            var data    = valueCari;
+            transData(url, type, data, message, isAsync)
+                .then((success)=>{
+                    var getData     = success.data;
+                    $.each(getData, function(i,item){
+                        html        += "<option value='" + item['id'] + "'>" + item['name'] + "</option>";
+                    })
+                    $("#"+idSelect).html(html);
+                })
+                .catch((err)=>{
+                    console.log(err);
+                })
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'dashboard_create') {
+        var html    = "<option selected disabled>Pilih User</option>";
+        if(valueCari != '') {
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
     }
 }
 

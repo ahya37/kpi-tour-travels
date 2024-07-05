@@ -211,6 +211,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/downloadFile/{path}', [ProgramKerjaController::class, 'ProkerHarianDownloadFile']);
                 Route::get('/getProgramKerjaTahunan/{groupDivisionID}', [ProgramKerjaController::class, 'getProgramKerjaTahunan']);
                 Route::get('/getProgramKerjaBulanan/{programKerjaTahunanID}', [ProgramKerjaController::class, 'getProgramKerjaBulanan']);
+                Route::post('/hapusDataHarian/{id}', [ProgramKerjaController::class, 'hapusDataHarian'])->name('harian.delete');
             });
             // GLOBAL
             Route::get('/get/data/PIC', [ProgramKerjaController::class, 'getDataPIC'])->name('programKerja.get.data.pic');
