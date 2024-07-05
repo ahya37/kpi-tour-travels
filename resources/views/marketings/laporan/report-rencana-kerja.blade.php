@@ -74,7 +74,7 @@
                                     <th class="centered" width="15%" style="background-color: #F5B487">Target / Sasaran</th>
                                     <th class="centered" style="background-color: #F5B487">Hasil</th>
                                     <th class="centered" style="background-color: #F5B487">Evaluasi</th>
-                                    {{-- <th class="centered" style="background-color: #F5B487">Rincian Kegiatan</th> --}}
+                                    <th class="centered" style="background-color: #F5B487">Rincian Kegiatan</th>
                                 </tr>
                             </thead>
                             <tbody id="dataBody"></tbody>

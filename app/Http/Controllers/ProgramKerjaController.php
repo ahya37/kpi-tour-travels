@@ -18,7 +18,7 @@ use File;
 use Carbon\Carbon;
 use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\Log;
-
+use DB;
 date_default_timezone_set('Asia/Jakarta');
 
 class ProgramKerjaController extends Controller
@@ -1018,6 +1018,7 @@ class ProgramKerjaController extends Controller
                         $html = $html.'<td></td>';
                         $html = $html.'<td></td>';
                         $html = $html.'<td></td>';
+                        $html = $html.'<td></td>';
                     }
                     $html = $html.'</tr>';
 
@@ -1027,6 +1028,7 @@ class ProgramKerjaController extends Controller
                         $html = $html.'<td>'.$jenis_pekerjaan->pkbd_target ?? ''.'</td>';
                         $html = $html.'<td>'.$jenis_pekerjaan->pkbd_result ?? ''.'</td>';
                         $html = $html.'<td>'.$jenis_pekerjaan->pkbd_evaluation ?? ''.'</td>';
+                        $html = $html.'<td><button class="btn btn-sm btn-primary text-center onDetail" id='.$jenis_pekerjaan->id.'-'.$jenis_pekerjaan->pkb_id.'><i class="fa fa-eye"></i></button></td>';
                         $html = $html.'</tr>';
 
                     }
@@ -1129,4 +1131,51 @@ class ProgramKerjaController extends Controller
             ]);
         }
 	} 
+
+    public function getRincianKegiatanByJenisPekerjaan()
+    {
+        try {
+            $id = request()->id;
+
+            // get data aktivitas harian berdasarkan bulanan dan detail nya
+            $id_proker_bulanan  = explode("-", $id)[1];
+            $proker_bulanan_uuid = DB::table('proker_bulanan')->select('uuid')->where('id', $id_proker_bulanan)->first();
+
+            $id_jenis_pekerjaan = explode("-", $id)[0];
+            $id_jenis_pekerjaan = (int) $id_jenis_pekerjaan;
+
+            $rincian_kegiatan = DB::table('proker_harian as a')
+                                ->select('a.pkh_title','a.pkh_date','a.pkh_start_time','a.pkh_end_time','c.name as cs')
+                                ->join('proker_bulanan_detail as b', function($join1){
+                                    $join1->on(DB::raw('SUBSTRING_INDEX(a.pkh_pkb_id, "|",-1)'), '=', 'b.id');
+                                })
+                                ->join('users as c','a.created_by','=','c.id')
+                                ->whereRaw(DB::raw("SUBSTRING_INDEX(a.pkh_pkb_id, '|', 1) = '$proker_bulanan_uuid->uuid'"))
+                                ->whereRaw(DB::raw("SUBSTRING_INDEX(a.pkh_pkb_id, '|', -1) = $id_jenis_pekerjaan"))
+                                ->get();
+
+            $results = [];
+            $no = 1;
+            foreach($rincian_kegiatan as $value){
+                $results[] = [
+                    'no' => $no++,
+                    'pkh_title' => $value->pkh_title,
+                    'pkh_date'  => date('d-m-Y', strtotime($value->pkh_date)),
+                    'cs'  => $value->cs,
+                ];
+            }
+
+            return ResponseFormatter::success([  
+                'rincian_kegiatan' => $results,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal Singkronkan data!'
+            ]);
+        }
+
+
+    }
 }
