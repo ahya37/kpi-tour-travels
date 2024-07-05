@@ -2,18 +2,7 @@
 @section('title', $title ?? '')
 
 @push('addon-style')
-    {{-- SELECT2 --}}
-    <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
-    {{-- DATATABLES --}}
-    <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-    {{-- SWEETALERT2 --}}
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
-    {{-- DATERANGEPICKER --}}
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
-    {{-- DROPZONE --}}
-    <link href="{{ asset('assets/css/plugins/dropzone/basic.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+    @include('layouts.css')
     {{-- CUSTOM CSS --}}
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
@@ -240,18 +229,11 @@
 
 
 @push('addon-script')
-    {{-- DROPZONE --}}
-    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    @include('layouts.js')
     {{-- SELECT2 --}}
     <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
     {{-- DATATABLE --}}
     <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
-    {{-- SWEETALERT2 --}}
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
-    {{-- MOMENT --}}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    {{-- DATERANGEPICKER --}}
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     {{-- CUSTOM JS --}}
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/master/programKerja/harian/index.js') }}"></script>

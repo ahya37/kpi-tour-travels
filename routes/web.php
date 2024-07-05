@@ -172,6 +172,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::prefix('programkerja')->group(function(){
             Route::get('/', [ProgramKerjaController::class,'index'])->name('programKerja.index');
             Route::get('/getDataTotalProgramKerja', [ProgramKerjaController::class,'getDataTotalProgramKerja'])->name('programKerja.getDataTotalProgramKerja');
+            Route::get('/getDataTableDashboard', [ProgramKerjaController::class, 'getDataTableDashboard']);
             Route::prefix('tahunan')->group(function(){
                 Route::get('/', [ProgramKerjaController::class,'indexTahunan'])->name('programKerja.tahunan.index');
                 Route::post('/trans/store/dataProkerTahunan/{jenis}', [ProgramKerjaController::class, 'simpanDataProkerTahunan'])->name('programKerja.tahunan.simpan');

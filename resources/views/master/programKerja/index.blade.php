@@ -115,7 +115,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-12 mt-4">
+                            {{-- <div class="col-md-12 mt-4">
                                 <div class="table-responsive">
                                     <table class="table-sm table-hover table-bordered" style="width: 100%;" id="table_programKerja_bulanan">
                                         <thead>
@@ -130,7 +130,7 @@
                                         <tbody></tbody>
                                     </table>
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>

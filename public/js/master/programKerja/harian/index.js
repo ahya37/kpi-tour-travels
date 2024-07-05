@@ -510,7 +510,7 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
 
                     if(valueSelect == '') {
                         Swal.close();
-                        $("#"+idSelect).select2('open');
+                        // $("#"+idSelect).select2('open'); // temp matiin dulu
                     } else {
                         $("#"+idSelect).val(valueSelect);
                     }

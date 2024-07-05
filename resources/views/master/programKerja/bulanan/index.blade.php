@@ -38,17 +38,17 @@
                     </div>
                     <div class="ibox-content">
                         <div class="row mb-2">
-                            <div class="col-sm-6 text-left">
+                            <div class="col-sm-9 text-left">
                                 <button type="button" class="btn btn-primary active" title="Calendar Global" id="btnCalendarGlobal" onclick="showCalendarButton('global')">Kalendar Semua Grup Divisi</button>
                                 @if(Auth::user()->hasRole('admin'))
                                     <button type="butotn" class="btn btn-primary" title="Calendar Operasional" id="btnCalendarOperasional" onclick="showCalendarButton('operasional')">Kalendar Grup Divisi Operasional</button>
                                 @endif
                                 @if(Auth::user()->hasRole('operasional'))
                                     
-                                <button type="butotn" class="btn btn-primary" title="Calendar Operasional" id="btnCalendarOperasional" onclick="showCalendarButton('operasional')">Kalendar Grup Divisi Operasional</button>
+                                <button type="button" class="btn btn-primary" title="Calendar Operasional" id="btnCalendarOperasional" onclick="showCalendarButton('operasional')">Kalendar Grup Divisi Operasional</button>
                                 @endif
                             </div>
-                            <div class="col-sm-6 text-right">
+                            <div class="col-sm-3 text-right">
                                 <input type="hidden" id="current_date">
                                 <button type="button" class="btn btn-secondary" title="Filter Tanggal" id="btnFilter"><i class="fa fa-filter"></i> Filter</button>
                             </div>
@@ -361,13 +361,7 @@
 
 
 @push('addon-script')
-    @include('layouts.js');
-    {{-- SELECT2 --}}
-    <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
-    {{-- FULL CALENDAR AREA --}}
-    <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/index.global.js') }}"></script>
-    <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/index.global.min.js') }}"></script>
-    <script src="{{ asset('assets/js/plugins/fullcalendar-6.1.13/dist/default/bootstrap4.index.global.min.js') }}"></script>
+    @include('layouts.js')
     {{-- CUSTOM JS --}}
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/master/programKerja/bulanan/index.js') }}"></script>
