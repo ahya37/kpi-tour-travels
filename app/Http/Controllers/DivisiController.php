@@ -509,4 +509,40 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    public function hapusProgram($id, Request $request)
+    {
+        $ip         = $request->ip();
+        $doDelete   = DivisiService::doHapusProgram($id, $ip);
+
+        if($doDelete['status'] == 'berhasil') {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Hapus Data"
+                    ],
+                ],
+                "errMsg"    => [],
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Data Tidak Terhapus"
+                    ],
+                ],
+                "errMsg"    => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

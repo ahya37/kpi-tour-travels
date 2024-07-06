@@ -78,7 +78,9 @@ function showModal(idModal, valueCari, jenis)
         $("#"+idModal).modal({backdrop: 'static', keyboard: false});
         $("#"+idModal).modal('show');
         showSelect('programPaket','%','', true);
+        $("#btnDelete").hide();
     } else if(jenis == 'edit') {
+        $("#btnDelete").show();
         // GET DATA
         var url     = site_url + "/getDataJadwalUmrah";
         var data    = {
@@ -286,6 +288,41 @@ function doSimpan(jenis)
             })
             .catch((xhr) => {
                 console.log(xhr);
+            })
+    }
+}
+
+function doDelete(idForm)
+{
+    if(idForm == 'btnDelete') {
+        var programID   = $("#programID").val();
+
+        var url         = site_url + "/hapusProgram/"+programID;
+        var type        = "POST";
+        var data        = "";
+        var message     = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+        var isAsync     = true;
+
+        doTrans(url, type, data, message, isAsync)
+            .then((success)=>{
+                Swal.fire({
+                    icon    : success.alert.icon,
+                    title   : success.alert.message.title,
+                    text    : success.alert.message.text,
+                }).then((results)=>{
+                    if(results.isConfirmed) {
+                        closeModal('modalForm');
+                        var currMonth   = moment().format('MM');
+                        var currYear    = moment().format('YYYY');
+                        var currPaket   = '%';
+                        var inputCurrMonth  = $("#programFilterBulan").val();
+
+                        showTable('table_program_umrah', [inputCurrMonth, currYear, '%', currPaket]);
+                    }
+                })
+            })
+            .catch((err)=>{
+                console.log(err);
             })
     }
 }

@@ -304,6 +304,7 @@ class ProgramKerjaService
                         JOIN 	group_divisions f ON f.id = d.division_group_id
                         JOIN 	roles g ON f.roles_id = g.id
                         WHERE 	e.pkb_title LIKE '[%]%'
+                        AND     b.jdw_uuid LIKE '$jadwal'
                         
                         UNION ALL
                         
@@ -351,7 +352,8 @@ class ProgramKerjaService
                         pkb.pkb_pkt_seq,
                         pkb.pkb_created_date,
                         pkb.pkb_created_by,
-                        pkb.group_division_name
+                        pkb.group_division_name,
+                        pkb.status_created
                 FROM 	(
                         SELECT 	e.uuid as pkb_uuid,
                                 CONCAT(SUBSTRING_INDEX(SUBSTRING_INDEX(e.pkb_title, ')', 1), '(', 1),'', UPPER(e.pkb_description)) as pkb_title,
@@ -365,7 +367,8 @@ class ProgramKerjaService
                                 f.name as group_division_name,
                                 d.name as sub_division_name,
                                 e.created_at as pkb_created_date,
-                                e.created_by as pkb_created_by
+                                e.created_by as pkb_created_by,
+                                a.prog_pkb_is_created as status_created
                         FROM 	tr_prog_jdw a
                         JOIN 	programs_jadwal b ON a.prog_jdw_id = b.jdw_uuid
                         JOIN 	programs_jadwal_rules c ON a.prog_rul_id = c.id
@@ -781,6 +784,7 @@ class ProgramKerjaService
             ) AS b
             JOIN 	programs c ON b.program = LOWER(c.name)
             JOIN 	programs_jadwal d ON c.id = d.jdw_programs_id
+            WHERE   d.is_generated = 't'
             ORDER BY d.jdw_arrival_date ASC
             "
         );

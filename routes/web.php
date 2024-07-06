@@ -241,6 +241,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/listJadwalumrah', [DivisiController::class, 'listJadwalUmrah']);
                 Route::post('/simpanJadwalUmrah', [DivisiController::class, 'simpanJadwalUmrah']);
                 Route::get('/getDataJadwalUmrah', [DivisiController::class, 'getDataJadwalUmrah']);
+                Route::post('/hapusProgram/{id}', [DivisiController::class, 'hapusProgram']);
             });
             Route::prefix('rules')->group(function(){
                 Route::get('/', [DivisiController::class, 'indexRuleProkerBulanan'])->name('index.operasional.rulesprokerbulanan');
