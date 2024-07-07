@@ -157,6 +157,7 @@ function showModal(idModal, jenis, value)
     showDropzone;
     
     if(jenis == 'add'){
+        $("#btnHapus").hide();
         showSelect('programKerjaBulananAktivitas','','', true);
         // CHECK APAKAH CURRENT ROLE == 'UMUM'?
         if(current_role == 'umum') {
@@ -177,6 +178,7 @@ function showModal(idModal, jenis, value)
         Swal.close();
     } 
     else if(jenis == 'edit') {
+        $("#btnHapus").show();
         $("#formUpload").hide();
         $("#formListUpload").show();
         $("#programKerjaHarianID").val(value);
@@ -706,6 +708,52 @@ function doSimpan(jenis)
                 });
             })
     }
+}
+
+function doHapus()
+{
+    var thisID  = $("#programKerjaHarianID").val();
+    
+    Swal.fire({
+        icon    : 'question',
+        title   : 'Hapus Data',
+        text    : 'Data yang dihapus tidak akan muncul kembali di tabel, anda yakin?',
+        showCancelButton    : true,
+        showConfirmButton   : true,
+        confirmButtonText   : 'Ya, Hapus',
+        cancelButtonText    : 'Batal',
+        confirmButtonColor  : '#ED5565'
+    }).then((results)=>{
+        if(results.isConfirmed) {
+            var url     = site_url + "/hapusDataHarian/"+thisID;
+            var type    = "POST";
+            var data    = [];
+            var message = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+            var isAsync = true;
+
+            transData(url, type, data, message, isAsync)
+                .then((success)=>{
+                    Swal.fire({
+                        icon    : success.alert.icon,
+                        title   : success.alert.message.title,
+                        text    : success.alert.message.text,
+                    }).then((results)=>{
+                        if(results.isConfirmed) {
+                            closeModal('modalForm');
+                            showTable('tableListHarian','%');
+                        }
+                    })
+                })
+                .catch((err)=>{
+                    console.log(err);
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : 'Data Tidak Bisa Dihapus',
+                    })
+                })
+        }
+    })
 }
 
 function showFilter() {
