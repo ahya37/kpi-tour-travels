@@ -135,12 +135,6 @@ class MarketingController extends Controller
                             'realization' => $pic['realisasi']
                         ]);
 
-                        #replace data list jamaah nya
-                        PicDetailMarketingTargetListJamaah::where('pic_detailed_marketing_target_id', $PicDetailMarketingTarget->id)->delete();
-                        foreach($pic['list_jamaah'] as $jamaah){
-                            $this->savePicDetailMarketingTargetListJamaah($jamaah, $PicDetailMarketingTarget->id, $DetailMarketingTarget);
-                        }
-
                     }else{
 
                         #jika belum ada maka buat baru
@@ -150,10 +144,11 @@ class MarketingController extends Controller
                             'realization' => $pic['realisasi']
                         ]);
 
-                        #simpan data list jamaah nya 
-                        foreach($pic['list_jamaah'] as $jamaah){
-                           $this->savePicDetailMarketingTargetListJamaah($jamaah, $PicDetailMarketingTarget->id, $DetailMarketingTarget);
-                        }
+                    }
+
+                    PicDetailMarketingTargetListJamaah::where('pic_detailed_marketing_target_id', $PicDetailMarketingTarget->id)->delete();
+                    foreach($pic['list_jamaah'] as $jamaah){
+                        $this->savePicDetailMarketingTargetListJamaah($jamaah, $PicDetailMarketingTarget->id, $DetailMarketingTarget);
                     }
 
                 }
