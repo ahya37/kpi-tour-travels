@@ -42,12 +42,32 @@ class DivisiController extends Controller
 
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
+                $sequence       = $i + 1;
+                $program_name   = $getData[$i]->jdw_program_name;
+                $mentor_name    = $getData[$i]->jdw_mentor_name;
+                $dpt_date       = $getData[$i]->jdw_depature_date;
+                $arv_date       = $getData[$i]->jdw_arrival_date;
+                $status_active  = $getData[$i]->status_active;
+                $status_generate= $getData[$i]->status_generated;
+                
+                if($status_active == "t") {
+                    if($status_generate == "t") {
+                        $badge  = "<span class='badge badge-pill badge-primary'>Sudah Generated</span>";
+                    } else {
+                        $badge  = "<span class='badge badge-pill badge-secondary'>Belum Generated</span>";
+                    }
+                } else {
+                    $badge  = "<span class='badge badge-pill badge-danger'>Tidak Aktif</span>";
+                }
+
+
                 $data[]     = array(
-                    $i + 1,
-                    $getData[$i]->jdw_program_name,
-                    $getData[$i]->jdw_mentor_name,
-                    date('d-M-Y', strtotime($getData[$i]->jdw_depature_date)),
-                    date('d-M-Y', strtotime($getData[$i]->jdw_arrival_date)),
+                    $sequence,
+                    $program_name,
+                    $mentor_name,
+                    date('d-M-Y', strtotime($dpt_date)),
+                    date('d-M-Y', strtotime($arv_date)),
+                    $badge,
                     "<button type='button' class='btn btn-sm btn-primary' value='" . $getData[$i]->jdw_id . "' title='Lihat Data' onclick='showModal(`modalForm`, this.value, `edit`)'><i class='fa fa-eye'></i></button>"
                 );
             }
@@ -206,7 +226,7 @@ class DivisiController extends Controller
                 $button_generate    = "<button type='button' class='btn btn-sm btn-success' title='Generate Aturan Program Kerja' data-startdate='".$getData[$i]->jdw_depature_date."' data-enddate='".$getData[$i]->jdw_arrival_date."' value='".$getData[$i]->jdw_id."' onclick='generateRules(this, this.value)'><i class='fa fa-cog'></i></button>";
                 // $button_generate    = "<button type='button' class='btn btn-sm btn-success' title='Generate Aturan Program Kerja' value='".$getData[$i]->jdw_id."' onclick='showModal(`modaGenerateRules`, this.value)'><i class='fa fa-cog'></i></button>";
                 $button_success     = "<button type='button' class='btn btn-sm btn-primary' title='Lihat Detail' value='" .$getData[$i]->jdw_id. "' onclick='showModal(`modalForm`, this.value)' title='Berhasil Generate'><i class='fa fa-check'></i></button>";
-                $button         = $getData[$i]->is_generated == 'f' ? $button_generate : $button_success;
+                $button         = $getData[$i]->status_generated == 'f' ? $button_generate : $button_success;
                 $data[]     = array(
                     $i + 1,
                     $getData[$i]->jdw_program_name,
@@ -504,6 +524,42 @@ class DivisiController extends Controller
                     "chart"     => $getData['chart'],
                     "table"     => $getData['table'],
                 ]
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function hapusProgram($id, Request $request)
+    {
+        $ip         = $request->ip();
+        $doDelete   = DivisiService::doHapusProgram($id, $ip);
+
+        if($doDelete['status'] == 'berhasil') {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Hapus Data"
+                    ],
+                ],
+                "errMsg"    => [],
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Data Tidak Terhapus"
+                    ],
+                ],
+                "errMsg"    => [],
             );
         }
 

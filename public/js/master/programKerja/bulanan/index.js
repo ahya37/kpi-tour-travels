@@ -229,6 +229,7 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                 .then(function(xhr){
                     var tempData    = [];
                     var roleColor   = '';
+                    console.log(xhr.data.list);
                     for(var i = 0; i < xhr.data.list.length; i++) {
                         
                         if(xhr.data.list[i]['group_division_name'] == 'Marketing') {
@@ -238,6 +239,8 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                                 roleColor   = "#1ab394";
                             } else if(xhr.data.list[i]['status_created'] == 'f') {
                                 roleColor   = "#dc3545";
+                            } else {
+                                roleColor   = "#1ab394";
                             }
                         }
 
