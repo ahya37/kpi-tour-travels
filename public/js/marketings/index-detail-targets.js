@@ -91,8 +91,7 @@ function onSingkron(data) {
         Swal.showLoading();
         },
         success: function (data) {
-        Swal.close();
-
+          Swal.close();
           Swal.fire({
             position: "center",
             icon: "success",

@@ -25,7 +25,8 @@ class DivisiService
                     a.jdw_arrival_date,
                     UPPER(a.jdw_mentor_name) AS jdw_mentor_name,
                     b.name as jdw_program_name,
-                    a.is_generated
+                    a.is_generated as status_generated,
+                    a.is_active as status_active
             FROM 	programs_jadwal a
             JOIN 	programs b on a.jdw_programs_id = b.id
             WHERE   a.jdw_uuid LIKE '$uuid'
@@ -113,9 +114,11 @@ class DivisiService
                     a.jdw_arrival_date,
                     UPPER(a.jdw_mentor_name) AS jdw_mentor_name,
                     a.jdw_programs_id,
-                    b.name as jdw_program_name
+                    b.name as jdw_program_name,
+                    a.is_active as status_active,
+                    a.is_generated as status_generated
             FROM 	programs_jadwal a
-            JOIN 	programs B on a.jdw_programs_id = b.id
+            JOIN 	programs b on a.jdw_programs_id = b.id
             WHERE   a.jdw_uuid LIKE '$uuid'
             ORDER BY a.jdw_depature_date DESC
             "
@@ -678,6 +681,72 @@ class DivisiService
             "chart" => !empty($query_for_chart) ? $query_for_chart : "",
             "table" => !empty($query_for_table) ? $query_for_table : "",
         );
+
+        return $output;
+    }
+
+    // 05 JULI 2024
+    // NOTE : PEMBUATAN MODUL HAPUS PROGRAMS
+    public static function doHapusProgram($id, $ip)
+    {
+        DB::beginTransaction();
+
+        // CHECK APAKAH ID INI SUDAH MASUK KE PROGRAM KERJA BULANAN
+        $queryCheckProkerBulanan    = DB::select(
+            "
+            SELECT 	*
+            FROM 	tr_prog_jdw a
+            WHERE 	prog_jdw_id = '$id'
+            AND 	REPLACE(a.prog_pkb_id, ' ', '') <> '' 
+            ORDER BY CAST(a.prog_rul_id AS SIGNED) ASC
+            "
+        );
+        
+        if(!empty($queryCheckProkerBulanan)) {
+            for($i = 0; $i < count($queryCheckProkerBulanan); $i++) {
+                $tarik  = $queryCheckProkerBulanan[$i];
+
+                $pkb_ID     = $tarik->prog_pkb_id;
+                // UPDATE PROKER BULANAN
+                $whereUpdateBulanan     = [
+                    "uuid"  => $pkb_ID
+                ];
+                $dataUpdateBulanan      = [
+                    "pkb_is_active"     => "f"
+                ];
+
+                DB::table('proker_bulanan')->where($whereUpdateBulanan)->update($dataUpdateBulanan);
+            }
+        } else {
+            // DO NOTHING
+        }
+        
+        // UPDATE JADWAL
+        $query_where    = [
+            "jdw_uuid"      => $id,
+        ];
+
+        $query_update   = [
+            "is_active"     => "f",
+        ];
+
+        DB::table('programs_jadwal')->where($query_where)->update($query_update);
+
+        try {
+            DB::commit();
+            $output     = array(
+                "status"    => "berhasil",
+                "errMsg"    => [],
+            );
+            LogHelper::create('delete', 'Berhasil Membatalkan Program ID : '.$id, $ip);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            $output     = array(
+                "status"    => "error",
+                "errMsg"    => $e->getMessage(),
+            );
+            LogHelper::create('error_system', 'Gagal Membatalkan Program', $ip);
+        }
 
         return $output;
     }

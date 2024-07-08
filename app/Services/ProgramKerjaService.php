@@ -255,7 +255,8 @@ class ProgramKerjaService
                         pkb.pkb_created_date,
                         pkb.pkb_created_by,
                         pkb.group_division_name,
-				        pkb.status_created
+				        pkb.status_created,
+                        pkb.status_active
                 FROM 	(
                         SELECT 	a.uuid as pkb_uuid,
                                 a.pkb_title,
@@ -270,7 +271,8 @@ class ProgramKerjaService
                                 f.name as sub_division_name,
                                 a.created_at as pkb_created_date,
                                 a.created_by as pkb_created_by,
-								null as status_created
+								null as status_created,
+                                a.pkb_is_active as status_active
                         FROM 	proker_bulanan a
                         JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
                         JOIN 	group_divisions c ON b.division_group_id = c.id
@@ -295,7 +297,8 @@ class ProgramKerjaService
                                 d.name as pkb_sd_name,
                                 e.created_at,
                                 e.created_by,
-                                a.prog_pkb_is_created as status_created
+                                a.prog_pkb_is_created as status_created,
+                                e.pkb_is_active
                         FROM 	tr_prog_jdw a
                         JOIN 	programs_jadwal b ON a.prog_jdw_id = b.jdw_uuid
                         JOIN 	programs_jadwal_rules c ON a.prog_rul_id = c.id
@@ -304,6 +307,7 @@ class ProgramKerjaService
                         JOIN 	group_divisions f ON f.id = d.division_group_id
                         JOIN 	roles g ON f.roles_id = g.id
                         WHERE 	e.pkb_title LIKE '[%]%'
+                        AND     b.jdw_uuid LIKE '$jadwal'
                         
                         UNION ALL
                         
@@ -320,7 +324,8 @@ class ProgramKerjaService
                                     e.name as sub_division_name,
                                     a.created_at,
                                     a.created_by,
-								    null as status_created
+								    null as status_created,
+                                    a.pkb_is_active
                         FROM 		proker_bulanan a
                         JOIN 		proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ', 1) = b.uid
                         JOIN 		group_divisions c ON c.id = b.division_group_id
@@ -335,7 +340,7 @@ class ProgramKerjaService
                 AND 	r.name LIKE '$roleName'
                 AND 	LOWER(pkb.sub_division_name) LIKE '$sub_divisi'
                 AND     pkb.group_division_name LIKE '$group_divisi'
-                AND     pkb.pkb_created_by LIKE '$user_id'
+                AND     pkb.status_active = 't'
                 ORDER BY pkb.pkb_created_date ASC
                 "
             );
@@ -351,7 +356,8 @@ class ProgramKerjaService
                         pkb.pkb_pkt_seq,
                         pkb.pkb_created_date,
                         pkb.pkb_created_by,
-                        pkb.group_division_name
+                        pkb.group_division_name,
+                        pkb.status_created
                 FROM 	(
                         SELECT 	e.uuid as pkb_uuid,
                                 CONCAT(SUBSTRING_INDEX(SUBSTRING_INDEX(e.pkb_title, ')', 1), '(', 1),'', UPPER(e.pkb_description)) as pkb_title,
@@ -365,7 +371,8 @@ class ProgramKerjaService
                                 f.name as group_division_name,
                                 d.name as sub_division_name,
                                 e.created_at as pkb_created_date,
-                                e.created_by as pkb_created_by
+                                e.created_by as pkb_created_by,
+                                a.prog_pkb_is_created as status_created
                         FROM 	tr_prog_jdw a
                         JOIN 	programs_jadwal b ON a.prog_jdw_id = b.jdw_uuid
                         JOIN 	programs_jadwal_rules c ON a.prog_rul_id = c.id
@@ -508,6 +515,7 @@ class ProgramKerjaService
                 "updated_at"            => date('Y-m-d H:i:s'),
                 "pkb_start_time"        => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate']))." ".$dataProkerBulananInput['prokerBulanan_startActivity'],
                 "pkb_end_time"          => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate']))." ".$dataProkerBulananInput['prokerBulanan_endActivity'],
+                "pkb_is_active"         => "t",
             );
             DB::table('proker_bulanan')
                 ->insert($data_insert);
@@ -582,6 +590,7 @@ class ProgramKerjaService
                 "pkb_employee_id"       => $dataProkerBulananInput['prokerBulanan_employeeID'],
                 "pkb_start_time"        => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate']))." ".$dataProkerBulananInput['prokerBulanan_startActivity'],
                 "pkb_end_time"          => date('Y-m-d', strtotime($dataProkerBulananInput['prokerBulanan_startDate']))." ".$dataProkerBulananInput['prokerBulanan_endActivity'],
+                "created_by"            => Auth::user()->id,
                 "updated_by"            => Auth::user()->id,
                 "updated_at"            => date('Y-m-d H:i:s'),
             );
@@ -781,6 +790,7 @@ class ProgramKerjaService
             ) AS b
             JOIN 	programs c ON b.program = LOWER(c.name)
             JOIN 	programs_jadwal d ON c.id = d.jdw_programs_id
+            WHERE   d.is_generated = 't'
             ORDER BY d.jdw_arrival_date ASC
             "
         );
@@ -790,6 +800,9 @@ class ProgramKerjaService
 
     public static function doGetDataTableDashboad($data)
     {
+        $groupDivision  = $data['sendData']['groupDivisi'];
+        $createdBy      = $data['sendData']['createdBy'];
+        $createdMonth   = $data['sendData']['createdMonth'];
         $query  = DB::select(
             "
             SELECT 	a.uuid,
@@ -800,14 +813,18 @@ class ProgramKerjaService
                     b.pkt_year as pkb_tahun,
                     c.id as group_division_id,
                     c.name as group_division_name,
-                    d.name as created_by
+                    a.created_by as created_by_id,
+                    d.name as created_by_name,
+                    a.pkb_is_active as status_active
             FROM 	proker_bulanan a
             JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
             JOIN 	group_divisions c ON b.division_group_id = c.id
             JOIN 	employees d ON d.user_id = a.created_by
             WHERE 	b.pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
-            AND 	LOWER(c.name) LIKE '%'
-            ORDER BY a.pkb_start_date ASC
+            AND     EXTRACT(MONTH FROM a.pkb_start_date) = '$createdMonth'
+            AND     c.id LIKE '$groupDivision'
+            AND 	a.created_by LIKE '$createdBy'
+            ORDER BY a.pkb_start_date DESC
             "
         );
 
@@ -1140,8 +1157,37 @@ class ProgramKerjaService
     // NOTE : SUMMARY UNTUK DASHBOARD PROGRAM KERJA
     public static function doGetDataTotalProgramKerja()
     {
-        $roleName     = (Auth::user()->getRoleNames()[0]  == 'admin') ? '%' : Auth::user()->getRoleNames()[0];
-        $currentYear  = date('Y');
+        $userID         = Auth::user()->id;
+        $roleName       = (Auth::user()->getRoleNames()[0]  == 'admin') ? '%' : Auth::user()->getRoleNames()[0];
+        $currentYear    = date('Y');
+
+        // var_dump(Auth::user()->getRoleNames()[0] != 'admin');die();
+
+        if(Auth::user()->getRoleNames()[0] != 'admin') {
+            $querySubDivision   = DB::select(
+                "
+                SELECT 	a.user_id,
+                        a.name as user_name,
+                        LOWER(c.name) as sub_division_name
+                FROM 	employees a
+                JOIN 	job_employees b ON b.employee_id = a.id
+                JOIN 	sub_divisions c ON b.sub_division_id = c.id
+                WHERE 	a.user_id = '$userID'
+                "
+            );
+    
+            if(!empty($querySubDivision)) {
+                // CHECK IF SUB DIVISION IS PIC / MANAGER
+                if($querySubDivision[0]->sub_division_name == 'pic' || $querySubDivision[0]->sub_division_name == 'manager') {
+                    $userID     = '%';
+                } else {
+                    $userID     = Auth::user()->id;
+                }
+            }
+        } else {
+            $userID         = '%';
+        }
+
         $query  = DB::select(
             "
             SELECT 	SUM(total_proker_tahunan) as grand_total_proker_tahunan,
@@ -1189,6 +1235,7 @@ class ProgramKerjaService
             JOIN 	roles d ON (d.id = b.roles_id)
             WHERE 	d.name LIKE '$roleName'
             AND 	b.tahun = '$currentYear'
+            AND     b.created_by LIKE '$userID'
             GROUP BY b.tahun
             "
         );
@@ -1361,5 +1408,21 @@ class ProgramKerjaService
         //     );
         //     LogHelper::create("error_system", $e->getMessage(), $ip);
         // }
+    }
+
+    // 08 JULI 2024
+    // NOTE : GET DATA LIST USER BY GROUP DIVISION
+    public static function doGetDataTableListUser($groupDivisionID)
+    {
+        return DB::select(
+            "
+            SELECT 	b.user_id,
+                    b.name
+            FROM 	job_employees a
+            JOIN 	employees b ON a.employee_id = b.id
+            WHERE 	a.group_division_id LIKE '$groupDivisionID'
+            ORDER BY b.user_id ASC
+            "
+        );
     }
 }

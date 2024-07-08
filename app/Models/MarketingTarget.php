@@ -105,4 +105,28 @@ class MarketingTarget extends Model
         return $umrah;
     }
 
+    public static function getPencapaianUmrahPerSumber($marketing_target_id)
+    {
+        $umrah = DB::table('pic_detailed_marketing_target_list_jamaah')
+                ->select('sumber',
+                    DB::raw('count(id) as realisasi')
+                )
+                ->where('marketing_target_id', $marketing_target_id);
+
+        return $umrah;
+    }
+
+    public static function getPencapaianUmrahAlumni($marketing_target_id)
+    {
+        $umrah = DB::table('pic_detailed_marketing_target_list_jamaah')
+                ->select('is_alumni',
+                    DB::raw('count(id) as jamaah')
+                )
+                ->where('marketing_target_id', $marketing_target_id);
+
+        return $umrah;
+    }
+
+
+
 }
