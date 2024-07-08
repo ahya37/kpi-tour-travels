@@ -72,6 +72,7 @@
                                     <th class="text-center">Pembimbing</th>
                                     <th class="text-center">Tgl. Keberangkatan</th>
                                     <th class="text-center">Tgl. Kepulangan</th>
+                                    <th class="text-center">Generate?</th>
                                     <th class="text-center">Aksi</th>
                                 </tr>
                             </thead>
@@ -136,7 +137,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" id="btnDelete" onclick="doDelete(this.id)">Hapus Data</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('modalForm')">Batal</button>
+                    <button type="button" class="btn btn-secondary" id="btnBatal" onclick="closeModal('modalForm')">Batal</button>
                     <button type="button" class="btn btn-primary" id="btnSimpan" onclick="doSimpan(this.value)">Simpan</button>
                 </div>
             </div>

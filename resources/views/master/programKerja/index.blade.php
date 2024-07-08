@@ -16,6 +16,10 @@
 @endsection
 
 @section('content')
+    <input type="hidden" id="group_division" value="{{ $group_division }}">
+    <input type="hidden" id="sub_division" value="{{ $sub_division }}">
+    <input type="hidden" id="user_id" value="{{ $current_user }}">
+    <input type="hidden" id="user_role" value="{{ $current_role }}">
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
             <div class="col-lg-12">
@@ -71,18 +75,20 @@
                     </div>
                 </div>
             </div>
-            {{-- <div class="col-lg-12" id="v_table_programKerja_bulanan" style="display: none;">
+            <div class="col-lg-12" id="v_table_programKerja_bulanan" style="display: none;">
                 <div class="card shadow my-4">
                     <div class="card-header bg-secondary text-white">
                         <div class="row">
                             <div class="col-sm-6">
                                 <h4 style="padding: 0px;" class="pt-2"><i class="fa fa-table"></i> &nbsp; Table List Program Kerja Bulanan</h4>
                             </div>
-                            <div class="col-sm-6 text-right">
-                                <button class="btn btn-secondary font-bold" data-toggle="collapse" data-target="#filter" id="btnFilter" onclick="showData(this.id, '')">
-                                    <h4> <i class="fa fa-filter"></i> Filter</h4>
-                                </button>
-                            </div>
+                            @if($current_role == 'admin')
+                                <div class="col-sm-6 text-right">
+                                    <button class="btn btn-secondary font-bold" data-toggle="collapse" data-target="#filter" id="btnFilter" onclick="showData(this.id, '')">
+                                        <h4> <i class="fa fa-filter"></i> Filter</h4>
+                                    </button>
+                                </div> 
+                            @endif
                         </div>
                     </div>
                     <div class="card-body">
@@ -106,13 +112,13 @@
                                                 <select name="dashboard_bulan" id="dashboard_bulan" class="form-control form-select" style="width: 100%;"></select>
                                             </div>
                                             <div class="col-sm-3">
-                                                <select name="dashboard_divisi" id="dashboard_divisi" class="form-control form-select" style="width: 100%;"></select>
+                                                <select name="dashboard_divisi" id="dashboard_divisi" class="form-control form-select" style="width: 100%;" onchange="showSelect('dashboard_create', '%', this.value, true)"></select>
                                             </div>
                                             <div class="col-sm-3">
                                                 <select name="dashboard_create" id="dashboard_create" class="form-control form-select" style="width: 100%;"></select>
                                             </div>
                                             <div class="col-sm-3">
-                                                <button class="btn btn-primary" id="btnCari" style="height: 37.5px;">Cari</button>
+                                                <button class="btn btn-primary" id="btnCari" style="height: 37.5px;" onclick="showDataTable('table_programKerja_bulanan')">Cari</button>
                                             </div>
                                         </div>
                                     </div>
@@ -128,6 +134,7 @@
                                                 <th class="text-left align-middle">Tanggal</th>
                                                 <th class="text-center align-middle">Divisi</th>
                                                 <th class="text-center align-middle">Dibuat Oleh</th>
+                                                <th class="text-center align-middl">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody></tbody>
@@ -137,7 +144,7 @@
                         </div>
                     </div>
                 </div>
-            </div> --}}
+            </div>
         </div>
     </div>
 @endsection

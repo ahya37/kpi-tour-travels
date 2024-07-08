@@ -34,7 +34,7 @@ function showTable(idTable, valueCari)
                 "emptyTable"    : "Tidak ada data yang bisa ditampilkan.."
             },
             columnDefs  : [
-                { targets: [0, 5], className: "text-center", width: "7%" },
+                { targets: [0, 5, 6], className: "text-center", width: "7%" },
                 { targets: [3, 4], className: "text-center", width: "16%" },
                 { targets: [1], className: "text-left", width: "18%" },
             ],
@@ -92,6 +92,7 @@ function showModal(idModal, valueCari, jenis)
 
         doTrans(url, type, data, message, isAsync)
             .then((xhr) => {
+                console.log(xhr);
                 $("#"+idModal).modal({backdrop: 'static', keyboard: false});
                 $("#"+idModal).modal('show');
                 
@@ -103,6 +104,21 @@ function showModal(idModal, valueCari, jenis)
                 $("#programPembimbing").val(getData['jdw_mentor_name']);
                 showSelect('programPaket', '%', getData['jdw_programs_id'], false);
                 Swal.close();
+
+                if(getData['status_active'] == 'f') {
+                    $("#btnDelete").prop('disabled', true);
+                    $("#btnBatal").prop('disabled', true);
+                    $("#btnSimpan").prop('disabled', true);
+                } else {
+                    $("#btnDelete").prop('disabled', false);
+                    $("#btnBatal").prop('disabled', false);
+                    $("#btnSimpan").prop('disabled', false);
+                    if(getData['status_generated'] == 'f') {
+                        $("#btnDelete").hide();
+                    } else {
+                        $("#btnDelete").show();
+                    }
+                }
             })
             .catch((xhr) => {
                 Swal.fire({
@@ -120,6 +136,11 @@ function closeModal(idModal) {
         $(".programDate").val(moment().format('DD/MM/YYYY'));
         $("input[type='text']").val(null);
         $("#btnSimpan").val(null);
+        
+        $("#btnDelete").prop('disabled', false);
+        $("#btnDelete").show();
+        $("#btnBatal").prop('disabled', false);
+        $("#btnSimpan").prop('disabled', false);
     });
 }
 
@@ -297,33 +318,45 @@ function doDelete(idForm)
     if(idForm == 'btnDelete') {
         var programID   = $("#programID").val();
 
-        var url         = site_url + "/hapusProgram/"+programID;
-        var type        = "POST";
-        var data        = "";
-        var message     = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
-        var isAsync     = true;
+        Swal.fire({
+            icon    : 'question',
+            title   : 'Hapus Data',
+            text    : 'Data yang telah dihapus tidak akan muncul pada tabel, anda yakin?',
+            showCancelButton    : true,
+            showConfirmButton   : true,
+            cancelButtonText    : 'Batal',
+            confirmButtonText   : 'Ya, Hapus',
+            confirmButtonColor  : '#dc3545',
+        }).then((results)=>{
+            if(results.isConfirmed) {
+                var url         = site_url + "/hapusProgram/"+programID;
+                var type        = "POST";
+                var data        = "";
+                var message     = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+                var isAsync     = true;
 
-        doTrans(url, type, data, message, isAsync)
-            .then((success)=>{
-                Swal.fire({
-                    icon    : success.alert.icon,
-                    title   : success.alert.message.title,
-                    text    : success.alert.message.text,
-                }).then((results)=>{
-                    if(results.isConfirmed) {
-                        closeModal('modalForm');
-                        var currMonth   = moment().format('MM');
-                        var currYear    = moment().format('YYYY');
-                        var currPaket   = '%';
-                        var inputCurrMonth  = $("#programFilterBulan").val();
+                doTrans(url, type, data, message, isAsync)
+                    .then((success)=>{
+                        Swal.fire({
+                            icon    : success.alert.icon,
+                            title   : success.alert.message.title,
+                            text    : success.alert.message.text,
+                        }).then((results)=>{
+                            if(results.isConfirmed) {
+                                closeModal('modalForm');
+                                var currYear    = moment().format('YYYY');
+                                var currPaket   = '%';
+                                var inputCurrMonth  = $("#programFilterBulan").val();
 
-                        showTable('table_program_umrah', [inputCurrMonth, currYear, '%', currPaket]);
-                    }
-                })
-            })
-            .catch((err)=>{
-                console.log(err);
-            })
+                                showTable('table_program_umrah', [inputCurrMonth, currYear, '%', currPaket]);
+                            }
+                        })
+                    })
+                    .catch((err)=>{
+                        console.log(err);
+                    })
+            }
+        })
     }
 }
 

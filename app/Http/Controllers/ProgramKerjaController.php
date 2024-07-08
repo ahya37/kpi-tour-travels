@@ -27,9 +27,42 @@ class ProgramKerjaController extends Controller
 
     public function index()
     {
+        $currentUser    = Auth::user()->id;
+        $currentRole    = Auth::user()->getRoleNames()[0];
+        
+        if($currentRole != 'admin') {
+            $employee       = DB::select(
+                "
+                SELECT 	a.id,
+                        a.name,
+                        b.group_division_id,
+                        LOWER(c.name) as group_division_name,
+                        b.sub_division_id,
+                        LOWER(d.name) as sub_division_name
+                FROM 	employees a
+                JOIN 	job_employees b ON a.id = b.employee_id
+                JOIN 	group_divisions c ON b.group_division_id = c.id
+                JOIN 	sub_divisions d ON b.sub_division_id = d.id
+                AND 	a.user_id LIKE '$currentUser'
+                "
+            );
+
+            if(!empty($employee)) {
+                $currentGroupDivision   = $employee[0]->group_division_id;
+                $currentSubDivision     = $employee[0]->sub_division_name;
+            }
+        } else {
+            $currentGroupDivision   = '%';
+            $currentSubDivision     = '%';
+        }
+
         $data   = [
-            'title'     => 'Master Program Kerja',
-            'sub_title' => 'Dashboard Program Kerja'
+            'title'             => 'Master Program Kerja',
+            'sub_title'         => 'Dashboard Program Kerja',
+            'current_user'      => Auth::user()->id,
+            'current_role'      => Auth::user()->getRoleNames()[0],
+            'group_division'    => $currentGroupDivision,
+            'sub_division'      => $currentSubDivision,
         ];
 
         return view('master/programKerja/index', $data);
@@ -842,6 +875,33 @@ class ProgramKerjaController extends Controller
                     ],
                 ],
                 "errMsg"    => $doUpdate['errMsg'],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 08 JULI 2024
+    // NOTE : GET LIST USER BY GROUP DIVISION
+    public function getDatatableDashboardListUser(Request $request)
+    {
+        $groupDivisionID    = $request->all()['sendData']['groupDivisionID'];
+        
+        $getData            = ProgramKerjaService::doGetDataTableListUser($groupDivisionID);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "message"   => "Terjadi Kesalahan",
+                "data"      => []
             );
         }
 
