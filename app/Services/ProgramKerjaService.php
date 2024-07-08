@@ -340,7 +340,6 @@ class ProgramKerjaService
                 AND 	r.name LIKE '$roleName'
                 AND 	LOWER(pkb.sub_division_name) LIKE '$sub_divisi'
                 AND     pkb.group_division_name LIKE '$group_divisi'
-                AND     pkb.pkb_created_by LIKE '$user_id'
                 AND     pkb.status_active = 't'
                 ORDER BY pkb.pkb_created_date ASC
                 "
