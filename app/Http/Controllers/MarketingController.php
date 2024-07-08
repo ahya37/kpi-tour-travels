@@ -784,6 +784,7 @@ class MarketingController extends Controller
             $umrah_program = MarketingTarget::getPencapaianUmrahPerProgramByTahun($id);
             $umrah_per_pic = MarketingTarget::getPencapaianUmrahPerPicByTahun($id);
             $umrah_per_sumber = MarketingTarget::getPencapaianUmrahPerSumber($id);
+            $umrah_per_alumni = MarketingTarget::getPencapaianUmrahAlumni($id);
             
             if ($startDate != '' AND $endDate != '') {
 
@@ -801,6 +802,7 @@ class MarketingController extends Controller
                 $umrah_prbulan = $umrah_prbulan->whereBetWeen('a.month_number',[$startDate, $endDate]);
                 $list_programs = $list_programs->whereBetWeen('a.month_number',[$startDate, $endDate]);
                 $umrah_per_sumber = $umrah_per_sumber->whereBetWeen('month_number',[$startDate, $endDate]);
+                $umrah_per_alumni = $umrah_per_alumni->whereBetWeen('month_number',[$startDate, $endDate]);
 
             }
 
@@ -959,6 +961,56 @@ class MarketingController extends Controller
                     $persentage_total_pencapaian  = $fn->persen($persentage_total_pencapaian);  
             }
 
+            $umrah_per_alumni = $umrah_per_alumni->groupBy('is_alumni')->get();
+
+            $baru           = $umrah_per_alumni->filter(function($item){
+                return $item->is_alumni == 1;
+            });
+
+            $sum_baru      = collect($baru)->sum(function($q){
+                return $q->jamaah;
+            });
+
+            $alumni           = $umrah_per_alumni->filter(function($item){
+                return $item->is_alumni > 1;
+            });
+
+            $sum_alumni      = collect($alumni)->sum(function($q){
+                return $q->jamaah;
+            });
+
+            $res_alumni[] = [
+                'jamaah_baru' => $sum_baru,
+                'jamaah_alumni' => $sum_alumni
+            ];
+
+            $res_umrah_per_kelompok_jamaah = [];
+            foreach ($res_alumni as $key =>   $value) {
+
+                // $res_umrah_per_kelompok_jamaah['label'][]    = 'Kelompok';
+				$res_umrah_per_kelompok_jamaah['jamaah_baru'][]   = $value['jamaah_baru'];
+				$res_umrah_per_kelompok_jamaah['jamaah_alumni'][]   = $value['jamaah_alumni'];
+				// $res_umrah_per_kelompok_jamaah['persentage_per_bulan'][]   = $persentage_per_bulan;
+				$res_umrah_per_kelompok_jamaah['color'][] = '#d3d3d3';
+            }
+            $chart_umrah_per_alumni = array(
+                "labels" => ['Jamaah Baru', 'Alumni'],
+                "datasets" => array(
+                        array(
+                            "label" => 'Jamaah baru',
+                            "data"  => $res_umrah_per_kelompok_jamaah['jamaah_baru'],
+                            "color" => $res_umrah_per_kelompok_jamaah['color'],
+                            "backgroundColor" => "#a3e1d4",
+                        ),
+                        array(
+                            "label" => 'Alumni',
+                            "data"  => $res_umrah_per_kelompok_jamaah['jamaah_alumni'],
+                            "color" => $res_umrah_per_kelompok_jamaah['color'],
+                            "backgroundColor" => "#DF9E0F",
+                        )
+                    )
+            );
+
 
 
             return ResponseFormatter::success([
@@ -969,7 +1021,10 @@ class MarketingController extends Controller
                 'total_realisasi' => $fn->decimalFormat($total_realisasi),
                 'total_selisih' => $fn->decimalFormat($total_selisih),
                 'persentage_total_pencapaian' => $persentage_total_pencapaian,
-                'chart_umrah_per_sumber' => $chart_umrah_per_sumber
+                'chart_umrah_per_sumber' => $chart_umrah_per_sumber,
+                // 'umrah_baru' => $sum_baru,
+                // 'umrah_alumni' => $sum_alumni,
+                'chart_umrah_per_alumni' => $chart_umrah_per_alumni
             ]);
 
         } catch (\Exception $e) {

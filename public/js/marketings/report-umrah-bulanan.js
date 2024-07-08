@@ -123,6 +123,7 @@ $(document).ready(function () {
             $('#jamaahperpic').remove();
             showLoading('graph-container-jamaahperpic');
             const responses = await callApi(startDate, endDate);
+
             closeLoading('graph-container-jamaahperpic')
             $('#graph-container-jamaahperpic').append('<canvas id="jamaahperpic"  width="100"></canvas>');
             createChart('jamaahperpic', 'bar', responses.data.chart_umrah_per_pic);
@@ -171,10 +172,26 @@ $(document).ready(function () {
         }
     }
 
+    const initialGrafikJamaahPerKelompok = async (startDate, endDate) => {
+        try {
+            $('#jamaahperkelompok').remove();
+            showLoading('graph-container-jamaahperkelompok');
+            const responses = await callApi(startDate, endDate);
+            console.log(responses.data.chart_umrah_per_alumni);
+
+            closeLoading('graph-container-jamaahperkelompok')
+            $('#graph-container-jamaahperkelompok').append('<canvas id="jamaahperkelompok"  width="100"></canvas>');
+            createChart('jamaahperkelompok', 'pie', responses.data.chart_umrah_per_alumni);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     initialGrafikJamaahPerProgram(startDate, endDate);
     initialGrafikJamaahPerPic(startDate, endDate);
     initialGrafikJamaahPerbulan(startDate, endDate);
     initialGrafikJamaahPerSumber(startDate, endDate);
+    initialGrafikJamaahPerKelompok(startDate, endDate);
     initialAllTotal(startDate, endDate);
 
     $('.month-start').datepicker({

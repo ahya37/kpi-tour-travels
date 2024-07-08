@@ -197,6 +197,31 @@
     </div>
 
     <div class="row">
+        <div class="col-lg-6">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <div class="col-md-5 col-sm-5">
+                        <h5>Pencapaian Per Kelompok</h5>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="m-t-sm">
+                        <div class="row">
+                            <div class="col-md-12">
+                               <div class="mt-4" id="graph-container-jamaahperkelompok">
+                                <canvas id="jamaahperkelompok" width="100"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
         <div class="col-lg-12">
             <div class="ibox ">
                 <div class="ibox-title">
