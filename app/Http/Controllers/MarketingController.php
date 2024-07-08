@@ -19,6 +19,7 @@ use App\Models\Program;
 use App\Models\Reason;
 use App\Models\DetailMarketingTarget;
 use App\Models\PicDetailMarketingTarget;
+use App\Models\PicDetailMarketingTargetListJamaah;
 use App\Services\MarketingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -83,6 +84,7 @@ class MarketingController extends Controller
             #get data realiasai dari API umhaj
             $formData['year'] = $target->year;
             $res_realiasi = MarketingService::getRelisasiUmrah($formData);
+
             $res_umrah    = $res_realiasi['data'];
 
 
@@ -133,14 +135,25 @@ class MarketingController extends Controller
                             'realization' => $pic['realisasi']
                         ]);
 
+                        #replace data list jamaah nya
+                        PicDetailMarketingTargetListJamaah::where('pic_detailed_marketing_target_id', $PicDetailMarketingTarget->id)->delete();
+                        foreach($pic['list_jamaah'] as $jamaah){
+                            $this->savePicDetailMarketingTargetListJamaah($jamaah, $PicDetailMarketingTarget->id, $DetailMarketingTarget);
+                        }
+
                     }else{
 
-                        #jika belum ada maka buat baru 
+                        #jika belum ada maka buat baru
                         PicDetailMarketingTarget::create([
                             'detailed_marketing_target_id' => $DetailMarketingTarget->id,
                             'employee_id' => $pic['kpi_percik_employee_id'],
                             'realization' => $pic['realisasi']
                         ]);
+
+                        #simpan data list jamaah nya 
+                        foreach($pic['list_jamaah'] as $jamaah){
+                           $this->savePicDetailMarketingTargetListJamaah($jamaah, $PicDetailMarketingTarget->id, $DetailMarketingTarget);
+                        }
                     }
 
                 }
@@ -160,6 +173,21 @@ class MarketingController extends Controller
                 'message' =>  'Terjadi kesalahan !'
             ]);
         }
+    }
+
+    public function savePicDetailMarketingTargetListJamaah($jamaah, $PicDetailMarketingTargetId,$DetailMarketingTarget)
+    {
+        
+        PicDetailMarketingTargetListJamaah::create([
+            'pic_detailed_marketing_target_id' => $PicDetailMarketingTargetId,
+            'id_member' => $jamaah['ID_MEMBER'],
+            'name' => $jamaah['NAMA'],
+            'is_alumni' => $jamaah['is_alumni'],
+            'sumber' => $jamaah['sumber'],
+            'month_number' => $DetailMarketingTarget->month_number,
+            'program_id' => $DetailMarketingTarget->program_id,
+            'marketing_target_id' => $DetailMarketingTarget->marketing_target_id,
+        ]);
     }
 
     public function loadModalMarketingTarget()
@@ -760,6 +788,7 @@ class MarketingController extends Controller
             $umrah_prbulan = MarketingTarget::getPencapaianUmrahPerBulanByTahun($id);
             $umrah_program = MarketingTarget::getPencapaianUmrahPerProgramByTahun($id);
             $umrah_per_pic = MarketingTarget::getPencapaianUmrahPerPicByTahun($id);
+            $umrah_per_sumber = MarketingTarget::getPencapaianUmrahPerSumber($id);
             
             if ($startDate != '' AND $endDate != '') {
 
@@ -776,6 +805,7 @@ class MarketingController extends Controller
                 $umrah_program = $umrah_program->whereBetWeen('a.month_number',[$startDate, $endDate]);
                 $umrah_prbulan = $umrah_prbulan->whereBetWeen('a.month_number',[$startDate, $endDate]);
                 $list_programs = $list_programs->whereBetWeen('a.month_number',[$startDate, $endDate]);
+                $umrah_per_sumber = $umrah_per_sumber->whereBetWeen('month_number',[$startDate, $endDate]);
 
             }
 
@@ -894,6 +924,29 @@ class MarketingController extends Controller
                     )
             );
 
+            // Umrah per sumber 
+            $umrah_per_sumber = $umrah_per_sumber->groupBy('sumber')->orderBy('realisasi','desc')->get();
+
+            $res_umrah_per_sumber = [];
+            foreach ($umrah_per_sumber as  $value) {
+
+                $res_umrah_per_sumber['label'][]    = $value->sumber;
+				$res_umrah_per_sumber['realisasi'][]   = $value->realisasi;
+				// $res_umrah_per_sumber['persentage_per_bulan'][]   = $persentage_per_bulan;
+				$res_umrah_per_sumber['color'][] = '#d3d3d3';
+            }
+            $chart_umrah_per_sumber = array(
+                "labels" => $res_umrah_per_sumber['label'],
+                "datasets" => array(
+                        array(
+                            "label" => 'Realisasi',
+                            "data"  => $res_umrah_per_sumber['realisasi'],
+                            "color" => $res_umrah_per_sumber['color'],
+                            "backgroundColor" => "#a3e1d4",
+                        )
+                    )
+            );
+
 
             $list_programs =$list_programs->orderBy('b.sequence','asc')->get();
 
@@ -920,7 +973,8 @@ class MarketingController extends Controller
                 'total_target' => $fn->decimalFormat($total_target),
                 'total_realisasi' => $fn->decimalFormat($total_realisasi),
                 'total_selisih' => $fn->decimalFormat($total_selisih),
-                'persentage_total_pencapaian' => $persentage_total_pencapaian
+                'persentage_total_pencapaian' => $persentage_total_pencapaian,
+                'chart_umrah_per_sumber' => $chart_umrah_per_sumber
             ]);
 
         } catch (\Exception $e) {

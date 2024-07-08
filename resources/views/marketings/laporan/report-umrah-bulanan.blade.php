@@ -171,6 +171,29 @@
 
             </div>
         </div>
+
+        <div class="col-lg-6">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <div class="col-md-5 col-sm-5">
+                        <h5>Pencapaian Per Sumber</h5>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <div class="m-t-sm">
+                        <div class="row">
+                            <div class="col-md-12">
+                               <div class="mt-4" id="graph-container-jamaahpersumber">
+                                <canvas id="jamaahpersumber" width="100"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 
     <div class="row">
