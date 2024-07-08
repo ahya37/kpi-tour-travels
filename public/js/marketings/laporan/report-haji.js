@@ -159,6 +159,19 @@ $(document).ready(function () {
         }
     }
 
+    const initialGrafikPerSumber = async (year) => {
+        try {
+            showLoading('graph-container-jamaahpersumber');
+            $('#jamaahpersumber').remove();
+            const responses = await callApi(year);
+            closeLoading('graph-container-jamaahpersumber')
+            $('#graph-container-jamaahpersumber').append('<canvas id="jamaahpersumber"  width="100"></canvas>');
+            createChart('jamaahpersumber', 'bar', responses.data.chart_haji_sumber);
+        } catch (error) {
+            closeLoading('graph-container-jamaahpersumber')
+        }
+    }
+
     const populateTable = (data) => {
         const tableBody = $('#dataBody');
         tableBody.empty(); // Bersihkan isi tbody sebelum menambahkan data baru
@@ -246,6 +259,7 @@ $(document).ready(function () {
         initialTable(year);
         initialAllTotal(year);
         initialGrafikPerProgram(year);
+        initialGrafikPerSumber(year);
     });
 
 
