@@ -310,6 +310,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="btnHapusData" onclick="doHapusData()">Hapus Data</button> | 
                     <button type="button" class="btn btn-secondary" id="btnCancel" onclick="closeModal('modalForm')">Batal</button>
                     <button type="button" class="btn btn-primary" id="btnSimpan">Simpan</button>
                 </div>

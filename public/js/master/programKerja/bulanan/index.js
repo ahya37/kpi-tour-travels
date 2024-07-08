@@ -76,7 +76,7 @@ $(document).ready(function(){
     showCalendarButton('global')
 
     $("#prokerBulananStartDate").val(moment().startOf('month').format('DD/MM/YYYY'));
-    $("#prokerBulananEndDate").val(moment().format('DD/MM/YYYY'));
+    $("#prokerBulananEndDate").val(moment().endOf('month').format('DD/MM/YYYY'));
 
     $("#current_date").val(moment().tz('Asia/Jakarta').format('YYYY-MM-DD'));
     // SHOW COLLAPSE
@@ -229,7 +229,6 @@ function showCalendar(tgl_sekarang, tgl_awal, tgl_akhir, divisi)
                 .then(function(xhr){
                     var tempData    = [];
                     var roleColor   = '';
-                    console.log(xhr.data.list);
                     for(var i = 0; i < xhr.data.list.length; i++) {
                         
                         if(xhr.data.list[i]['group_division_name'] == 'Marketing') {
@@ -395,6 +394,8 @@ function showModal(idModal, jenis, value)
             // SHOW MODAL
             $("#"+idModal).modal({backdrop: 'static', keyboard: false});
             $("#"+idModal).modal('show');
+            
+            $("#btnHapusData").prop('disabled', true);
 
             // SHOW SELECT
             show_select('prokerTahunanID','%','', true);
@@ -415,6 +416,7 @@ function showModal(idModal, jenis, value)
             }
         } else if(jenis == 'edit') {
             $("#prokerTahunanID").prop('disabled', true);
+            $("#btnHapusData").prop('disabled', false);
 
             var url     = getUrl + "/getDataAllProkerBulanan";
             var type    = "GET";
@@ -1352,6 +1354,59 @@ function showCalendarButton(jenis)
         $("#calendarOperasional").show();
         showDataTable('tableCalendarOperasional')
     }
+}
+
+function doHapusData()
+{
+    var pkbID   = $("#prokerBulananID").val();
+    Swal.fire({
+        icon    : 'warning',
+        title   : 'Hapus Data',
+        text    : 'Data yang dihapus tidak akan muncul pada kalender, anda yakin?',
+        showCancelButton    : true,
+        showConfirmButton   : true,
+        cancelButtonText    : 'Batal',
+        confirmButtonText   : 'Ya, Hapus',
+        confirmButtonColor  : '#dc3545',
+    }).then((results)=>{
+        if(results.isConfirmed) {
+            var url     = getUrl + "/hapusProgramKerjaBulanan/";
+            var type    = "POST";
+            var data    = pkbID;
+            var message = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+
+            transData(url, type, data, message, true)
+                .then((success) => {
+                    Swal.fire({
+                        icon    : success.alert.icon,
+                        title   : success.alert.message.title,
+                        text    : success.alert.message.text,
+                    }).then((results)=>{
+                        if(results.isConfirmed) {
+                            closeModal('modalForm');
+                            showCalendarButton('global');
+                        }
+                    })
+                })
+                .catch((err)    => {
+                    Swal.fire({
+                        icon    : err.responseJSON.alert.icon,
+                        title   : err.responseJSON.alert.message.title,
+                        text    : err.responseJSON.alert.message.text,
+                    });
+                })
+            // Swal.fire({
+            //     icon    : 'success',
+            //     title   : 'Berhasil',
+            //     text    : 'Data Berhasil Dihapus',
+            // }).then((results)=>{
+            //     if(results.isConfirmed) {
+            //         closeModal('modalForm');
+            //         showCalendarButton('global');
+            //     }
+            // })
+        }
+    })
 }
 
 function transData(url, type, data, customBeforeSend, isAsync)

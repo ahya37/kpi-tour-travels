@@ -824,7 +824,7 @@ class ProgramKerjaService
             AND     EXTRACT(MONTH FROM a.pkb_start_date) = '$createdMonth'
             AND     c.id LIKE '$groupDivision'
             AND 	a.created_by LIKE '$createdBy'
-            ORDER BY a.pkb_start_date DESC
+            ORDER BY a.created_at, a.pkb_start_date DESC
             "
         );
 
@@ -910,6 +910,7 @@ class ProgramKerjaService
         $roles          = $data['rolesName'];
         $pkt_uuid       = $data['pkt_uuid'];
         $pkb_uuid       = $data['pkb_uuid'];
+        $pkb_month      = $data['pkb_selected_month'];
         $current_user   = $roles == '%' ? '%' : Auth::user()->id;
 
 
@@ -951,6 +952,7 @@ class ProgramKerjaService
             JOIN 	group_divisions d ON d.id = c.division_group_id
             JOIN 	roles e ON e.id = d.roles_id
             WHERE 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM '$currentDate')
+            AND     EXTRACT(MONTH FROM a.pkb_start_date) = '$pkb_month'
             AND 	c.uid LIKE '$pkt_uuid'
             AND     a.uuid LIKE '$pkb_uuid'
             AND 	(e.name LIKE '$roles' OR e.id LIKE '$roles')
@@ -1424,5 +1426,41 @@ class ProgramKerjaService
             ORDER BY b.user_id ASC
             "
         );
+    }
+
+    // NOTE : HAPUS DATA PROKER BULANAN
+    public static function doHapusProgramKerja($data)
+    {
+        DB::beginTransaction();
+        $pkbID  = $data['pkb_id'];
+        $ip     = $data['ip'];
+
+        // CHECK
+        $data_where     = array(
+            "uuid"      => $pkbID
+        );
+        $data_update    = array(
+            "pkb_is_active" => "f"
+        );
+
+        DB::table('proker_bulanan')->where($data_where)->update($data_update);
+
+        try {
+            DB::commit();
+            $output     = array(
+                "status"    => "berhasil",
+                "errMsg"    => []
+            );
+            LogHelper::create('delete', 'Berhasil Hapus Program Kerja Bulanan id : '.$pkbID, $ip);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            $output     = array(
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            );
+            LogHelper::create('err_system', $e->getMessage(), $ip);
+        }
+
+        return $output;
     }
 }
