@@ -17,6 +17,7 @@ use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\NotificationController;
+use App\Services\ProgramKerjaService;
 use Illuminate\Support\Facades\Route;
 
 
@@ -200,6 +201,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/listSelectJadwalUmrah', [ProgramKerjaController::class, 'listSelectJadwalUmrah']);
                 Route::get('/listSelectJadwalUmrahForm', [ProgramKerjaController::class, 'listSelectJadwalUmrahForm']);
                 Route::get('/listSelectedJadwalUmrahForm', [ProgramKerjaController::class, 'listSelectedJadwalUmrahForm']);
+                Route::post('/hapusProgramKerjaBulanan', [ProgramKerjaController::class, 'hapusProgramKerja']);
             });
             Route::prefix('harian')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('programKerja.harian.index');

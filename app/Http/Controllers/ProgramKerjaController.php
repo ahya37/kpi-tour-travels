@@ -628,6 +628,7 @@ class ProgramKerjaController extends Controller
             "currentDate"   => date('Y-m-d'),
             "pkt_uuid"      => $request->all()['sendData']['pkt_uid'],
             "pkb_uuid"      => $request->all()['sendData']['pkb_uid'],
+            "pkb_selected_month"    => $request->all()['sendData']['pkb_selected_month'],
         ];
         $getData    = ProgramKerjaService::getProkerBulanan($sendData);
         if(count($getData) > 0)
@@ -902,6 +903,47 @@ class ProgramKerjaController extends Controller
                 "status"    => 500,
                 "message"   => "Terjadi Kesalahan",
                 "data"      => []
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : FUNGSI HAPUS PROGRAM KERJA BULANAN
+    public function hapusProgramKerja(Request $request)
+    {
+        $data       = array(
+            "pkb_id"    => $request->all()['sendData'],
+            "ip"        => $request->ip(),
+        );
+
+        $doHapus    = ProgramKerjaService::doHapusProgramKerja($data);
+        
+        if($doHapus['status'] == 'berhasil') {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Data berhasil dihapus",
+                    ],
+                ],
+                "errMsg"    => $doHapus['errMsg'],
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Data berhasil dihapus",
+                    ],
+                ],
+                "errMsg"    => $doHapus['errMsg'],
             );
         }
 

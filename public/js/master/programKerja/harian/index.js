@@ -5,6 +5,7 @@ $(document).ready(function(){
         "current_role"  : $("#filterHarianRole").val(),
     };
     showTable('tableListHarian', data);
+    showSelect('programKerjaBulan', '%', moment().format('MM'), true);
 });
 
 $.ajaxSetup({
@@ -483,12 +484,11 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
             $("#"+idSelect).html(html);
         }
     } else if(idSelect == 'programKerjaBulananID') {
-        // BESOK KERJAIN INI
         var html    = "<option selected disabled>Pilih Program Kerja Bulanan</option>";
 
         if(valueCari != '') {
             var url     = site_url + "/cariDataProkerBulanan";
-            var data    = { "pkt_uid" : valueCari, "pkb_uid": "%"};
+            var data    = { "pkt_uid" : valueCari, "pkb_uid": "%", "pkb_selected_month": $("#programKerjaBulan").val()};
             var type    = "GET";
             if(isAsync === true) { var message = Swal.fire({title: 'Data Sedang Dimuat'});Swal.showLoading(); } else { var message = ""; }
 
@@ -535,7 +535,7 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                 $("#formProgramKerjaBulananAktivitasText").hide();
 
                 var url     = site_url + "/cariDataProkerBulanan";
-                var data    = { "pkt_uid" : "%", "pkb_uid": valueCari};
+                var data    = { "pkt_uid" : "%", "pkb_uid": valueCari, "pkb_selected_month" : $("#programKerjaBulan").val()};
                 var type    = "GET";
                 if(isAsync === true) { var message = Swal.fire({title : "Data Sedang Dimuat"}); Swal.showLoading(); } else { var message = ""; }
 
@@ -572,6 +572,27 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                 $("#programKerjaBulananID").on('select2:select', function(){
                     $("#programKerjaBulananAktivitasText").focus();
                 })
+            }
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'programKerjaBulan') {
+        var current_month   = moment().format('MM');
+        var html    = "<option selected disabled>Pilih Bulan</option>";
+        
+        if(valueCari != '') {
+            var month   = moment.months();
+
+            $.each(month, function(i, item){
+                var monthNumber     = moment(item, 'MMM').format('MM');
+                var monthName       = item;
+
+                html    += "<option value='" + monthNumber + "'>" + monthName + "</option>";
+            })
+            $("#"+idSelect).html(html);
+
+            if(valueSelect != '') {
+                $("#"+idSelect).val(valueSelect).trigger('change');
             }
         } else {
             $("#"+idSelect).html(html);
