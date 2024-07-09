@@ -157,6 +157,7 @@ class ProgramKerjaController extends Controller
                 $data_detail[]  = array(
                     "sub_program_kerja_seq"     => $i + 1,
                     "sub_program_kerja_title"   => $getData['detail'][$i]->detail_title,
+                    "sub_program_kerja_target"  => $getData['detail'][$i]->detail_target,
                 );
             }
         } else {

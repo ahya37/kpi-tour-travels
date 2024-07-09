@@ -46,6 +46,7 @@ function show_table(id_table)
             columnDefs  : [
                 { "targets":[0], "width":"5%", "className":"text-center" },
                 { "targets":[1], "width":"15%","className":"text-center" },
+                { "targets":[3], "width":"15%", "className":"text-right" },
             ],
         });
     }
@@ -79,7 +80,7 @@ function show_modal(id_modal, value)
                                         title   : 'Data Sedang Dimuat',
                                     });
                                     Swal.showLoading();
-            getData(url, type, data, customMessage)
+            getData(url, type, data, customMessage, true)
                 .then((xhr) => {
                     var header  = xhr.data.header;
                     var detail  = xhr.data.detail;
@@ -202,10 +203,12 @@ function tambahBaris(id_table, data)
         var button      = "<button type='button' class='btn btn-danger btn-sm' id='btnHapus' value="+seq+" onclick='hapusBaris(`tblSubProk`, this.value)'><i class='fa fa-trash'></i></button>";
         var inputSeq    = "<input type='text' class='form-control form-control-sm text-center' name='subProkSeq"+seq+"' id='subProkSeq"+seq+"' readonly placeholder='Seq'>";
         var inputJudul  = "<input type='text' class='form-control form-control-sm' name='subProkTitle"+seq+"' id='subProkTitle"+seq+"' placeholder='Sub. Program Kerja' autocomplete='off'>";
+        var inputTarget = "<input type='number' class='form-control form-control-sm text-right' name='subProkTarget"+seq+"' id='subProkTarget"+seq+"' min='0' max='9999' step='1' id='subProkTarget"+seq+"' placeholder='Target' value='0' onclick='this.select()'>";
         $("#tblSubProk").DataTable().row.add([
             button,
             inputSeq,
-            inputJudul
+            inputJudul,
+            inputTarget
         ]).draw('false');
 
         $("#subProkTitle"+seq).on('keyup', function(e){
@@ -218,6 +221,7 @@ function tambahBaris(id_table, data)
             var newSeq  = data['sub_program_kerja_seq'];
             $("#subProkSeq"+newSeq).val(data['sub_program_kerja_seq']);
             $("#subProkTitle"+newSeq).val(data['sub_program_kerja_title']);
+            $("#subProkTarget"+newSeq).val(data['sub_program_kerja_target']);
         } else {
             $("#subProkTitle"+seq).focus();
         }
@@ -249,6 +253,7 @@ function do_simpan(jenis)
         var subProk     = {
             "subProkSeq"    : ke,
             "subProkTitle"  : $("#subProkTitle"+ke).val(),
+            "subProkTarget" : $("#subProkTarget"+ke).val(),
         };
 
         DataSubProkerTahunan.push(subProk);
@@ -292,11 +297,11 @@ function do_simpan(jenis)
 }
 
 
-function getData(url, type, sendData, beforeSendRules)
+function getData(url, type, sendData, beforeSendRules, isAsync)
 {
     return new Promise(function(resolve, reject){
         $.ajax({
-            async   : true,
+            async   : isAsync,
             cache   : false,
             type    : type,
             dataType: "json",

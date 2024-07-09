@@ -15,6 +15,18 @@
         padding-bottom: 0px;
         margin-top: -6px;
     }
+
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+    -moz-appearance: textfield;
+    }
     </style>
 @endpush
 
@@ -118,9 +130,10 @@
                                             <table class="table table-sm table-bordered" id="tblSubProk" style="width: 100%; margin-top: -6px;">
                                                 <thead>
                                                     <tr>
-                                                        <th class="text-center" style="vertical-align: middle;">&nbsp;</th>
-                                                        <th class="text-center" style="vertical-align: middle;">No</th>
-                                                        <th class="text-center" style="vertical-align: middle;">Judul</th>
+                                                        <th class="text-center align-middle">&nbsp;</th>
+                                                        <th class="text-center align-middle">No</th>
+                                                        <th class="text-center align-middle">Judul</th>
+                                                        <th class="text-center align-middle">Target</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
