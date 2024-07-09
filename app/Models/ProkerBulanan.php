@@ -77,4 +77,34 @@ class ProkerBulanan extends Model
 		return $proker_bulanan_detail;
 	}
 
+    public static function getProgramByDivisi($groupDivisionID, $year, $month, $week = null)
+    {
+        $programs = DB::table('proker_bulanan as a')
+						  ->select('a.id','a.pkb_start_date','a.pkb_title','a.pkb_hasil')
+						  ->join('proker_tahunan as b', function($join1){
+							  $join1->on(DB::raw('SUBSTRING_INDEX(a.pkb_pkt_id, "|",1)'), '=', 'b.uid');
+						  })
+                          ->join('master_program as e','a.master_program_id','=','e.id')
+						  ->where('b.division_group_id', $groupDivisionID)
+						  ->whereYear('a.pkb_start_date', $year)
+						  ->whereMonth('a.pkb_start_date', $month)
+						  ->orderBy('a.pkb_start_date','asc')
+						  ->get();
+						  
+		return $programs;
+    }
+
+    public static function getJenisPekerjaan($pkb_id)
+	{
+		$proker_bulanan_detail = DB::table('proker_bulanan_detail as a')
+                                    ->select('a.pkbd_type' , 'a.pkbd_num_target' , 'a.pkbd_num_result')
+                                    ->join('proker_bulanan as b','a.pkb_id','=','b.id')
+                                    ->where('pkb_id', $pkb_id)
+                                    ->orderBy('a.created_at','asc')
+                                    ->get();
+						
+						  
+		return $proker_bulanan_detail;
+	}
+
 }

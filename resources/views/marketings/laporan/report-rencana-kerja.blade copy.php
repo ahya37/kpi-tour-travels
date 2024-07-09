@@ -5,8 +5,6 @@
 <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
 <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
 <link href="{{asset('assets/css/plugins/datapicker/datepicker3.css')}}" rel="stylesheet">
-<link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-
 
 <style>
     th {
@@ -67,15 +65,15 @@
                 </div>
                 <div class="ibox-content">
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered table-hover " id="datatable">
+                        <table class="table table-striped table-bordered table-hover data">
                             <thead >
                                 <tr >
-                                    <th class="centered" width="8%" style="background-color: #F5B487">No</th>
-                                    <th class="centered" width="25%" style="background-color: #F5B487">Program</th>
-                                    <th class="centered" width="25%" style="background-color: #F5B487">Jumlah Dilakukan</th>
-                                    <th class="centered" width="15%" style="background-color: #F5B487">Target</th>
+                                    <th class="centered" width="8%" style="background-color: #F5B487">Tanggal Perencanaan</th>
+                                    <th class="centered" width="25%" style="background-color: #F5B487">Tugas</th>
+                                    <th class="centered" width="25%" style="background-color: #F5B487">Jenis Pekerjaan</th>
+                                    <th class="centered" width="15%" style="background-color: #F5B487">Target / Sasaran</th>
                                     <th class="centered" style="background-color: #F5B487">Hasil</th>
-                                    <th class="centered" style="background-color: #F5B487">Persentase</th>
+                                    <th class="centered" style="background-color: #F5B487">Evaluasi</th>
                                     <th class="centered" style="background-color: #F5B487">Rincian Kegiatan</th>
                                 </tr>
                             </thead>
@@ -124,11 +122,17 @@
   </div>
   
 @endsection
-
 @push('addon-script')
+{{-- <script src="{{asset('assets/js/plugins/fullcalendar/moment.min.js')}}"></script>
+<script src="{{asset('assets/js/plugins/daterangepicker/daterangepicker.js')}}"></script>
+<script src="{{asset('assets/js/plugins/datapicker/bootstrap-datepicker.js')}}"></script>
+<script src="{{asset('assets/js/plugins/select2/select2.full.min.js')}}"></script>
+<script src="{{asset('assets/js/plugins/chartJs/Chart.min.js')}}"></script>
+<script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+<script src="{{ asset('js/csrf-token.js') }}"></script> --}}
 <script src="{{asset('assets/js/plugins/fullcalendar/moment.min.js')}}"></script>
 <script src="{{asset('assets/js/plugins/select2/select2.full.min.js')}}"></script>
 <script src="{{asset('assets/js/plugins/datapicker/bootstrap-datepicker.js')}}"></script>
-<script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
 <script src="{{ asset('js/marketings/laporan/report-rencana-kerja.js') }}"></script>
 @endpush

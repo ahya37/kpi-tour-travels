@@ -1,6 +1,8 @@
 $(document).ready(function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
+    let currentMonth = '';
+
     $('.month-start').datepicker({
         minViewMode: 1,
         keyboardNavigation: false,
@@ -19,7 +21,7 @@ $(document).ready(function () {
     const callApi = async (month, year) => {
         try {
 
-            const response = await fetch('/marketings/rencanakerja/report/data', {
+            const response = await fetch('/marketings/report/evaluasi', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -40,94 +42,52 @@ $(document).ready(function () {
         }
     };
 
-    const intialShowtable = async (month, year) => {
-
-        try {
-
-            $('#dataBody').empty();
-            $('#divLoading').append(`
-                <div class="col text-center">
-                     <div class="spiner-example">
-                            <div class="sk-spinner sk-spinner-wave">
-                                <div class="sk-rect1"></div>
-                                <div class="sk-rect2"></div>
-                                <div class="sk-rect3"></div>
-                                <div class="sk-rect4"></div>
-                                <div class="sk-rect5"></div>
-                            </div>
-                    </div>
-                </div>
-                `)
-            const responses = await callApi(month, year);
-            $(`.spiner-example`).remove();
-            $('#dataBody').append(responses.data.rencanakerja);
-            $('#title').text('Daftar Rencana Kerja Marketing Bulan '+responses.data.bulan)
-
-
-           $('.onDetail').on('click', async function() {
-                // Mendapatkan ID elemen yang diklik
-                const id = $(this).attr('id');
-                try {
-                     // tampilkan di modal
-                     let dataModalBody = $('#dataModalBody');
-                     dataModalBody.empty(); 
-                     
-                    $('#divLoadingModal').append(`
-                        <div class="col text-center">
-                             <div class="spiner-example">
-                                    <div class="sk-spinner sk-spinner-wave">
-                                        <div class="sk-rect1"></div>
-                                        <div class="sk-rect2"></div>
-                                        <div class="sk-rect3"></div>
-                                        <div class="sk-rect4"></div>
-                                        <div class="sk-rect5"></div>
-                                    </div>
-                            </div>
-                        </div>
-                        `)
-                        // Bersihkan isi tbody sebelum menambahkan data baru
-    
-                    $('#myModal').modal('show');
-
-                    const response = await fetch('/marketings/rencanakerja/report/rinciankegiatan', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
-                        },
-                        body: JSON.stringify({
-                            id: id,
-                        })
-                    });
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
+    const  showTable = (idTable, year, month) => {
+        $("#" + idTable).DataTable().clear().destroy();
+        if (idTable == 'datatable') {
+            $("#" + idTable).DataTable({
+                language: {
+                    "zeroRecords": "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                    "emptyTable": "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                    "processing": "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                },
+                processing: true,
+                serverSide: false,
+                ajax: {
+                    type: "POST",
+                    dataType: "json",
+                    url: `/marketings/report/evaluasi`,
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    data: function (d) {
+                        d.year = year;
+                        d.month = month;
+                    },
+                    dataSrc: function (json) {
+                        currentMonth = json.data.data; // Mengambil nilai bulan
+                        return json.data.rencanakerja.data; // Mengakses data di dalam kunci 'data'
                     }
-                    const data = await response.json();
-                    $(`.spiner-example`).remove();
-                   
-                    // Loop melalui data dan tambahkan ke dalam tabel
-                    $.each(data.data.rincian_kegiatan, function (index, row) {
-                        const newRow = '<tr>' +
-                            '<td align="center">' + row.no + '</td>' +
+                },
+                autoWidth: false,
+                columnDefs:
+                    [
+                        { "targets": [0], "className": "text-center", "width": "5%" },
+                        { "targets": [1], "width": "30%" },
+                        { "targets": [2], "className": "text-right", "width": "10%" },
+                        { "targets": [3], "width": "8%","className": "text-right" },
+                        { "targets": [4], "className": "text-right", "width": "8%" },
+                        { "targets": [5], "className": "text-right", "width": "8%" },
+                        { "targets": [6], "className": "text-center", "width": "8%" },
+                    ],
+                    initComplete: function(settings, json) {
+                        $('#title').text('Daftar Rencana Kerja Marketing Bulan ' + json.data.bulan)
 
-                            '<td>' + row.pkh_date + '</td>' +
-                            '<td>' + row.pkh_title + '</td>' +
-                            '<td>' + row.cs + '</td>' +
-                            '</tr>';
-                        dataModalBody.append(newRow);
-                    });
-
-
-                } catch (error) {
-                    throw error;
-                }
+                    }
             });
-
-            
-        } catch (error) {
-            console.log(error);
         }
     }
+    
 
     $('#submitFilter').click(function () {
         const date = $('#month-start').val();
@@ -136,16 +96,16 @@ $(document).ready(function () {
         const month = dateParts[1]; // 06
         const year = dateParts[2];  // 2024
 
-        intialShowtable(month, year);
+        // intialShowtable(month, year);
+        showTable('datatable', year, month);
+
     });
+    
     // $('#submitClear').click(function () {
     //     createdBy = '';
     //     // date = $('#date').val();
     //     intialShowtable();
     // });
-
-    
 })
-
 
 
