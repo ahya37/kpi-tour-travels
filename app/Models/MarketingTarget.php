@@ -36,10 +36,7 @@ class MarketingTarget extends Model
                     ')
                )
                ->join('programs as b','a.program_id','=','b.id')
-               ->where('a.marketing_target_id', $marketing_target_id)
-               ->groupBy('a.month_name','a.month_number')
-               ->orderBy('a.month_number','asc')
-               ->get();
+               ->where('a.marketing_target_id', $marketing_target_id);
     }
 
     public static function getProgramBytargetBulanan($marketing_target_id)
@@ -127,6 +124,15 @@ class MarketingTarget extends Model
         return $umrah;
     }
 
+    public static function getRealisasiUmrahPerBulanByTahun($year, $month)
+    {
+        $umrah = DB::table('detailed_marketing_targets as a')
+                ->select(DB::raw('SUM(a.realization) as pencapaian'),DB::raw('SUM(a.target) as target'),DB::raw('SUM(a.difference) as selisih'))
+                ->join('marketing_targets as b','a.marketing_target_id','=','b.id')
+                ->where('b.year', $year)
+                ->where('a.month_number', $month)
+                ->first();
 
-
+        return $umrah;
+    }
 }

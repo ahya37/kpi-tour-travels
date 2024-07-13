@@ -233,7 +233,7 @@
                 <div class="ibox-content">
                     <div class="table-responsive">
                         {{-- {!! $html !!} --}}
-                        <table class="table table-striped table-bordered table-hover" >
+                        <table class="table table-striped table-bordered table-hover data">
                             <thead>
                                 <tr>
                                     <th class="centered" style="align-item: center" width="2%">No</th>
@@ -245,9 +245,56 @@
                                     <th class="centered">Persentase</th>
                                 </tr>
                             </thead>
-                            <tbody id="dataRincian"></tbody>
+                            @foreach ($res_target as $item)
+                            <tr style="background-color: #FFFFFF">
+                                <td rowspan="{{ $item['count_list_program'] + 1 }}"
+                                    style=" display: table-cell; vertical-align: middle;text-align: center;font-size:14px">
+                                    <b>{{ $item['nomor_bulan'] }}</b>
+                                </td>
+                                <td rowspan="{{ $item['count_list_program'] + 1 }}" align="center"
+                                    style=" display: table-cell; vertical-align: middle;text-align: center;font-size:14px">
+                                    <b>{{ $item['bulan'] }}<b>
+                                </td>
+                            </tr>
+                            @php
+                            $no = 1;
+                            @endphp
+                            @foreach ($item['list_program'] as $program)
+                            @php
+                            // $persentase_per_program =
+                            $formatNumber->persentage($program['realisasi'],$program['target']);
+                            // if ($persentase_per_program !== null) {
+                            // $persentase_per_program = $formatNumber->persen($persentase_per_program);
+                            // }
+                            @endphp
+                            <tr style="background-color: {{ $program['color'] }}">
+                                <td>{{ $no++ }} . {{ $program['program'] }}</td>
+                                <td style="text-align: right">{{ $program['target']}}</td>
+                                <td style="text-align: right">{{ $program['realisasi']}}</td>
+                                <td style="text-align: right">{{ $program['selisih']}}</td>
+                                <td style="text-align: right">0</td>
+                            </tr>
+                            @endforeach
+                            <tr>
+                                <th colspan="3" style="text-align: right">Jumlah</th>
+                                <th style="text-align: right">{{ $formatNumber->decimalFormat($item['jml_target']) }}
+                                </th>
+                                <th style="text-align: right">{{ $formatNumber->decimalFormat($item['jml_realisasi']) }}
+                                </th>
+                                <th style="text-align: right">{{ $formatNumber->decimalFormat($item['jml_selisih']) }}
+                                </th>
+                                <th style="text-align: right">{{ $item['persentage_jml_pencapaian'] }} %</th>
+
+                            </tr>
+                            @endforeach
+                            <tr>
+                                <th colspan="3" style="text-align: right">Total</th>
+                                <th style="text-align: right">{{ $formatNumber->decimalFormat($total_target) }}</th>
+                                <th style="text-align: right">{{ $formatNumber->decimalFormat($total_realisasi) }}</th>
+                                <th style="text-align: right">{{ $formatNumber->decimalFormat($total_selisih) }}</th>
+                                <th style="text-align: right">{{ $persentage_total_pencapaian }} %</th>
+                            </tr>
                         </table>
-                        <div id="LoadingTable"></div>
                     </div>
                 </div>
             </div>

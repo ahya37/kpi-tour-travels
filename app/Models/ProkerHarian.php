@@ -17,10 +17,26 @@ class ProkerHarian extends Model
     {
         return DB::table('proker_harian as a')
                 ->select('a.pkh_date','a.pkh_start_time','a.pkh_end_time','a.pkh_title','b.name')
+                ->join('proker_bulanan_detail as c', function($c){
+                    $c->on(DB::raw("SUBSTRING_INDEX(a.pkh_pkb_id, '|', -1)"),'=','c.id');
+                })
                 ->join('users as b','a.created_by','=','b.id')
                 ->whereRaw(DB::raw("SUBSTRING_INDEX(a.pkh_pkb_id, '|', 1) = '$pkh_pkb_id'"))
                 ->orderBy('a.pkh_date','asc')
                 ->get();
+    }
+
+    public static function getProkerHarianByProkerBulananPerMinggu($year, $month, $pkb_uuid,$week)
+    {
+        return DB::select("
+            select a.pkh_date,a.pkh_start_time,a.pkh_end_time,a.pkh_title,c.name from proker_harian as a
+            left join proker_bulanan_detail as b on substring_index(a.pkh_pkb_id,'|', -1) = b.id 
+            left join users as c on a.created_by = c.id 
+            where substring_index(a.pkh_pkb_id,'|', 1) =  '$pkb_uuid'
+            and year(a.pkh_date) = $year
+            and month(a.pkh_date) = $month
+            and  FLOOR((DAY(a.pkh_date) - 1) / 7) + 1 = $week
+        ");
     }
 
     public static function getAktivitasHarianByBulanTahunAndDivisi($groupDivisionID, $month, $year = 2024)

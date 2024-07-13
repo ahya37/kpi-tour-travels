@@ -80,17 +80,44 @@ class ProkerBulanan extends Model
     public static function getProgramByDivisi($groupDivisionID, $year, $month, $week = null)
     {
         $programs = DB::table('proker_bulanan as a')
-						  ->select('a.id','a.pkb_start_date','a.pkb_title','a.pkb_hasil')
+						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','a.pkb_hasil')
 						  ->join('proker_tahunan as b', function($join1){
 							  $join1->on(DB::raw('SUBSTRING_INDEX(a.pkb_pkt_id, "|",1)'), '=', 'b.uid');
 						  })
                           ->join('master_program as e','a.master_program_id','=','e.id')
-						  ->where('b.division_group_id', $groupDivisionID)
-						  ->whereYear('a.pkb_start_date', $year)
-						  ->whereMonth('a.pkb_start_date', $month)
-						  ->orderBy('a.pkb_start_date','asc')
-						  ->get();
+                          ->where('b.division_group_id', $groupDivisionID)
+                          ->whereYear('a.pkb_start_date', $year)
+                          ->whereMonth('a.pkb_start_date', $month)
+                          ->orderBy('a.pkb_start_date','asc')
+                          ->get();
 						  
+		return $programs;
+    }
+
+    public static function getProgramByDivisiPerMinggu($groupDivisionID, $year, $month, $week = null)
+    {
+        $programs = DB::select("
+                                select b.id,b.uuid, b.pkb_title, b.pkb_start_date,
+                                    (
+                                        select sum(b1.pkbd_num_target) from proker_bulanan_detail as b1 where b1.pkb_id = b.id
+                                    ) as target,
+                                    (
+                                        select count(a1.id) from proker_harian as a1 where substring_index(a1.pkh_pkb_id,'|',1) = b.uuid  
+                                        and year(a1.pkh_date) = $year
+                                        and month(a1.pkh_date) = $month
+                                        and FLOOR((DAY(a1.pkh_date) - 1) / 7) + 1 = $week
+                                    ) as pkb_hasil 
+                                    FROM proker_harian AS a
+                                    JOIN proker_bulanan AS b ON SUBSTRING_INDEX(a.pkh_pkb_id,'|', 1) = b.uuid 
+                                    JOIN proker_bulanan_detail AS c ON SUBSTRING_INDEX(a.pkh_pkb_id,'|', -1) = c.id
+                                    join proker_tahunan as  d on substring_index(b.pkb_pkt_id,'|',1) = d.uid 
+                                    WHERE d.division_group_id = '$groupDivisionID'
+                                    AND YEAR(a.pkh_date) = $year
+                                    AND MONTH(a.pkh_date) = $month
+                                    and  FLOOR((DAY(a.pkh_date) - 1) / 7) + 1 = $week
+                                    group by b.id, b.pkb_title
+                                "
+                            );
 		return $programs;
     }
 
@@ -99,12 +126,57 @@ class ProkerBulanan extends Model
 		$proker_bulanan_detail = DB::table('proker_bulanan_detail as a')
                                     ->select('a.pkbd_type' , 'a.pkbd_num_target' , 'a.pkbd_num_result')
                                     ->join('proker_bulanan as b','a.pkb_id','=','b.id')
-                                    ->where('pkb_id', $pkb_id)
+                                    ->where('a.pkb_id', $pkb_id)
                                     ->orderBy('a.created_at','asc')
                                     ->get();
-						
 						  
 		return $proker_bulanan_detail;
 	}
+
+    public static function getTotalTargetUmrahBulanBytahun($year, $month)
+    {
+        $target = DB::table('detailed_marketing_targets as a')
+                    ->select(DB::raw('sum(a.target) as target'), DB::raw('sum(a.realization) as realisasi'))
+                    ->join('marketing_targets as b','a.marketing_target_id','=','b.id')
+                    ->where('a.month_number', $month)
+                    ->where('b.year', $year)
+                    ->first();
+
+        return $target;
+    }
+
+    public static function getSasaran()
+    {
+        $sasaran = DB::table('proker_tahunan_detail as a')
+                    ->select('b.uid','a.pkt_id','a.pktd_seq','a.pktd_title')
+                    ->join('proker_tahunan as b','a.pkt_id','=','b.id')
+                    ->orderBy('a.pktd_title','desc')->get();
+
+        return $sasaran;
+    }
+
+    public static function getSasaranSearch($search)
+    {
+        $sasaran = DB::table('proker_tahunan_detail as a')
+                    ->select('b.uid','a.pkt_id','a.pktd_seq','a.pktd_title')
+                    ->join('proker_tahunan as b','a.pkt_id','=','b.id')
+                    ->where('a.pktd_title', 'LIKE',"%$search%")
+                    ->orderBy('a.pktd_title','desc')->get();
+
+        return $sasaran;
+    }
+
+    public static function getSasaranUmum($year, $pkb_pkt_id)
+    {
+        $sasaran_umum = DB::table('proker_bulanan')
+                        ->select(DB::raw('MONTH(pkb_start_date) as bulan'))
+                        ->where('pkb_pkt_id', $pkb_pkt_id)
+                        ->whereYear('pkb_start_date', $year)
+                        ->groupBy('bulan')
+                        ->orderBy('bulan','asc')
+                        ->get();
+
+        return $sasaran_umum;
+    }
 
 }

@@ -663,114 +663,23 @@ class MarketingController extends Controller
         // $marketing_target_id = request()->id;
         $marketing = MarketingTarget::select('year')->where('id', $marketingTargetId)->first();
         
-        $targetMarketing = MarketingTarget::getReportUmrahBulanan($marketingTargetId);
-
-        #get jumlah program yang ada
-        $programs = Program::select('id','name','color')->where('is_active','Y')->orderBy('sequence','asc')->get();
-        $countProgram = count($programs);
-
-        $res_target = [];
-        
-        foreach ($targetMarketing as $key => $value) {
-            
-            $list_programs = MarketingTarget::getProgramBytargetBulanan($marketingTargetId);
-            $list_programs = $list_programs->where('a.month_number', $value->month_number)->orderBy('b.sequence','asc')->get();
-            $res = [];
-
-            foreach ($list_programs as  $list) {
-                $res[] = [
-                    'program' => $list->program,
-                    'target' => $list->target,
-                    'realisasi' => $list->realisasi,
-                    'selisih' => $list->selisih,
-                    'color' => $list->color,
-                ];
-            }
-
-            $formatNumber = new NumberFormat();
-
-            // jumlah target
-            $jml_target = collect($res)->sum(function($q){
-                return $q['target'];
-            });
-            // jumlah realisasi
-            $jml_realisasi = collect($res)->sum(function($q){
-                return $q['realisasi'];
-            });
-
-            // jumlah realisasi
-            $jml_selisih = collect($res)->sum(function($q){
-                return  $q['realisasi'] - $q['target'];
-            });
-
-            // jml per bulan nya
-            $persentage_jml_pencapaian = $formatNumber->persentage($jml_realisasi,$jml_target);
-            if ($persentage_jml_pencapaian !== null) {
-				$persentage_jml_pencapaian  = $formatNumber->persen($persentage_jml_pencapaian);  
-			}
-
-
-            $res_target[] = [
-                'color' => Months::monthColor($value->month_number),
-                'nomor_bulan' => $value->month_number,
-                'bulan' => $value->month_name,
-                'target' => $value->terget,
-                'realisasi' => $value->realisasi,
-                'selisih' => $value->selisih,
-                'persentage_jml_pencapaian' => $persentage_jml_pencapaian,
-                'list_program' => $res,
-                'jml_target' => $jml_target,
-                'jml_realisasi' => $jml_realisasi,
-                'jml_selisih' => $jml_selisih,
-                'count_list_program' => count($res)
-            ];
-        }
-
-
-        // all total 
-        $total_target = collect($res_target)->sum(function($q){
-            return $q['jml_target'];
-        });
-        $total_realisasi = collect($res_target)->sum(function($q){
-            return $q['jml_realisasi'];
-        });
-        $total_selisih = collect($res_target)->sum(function($q){
-            return $q['jml_selisih'];
-        });
-
-        $persentage_total_pencapaian = $formatNumber->persentage($total_realisasi,$total_target);
-            if ($persentage_total_pencapaian !== null) {
-				$persentage_total_pencapaian  = $formatNumber->persen($persentage_total_pencapaian);  
-			}
-
-        // return $res_target;
 
         $data   = [
             'title'     => 'Laporan Umrah Bulanan Tahun '.$marketing->year,
             'sub_title' => 'Laporan Umrah Bulanan',
-            'marketingTargetId' => $marketingTargetId,
-            'countProgram' => $countProgram,
-            'programs' => $programs,
-            'res_target' =>  $res_target,
-            'total_target' => $total_target,
-            'total_realisasi' => $total_realisasi,
-            'total_selisih' => $total_selisih,
-            'persentage_total_pencapaian' => $persentage_total_pencapaian,
-            'formatNumber' => $formatNumber,
         ];
-
-
 
 
         return view('marketings/laporan/report-umrah-bulanan', $data);
 
     }
 
+    
+
     public function pencapaianBulanan()
     {
         try {
             
-
             $id  = request()->id;
 
             $startDate  = request()->start;
@@ -1012,6 +921,8 @@ class MarketingController extends Controller
             );
 
 
+            // get data rincian table 
+            $rincian_tables = $this->getReportUmrahBulanan($id, $startDate, $endDate, $fn);
 
             return ResponseFormatter::success([
                 'chart_umrah_program' => $chart_umrah_program,
@@ -1024,7 +935,8 @@ class MarketingController extends Controller
                 'chart_umrah_per_sumber' => $chart_umrah_per_sumber,
                 // 'umrah_baru' => $sum_baru,
                 // 'umrah_alumni' => $sum_alumni,
-                'chart_umrah_per_alumni' => $chart_umrah_per_alumni
+                'chart_umrah_per_alumni' => $chart_umrah_per_alumni,
+                'rincian_tables' => $rincian_tables
             ]);
 
         } catch (\Exception $e) {
@@ -1033,6 +945,154 @@ class MarketingController extends Controller
                 'message' => 'Terjadi kesalahan!'
             ]);
         }
+    }
+
+    public function getReportUmrahBulanan($marketingTargetId, $startDate, $endDate, $fn)
+    {
+        // $marketing_target_id = request()->id;
+        $marketing = MarketingTarget::select('year')->where('id', $marketingTargetId)->first();
+        // $year      = $marketing->year;
+        $targetMarketing = MarketingTarget::getReportUmrahBulanan($marketingTargetId);
+
+        if ($startDate != '' AND $endDate != '') {
+
+            // $startDate      = Carbon::parse($startDate)->format('Y-m-d');
+            // $endDate        = Carbon::parse($endDate)->format('Y-m-d');
+
+            // $carbonStartDate = Carbon::parse($startDate);
+            // $startDate       = $carbonStartDate->month;
+
+            // $carbonEndDate = Carbon::parse($endDate);
+            // $endDate       = $carbonEndDate->month;
+
+            $targetMarketing = $targetMarketing->whereBetWeen('a.month_number',[$startDate, $endDate]);
+
+        }
+
+        $targetMarketing = $targetMarketing->groupBy('a.month_name','a.month_number')->orderBy('a.month_number','asc')->get();
+        
+        #get jumlah program yang ada
+        $programs = Program::select('id','name','color')->where('is_active','Y')->orderBy('sequence','asc')->get();
+        $countProgram = count($programs);
+
+        $res_target = [];
+        
+        foreach ($targetMarketing as $key => $value) {
+            
+            $list_programs = MarketingTarget::getProgramBytargetBulanan($marketingTargetId);
+            $list_programs = $list_programs->where('a.month_number', $value->month_number)->orderBy('b.sequence','asc')->get();
+            $res = [];
+
+            foreach ($list_programs as  $list) {
+                $persentage_jml_res = $fn->persentage($list->realisasi,$list->target);
+                if ($persentage_jml_res !== null) {
+                    $persentage_jml_res  = $fn->persen($persentage_jml_res);  
+                }
+
+                $res[] = [
+                    'program' => $list->program,
+                    'target' => $list->target,
+                    'realisasi' => $list->realisasi,
+                    'selisih' => $list->selisih,
+                    'persentage_jml_res' => $persentage_jml_res,
+                    'color' => $list->color,
+                ];
+            }
+
+
+            // jumlah target
+            $jml_target = collect($res)->sum(function($q){
+                return $q['target'];
+            });
+            // jumlah realisasi
+            $jml_realisasi = collect($res)->sum(function($q){
+                return $q['realisasi'];
+            });
+
+            // jumlah realisasi
+            $jml_selisih = collect($res)->sum(function($q){
+                return  $q['realisasi'] - $q['target'];
+            });
+
+            // jml per bulan nya
+            $persentage_jml_pencapaian = $fn->persentage($jml_realisasi,$jml_target);
+            if ($persentage_jml_pencapaian !== null) {
+				$persentage_jml_pencapaian  = $fn->persen($persentage_jml_pencapaian);  
+			}
+
+
+            $res_target[] = [
+                'color' => Months::monthColor($value->month_number),
+                'nomor_bulan' => $value->month_number,
+                'bulan' => $value->month_name,
+                'target' => $value->terget,
+                'realisasi' => $value->realisasi,
+                'selisih' => $value->selisih,
+                'persentage_jml_pencapaian' => $persentage_jml_pencapaian,
+                'list_program' => $res,
+                'jml_target' => $jml_target,
+                'jml_realisasi' => $jml_realisasi,
+                'jml_selisih' => $jml_selisih,
+                'count_list_program' => count($res)
+            ];
+        }
+
+
+        // all total 
+        $total_target = collect($res_target)->sum(function($q){
+            return $q['jml_target'];
+        });
+        $total_realisasi = collect($res_target)->sum(function($q){
+            return $q['jml_realisasi'];
+        });
+        $total_selisih = collect($res_target)->sum(function($q){
+            return $q['jml_selisih'];
+        });
+
+        $persentage_total_pencapaian = $fn->persentage($total_realisasi,$total_target);
+            if ($persentage_total_pencapaian !== null) {
+				$persentage_total_pencapaian  = $fn->persen($persentage_total_pencapaian);  
+			}
+
+        $html = "";
+        foreach ($res_target as  $value) {
+            $rowspanBulan = $value['count_list_program'] + 1;
+
+            $html .= '<tr style="background-color: #FFFFFF">';
+                $html .= '<td rowspan='.$rowspanBulan.' style=" display: table-cell; vertical-align: middle;text-align: center;font-size:14px">'.$value['nomor_bulan'].'</td>';
+                $html .= '<td rowspan='.$rowspanBulan.' style=" display: table-cell; vertical-align: middle;text-align: center;font-size:14px">'.$value['bulan'].'</td>';
+            $html .= '</tr>';
+
+            $no = 1;
+            foreach ($value['list_program'] as $program) {
+                $html .= '<tr style="background-color: '.$program['color'].'">';
+                    $html .= '<td >'.$no++.'.'.$program['program'].'</td>';
+                    $html .= '<td style="text-align: right">'.$program['target'].'</td>';
+                    $html .= '<td style="text-align: right">'.$program['realisasi'].'</td>';
+                    $html .= '<td style="text-align: right">'.$program['selisih'].'</td>';
+                    $html .= '<td style="text-align: right">'.$program['persentage_jml_res'].' %</td>';
+                $html .= '</tr>';
+            }
+
+            $html = $html.'<tr>';
+            $html = $html.'<th colspan="3" style="text-align: right">Jumlah</th>';
+            $html = $html.'<th style="text-align: right">'.$fn->decimalFormat($value['jml_target']).'</th>';
+            $html = $html.'<th style="text-align: right">'.$fn->decimalFormat($value['jml_realisasi']).'</th>';
+            $html = $html.'<th style="text-align: right">'.$fn->decimalFormat($value['jml_selisih']).'</th>';
+            $html = $html.'<th style="text-align: right">'.$value['persentage_jml_pencapaian'].' %</th>';
+            $html = $html.'</tr>';
+        }
+
+        $html = $html.'<tr>';
+        $html = $html.'<th colspan="3" style="text-align: right">Total</th>';
+        $html = $html.'<th style="text-align: right">'.$fn->decimalFormat($total_target).'</th>';
+        $html = $html.'<th style="text-align: right">'.$fn->decimalFormat($total_realisasi).'</th>';
+        $html = $html.'<th style="text-align: right">'.$fn->decimalFormat($total_selisih).'</th>';
+        $html = $html.'<th style="text-align: right">'.$fn->decimalFormat($persentage_total_pencapaian).' %</th>';
+        $html = $html.'</tr>';
+
+        return $html;
+
     }
 
     public function reportHaji()

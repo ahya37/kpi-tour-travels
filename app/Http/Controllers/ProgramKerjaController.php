@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\ProkerTahunan;
 use App\Models\ProkerBulanan;
 use App\Models\ProkerHarian;
+use App\Models\MarketingTarget;
 use App\Models\Employee;
 use App\Helpers\Months;
 use Response;
@@ -1198,6 +1199,352 @@ class ProgramKerjaController extends Controller
 
     }
 
+   
+
+    public function getRincianKegiatanByProgramBulanan(Request $request)
+    {
+        try {
+
+            $pkb_id = request()->pkbid;
+            $pkb_uuid = request()->pkbuuid;
+
+            $year  = request()->year;
+            $month = request()->month;
+            $week  = request()->week;
+
+            $proker_bulanan = ProkerBulanan::select('pkb_title')->where('id', $pkb_id)->first();
+
+            $rincian_kegiatan = [];
+           
+            // jika week ada 
+            if ($week != '') {
+
+                // get rincian kegitana by bulanan detail nya, juga perminggu nya
+                $rincian_kegiatan = ProkerHarian::getProkerHarianByProkerBulananPerMinggu($year, $month, $pkb_uuid,$week);
+
+            }else{
+                
+                 // get rincian kegitana by bulanan detail nya
+                $rincian_kegiatan = ProkerHarian::getProkerHarianByProkerBulanan($pkb_uuid);
+
+            }
+
+            $results = [];
+            foreach ($rincian_kegiatan as $key => $value) {
+                $results[] = [
+                    'pkh_date' => date('d-m-Y', strtotime($value->pkh_date)),
+                    'pkh_title' => $value->pkh_title,
+                    'name' => $value->name,
+                ];
+            }
+
+            $data = [];
+
+            if(!empty($results)) {
+            
+                for($i = 0; $i < count($results); $i++) {
+    
+                    $data[]     = array(
+                        $i + 1,
+                        $results[$i]['pkh_date'],
+                        $results[$i]['pkh_title'],
+                        $results[$i]['name'],
+                    );
+                }
+                
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => $data,
+                );
+            } else {
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => [],
+                );
+            }
+
+            return ResponseFormatter::success([  
+                'proker_bulanan' => $proker_bulanan->pkb_title,
+                'kegiatan' => $output,
+                'pkb_uuid' => $pkb_uuid,
+                'pkb_id' => $pkb_id
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal tampilkan data!'
+            ]);
+        }
+    }
+
+    public function getReportProgramPerMingguByBulan(Request $request)
+    {
+        try {
+
+			$groupDivisionID = env('APP_GROUPDIV_MARKETING');
+
+            $year  = request()->year;
+            $month = request()->month;
+            $week  = request()->week;
+
+            // get program di proker bulanan per tahun per bulan
+            $programs = ProkerBulanan::getProgramByDivisi($groupDivisionID,  $year , $month);
+            $results = [];
+            foreach($programs as $value){
+
+                $minggu1_start = Carbon::create($year, $month, 1)->startOfMonth()->startOfWeek();
+                $minggu1_end = $minggu1_start->copy()->endOfWeek();
+                
+                $minggu2_start = $minggu1_end->copy()->addDay();
+                $minggu2_end   = $minggu2_start->copy()->endOfWeek();
+                
+                $minggu3_start = $minggu2_end->copy()->addDay();
+                $minggu3_end = $minggu3_start->copy()->endOfWeek();
+                
+                $minggu4_start = $minggu3_end->copy()->addDay();
+                $minggu4_end = $minggu4_start->copy()->endOfWeek();
+                
+                $minggu5_start = $minggu4_end->copy()->addDay();
+                $minggu5_end = $minggu5_start->copy()->endOfWeek();
+
+                #get jenis pekerjaan di proker_bulanan_detail berdasarkan pkb_id nya
+                $jenis_pekerjaan = ProkerHarian::getProkerHarianByProkerBulanan($value->uuid);
+                $minggu_1 = [];
+                $minggu_2 = [];
+                $minggu_3 = [];
+                $minggu_4 = [];
+                $minggu_5 = [];
+
+                foreach ($jenis_pekerjaan as $detail) {
+                    $detail_date = Carbon::parse($detail->pkh_date);
+
+                    $detail->pkh_dates = date('d-m-Y', strtotime($detail->pkh_date));
+
+            
+                    if ($detail_date->between($minggu1_start, $minggu1_end)) {
+                        $minggu_1[] = $detail;
+                    } elseif ($detail_date->between($minggu2_start, $minggu2_end)) {
+                        $minggu_2[] = $detail;
+                    } elseif ($detail_date->between($minggu3_start, $minggu3_end)) {
+                        $minggu_3[] = $detail;
+                    } elseif ($detail_date->between($minggu4_start, $minggu4_end)) {
+                        $minggu_4[] = $detail;
+                    } elseif ($detail_date->between($minggu5_start, $minggu5_end)) {
+                        $minggu_5[] = $detail;
+                    }
+                }
+                        
+                $results[] = [
+                    'id' => $value->id,
+                    'uuid' => $value->uuid,
+                    'pkb_start_date' => $value->pkb_start_date,
+                    'pkb_title' => $value->pkb_title,
+                    'pkb_hasil' => $value->pkb_hasil,
+                    'count_minggu_1' => count($minggu_1),
+                    'list_minggu_1' => $minggu_1,
+                    'count_minggu_2' => count($minggu_2),
+                    'list_minggu_2' => $minggu_2,
+                    'count_minggu_3' => count($minggu_3),
+                    'list_minggu_3' => $minggu_3,
+                    'count_minggu_4' => count($minggu_4),
+                    'list_minggu_4' => $minggu_4,
+                    'count_minggu_5' => count($minggu_5),
+                    'list_minggu_5' => $minggu_5,
+                ];
+            }
+
+            $data = [];
+
+            if(!empty($results)) {
+            
+                // for($i = 0; $i < count($results); $i++) {
+    
+                //     $data[]     = array(
+                //         $i + 1,
+                //         $results[$i]['pkb_title'],
+                //         '<button href="#" class="btn btn-sm" data-list=\''.json_encode($results[$i]['list_minggu_1']).'\'>'.$results[$i]['count_minggu_1'].'</button>',
+                //         '<a href="#" class="btn btn-sm" data-list=\''.json_encode($results[$i]['list_minggu_2']).'\'>'.$results[$i]['count_minggu_2'].'</a>',
+                //         $results[$i]['count_minggu_3'],
+                //         $results[$i]['count_minggu_4'],
+                //         $results[$i]['count_minggu_5'],
+                //     );
+                // }
+
+                
+                foreach($results as $i => $result){
+
+                    $data[]     = [
+                    $i + 1,
+                    $result['pkb_title'],
+                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_1'])).'\'>'.$result['count_minggu_1'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_2'])).'\'>'.$result['count_minggu_2'].'</a>',
+                    $result['count_minggu_3'],
+                    $result['count_minggu_4'],
+                    $result['count_minggu_5'],
+                    ];
+            
+            }
+                
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => $data,
+                );
+            } else {
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => [],
+                );
+            }
+            
+
+            return ResponseFormatter::success([
+               'bulan' =>  Months::monthName($month),
+               'perminggu' => $output,
+               'results' => $results
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal tampilkan data!'
+            ]);
+        }
+    }
+
+    public function getSasaran(Request $request)
+    {
+        try {
+            
+
+            $sasaran = ProkerBulanan::getSasaran();
+
+            if ($request->has('q')) {
+                $search = $request->q;
+                $sasaran = ProkerBulanan::getSasaranSearch($search);
+            }
+            
+            return response()->json($sasaran);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal ambil data!'
+            ]);
+        }
+    }
+
+    public function getProgramKerjaBulananBySasaran(Request $request)
+    {
+        try {
+            
+            $fn  = new NumberFormat();
+
+           $groupDivisionID = env('APP_GROUPDIV_MARKETING');
+
+           $pkb_pkt_id = request()->idSasaran;
+           $year       = request()->year;
+
+            // get data program di proker bulanan by tahunan detail id
+            $sasaran_umum = ProkerBulanan::getSasaranUmum($year, $pkb_pkt_id);
+            $res_sasaran_umum = [];
+
+            foreach ($sasaran_umum as $key => $value) {
+
+                $programs = ProkerBulanan::getProgramByDivisi($groupDivisionID,  $year , $value->bulan);
+                $res_programs = [];
+
+                foreach($programs as $program){
+
+                    // get jenis pekerjaan nya, dari table proker bulanan detail 
+                    $jenis_pekerjaan = ProkerBulanan::getJenisPekerjaan($program->id);
+                    // jumlahkan target per program
+                    $sum_target = collect($jenis_pekerjaan)->sum(function($q){
+                        return $q->pkbd_num_target;
+                    });
+
+                    $sum_hasil = collect($jenis_pekerjaan)->sum(function($q){
+                        return $q->pkbd_num_result;
+                    });
+
+                    $res_programs[] = [
+                        'sum_target' => $sum_target,
+                        'sum_hasil' => $sum_hasil,
+                    ];
+                }
+
+                $sum_target = collect($res_programs)->sum(function($q){
+                    return $q['sum_target'];
+                });
+
+                // sum hasil
+                $sum_hasil = collect($res_programs)->sum(function($q){
+                    return $q['sum_hasil'];
+                });
+
+                // persentase
+                $persentage_pencapaian_progam = $fn->persentage($sum_hasil,$sum_target);
+                if ($persentage_pencapaian_progam !== null) {
+                        $persentage_pencapaian_progam  = $fn->persen($persentage_pencapaian_progam);  
+                }
+                
+                // get total pencapaian jamaah per bulan by tahun
+                $umrah = MarketingTarget::getRealisasiUmrahPerBulanByTahun($year, $value->bulan);
+
+                $res_sasaran_umum[] = [
+                    'month_number' => $value->bulan,
+                    'month_name' => Months::monthName($value->bulan),
+                    'pencapaian_umrah' => (int) $umrah->pencapaian,
+                    'target_umrah' => (int) $umrah->target,
+                    'selisih_umrah' => (int) $umrah->selisih,
+                    'persentage_pencapaian_progam' => (int) $persentage_pencapaian_progam,
+                    'res_programs' => $res_programs
+                ];
+            }
+            
+            $data = [];
+
+            if(!empty($res_sasaran_umum)) {
+                foreach($res_sasaran_umum as $i => $result){
+
+                    $data[]     = [
+                        $i + 1,
+                        '<a href="#" data-year='.$year.' data-month='.$result['month_number'].' onclick="showMonth(this)">'.$result['month_name'].'</a>',
+                        $result['persentage_pencapaian_progam'].' %',
+                        $result['pencapaian_umrah'],
+                        $result['target_umrah'],
+                        $result['selisih_umrah'],
+                    ];
+            
+                }
+                
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => $data,
+                );
+
+            } else {
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => [],
+                );
+            }
+
+            
+            
+            return ResponseFormatter::success([
+                'sasaran_umum' => $output,
+                'res_sasaran_umum' => $res_sasaran_umum
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal ambil data!'
+            ]);
+        }
+    }
+
     public function getReportEvaluasiMarketing(Request $request)
 	{
         try {
@@ -1209,87 +1556,69 @@ class ProgramKerjaController extends Controller
 			
 			$year   = request()->year;
 			$month  = request()->month;
-			$week   = null;
+			$week   = request()->week;
 
-            // get data program dari table porker bulanan 
-            $programs = ProkerBulanan::getProgramByDivisi($groupDivisionID,  $year , $month, $week);
+            $programs = ProkerBulanan::getProgramByDivisi($groupDivisionID,  $year , $month);
+
 
             $results = [];
             foreach($programs as $value){
 
                 // get jenis pekerjaan nya, dari table proker bulanan detail 
                 $jenis_pekerjaan = ProkerBulanan::getJenisPekerjaan($value->id);
-                // $res_jenis_pekerjaan = [];
-                // foreach($jenis_pekerjaan as $jk){
-
-                //     $persentage_pencapaian_jenis_pekerjaan = $fn->persentage($jk->pkbd_num_result,$jk->pkbd_num_target);
-                //     if ($persentage_pencapaian_jenis_pekerjaan !== null) {
-                //             $persentage_pencapaian_jenis_pekerjaan  = $fn->persen($persentage_pencapaian_jenis_pekerjaan);  
-                //     }
-
-                //     $res_jenis_pekerjaan[] = [
-                //         'pkbd_type' => $jk->pkbd_type,
-                //         'pkbd_num_target' => $jk->pkbd_num_target,
-                //         'pkbd_num_result' => $jk->pkbd_num_result,
-                //         'persentage_pencapaian_jenis_pekerjaan' => (int) $persentage_pencapaian_jenis_pekerjaan
-                //     ];
-                // }
-
                 // jumlahkan target per program
                 $sum_target = collect($jenis_pekerjaan)->sum(function($q){
                     return $q->pkbd_num_target;
                 });
-                // jumlahkan hasil per program 
-                // $sum_hasil = collect($res_jenis_pekerjaan)->sum(function($q){
-                //     return $q->pkbd_num_result;
-                // });
 
+                $sum_hasil = collect($jenis_pekerjaan)->sum(function($q){
+                    return $q->pkbd_num_result;
+                });
+               
                 // // persentase per program 
-                $persentage_pencapaian_progam = $fn->persentage($value->pkb_hasil,$sum_target);
+                $persentage_pencapaian_progam = $fn->persentage($sum_hasil,$sum_target);
                 if ($persentage_pencapaian_progam !== null) {
                         $persentage_pencapaian_progam  = $fn->persen($persentage_pencapaian_progam);  
                 }
 
                 $results[] = [
                     'id' => $value->id,
+                    'uuid' => $value->uuid,
                     'pkb_start_date' => $value->pkb_start_date,
                     'pkb_title' => $value->pkb_title,
-                    'pkb_hasil' => $value->pkb_hasil,
                     'jenis_pekerjaan' => $jenis_pekerjaan,
                     'count_jenis_pekerjaan' => count($jenis_pekerjaan),
                     'target' => $sum_target,
+                    'hasil' => $sum_hasil,
                     // 'sum_hasil'  => $sum_hasil,
                     'persentage_pencapaian_progam' => $persentage_pencapaian_progam
                 ];
             }
 
-            // $html = "";
-            // $no   = 1;
-            // foreach ($results as $value) {
-            //     $html = $html.'<tr>';
-            //     $html = $html.'<td style="display: table-cell;text-align: center;font-size:14px">'.$no++.'</td>';
-            //     $html = $html.'<td style="display: table-cell;font-size:14px">'. $value['pkb_title'].'</td>';
-            //     $html = $html.'<td style="display: table-cell;text-align: right;font-size:14px">'.$value['count_jenis_pekerjaan'].'</td>';
-            //     $html = $html.'<td style="display: table-cell;text-align: right;font-size:14px">'.$value['target'].'</td>';
-            //     $html = $html.'<td style="display: table-cell;text-align: right;font-size:14px">'.$value['pkb_hasil'].'</td>';
-            //     $html = $html.'<td style="display: table-cell;text-align: right;font-size:14px">'.$value['persentage_pencapaian_progam'].'</td>';
-            //     $html = $html.'<td><button class="btn btn-sm btn-primary"><i class="fa fa-eye"></i></button></td>';
-            //     $html = $html.'</tr>';
+            // total_target 
+            $total_target = collect($results)->sum(function($q){
+                return $q['target'];
+            });
 
-            // }
+            $total_hasil = collect($results)->sum(function($q){
+                return $q['hasil'];
+            });
+
+            $persentage_total_pencapaian_progam = $fn->persentage($total_hasil,$total_target);
+                if ($persentage_total_pencapaian_progam !== null) {
+                        $persentage_total_pencapaian_progam  = $fn->persen($persentage_total_pencapaian_progam);  
+                }
 
             if(!empty($results)) {
             
                 for($i = 0; $i < count($results); $i++) {
-    
+
                     $data[]     = array(
                         $i + 1,
                         $results[$i]['pkb_title'],
-                        $results[$i]['count_jenis_pekerjaan'],
+                        $results[$i]['persentage_pencapaian_progam'].' %',
+                        $results[$i]['hasil'],
                         $results[$i]['target'],
-                        $results[$i]['pkb_hasil'],
-                        $results[$i]['persentage_pencapaian_progam'],
-                        "<button type='button' data-id='".$results[$i]['id']."' class='btn btn-sm btn-primary' data-toggle='modal' data-target='#myModal5'><i class='fa fa-eye'></i></button>"
                     );
                 }
                 
@@ -1304,21 +1633,18 @@ class ProgramKerjaController extends Controller
                 );
             }
     
-            // return response()->json([
-            //     'data' => $output
-            // ]);
-
-
             return ResponseFormatter::success([
                 'bulan' =>  Months::monthName($month),  
 				'rencanakerja'  => $output,
+                'total_target' => $total_target,
+                'total_hasil' => $total_hasil,
+                'persentage_total_pencapaian_progam' => $persentage_total_pencapaian_progam
             ]);
 
         } catch (\Exception $e) {
             Log::channel('daily')->error($e->getMessage());
-			return $e->getMessage();
             return ResponseFormatter::error([
-                'message' => 'Gagal Singkronkan data!'
+                'message' => 'Gagal tampilkan data!'
             ]);
         }
 	}

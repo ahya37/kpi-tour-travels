@@ -52,7 +52,12 @@ Route::group(['middleware' => ['auth']], function () {
 	 Route::post('/marketings/rencanakerja/report/rinciankegiatan',[ProgramKerjaController::class, 'getRincianKegiatanByJenisPekerjaan']);
 
 	 Route::post('/marketings/report/evaluasi',[ProgramKerjaController::class, 'getReportEvaluasiMarketing']);
-
+	 Route::post('/marketings/report/evaluasi/kegiatan/rincian',[ProgramKerjaController::class, 'getRincianKegiatanByProgramBulanan']);
+	 Route::post('/marketings/report/evaluasi/perbulan/perminggu',[ProgramKerjaController::class, 'getReportProgramPerMingguByBulan']);
+	 
+    //  GET EVALUASI MARKETING
+     Route::get('/marketings/sasaran',[ProgramKerjaController::class, 'getSasaran']);
+	 Route::post('/marketings/sasaran/programs',[ProgramKerjaController::class, 'getProgramKerjaBulananBySasaran']);
 
     //marketing
     Route::prefix('marketings')->controller(MarketingController::class)->group(function(){
@@ -94,13 +99,13 @@ Route::group(['middleware' => ['auth']], function () {
 
         // Grafik Laporan Umrah Bulanan
         Route::post('/pencapaian/bulanan','pencapaianBulanan');
+        Route::post('/pencapaian/bulanan/table/{marketingTargetId}','getReportUmrahBulanan');
 
         // HAJI
         Route::get('/haji/report','reportHaji')->name('marketings.haji.report');
         Route::get('/haji/target/create','settingTargetHaji')->name('marketings.haji.target');
         Route::post('/haji/target/save','saveTargetHaji');
         Route::get('modal/target/haji','loadModalTargetHaji');
-		
 		
         
     });
