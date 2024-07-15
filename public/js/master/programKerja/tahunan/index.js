@@ -233,11 +233,11 @@ function tambahBaris(id_table, data)
 function hapusBaris(id_table, seq)
 {
     var current_seq     = $("#btnTambahBarisSubProk").val();
+    var prev_seq        = seq - 1;
     if(seq > 1) {
         if(current_seq - seq == 1) {
             // REMOVE ROW PADA DATATABLE
-            $("#"+id_table).DataTable().row(seq - 1).remove().draw('false')
-
+            $("#"+id_table).DataTable().row(prev_seq).remove().draw('false');
             $("#btnTambahBarisSubProk").val(current_seq  - 1);
         }
     }

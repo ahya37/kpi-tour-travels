@@ -76,7 +76,11 @@
 				
 				<ul class="nav nav-second-level">
                     <li class="active"><a href="{{ route('marketing.pekerjaan.report') }}">Laporan Pekerjaan Harian</a></li>
-                </ul>  
+                </ul>
+                <ul class="nav nav-second-level">
+                    <li class="{{ request()->is('marketings/*') ? 'active' : '' }}">
+                        <a href="{{ route('marketing.programkerja.dashboard') }}">Program Kerja</a></li>
+                </ul>
             </li>
 
             {{-- <li class="{{ request()->is('dashboard') ? 'active' : '' }}">
@@ -152,6 +156,10 @@
                 </ul>
                 <ul class="nav nav-second-level">
                     <li class="active"><a href="{{ route('marketing.pekerjaan.report') }}">Laporan Pekerjaan Harian</a></li>
+                </ul>
+                <ul class="nav nav-second-level">
+                    <li class="{{ request()->is('marketings/*') ? 'active' : '' }}">
+                        <a href="{{ route('marketing.programkerja.dashboard') }}">Program Kerja</a></li>
                 </ul>
             </li>
 
