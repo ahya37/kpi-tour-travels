@@ -9,10 +9,8 @@ $(document).ready(function(){
 var base_url    = window.location.pathname;
 var group_division  = $("#group_division").val();
 var sub_division    = $("#sub_division").val();
-var user_id         = sub_division == 'manager' || sub_division == 'pic' ? '%' : $("#user_id").val();
+var user_id         = sub_division == 'manager' || sub_division == 'pic' || sub_division == '%' ? '%' : $("#user_id").val();
 var user_role       = $("#user_role").val();
-
-console.log({sub_division, user_id});
 
 function dashboard() {
     // GET SUMMARY DASHBOARD

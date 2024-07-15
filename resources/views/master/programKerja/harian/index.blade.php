@@ -117,13 +117,13 @@
                         <div class="col-sm-6">
                             <div class="form-group">
                                 <label>Waktu Awal Aktivitas</label>
-                                <input type="text" class="form-control form-control-sm waktu" placeholder="HH:mm:ss" name="programKerjaHarianWaktuMulai" id="programKerjaHarianWaktuMulai" onclick="this.setSelectionRange(0, 2)" onfocus="this.setSelectionRange(0, 2)">
+                                <input type="text" class="form-control form-control-sm waktu" placeholder="HH:mm:ss" name="programKerjaHarianWaktuMulai" id="programKerjaHarianWaktuMulai" onclick="this.setSelectionRange(0, 2)" onfocus="this.setSelectionRange(0, 2)" style="height: 37.5px; cursor: pointer; background: white;" readonly>
                             </div>
                         </div>
                         <div class="col-sm-6">
                             <div class="form-group">
                                 <label>Waktu Akhir Aktivitas</label>
-                                <input type="text" class="form-control form-control-sm waktu" placeholder="HH:mm:ss" name="programKerjaHarianWaktuAkhir" id="programKerjaHarianWaktuAkhir" onclick="this.setSelectionRange(0, 2)" onfocus="this.setSelectionRange(0, 2)">
+                                <input type="text" class="form-control form-control-sm waktu" placeholder="HH:mm:ss" name="programKerjaHarianWaktuAkhir" id="programKerjaHarianWaktuAkhir" onclick="this.setSelectionRange(0, 2)" onfocus="this.setSelectionRange(0, 2)" style="height: 37.5px; cursor: pointer; background: white;" readonly">
                             </div>
                         </div>
                     </div>
@@ -151,18 +151,23 @@
                             <div class="form-group">
                                 <label>Program Kerja Tahunan</label>
                                 <select name="programKerjaTahunanID" id="programKerjaTahunanID" style="width: 100%;" onchange="showSelect(`programKerjaBulananID`, this.value, '', true)"
-                                {{-- onchange="showSelect(`programKerjaBulananID`, this.value, '', '')" --}}
                                 ></select>
                             </div>
                         </div>
                     </div>
-
+                    <div class="form-row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Pilih Bulan</label>
+                                <select name="programKerjaBulan" id="programKerjaBulan" style="width: 100%;" onchange="showSelect('programKerjaBulananID', '%', '', true)"></select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-row mb-2">
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Program Bulanan</label>
                                 <select name="programKerjaBulananID" id="programKerjaBulananID" style="width: 100%;" onchange="showSelect(`programKerjaBulananAktivitas`, this.value, '', true)"
-                                {{-- onchange="showSelect('programKerjaBulananAktivitas', this.value, '', '')" --}}
                                 ></select>
                             </div>
                         </div>

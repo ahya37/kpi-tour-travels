@@ -7,7 +7,8 @@
 {{-- DROPZONE --}}
 <script src="{{ asset('js/customJS/dropzone.min.js') }}"></script>
 {{-- DATATABLE --}}
-<script src="{{ asset('js/customJS/DataTables/datatables.min.js') }}"></script>
+<script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
+{{-- <script src="{{ asset('js/customJS/DataTables/datatables.min.js') }}"></script> --}}
 <script src="{{ asset('js/customJS/DataTables/buttons.dataTables.js') }}"></script>
 <script src="{{ asset('js/customJS/DataTables/dataTables.buttons.js') }}"></script>
 <script src="{{ asset('js/customJS/DataTables/dataTables.fixedHeader.min.js') }}"></script>
@@ -21,3 +22,5 @@
 <script src="{{ asset('js/customJS/SweetAlert/sweetalert2.all.min.js') }}"></script>
 {{-- DATERANGEPICKER --}}
 <script src="{{ asset('js/customJS/daterangepicker/daterangepicker.min.js') }}"></script>
+{{-- YEAR PICKER --}}
+<script src="{{ asset('assets/js/plugins/yearpicker/yearpicker.js') }}"></script>

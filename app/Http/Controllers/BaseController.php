@@ -97,4 +97,28 @@ class BaseController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 09 juli 2024
+    // note : fungsi pengambilan data master program untuk proker bulanan
+    public function getMasterProgram()
+    {
+        $getData    = BaseService::doGetMasterProgram();
+
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Data Ditemukan",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data Tidak Ditemukan"
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

@@ -69,6 +69,7 @@ class ProgramKerjaService
                     "pkt_id"        => $idHeader,
                     "pktd_seq"      => $i + 1,
                     "pktd_title"    => $data['prtSub'][$i]['subProkTitle'],
+                    "pktd_target"   => $data['prtSub'][$i]['subProkTarget'],
                 );
 
                 DB::table('proker_tahunan_detail')->insert($data_sub);
@@ -106,6 +107,7 @@ class ProgramKerjaService
                     $dataDetail[]   = array(
                         "subProkSeq"    => $i + 1,
                         "subProkTitle"  => $data['prtSub'][$i]['subProkTitle'],
+                        "subProkTarget" => $data['prtSub'][$i]['subProkTarget']
                     );
                 }
             }
@@ -116,6 +118,7 @@ class ProgramKerjaService
                     "pkt_id"        => $query_get_data_id,
                     "pktd_seq"      => $dataDetail[$j]['subProkSeq'],
                     "pktd_title"    => $dataDetail[$j]['subProkTitle'],
+                    "pktd_target"   => $dataDetail[$j]['subProkTarget'],
                 );
 
                 DB::table('proker_tahunan_detail')->insert($data_detail);
@@ -162,7 +165,8 @@ class ProgramKerjaService
         $get_detail     = DB::select(
             "
             SELECT 	b.pktd_seq as detail_seq,
-                    b.pktd_title as detail_title
+                    b.pktd_title as detail_title,
+                    b.pktd_target as detail_target
             FROM 	proker_tahunan a
             JOIN proker_tahunan_detail b ON a.id = b.pkt_id
             WHERE 	a.uid = '$id'
@@ -824,7 +828,7 @@ class ProgramKerjaService
             AND     EXTRACT(MONTH FROM a.pkb_start_date) = '$createdMonth'
             AND     c.id LIKE '$groupDivision'
             AND 	a.created_by LIKE '$createdBy'
-            ORDER BY a.pkb_start_date DESC
+            ORDER BY a.created_at, a.pkb_start_date DESC
             "
         );
 
@@ -910,6 +914,7 @@ class ProgramKerjaService
         $roles          = $data['rolesName'];
         $pkt_uuid       = $data['pkt_uuid'];
         $pkb_uuid       = $data['pkb_uuid'];
+        $pkb_month      = $data['pkb_selected_month'];
         $current_user   = $roles == '%' ? '%' : Auth::user()->id;
 
 
@@ -951,6 +956,7 @@ class ProgramKerjaService
             JOIN 	group_divisions d ON d.id = c.division_group_id
             JOIN 	roles e ON e.id = d.roles_id
             WHERE 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM '$currentDate')
+            AND     EXTRACT(MONTH FROM a.pkb_start_date) = '$pkb_month'
             AND 	c.uid LIKE '$pkt_uuid'
             AND     a.uuid LIKE '$pkb_uuid'
             AND 	(e.name LIKE '$roles' OR e.id LIKE '$roles')
@@ -1424,5 +1430,41 @@ class ProgramKerjaService
             ORDER BY b.user_id ASC
             "
         );
+    }
+
+    // NOTE : HAPUS DATA PROKER BULANAN
+    public static function doHapusProgramKerja($data)
+    {
+        DB::beginTransaction();
+        $pkbID  = $data['pkb_id'];
+        $ip     = $data['ip'];
+
+        // CHECK
+        $data_where     = array(
+            "uuid"      => $pkbID
+        );
+        $data_update    = array(
+            "pkb_is_active" => "f"
+        );
+
+        DB::table('proker_bulanan')->where($data_where)->update($data_update);
+
+        try {
+            DB::commit();
+            $output     = array(
+                "status"    => "berhasil",
+                "errMsg"    => []
+            );
+            LogHelper::create('delete', 'Berhasil Hapus Program Kerja Bulanan id : '.$pkbID, $ip);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            $output     = array(
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            );
+            LogHelper::create('err_system', $e->getMessage(), $ip);
+        }
+
+        return $output;
     }
 }
