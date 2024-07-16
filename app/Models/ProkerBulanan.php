@@ -73,7 +73,6 @@ class ProkerBulanan extends Model
 	{
 		$proker_bulanan_detail = DB::table('proker_bulanan_detail')->where('pkb_id', $pkb_id)->get();
 						
-						  
 		return $proker_bulanan_detail;
 	}
 
@@ -145,21 +144,23 @@ class ProkerBulanan extends Model
         return $target;
     }
 
-    public static function getSasaran()
+    public static function getSasaranMarketing($groupDivisionID)
     {
         $sasaran = DB::table('proker_tahunan_detail as a')
                     ->select('b.uid','a.pkt_id','a.pktd_seq','a.pktd_title')
                     ->join('proker_tahunan as b','a.pkt_id','=','b.id')
+                    ->where('b.division_group_id', $groupDivisionID)
                     ->orderBy('a.pktd_title','desc')->get();
 
         return $sasaran;
     }
 
-    public static function getSasaranSearch($search)
+    public static function getSasaranSearchMarketing($groupDivisionID, $search)
     {
         $sasaran = DB::table('proker_tahunan_detail as a')
                     ->select('b.uid','a.pkt_id','a.pktd_seq','a.pktd_title')
                     ->join('proker_tahunan as b','a.pkt_id','=','b.id')
+                    ->where('b.division_group_id', $groupDivisionID)
                     ->where('a.pktd_title', 'LIKE',"%$search%")
                     ->orderBy('a.pktd_title','desc')->get();
 

@@ -1458,13 +1458,14 @@ class ProgramKerjaController extends Controller
     public function getSasaran(Request $request)
     {
         try {
-            
 
-            $sasaran = ProkerBulanan::getSasaran();
+            $groupDivisionID = env('APP_GROUPDIV_MARKETING');
+
+            $sasaran = ProkerBulanan::getSasaranMarketing($groupDivisionID);
 
             if ($request->has('q')) {
                 $search = $request->q;
-                $sasaran = ProkerBulanan::getSasaranSearch($search);
+                $sasaran = ProkerBulanan::getSasaranSearchMarketing($groupDivisionID, $search);
             }
             
             return response()->json($sasaran);
@@ -1691,5 +1692,10 @@ class ProgramKerjaController extends Controller
             ]);
         }
 	}
+
+    public function countingNumResult()
+    {
+        
+    }
 
 }
