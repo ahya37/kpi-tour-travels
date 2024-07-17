@@ -72,7 +72,6 @@ const showTableEvaluasiSasaranUmum = (idTable, year, idSasaran) => {
             initComplete: function (settings, json) {
                 $('#pencapaian').text('Realisasi Umrah')
                 $('#target').text('Target Umrah')
-                console.log('bulanan ', json)
             }
         });
     }
@@ -81,11 +80,6 @@ const showTableEvaluasiSasaranUmum = (idTable, year, idSasaran) => {
 $('#goFilter').click(async function () {
     const idSasaran = sasaran.val();
     const year      = $('#year-start').val();
-    console.log(idSasaran);
-    console.log('Loading..');
-    // const response = await getCallApi(idSasaran);
-    console.log('Done');
-    // console.log(response);
     showTableEvaluasiSasaranUmum('datatableEvaluasiSasaranUmum',year, idSasaran);
 
 });
@@ -175,13 +169,7 @@ async function showMonth(element){
     const yearInProgram = element.getAttribute('data-year'); 
     const monthInProgram = element.getAttribute('data-month'); 
 
-    console.log(yearInProgram)
-    console.log(monthInProgram)
-
-    console.log('Loading..');
     const response = await getCallApi(yearInProgram, monthInProgram);
-    console.log('Done');
-    console.log(response);
     showTableProgramBulan('datatable', yearInProgram, monthInProgram);
 }
 
@@ -190,7 +178,6 @@ function showJenisPekerjaan(element){
 
     const jenisPekerjaan = JSON.parse(resJenisPekerjaan);
 
-    console.log(jenisPekerjaan);
 
      // Initialize DataTable
      let tableShowJenisPekerjaan;
