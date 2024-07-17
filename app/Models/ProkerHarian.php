@@ -26,6 +26,16 @@ class ProkerHarian extends Model
                 ->get();
     }
 
+    public static function getProkerHarianByProkerBulananAndBulananDetail($pkb_id, $pkbd_id)
+    {
+        return DB::table('proker_harian as a')
+                ->select('a.pkh_pkb_id','a.pkh_date','a.pkh_start_time','a.pkh_end_time','a.pkh_title','b.name')
+                ->join('users as b','a.created_by','=','b.id')
+                ->where('a.pkh_pkb_id', "$pkb_id | $pkbd_id")
+                ->orderBy('a.pkh_date','asc')
+                ->get();
+    }
+
     public static function getProkerHarianByProkerBulananPerMinggu($year, $month, $pkb_uuid,$week)
     {
         return DB::select("

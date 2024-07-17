@@ -1538,10 +1538,10 @@ class ProgramKerjaController extends Controller
                 $res_sasaran_umum[] = [
                     'month_number' => $value->bulan,
                     'month_name' => Months::monthName($value->bulan),
-                    'pencapaian_umrah' => (int) $umrah->pencapaian,
-                    'target_umrah' => (int) $umrah->target,
-                    'selisih_umrah' => (int) $umrah->selisih,
-                    'persentage_pencapaian_progam' => (int) $persentage_pencapaian_progam,
+                    'pencapaian_umrah' =>  $umrah->pencapaian,
+                    'target_umrah' =>  $umrah->target,
+                    'selisih_umrah' =>  $umrah->selisih,
+                    'persentage_pencapaian_progam' =>  $persentage_pencapaian_progam,
                     'res_programs' => $res_programs
                 ];
             }
@@ -1629,7 +1629,7 @@ class ProgramKerjaController extends Controller
                     'id' => $value->id,
                     'uuid' => $value->uuid,
                     'pkb_start_date' => $value->pkb_start_date,
-                    'pkb_title' => $value->pkb_title,
+                    'pkb_title' => $value->program,
                     'jenis_pekerjaan' => $jenis_pekerjaan,
                     'count_jenis_pekerjaan' => count($jenis_pekerjaan),
                     'target' => $sum_target,
@@ -1639,19 +1639,7 @@ class ProgramKerjaController extends Controller
                 ];
             }
 
-            // total_target 
-            $total_target = collect($results)->sum(function($q){
-                return $q['target'];
-            });
 
-            $total_hasil = collect($results)->sum(function($q){
-                return $q['hasil'];
-            });
-
-            $persentage_total_pencapaian_progam = $fn->persentage($total_hasil,$total_target);
-                if ($persentage_total_pencapaian_progam !== null) {
-                        $persentage_total_pencapaian_progam  = $fn->persen($persentage_total_pencapaian_progam);  
-                }
 
             if(!empty($results)) {
             
@@ -1676,13 +1664,35 @@ class ProgramKerjaController extends Controller
                     "data"  => [],
                 );
             }
+
+             // total_target 
+             $total_target = collect($results)->sum(function($q){
+                return $q['target'];
+            });
+
+            $total_hasil = collect($results)->sum(function($q){
+                return $q['hasil'];
+            });
+
+            // jika target 0, maka hasil persentase jadikan 0 %
+
+            $persentage_total_pencapaian_progam = $fn->persentage($total_hasil,$total_target);
+                if ($persentage_total_pencapaian_progam !== null) {
+                        $persentage_total_pencapaian_progam  = $fn->persen($persentage_total_pencapaian_progam);  
+                }
+            // if ($total_target != 0) {
+
+            // }else{
+
+            //     $persentage_total_pencapaian_progam = "Target tidak ditentukan";
+            // }
     
             return ResponseFormatter::success([
                 'bulan' =>  Months::monthName($month),  
 				'rencanakerja'  => $output,
                 'total_target' => $total_target,
                 'total_hasil' => $total_hasil,
-                'persentage_total_pencapaian_progam' => $persentage_total_pencapaian_progam
+                'persentage_total_pencapaian_progam' =>  $persentage_total_pencapaian_progam
             ]);
 
         } catch (\Exception $e) {
@@ -1695,7 +1705,80 @@ class ProgramKerjaController extends Controller
 
     public function countingNumResult()
     {
-        
+
+        try {
+            
+            $groupDivisionID = env('APP_GROUPDIV_MARKETING');
+            $year  = request()->year;
+            $month = request()->month;
+            
+            // COUNTING REALISASI JENIS PEKERJAAN (TB PROKER BULANAN DETAIL) DENGAN MMENGHITUNG DARI AKTIVITAS HARIAN NYA
+            // DATA BULAN JULI / 7
+
+            // get data program by divisi marketing 
+            $programs = ProkerBulanan::getProgramByDivisiNew($groupDivisionID,  $year , $month);
+            
+            $results  = [];
+            foreach ($programs as $key => $value) {
+                // get jenis pekerjaan nya di bulanan detail 
+                $jenis_pekerjaan = ProkerBulanan::getJenisPekerjaan($value->id);
+                
+                
+                $res_jenis_pekerjaan = [];
+                foreach ($jenis_pekerjaan as $key_jenis => $jenis) {
+                    
+                    // mapping jenis pekerjaan untuk hitung realisasi, realisasi di dapat dari aktivitas harian nya
+                    // get data where pkh_pkb_id bulan, dan detail bulan nya
+                    $aktivitas_harian = ProkerHarian::getProkerHarianByProkerBulananAndBulananDetail($value->uuid, $jenis->id);
+
+                    // Ambil pkb_id_update dari objek jenis pekerjaan  pertama, menyetel pkbd_id_update isinya adalah pkb_id objek pertama
+                    
+                    $res_jenis_pekerjaan[] = [
+                        'id' => $jenis->id, 
+                        'pkb_id' => $jenis->pkb_id, 
+                        'pkb_id_update' => $value->first_id_program, 
+                        'pkbd_type' => $jenis->pkbd_type,
+                        'pkbd_num_target' => $jenis->pkbd_num_target,
+                        'pkbd_num_result' => $jenis->pkbd_num_result,
+                        'count_aktivitas_harian' => count($aktivitas_harian),
+                        'aktivitas_harian' => $aktivitas_harian
+                    ];
+
+                    // update pkbd_num_result = $count_aktivitas_harian, menghitung jumlah kegiatan per jenis pekerjaan
+                    DB::table('proker_bulanan_detail')->where('id', $jenis->id)->update([
+                        'pkbd_num_result' => count($aktivitas_harian)
+                    ]);
+
+                    // UPDATE pkb_id dengan pkb_id yang pertama, dimaksudkan untuk mengelompokan satu program saja 
+                    DB::table('proker_bulanan_detail')->where('id', $jenis->id)->update([
+                        'pkb_id' => $value->first_id_program
+                    ]);
+
+                }
+
+                $results[] = [
+                    'id' => $value->id,
+                    'uuid' => $value->uuid,
+                    'pkb_start_date' => $value->pkb_start_date,
+                    'progam' => $value->program,
+                    'first_id_program' => $value->first_id_program, 
+                    'jenis_pekerjaan' => $res_jenis_pekerjaan
+                ];
+            }
+
+            return ResponseFormatter::success([
+                'count_program' => count($results),
+                'program' => $results,
+                'message' => 'Berhasil counting data !'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal counting data!'
+            ]);
+        }
+
     }
 
 }

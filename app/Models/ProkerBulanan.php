@@ -79,7 +79,7 @@ class ProkerBulanan extends Model
     public static function getProgramByDivisi($groupDivisionID, $year, $month, $week = null)
     {
         $programs = DB::table('proker_bulanan as a')
-						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','a.pkb_hasil')
+						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','a.pkb_hasil','e.name as program')
 						  ->join('proker_tahunan as b', function($join1){
 							  $join1->on(DB::raw('SUBSTRING_INDEX(a.pkb_pkt_id, "|",1)'), '=', 'b.uid');
 						  })
@@ -87,7 +87,34 @@ class ProkerBulanan extends Model
                           ->where('b.division_group_id', $groupDivisionID)
                           ->whereYear('a.pkb_start_date', $year)
                           ->whereMonth('a.pkb_start_date', $month)
-                          ->orderBy('a.pkb_start_date','asc')
+                          ->orderBy('a.pkb_title','asc')
+                          ->get();
+						  
+		return $programs;
+    }
+
+    public static function getProgramByDivisiNew($groupDivisionID, $year, $month, $week = null)
+    {
+        $programs = DB::table('proker_bulanan as a')
+						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','a.pkb_hasil','e.name as program',
+                                DB::raw("
+                                    (
+                                        select a1.id  from proker_bulanan as a1 
+                                        where a1.master_program_id = e.id
+                                        and year(a1.pkb_start_date) = $year
+                                        and month(a1.pkb_start_date) = $month
+                                        limit 1
+                                    ) as first_id_program
+                                ")
+                          )
+						  ->join('proker_tahunan as b', function($join1){
+							  $join1->on(DB::raw('SUBSTRING_INDEX(a.pkb_pkt_id, "|",1)'), '=', 'b.uid');
+						  })
+                          ->join('master_program as e','a.master_program_id','=','e.id')
+                          ->where('b.division_group_id', $groupDivisionID)
+                          ->whereYear('a.pkb_start_date', $year)
+                          ->whereMonth('a.pkb_start_date', $month)
+                          ->orderBy('a.pkb_title','asc')
                           ->get();
 						  
 		return $programs;
@@ -123,11 +150,23 @@ class ProkerBulanan extends Model
     public static function getJenisPekerjaan($pkb_id)
 	{
 		$proker_bulanan_detail = DB::table('proker_bulanan_detail as a')
-                                    ->select('a.pkbd_type' , 'a.pkbd_num_target' , 'a.pkbd_num_result')
+                                    ->select('a.pkb_id','a.id','a.pkbd_type' , 'a.pkbd_num_target' , 'a.pkbd_num_result')
                                     ->join('proker_bulanan as b','a.pkb_id','=','b.id')
                                     ->where('a.pkb_id', $pkb_id)
                                     ->orderBy('a.created_at','asc')
                                     ->get();
+						  
+		return $proker_bulanan_detail;
+	}
+
+    public static function getJenisPekerjaanFirst($pkb_id)
+	{
+		$proker_bulanan_detail = DB::table('proker_bulanan_detail as a')
+                                    ->select('a.pkb_id','a.id','a.pkbd_type' , 'a.pkbd_num_target' , 'a.pkbd_num_result')
+                                    ->join('proker_bulanan as b','a.pkb_id','=','b.id')
+                                    ->where('a.pkb_id', $pkb_id)
+                                    ->orderBy('a.created_at','asc')
+                                    ->first();
 						  
 		return $proker_bulanan_detail;
 	}
