@@ -172,27 +172,24 @@ $(document).ready(function () {
         }
     }
 
-    const initialGrafikJamaahPerKelompok = async (startDate, endDate) => {
-        try {
-            $('#jamaahperkelompok').remove();
-            showLoading('graph-container-jamaahperkelompok');
-            const responses = await callApi(startDate, endDate);
-            console.log(responses.data.chart_umrah_per_alumni);
+    const showTableRincianUmrah = async (startDate, endDate) => {
 
-            closeLoading('graph-container-jamaahperkelompok')
-            $('#graph-container-jamaahperkelompok').append('<canvas id="jamaahperkelompok"  width="100"></canvas>');
-            createChart('jamaahperkelompok', 'pie', responses.data.chart_umrah_per_alumni);
-        } catch (error) {
-            console.log(error);
-        }
+        let dataRincian = $('#dataRincian');
+        dataRincian.empty();
+        showLoading('LoadingTable');
+        const response = await callApi(startDate, endDate);
+        closeLoading('LoadingTable')
+        dataRincian.append(response.data.rincian_tables);
+
     }
 
     initialGrafikJamaahPerProgram(startDate, endDate);
     initialGrafikJamaahPerPic(startDate, endDate);
     initialGrafikJamaahPerbulan(startDate, endDate);
     initialGrafikJamaahPerSumber(startDate, endDate);
-    initialGrafikJamaahPerKelompok(startDate, endDate);
+    // initialGrafikJamaahPerKelompok(startDate, endDate);
     initialAllTotal(startDate, endDate);
+    showTableRincianUmrah(startDate, endDate);
 
     $('.month-start').datepicker({
         minViewMode: 1,
@@ -223,6 +220,8 @@ $(document).ready(function () {
         initialGrafikJamaahPerPic(startDate, endDate);
         initialGrafikJamaahPerSumber(startDate, endDate);
         initialAllTotal(startDate, endDate);
+        showTableRincianUmrah(startDate, endDate);
 
     });
+
 });

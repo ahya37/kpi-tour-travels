@@ -23,6 +23,10 @@ class DatabaseSeeder extends Seeder
         // $this->call(ReasonSeeder::class);
         // $this->call(ProkerTahunanSeeder::class);
         // $this->call(ProkerBulananSeeder::class);
-        $this->call(BahanProspekSeeder::class);
+        // $this->call(BahanProspekSeeder::class);
+        // $this->call(SasaranSeeder::class);
+        // $this->call(MasterProgram::class);
+        // $this->call(ProkerProgramSeeder::class);
+        $this->call(JenisPekerjaanSeeder::class);
     }
 }

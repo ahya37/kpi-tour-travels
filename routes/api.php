@@ -17,6 +17,10 @@ Route::get('/notifications/show/user/{userId}',[NotificationController::class, '
 
 Route::post('/marketings/rencanakerja/report',[TestController::class, 'reportRencanaKerjaMarekting']);
 
+Route::get('/marketings/proker/report/evaluasi',[ProgramKerjaController::class, 'getReportEvaluasiMarketing']);
+
+Route::post('/marketings/proker/jenispekerjaan/counting',[ProgramKerjaController::class, 'countingNumResult']);
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();

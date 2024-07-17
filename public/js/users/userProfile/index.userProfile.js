@@ -153,6 +153,9 @@ async function doTrans(url, type, data, customMessage, isAsync) {
         url     : url,
         cache   : false,
         type    : type,
+        beforeSend  : function() {
+            customMessage;
+        },
         data    : {
             _token      : CSRF_TOKEN,
             sendData    : data,

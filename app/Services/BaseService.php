@@ -100,4 +100,15 @@ class BaseService
 
         return $query;
     }
+
+    public static function doGetMasterProgram()
+    {
+        return DB::select(
+            "
+            SELECT  *
+            FROM    master_program
+            ORDER BY id ASC
+            "
+        );
+    }
 }

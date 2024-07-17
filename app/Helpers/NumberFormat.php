@@ -28,7 +28,7 @@ class NumberFormat {
     public function persen($data)
     {
         $show = number_format($data,0);
-        return $show;
+        return  $show;
     }
 
     public function decimalFormat($data) {

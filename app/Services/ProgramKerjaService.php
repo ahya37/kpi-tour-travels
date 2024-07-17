@@ -69,6 +69,7 @@ class ProgramKerjaService
                     "pkt_id"        => $idHeader,
                     "pktd_seq"      => $i + 1,
                     "pktd_title"    => $data['prtSub'][$i]['subProkTitle'],
+                    "pktd_target"   => $data['prtSub'][$i]['subProkTarget'],
                 );
 
                 DB::table('proker_tahunan_detail')->insert($data_sub);
@@ -106,6 +107,7 @@ class ProgramKerjaService
                     $dataDetail[]   = array(
                         "subProkSeq"    => $i + 1,
                         "subProkTitle"  => $data['prtSub'][$i]['subProkTitle'],
+                        "subProkTarget" => $data['prtSub'][$i]['subProkTarget']
                     );
                 }
             }
@@ -116,6 +118,7 @@ class ProgramKerjaService
                     "pkt_id"        => $query_get_data_id,
                     "pktd_seq"      => $dataDetail[$j]['subProkSeq'],
                     "pktd_title"    => $dataDetail[$j]['subProkTitle'],
+                    "pktd_target"   => $dataDetail[$j]['subProkTarget'],
                 );
 
                 DB::table('proker_tahunan_detail')->insert($data_detail);
@@ -162,7 +165,8 @@ class ProgramKerjaService
         $get_detail     = DB::select(
             "
             SELECT 	b.pktd_seq as detail_seq,
-                    b.pktd_title as detail_title
+                    b.pktd_title as detail_title,
+                    b.pktd_target as detail_target
             FROM 	proker_tahunan a
             JOIN proker_tahunan_detail b ON a.id = b.pkt_id
             WHERE 	a.uid = '$id'

@@ -52,6 +52,14 @@ Route::group(['middleware' => ['auth']], function () {
 	 Route::post('/marketings/rencanakerja/report/data',[ProgramKerjaController::class, 'getReportRencanaKerjaMarekting']);
 	 Route::post('/marketings/rencanakerja/report/rinciankegiatan',[ProgramKerjaController::class, 'getRincianKegiatanByJenisPekerjaan']);
 
+	 Route::post('/marketings/report/evaluasi',[ProgramKerjaController::class, 'getReportEvaluasiMarketing']);
+	 Route::post('/marketings/report/evaluasi/kegiatan/rincian',[ProgramKerjaController::class, 'getRincianKegiatanByProgramBulanan']);
+	 Route::post('/marketings/report/evaluasi/perbulan/perminggu',[ProgramKerjaController::class, 'getReportProgramPerMingguByBulan']);
+	 
+    //  GET EVALUASI MARKETING
+     Route::get('/marketings/sasaran',[ProgramKerjaController::class, 'getSasaran']);
+	 Route::post('/marketings/sasaran/programs',[ProgramKerjaController::class, 'getProgramKerjaBulananBySasaran']);
+
     //marketing
     Route::prefix('marketings')->controller(MarketingController::class)->group(function(){
         Route::get('/target','target')->name('marketing.target');
@@ -92,6 +100,7 @@ Route::group(['middleware' => ['auth']], function () {
 
         // Grafik Laporan Umrah Bulanan
         Route::post('/pencapaian/bulanan','pencapaianBulanan');
+        Route::post('/pencapaian/bulanan/table/{marketingTargetId}','getReportUmrahBulanan');
 
         // HAJI
         Route::get('/haji/report','reportHaji')->name('marketings.haji.report');
@@ -99,6 +108,37 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/haji/target/save','saveTargetHaji');
         Route::get('modal/target/haji','loadModalTargetHaji');
 		
+        // PROGRAM KERJA
+        Route::prefix('programKerja')->group(function(){
+            Route::get('/programKerja', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
+            Route::get('/Dashboard', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
+
+            // SASARAN
+            Route::prefix('sasaran')->group(function(){
+                Route::get('/', [MarketingController::class, 'marketing_programKerja_sasaran'])->name('marketing.programkerja.sasaran');
+                Route::get('/listSasaranMarketing', [MarketingController::class, 'marketing_programKerja_listSasaran']);
+                Route::get('/listGroupDivision', [MarketingController::class, 'marketing_programKerja_listGroupDivision']);
+                Route::post('/simpanSasaran/{jenis}', [MarketingController::class, 'marketing_programKerja_simpanSasaran']);
+                Route::get('/dataSasaran/{id}', [MarketingController::class, 'marketing_programKerjas_dataSasaran']);
+            });
+            // PROGRAM
+            Route::prefix('program')->group(function(){
+                Route::get('/', [MarketingController::class, 'marketing_programKerja_program'])->name('marketing.programkerja.program');
+                Route::get('/listProgramMarketing', [MarketingController::class, 'marketing_programKerja_listProgramMarketing']);
+                Route::get('/listSelectedProgramMarketing', [MarketingController::class, 'marketing_programKerja_listSelectedProgramMarketing']);
+                Route::get('/listSelectSasaranMarketing', [MarketingController::class, 'marketing_programKerja_listSelectSasaranMarketing']);
+                Route::post('/simpanProgram/{jenis}', [MarketingController::class, 'marketing_programKerja_simpanProgram']);    
+            });
+            // JENIS PEKERJAAN
+            Route::prefix('jenisPekerjaan')->group(function(){
+                Route::get('/dataProgram', [MarketingController::class, 'marketing_programKerja_dataProgram']);
+                Route::get('/dataProgramDetail/{programID}', [MarketingController::class, 'marketing_programKerja_dataProgramDetail']);
+                Route::post('/doSimpan', [MarketingController::class, 'marketing_programKerja_doSimpanJenisPekerjaan']);
+                Route::get('/dataEventsCalendar', [MarketingController::class, 'marketing_programKerja_jpkDataEventsCalendar']);
+                Route::get('/dataDetailEventsCalendar/{id}', [MarketingController::class, 'marketing_programKerja_jpkDataDetailEventsCalendar']);
+            });
+            // ADDITIONAL
+        });
 		
         
     });
@@ -226,6 +266,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/getGroupDivisionWRole', [BaseController::class,'getGroupDivisionWRole'])->name('master.data.groupDivisionWRole');
             Route::get('/getProgramUmrah/{program}', [BaseController::class, 'getProgramUmrah'])->name('master.data.getProgramUmrah');
             Route::get('/getCurrentSubDivision/{current_role}', [BaseController::class, 'getCurrentSubDivision']);
+            Route::get('/getMasterProgram', [BaseController::class, 'getMasterProgram']);
         });
     });
     
