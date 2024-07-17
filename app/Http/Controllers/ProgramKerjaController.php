@@ -1647,14 +1647,14 @@ class ProgramKerjaController extends Controller
 
             if(!empty($results)) {
             
-                for($i = 0; $i < count($results); $i++) {
+                foreach($results as $i => $result) {
 
                     $data[]     = array(
                         $i + 1,
-                        $results[$i]['pkb_title'],
-                        $results[$i]['persentage_pencapaian_progam'].' %',
-                        $results[$i]['hasil'],
-                        $results[$i]['target'],
+                        $result['pkb_title'],
+                        $result['persentage_pencapaian_progam'].' %',
+                        '<a href="#" class="btn btn-sm" data-jenispekerjaan=\''.htmlspecialchars(json_encode($result['jenis_pekerjaan'])).'\' onclick="showJenisPekerjaan(this)">'.$result['hasil'].'</a>',
+                        $result['target'],
                     );
                 }
                 

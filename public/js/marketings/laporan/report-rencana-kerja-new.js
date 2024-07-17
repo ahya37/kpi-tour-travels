@@ -184,3 +184,46 @@ async function showMonth(element){
     console.log(response);
     showTableProgramBulan('datatable', yearInProgram, monthInProgram);
 }
+
+function showJenisPekerjaan(element){
+    const resJenisPekerjaan =  element.getAttribute('data-jenispekerjaan'); 
+
+    const jenisPekerjaan = JSON.parse(resJenisPekerjaan);
+
+    console.log(jenisPekerjaan);
+
+     // Initialize DataTable
+     let tableShowJenisPekerjaan;
+     if (!$.fn.DataTable.isDataTable('#tableShowJenisPekerjaan')) {
+         tableShowJenisPekerjaan = $('#tableShowJenisPekerjaan').DataTable({
+             "paging": true,
+             "searching": true,
+             "info": true
+         });
+     } else {
+         tableShowJenisPekerjaan = $('#tableShowJenisPekerjaan').DataTable();
+     }
+     // Function to populate table with data
+     function populateTable(data) {
+        // Clear previous data
+        tableShowJenisPekerjaan.clear().draw();
+
+        // Add new data to the table
+        if (data.length) {
+            data.forEach(function (jenis) {
+                tableShowJenisPekerjaan.row.add([
+                    jenis.pkbd_type,
+                    jenis.pkbd_num_target,
+                    jenis.pkbd_num_result
+                ]).draw();
+            });
+        } else {
+            tableShowJenisPekerjaan.row.add(['', 'No Jenis available', '']).draw();
+        }
+    }
+
+    $('#titleJenisPekerjaan').text("Jenis Pekerjaan");
+    populateTable(jenisPekerjaan);
+    $('#myModalJenisPekerjaan').modal('show');
+
+}
