@@ -68,6 +68,8 @@ class ProgramKerjaController extends Controller
             'sub_division'      => $currentSubDivision,
         ];
 
+        return view('maintenance');
+
         return view('master/programKerja/index', $data);
     }
 
@@ -530,6 +532,8 @@ class ProgramKerjaController extends Controller
             'title'     => 'Master Program Kerja',
             'sub_title' => 'Program Kerja - Harian',
         ];
+
+        return view('maintenance');
 
         return view('master/programKerja/harian/index', $data);
     }
