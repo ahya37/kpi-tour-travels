@@ -195,7 +195,7 @@
                                     <thead>
                                         <tr>
                                             <th class="text-center align-middle">No</th>
-                                            <th class="text-center align-middle">Uraian</th>
+                                            <th class="text-center align-middle">Program</th>
                                             <th class="text-center align-middle">Bulan</th>
                                             <th class="text-center align-middle">Divisi</th>
                                             <th class="text-center align-middle">Target</th>
@@ -394,7 +394,7 @@
                     <div class="row mb-2">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label>Judul</label>
+                                <label>Uraian</label>
                                 <input type="text" class="form-control form-control-sm" id="jpk_title" name="jpk_title" placeholder="Uraian" autocomplete="off">
                             </div>
                         </div>
