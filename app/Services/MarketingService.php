@@ -12,6 +12,7 @@ use App\Models\MarketingTarget;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
+use Log;
 use Request;
 
 date_default_timezone_set('Asia/Jakarta');
@@ -434,7 +435,6 @@ class MarketingService
             JOIN 	proker_tahunan_detail d ON a.id = d.pkt_id
             WHERE 	c.name LIKE '$curr_role'
             AND 	a.pkt_year = '$curr_year'
-            AND     a.pkt_title LIKE '%sasaran%'
             "
         );
 
@@ -489,6 +489,7 @@ class MarketingService
             $data_add   = array(
                 "uid"                       => Str::random(30),
                 "pkt_title"                 => $data_table['prtTitle'],
+                "pkt_description"           => $data_table['prtDescription'],
                 "pkt_year"                  => $data_table['prtPeriode'],
                 "pkt_pic_job_employee_id"   => $query_get_employee[0]->employee_id,
                 "division_group_id"         => $query_get_employee[0]->employee_group_division_id,
@@ -537,6 +538,7 @@ class MarketingService
             // UPDATE HEADER
             $data_update    = array(
                 "pkt_title"                 => $data_table['prtTitle'],
+                "pkt_description"           => $data_table['prtDescription'],
                 "pkt_year"                  => $data_table['prtPeriode'],
                 "updated_by"                => $userID,
                 "updated_at"                => date('Y-m-d H:i:s'),
@@ -645,45 +647,20 @@ class MarketingService
         $user_role  = $data['user_role'];
 
         if($jenis == 'add')
-        {
-            $get_division_role  = DB::select(
-                "
-                SELECT  b.group_division_id
-                FROM    employees a
-                JOIN    job_employees b ON a.id = b.employee_id
-                WHERE   a.user_id = '$user_id'
-                "
-            );
-            $group_division     = $get_division_role[0]->group_division_id;
-            
+        {   
             $get_employee       = DB::table('employees')
                                     ->select('id')
                                     ->where(['user_id'  => $user_id])
                                     ->get();
             $employee_id        = $get_employee[0]->id;
-            
-            // SMPAN DATA TO MASTER PROGRAM
-            $data_simpan        = array(
-                "name"                  => $sendData['program_uraian'],
-                "division_group_id"     => $group_division,
-                "sasaran_id"            => explode("|", $sendData['program_sasaranID'])[0],
-                "sasaran_sequence"      => explode("|", $sendData['program_sasaranID'])[1],
-                "created_by"            => $user_id,
-                "created_at"            => date('Y-m-d H:i:s'),
-                "updated_by"            => $user_id,
-                "updated_at"            => date('Y-m-d H:i:s'),
-            );
-            
-            DB::table('master_program')->insert($data_simpan);            
-            $idProgram  = DB::getPdo()->lastInsertId();
 
             // SIMPAN DATA TO PROKER BULANAN
             $data_simpan_bulanan    = array(
                 "uuid"              => Str::random(30),
                 "pkb_title"         => strtoupper($sendData['program_uraian']),
                 "pkb_start_date"    => "2024-".$sendData['program_bulan']."-01",
-                "pkb_pkt_id"        => $sendData['program_sasaranID'],
-                "master_program_id" => $idProgram,
+                "pkb_pkt_id"        => $sendData['program_sasaranID']." | ".$sendData['program_detailSasaranID'],
+                "master_program_id" => $sendData['program_masterID'],
                 "pkb_employee_id"   => $employee_id,
                 "pkb_is_active"     => "t",
                 "created_by"        => $user_id,
@@ -691,9 +668,11 @@ class MarketingService
                 "updated_by"        => $user_id,
                 "updated_at"        => date('Y-m-d H:i:s'),
             );
-
             DB::table('proker_bulanan')->insert($data_simpan_bulanan);
+            
+
             $pkb_id     = DB::getPdo()->lastInsertId();
+            $pkb_uuid   = DB::table('proker_bulanan')->select('uuid')->where(['id'=>$pkb_id])->get()[0]->uuid;
             
             for($i = 0; $i < count($sendData['program_detail']); $i++) {
                 $data_simpan_bulanan_detail     = array(
@@ -709,53 +688,68 @@ class MarketingService
                 DB::table('proker_bulanan_detail')->insert($data_simpan_bulanan_detail);
             }
         } else if($jenis == 'edit') {
-            $data_where         = array(
-                "id"            => $sendData['program_ID'],
+            // GET ID
+            $pkb_id     = DB::table('proker_bulanan')->select('id')->where(['uuid'  => $sendData['program_ID']])->get()[0]->id;
+            // UPDATE PROKER_BULANAN TABLE
+            $data_where = array(
+                "id"    => $pkb_id,
+                "uuid"  => $sendData['program_ID'],
             );
 
-            $data_update        = array(
-                "name"                  => $sendData['program_uraian'],
-                "sasaran_id"            => explode("|", $sendData['program_sasaranID'])[0],
-                "sasaran_sequence"      => explode("|", $sendData['program_sasaranID'])[1],
-                "updated_by"            => $user_id,
-                "updated_at"            => date('Y-m-d H:i:s'),
+            // CHECK APAKAH SUDAH MASUK HARIAN / BELUM
+            $uuid_pkb     = $data_where['uuid'];
+            $check_first    = DB::select(
+                "
+                SELECT 	*
+                FROM 	proker_harian a
+                WHERE 	SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = '$uuid_pkb' 
+                AND 	a.pkh_is_active = 't'
+                LIMIT 1
+                "
             );
-            DB::table('master_program')->where($data_where)->update($data_update);
-
-            // UPDATE DETAIL & PROKER BULANAN
-            $pkb_id     = DB::table('proker_bulanan')->select('id')->where(['master_program_id' => $sendData['program_ID']])->get()[0]->id;
-
-            $data_update_pkb    = array(
-                "pkb_title"             => $sendData['program_uraian'],
-                "updated_by"            => $user_id,
-                "updated_at"            => date('Y-m-d H:i:s'),
-            );
-            DB::table('proker_bulanan')->where(['id' => $pkb_id])->update($data_update_pkb);
-
-            // CHECK APAKAH DETAIL ADA KOSONG / TIDAK
-            $temp_detail    = [];
-            for($i = 0; $i < count($sendData['program_detail']); $i++) {
-                if($sendData['program_detail'][$i]['detail_title'] != '') {
-                    array_push($temp_detail, $sendData['program_detail'][$i]);
-                }
-            }
-            
-            // DELETE DATA LAMA DI PROKER BULANAN
-            DB::table('proker_bulanan_detail')->where(['pkb_id' => $pkb_id])->delete();
-
-            // INSERT DATA BARU
-            for($j = 0; $j < count($temp_detail); $j++) {
-                $data_insert_detail     = array(
-                    "pkb_id"            => $pkb_id,
-                    "pkbd_type"         => $temp_detail[$j]['detail_title'],
-                    "pkbd_num_target"   => $temp_detail[$j]['detail_target'],
-                    "pkbd_num_result"   => 0,
-                    "created_by"        => $user_id,
-                    "created_at"        => date('Y-m-d H:i:s'),
-                    "updated_by"        => $user_id,
-                    "updated_at"        => date('Y-m-d H:i:s'),
+            if(!empty($check_first)) {
+                DB::rollBack();
+                $output     = array(
+                    "status"    => "transaction",
+                    "errMsg"    => [],
                 );
-                DB::table('proker_bulanan_detail')->insert($data_insert_detail);
+                return $output;
+            } else {
+                $data_update = array(
+                    "pkb_title"     => $data['sendData']['program_uraian'],
+                    "pkb_pkt_id"    => $data['sendData']['program_sasaranID']." | ".$sendData['program_detailSasaranID'],
+                    "updated_by"    => $user_id,
+                    "updated_at"    => date('Y-m-d H:i:s'),
+                    "master_program_id" => $data['sendData']['program_masterID'],
+                );
+    
+                DB::table('proker_bulanan')->where($data_where)->update($data_update);
+    
+                // CHECK APAKAH DETAIL ADA KOSONG / TIDAK
+                $temp_detail    = [];
+                for($i = 0; $i < count($sendData['program_detail']); $i++) {
+                    if($sendData['program_detail'][$i]['detail_title'] != '') {
+                        array_push($temp_detail, $sendData['program_detail'][$i]);
+                    }
+                }
+                
+                // DELETE DATA LAMA DI PROKER BULANAN
+                DB::table('proker_bulanan_detail')->where(['pkb_id' => $pkb_id])->delete();
+    
+                // INSERT DATA BARU
+                for($j = 0; $j < count($temp_detail); $j++) {
+                    $data_insert_detail     = array(
+                        "pkb_id"            => $pkb_id,
+                        "pkbd_type"         => $temp_detail[$j]['detail_title'],
+                        "pkbd_num_target"   => $temp_detail[$j]['detail_target'],
+                        "pkbd_num_result"   => 0,
+                        "created_by"        => $user_id,
+                        "created_at"        => date('Y-m-d H:i:s'),
+                        "updated_by"        => $user_id,
+                        "updated_at"        => date('Y-m-d H:i:s'),
+                    );
+                    DB::table('proker_bulanan_detail')->insert($data_insert_detail);
+                }
             }
         }
 
@@ -766,7 +760,7 @@ class MarketingService
                 "errMsg"    => [],
             );
             if($jenis == 'add') {
-                LogHelper::create("add", "Berhasil Menambahkan Data Master Program Baru ID : ".$idProgram, $ip);
+                LogHelper::create("add", "Berhasil Menambahkan Data Master Program Baru ID : ".$pkb_uuid, $ip);
             } else if($jenis == 'edit') {
                 LogHelper::create('edit', 'Berhasi Mengubah Data Master Program ID : '.$sendData['program_ID'], $ip);
             }
@@ -786,24 +780,27 @@ class MarketingService
     {
         $query  = DB::select(
             "
-            SELECT 	a.id,
-                    a.name,
-                    a.division_group_id,
-                    a.sasaran_id,
-                    a.sasaran_sequence,
-                    b.name as group_division_name,
-                    c.pkb_start_date as program_date,
-                    SUM(d.pkbd_num_target) as total_target,
-                    SUM(d.pkbd_num_result) as total_result,
-                    f.pktd_title as kategori
-            FROM 	master_program a
-            JOIN 	group_divisions b ON a.division_group_id = b.id
-            JOIN 	proker_bulanan c ON a.id = c.master_program_id
-            JOIN 	proker_bulanan_detail d ON c.id = d.pkb_id
-            JOIN 	proker_tahunan e ON e.uid = a.sasaran_id
-            JOIN 	proker_tahunan_detail f ON (e.id = f.pkt_id AND a.sasaran_sequence = f.pktd_seq)
-            WHERE 	a.id LIKE '$id'
-            GROUP BY a.id, a.name, a.division_group_id, a.sasaran_id, a.sasaran_sequence, b.name, c.pkb_start_date, f.pktd_title
+            SELECT 	a.uuid as pkb_id,
+                    UPPER(CONCAT(a.pkb_title, ' - ', c.pktd_title)) as pkb_title,
+                    e.name as group_division_name,
+                    a.pkb_start_date as program_date,
+                    b.uid as sasaran_id,
+                    c.pktd_seq as sasaran_sequence,
+                    SUM(f.pkbd_num_target) as total_target,
+                    SUM(f.pkbd_num_result) as total_result,
+                    a.master_program_id as pkb_master_program_id
+            FROM 	proker_bulanan a
+            JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
+            JOIN 	proker_tahunan_detail c ON (SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) = c.pktd_seq AND c.pkt_id = b.id)
+            JOIN 	master_program d ON a.master_program_id = d.id
+            JOIN 	group_divisions e ON d.division_group_id = e.id
+            JOIN 	proker_bulanan_detail f ON a.id = f.pkb_id
+            WHERE  	a.master_program_id IS NOT NULL
+            AND 	a.pkb_is_active = 't'
+            AND 	e.name LIKE '%marketing%'
+            AND 	a.uuid LIKE '$id'
+            GROUP BY a.uuid, UPPER(CONCAT(a.pkb_title, ' - ', c.pktd_title)), e.name, a.pkb_start_date, b.uid, c.pktd_seq, a.master_program_id
+            ORDER BY a.pkb_start_date DESC
             "
         );
         
@@ -811,12 +808,15 @@ class MarketingService
             "
             SELECT 	b.pkb_id,
                     b.pkbd_type as pkbd_title,
-                    b.pkbd_num_target,
+                    CASE
+                        WHEN b.pkbd_num_target IS NULL THEN 0
+                        ELSE b.pkbd_num_target
+                    END AS pkbd_num_target,
                     b.pkbd_num_result
             FROM 	proker_bulanan a
             JOIN 	proker_bulanan_detail b ON b.pkb_id = a.id
-            WHERE 	a.master_program_id = '$id'
-            ORDER BY b.id ASC
+            WHERE 	a.uuid = '$id'
+            ORDER BY b.pkb_id ASC
             "
         );
 
@@ -829,16 +829,25 @@ class MarketingService
     }
 
     // UNTUK JENIS PEKERJAAN
-    public static function doGetDataProgram()
+    public static function doGetDataProgram($data)
     {
+        $selectedMonth  = date('m', strtotime($data));
+        $selectedYear   = date('Y', strtotime($data));
+        // var_dump($selectedMonth, $selectedYear);die();
         return DB::select(
             "
             SELECT 	a.id,
+                    b.uuid as pkb_id,
                     a.name,
-                    c.pktd_title
+                    d.pktd_title,
+                    b.pkb_is_active
             FROM 	master_program a
-            JOIN 	proker_tahunan b ON a.sasaran_id = b.uid
-            JOIN 	proker_tahunan_detail c ON (c.pkt_id = b.id AND a.sasaran_sequence = c.pktd_seq)
+            JOIN 	proker_bulanan b ON a.id = b.master_program_id
+            JOIN 	proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1) = c.uid
+            JOIN 	proker_tahunan_detail d ON (d.pkt_id = c.id AND SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', -1) = d.pktd_seq)
+            WHERE 	EXTRACT(YEAR FROM b.pkb_start_date) = '$selectedYear'
+            AND 	EXTRACT(MONTH FROM b.pkb_start_date) = '$selectedMonth'
+            AND 	b.pkb_is_active = 't'
             "
         );
     }
@@ -855,7 +864,7 @@ class MarketingService
             FROM 	proker_bulanan a
             JOIN 	proker_bulanan_detail b ON b.pkb_id = a.id
             WHERE 	a.master_program_id IS NOT NULL
-            AND 	a.master_program_id = '$id'
+            AND 	a.uuid = '$id'
             ORDER BY b.id ASC
             "
         );
@@ -916,6 +925,8 @@ class MarketingService
                 "uuid"      => $data['sendData']['jenis_pekerjaan_ID'],
             );
 
+            $get_data_harian    = DB::table('proker_harian')->where($data_harian_where)->get()[0];
+
             $data_harian_update = array(
                 "pkh_title"         => $data['sendData']['jenis_pekerjaan_title'],
                 "pkh_start_time"    => $data['sendData']['jenis_pekerjaan_date']." ".$data['sendData']['jenis_pekerjaan_start_time'],
@@ -927,6 +938,30 @@ class MarketingService
             );
             
             DB::table('proker_harian')->where($data_harian_where)->update($data_harian_update);
+            
+            $pkh_pkb_id         = $get_data_harian->pkh_pkb_id;
+
+            if($pkh_pkb_id != $data['sendData']['jenis_pekerjaan_programIDDetail']) {
+                $pkb_id_old     = explode(' | ', $pkh_pkb_id)[0];
+                $pkb_id_seq_old = explode(' | ', $pkh_pkb_id)[1];
+
+                $pkb_id_new     = explode(' | ', $data['sendData']['jenis_pekerjaan_programIDDetail'])[0];
+                $pkb_id_seq_new = explode(' | ', $data['sendData']['jenis_pekerjaan_programIDDetail'])[1];
+
+                // BALIKIN VALUE LAMA
+                $get_data_bulanan_old       = DB::table('proker_bulanan')->where(['uuid' => $pkb_id_old])->get()[0];
+                $get_data_bulanan_detail_old= DB::table('proker_bulanan_detail')->where(['id' => $pkb_id_seq_old, 'pkb_id'=> $get_data_bulanan_old->id])->get()[0];
+                
+                $result_old                 = $get_data_bulanan_detail_old->pkbd_num_result;
+                $new_result_old         = $result_old - 1;
+                DB::table('proker_bulanan_detail')->where(['id' => $pkb_id_seq_old])->update(['pkbd_num_result' => $new_result_old]);
+
+                // INSERT VALUE BARU
+                $get_data_bulanan_new       = DB::table('proker_bulanan')->where(['uuid' => $pkb_id_new])->get()[0];
+                $get_data_bulanan_detail_new= DB::table('proker_bulanan_detail')->where(['id' => $pkb_id_seq_new, 'pkb_id' => $get_data_bulanan_new->id])->get()[0];
+                $new_result                 = $get_data_bulanan_detail_new->pkbd_num_result + 1;
+                DB::table('proker_bulanan_detail')->where(['id' => $pkb_id_seq_new])->update(['pkbd_num_result' => $new_result]);
+            }
         }
 
         try {
@@ -970,6 +1005,7 @@ class MarketingService
             JOIN 	proker_bulanan_detail c ON (SUBSTRING_INDEX(b.pkh_pkb_id, ' | ', -1) =  c.id AND c.pkb_id = a.id)
             WHERE 	a.master_program_id IS NOT NULL
             AND 	b.pkh_date BETWEEN '$start_date' AND '$end_date'
+            AND     b.pkh_is_active = 't'
             ORDER BY a.created_at ASC
             "
         );
@@ -987,11 +1023,163 @@ class MarketingService
                     a.pkh_start_time,
                     a.pkh_end_time,
                     a.pkh_pkb_id,
-                    b.master_program_id
+                    b.master_program_id,
+                    b.uuid as pkb_id
             FROM 	proker_harian a
             JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = b.uuid
             WHERE 	a.uuid = '$id'
             "
         );
+    }
+
+    public static function doDeleteProgram($data)
+    {
+        DB::beginTransaction();
+
+        // CHECK DULU
+        $programID  = $data['programID'];
+        $ip         = $data['ip'];
+
+        $query_check_harian     = DB::select(
+            "
+            SELECT 	b.*
+            FROM 	proker_bulanan a
+            JOIN 	proker_harian b ON SUBSTRING_INDEX(b.pkh_pkb_id, ' | ', 1) = a.uuid
+            WHERE 	a.uuid = '$programID'
+            AND     b.pkh_is_active = 't'
+            ORDER BY b.id ASC
+            "
+        );
+
+        if(!empty($query_check_harian)) {
+            DB::rollBack();
+            $output     = array(
+                "status"    => "data_ada",
+                "errMsg"    => "Tidak Bisa menghapus data ini, dikarenakan ada relasi dengan jenis pekerjaan yang telah dibuat"
+            );
+        } else {
+            $data_where     = array(
+                "uuid"      => $programID,
+            );
+            $data_update    = array(
+                "pkb_is_active" => "f",
+            );
+            
+            DB::table('proker_bulanan')->where($data_where)->update($data_update);
+    
+            try {
+                DB::commit();
+                LogHelper::create('delete', 'Berhasil Menghapus Program : '.$programID, $ip);
+    
+                $output     = array(
+                    'status'    => 'berhasil',
+                    'errMsg'    => null,
+                );
+            } catch(\Exception $e) {
+                DB::rollBack();
+                LogHelper::create('error_system', 'Gagal Menghapus Program', $ip);
+                
+                $output     = array(
+                    'status'    => 'gagal',
+                    'errMsg'    => $e->getMessage()
+                );
+            }
+        }
+
+        return $output;
+    }
+
+    public static function doGetDashboardSasaran()
+    {
+        $currYear   = date('Y');
+        
+        $header     = DB::select(
+            "
+            SELECT 	a.uid,
+                    a.pkt_title
+            FROM 	proker_tahunan a
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            WHERE 	b.name LIKE '%marketing%'
+            AND     a.pkt_year = '$currYear'
+            "
+        );
+        
+        $detail     = DB::select(
+            "
+            SELECT 	a.uid as pkt_uuid,
+                    a.pkt_year,
+                    b.pktd_seq,
+                    b.pktd_title,
+                    b.pktd_target
+            FROM 	proker_tahunan a
+            JOIN 	proker_tahunan_detail b ON b.pkt_id = a.id
+            JOIN 	group_divisions c ON a.division_group_id = c.id
+            WHERE 	a.pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
+            AND 	c.name LIKE '%marketing%'
+            ORDER BY a.uid, CAST(b.pktd_seq AS UNSIGNED) ASC
+            "
+        );
+
+        if(!empty($header) && !empty($detail)) {
+            $output     = [
+                "header"    => $header,
+                "detail"    => $detail,
+            ];
+        } else {
+            $output     = [];
+        }
+
+        return $output;
+    }
+
+    public static function getMasterProgram()
+    {
+        return DB::table('master_program')->orderBy('name')->get();
+    }
+
+    public static function doDeleteJenisPekerjaan($data)
+    {
+        DB::beginTransaction();
+
+        $data_where     = array(
+            "uuid"      => $data['jpk_ID'],
+        );
+
+        $data_update    = array(
+            "pkh_is_active" => "f",
+        );
+
+        DB::table('proker_harian')->where($data_where)->update($data_update);
+
+        // BALIKIN NILAI DETAIL
+        $get_ref    = DB::table('proker_harian')->where($data_where)->get()[0];
+        $pkb_id     = explode(' | ', $get_ref->pkh_pkb_id)[0];
+        $pkbd_id    = explode(' | ', $get_ref->pkh_pkb_id)[1];
+
+        $get_result_detail  = DB::table('proker_bulanan_detail')->where(['id' => $pkbd_id])->get()[0];
+        $new_results_detail = $get_result_detail->pkbd_num_result - 1;
+        DB::table('proker_bulanan_detail')->where(['id' => $pkbd_id])->update(['pkbd_num_result' => $new_results_detail]);
+
+        try {
+            DB::commit();
+            
+            LogHelper::create('delete', 'Berhasil Menghapus Data Jenis Pekerjaan : '.$data_where['uuid'], $data['ip']);
+
+            $output     = array(
+                "status"    => "berhasil",
+                "errMsg"    => [],
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            LogHelper::create('error_system', 'Gagal Menghapus Data Jenis Pekerjaan', $data['ip']);
+            
+            $output     = array(
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            );
+        }
+
+        return $output;
     }
 }
