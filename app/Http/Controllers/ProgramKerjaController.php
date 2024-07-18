@@ -1555,6 +1555,12 @@ class ProgramKerjaController extends Controller
             if(!empty($res_sasaran_umum)) {
                 foreach($res_sasaran_umum as $i => $result){
 
+                     // persentase
+                $persentage_pencapaian_umrah = $fn->persentage($result['pencapaian_umrah'],$result['target_umrah']);
+                if ($persentage_pencapaian_umrah !== null) {
+                        $persentage_pencapaian_umrah  = $fn->persen($persentage_pencapaian_umrah);  
+                }
+
                     $data[]     = [
                         $i + 1,
                         '<a href="#" data-year='.$year.' data-month='.$result['month_number'].' onclick="showMonth(this)">'.$result['month_name'].'</a>',
@@ -1562,6 +1568,7 @@ class ProgramKerjaController extends Controller
                         $result['pencapaian_umrah'],
                         $result['target_umrah'],
                         $result['selisih_umrah'],
+                        $persentage_pencapaian_umrah.' %',
                     ];
             
                 }

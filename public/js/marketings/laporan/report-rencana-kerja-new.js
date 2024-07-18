@@ -68,6 +68,7 @@ const showTableEvaluasiSasaranUmum = (idTable, year, idSasaran) => {
                     { "targets": [3], "className": "text-right", "width": "5%" },
                     { "targets": [4], "width": "5%", "className": "text-right" },
                     { "targets": [5], "className": "text-right", "width": "5%" },
+                    { "targets": [6], "className": "text-right", "width": "5%" },
                 ],
             initComplete: function (settings, json) {
                 $('#pencapaian').text('Realisasi Umrah')

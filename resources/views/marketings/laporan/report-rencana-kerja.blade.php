@@ -101,6 +101,7 @@
                                     <th class="centered" width="15%" style="background-color: #F5B487" id="pencapaian">Realisasi</th>
                                     <th class="centered" width="15%" style="background-color: #F5B487" id="target">Target</th>
                                     <th class="centered" width="15%" style="background-color: #F5B487">Selisih</th>
+                                    <th class="centered" width="15%" style="background-color: #F5B487">Persentase Umrah</th>
                                 </tr>
                             </thead>
                         </table>
