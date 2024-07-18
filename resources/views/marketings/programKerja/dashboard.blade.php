@@ -46,7 +46,7 @@
 
 @section('content')
     <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row">
+        <div class="row mb-4">
             <div class="col-sm-12">
                 <div class="row">
                     <div class="col-sm-3">
@@ -55,9 +55,9 @@
                                 <h4 class="card-title" style="margin: 0px;">Sasaran</h4>
                             </div>
                             <div class="card-body">
-                                <span class="text-right">
-                                    <h2 style="margin: 0px;" class="my-2">Belum Ada Sasaran</h2>
-                                </span>
+                                <div class="d-flex justify-content-end py-2" id="sasaran_text">
+                                    <span class="spinner-border"></span>
+                                </div>
                             </div>
                             <div class="card-footer text-right">
                                 <a href="{{ route('marketing.programkerja.sasaran') }}">Lihat Detail</a>
@@ -70,9 +70,9 @@
                                 <h4 class="card-title" style="margin: 0px;">Program</h4>
                             </div>
                             <div class="card-body">
-                                <span class="text-right">
-                                    <h2 style="margin: 0px;" class="my-2">Belum Ada Program</h2>
-                                </span>
+                                <div class="d-flex justify-content-end py-2" id="program_text">
+                                    <span class="spinner-border"></span>
+                                </div>
                             </div>
                             <div class="card-footer text-right">
                                 <a href="#" onclick="show_modal('modalTableProgram', '', '')">Lihat Detail</a>
@@ -85,9 +85,9 @@
                                 <h4 class="card-title" style="margin: 0px;">Jenis Pekerjaan</h4>
                             </div>
                             <div class="card-body">
-                                <span class="text-right">
-                                    <h2 style="margin: 0px;" class="my-2">Belum Ada Jenis Pekerjaan</h2>
-                                </span>
+                                <div class="d-flex justify-content-end py-2" id="jpk_text">
+                                    <span class="spinner-border"></span>
+                                </div>
                             </div>
                             <div class="card-footer text-right">
                                 <a href="#" onclick="show_modal('modalJenisPekerjaan', 'add', '')">Lihat Detail</a>
@@ -126,6 +126,46 @@
                                 </thead>
                                 <tbody></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> --}}
+        {{-- <div class="row">
+            <div class="col-sm-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title py-2" style="margin: 0px;">Target Sasaran</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="card_loading">
+                            <div class="d-flex justify-content-center">
+                                <div class="spinner-border"></div>
+                            </div>
+                        </div>
+                        <div id="card_section" style="display: none;">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <select name="filterSasaran" id="filterSasaran" class="form-control form-control-sm" style="width: 100%;"></select>
+                                </div>
+                            </div>
+                            <div class="row mt-2" id="v_filterSasaranDetail" style="display: none;">
+                                <div class="col-sm-12">
+                                    <select name="filterSasaranDetail" id="filterSasaranDetail" class="form-control form-control-sm" style="width: 100%;"></select>
+                                </div>
+                            </div>
+                            <div id="chartLoad" style="display: none;" class="mt-2">
+                                <div class="d-flex justify-content-center">
+                                    <div class="spinner-border"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="card_button" style="display: none;">
+                            <div class="row mt-2">
+                                <div class="col-sm-12 text-right">
+                                    <button type="button" class="btn btn-primary">Cari</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -211,8 +251,9 @@
                     <div class="form-group">
                         <div class="row">
                             <div class="col-sm-12">
-                                <label>Uraian</label>
-                                <input type="text" class="form-control form-control-sm" id="program_title" name="program_title" style="height: 37.5px;" placeholder="Uraian" autocomplete="off">
+                                <label>Kategori</label>
+                                {{-- <input type="text" class="form-control form-control-sm" id="program_title" name="program_title" style="height: 37.5px;" placeholder="Uraian" autocomplete="off"> --}}
+                                <select name="program_title" id="program_title" class="form-control form-control-sm" style="width: 100%;"></select>
                             </div>
                         </div>
                     </div>
@@ -220,6 +261,14 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <label>Sasaran</label>
+                                <select name="program_sasaranHeaderID" id="program_sasaranHeaderID" class="form-control form-control-sm" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label>Sasaran Detail</label>
                                 <select name="program_sasaranID" id="program_sasaranID" class="form-control form-control-sm" style="width: 100%;"></select>
                             </div>
                         </div>
@@ -259,6 +308,7 @@
                     </div>
                 </div>
                 <div class="modal-footer" style="justify-content: flex-end;">
+                    <button type="button" class="btn btn-danger" id="btnHapus" onclick="hapus_data('modalProgram')">Hapus Data</button>
                     <button type="button" class="btn btn-secondary" id="btnCancel" onclick="close_modal('modalProgram')">Batal</button>
                     <button type="button" class="btn btn-primary" id="btnSimpan" onclick="do_simpan('modalProgram', this.value)">Simpan</button>
                 </div>
@@ -278,7 +328,16 @@
                     </div>
                 <div class="modal-body">
                     <div class="container-fluid">
-                        <div id="calendar" style="width: 100%;"></div>
+                        <div class="row mb-2">
+                            <div class="col-sm-12 text-center">
+                                <h2 style="margin: 0px;">Jenis Pekerjaan Bulan <span id="modalJenisPekerjaanTitle"><i class='fa fa-spin fa-spinner'></i></span></h2>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div id="calendar" style="width: 100%;"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -322,13 +381,13 @@
                             <div class="form-group">
                                 <label>Waktu Awal Aktivitas</label>
                                 <input type="hidden" name="jpk_date" id="jpk_date">
-                                <input type="text" class="form-control form-control-sm waktu" id="jpk_start_time" name="jpk_start_time" readonly style="background: white; cursor: pointer" value="00:00:00">
+                                <input type="text" class="form-control form-control-sm waktu" id="jpk_start_time" name="jpk_start_time" readonly style="background: white; cursor: pointer">
                             </div>
                         </div>
                         <div class="col-sm-6">
                             <div class="form-group">
                                 <label>Waktu Akhir Aktivitas</label>
-                                <input type="text" class="form-control form-control-sm waktu" id="jpk_end_time" name="jpk_end_time" readonly style="background: white; cursor: pointer" value="00:00:00">
+                                <input type="text" class="form-control form-control-sm waktu" id="jpk_end_time" name="jpk_end_time" readonly style="background: white; cursor: pointer">
                             </div>
                         </div>
                     </div>
@@ -336,11 +395,11 @@
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Judul</label>
-                                <input type="text" class="form-control form-control-sm" id="jpk_title" name="jpk_title" placeholder="Uraian">
+                                <input type="text" class="form-control form-control-sm" id="jpk_title" name="jpk_title" placeholder="Uraian" autocomplete="off">
                             </div>
                         </div>
                     </div>
-                    <div class="row mb-2">
+                    <div class="row mb-2" style="display: none;">
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Uraian</label>
@@ -350,6 +409,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button class="btn btn-danger" id="jpk_btnHapus" onclick="hapus_data('modalTransJenisPekerjaan')" disabled>Hapus Data</button>
                     <button class="btn btn-secondary" onclick="close_modal('modalTransJenisPekerjaan')">Batal</button>
                     <button class="btn btn-primary" id="jpk_btnSimpan" onclick="do_simpan('modalTransJenisPekerjaan', this.value)">Simpan</button>
                 </div>

@@ -110,8 +110,10 @@ Route::group(['middleware' => ['auth']], function () {
 		
         // PROGRAM KERJA
         Route::prefix('programKerja')->group(function(){
-            Route::get('/programKerja', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
+            Route::get('/programKerja/', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
             Route::get('/Dashboard', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
+            Route::get('/getListSasaran', [MarketingController::class, 'marketing_programKerja_dashboardSasaran']);
+            Route::get('/getListDashboard', [MarketingController::class, 'marketing_programKerja_dashboardList']);
 
             // SASARAN
             Route::prefix('sasaran')->group(function(){
@@ -127,7 +129,9 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/listProgramMarketing', [MarketingController::class, 'marketing_programKerja_listProgramMarketing']);
                 Route::get('/listSelectedProgramMarketing', [MarketingController::class, 'marketing_programKerja_listSelectedProgramMarketing']);
                 Route::get('/listSelectSasaranMarketing', [MarketingController::class, 'marketing_programKerja_listSelectSasaranMarketing']);
-                Route::post('/simpanProgram/{jenis}', [MarketingController::class, 'marketing_programKerja_simpanProgram']);    
+                Route::post('/simpanProgram/{jenis}', [MarketingController::class, 'marketing_programKerja_simpanProgram']);
+                Route::post('/deleteProgram/{id}', [MarketingController::class, 'marketing_programKerja_deleteProgram']);
+                Route::get('/listMasterProgram', [MarketingController::class, 'marketing_programKerja_masterProgram']);
             });
             // JENIS PEKERJAAN
             Route::prefix('jenisPekerjaan')->group(function(){
@@ -136,6 +140,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/doSimpan', [MarketingController::class, 'marketing_programKerja_doSimpanJenisPekerjaan']);
                 Route::get('/dataEventsCalendar', [MarketingController::class, 'marketing_programKerja_jpkDataEventsCalendar']);
                 Route::get('/dataDetailEventsCalendar/{id}', [MarketingController::class, 'marketing_programKerja_jpkDataDetailEventsCalendar']);
+                Route::post('/deleteJeniPekerjaan/{id}', [MarketingController::class, 'marketing_programKerja_deleteJenisPekerjaan']);
             });
             // ADDITIONAL
         });
