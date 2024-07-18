@@ -1785,4 +1785,46 @@ class ProgramKerjaController extends Controller
 
     }
 
+    public function generateDumyData()
+    {
+        try {
+
+            DB::beginTransaction();
+
+             #get tahun sasaran 
+             $sasaran_umum = DB::table('proker_tahunan_detail')->where('pkt_id', 43)->where('pktd_seq', 1)->first();
+
+            #get program per bulan
+            $program = DB::table('master_program')->select('id','name')->whereIn('id',[54, 15,50,52])->get();
+
+            $user_id = Auth::user()->id;
+
+            #set program per divisi per bulan di teble proker bulanan
+            $jenis_pekerjaan = [
+                ['pkb_title' => 'Canvasing', 'pkb_start_date' => '2024-01-01', 'pkb_pkt_id' => 'xHbIdsjiNe0uyHvpJ7fkHbMIx6OaJH | 1','master_program_id' => 54,'pkb_employee_id' => 'DoLQWf9qzutJi21kviTqk3ZBybyLbb','created_by' => $user_id, 'updated_by' => $user_id],
+                ['pkb_title' => 'MAINTENANCE AGEN', 'pkb_start_date' => '2024-01-01', 'pkb_pkt_id' => 'xHbIdsjiNe0uyHvpJ7fkHbMIx6OaJH | 1','master_program_id' => 15,'pkb_employee_id' => 'DoLQWf9qzutJi21kviTqk3ZBybyLbb','created_by' => $user_id, 'updated_by' => $user_id],
+                ['pkb_title' => 'MAINTENANCE AGEN', 'pkb_start_date' => '2024-01-01', 'pkb_pkt_id' => 'xHbIdsjiNe0uyHvpJ7fkHbMIx6OaJH | 1','master_program_id' => 15,'pkb_employee_id' => 'DoLQWf9qzutJi21kviTqk3ZBybyLbb','created_by' => $user_id, 'updated_by' => $user_id],
+            ];
+
+            #set jenis pekerjaan per program di table proker_bulanan_detail
+
+
+                        #set aktivitas harian per jenis pekerjaan 
+            
+            DB::commit();
+            return ResponseFormatter::success([
+                    'results' => $program,
+                    'message' => 'Berhasil generate dumy data !'
+                ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal ambil data!'
+            ]);
+        }
+
+    }
+
 }

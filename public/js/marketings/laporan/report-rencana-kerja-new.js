@@ -169,7 +169,6 @@ async function showMonth(element){
     const yearInProgram = element.getAttribute('data-year'); 
     const monthInProgram = element.getAttribute('data-month'); 
 
-    const response = await getCallApi(yearInProgram, monthInProgram);
     showTableProgramBulan('datatable', yearInProgram, monthInProgram);
 }
 
