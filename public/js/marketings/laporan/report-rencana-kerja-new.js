@@ -198,31 +198,31 @@ function showJenisPekerjaan(element){
     
 }
 
-const getCallApi = async (pkbd_id) => {
-    try {
+// const getCallApi = async (pkbd_id) => {
+//     try {
 
-        const response = await fetch('/marketings/sasaran/programs/jenis/aktivitas/list', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({
-                pkbd_id: pkbd_id,
-            })
-        });
+//         const response = await fetch('/marketings/sasaran/programs/jenis/aktivitas/list', {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//                 'X-CSRF-TOKEN': csrfToken
+//             },
+//             body: JSON.stringify({
+//                 pkbd_id: pkbd_id,
+//             })
+//         });
 
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
+//         if (!response.ok) {
+//             throw new Error('Network response was not ok');
+//         }
 
-        const data = await response.json();
-        return data;
+//         const data = await response.json();
+//         return data;
 
-    } catch (error) {
-        throw error;
-    }
-};
+//     } catch (error) {
+//         throw error;
+//     }
+// };
 
 const showTableAktivitasharian = (idTable, pkbd_id) => {
     $("#" + idTable).DataTable().clear().destroy();
@@ -273,9 +273,5 @@ async function onShowAktivitasHrian(element){
     const pkbd_id = element.getAttribute('data-id'); 
 
     // get aktivitas harian berdasarkan jenis pekerjaann 
-    console.log('Loading...');
-    const responses = await getCallApi(pkbd_id);
     showTableAktivitasharian('tableShowAktivitasHarian', pkbd_id);
-    console.log('Done...');
-    console.log(responses)
 }
