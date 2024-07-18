@@ -84,32 +84,7 @@ $('#goFilter').click(async function () {
 
 });
 
-const getCallApi = async (yearInProgram, monthInProgram) => {
-    try {
 
-        const response = await fetch('/marketings/report/evaluasi', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({
-                year: yearInProgram,
-                month: monthInProgram
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-        return data;
-
-    } catch (error) {
-        throw error;
-    }
-};
 
 const showTableProgramBulan = (idTable, yearInProgram, monthInProgram) => {
     $("#" + idTable).DataTable().clear().destroy();
@@ -174,6 +149,7 @@ async function showMonth(element){
 
 function showJenisPekerjaan(element){
     const resJenisPekerjaan =  element.getAttribute('data-jenispekerjaan'); 
+    const programTitle =  element.getAttribute('data-title'); 
 
     const jenisPekerjaan = JSON.parse(resJenisPekerjaan);
 
@@ -184,7 +160,13 @@ function showJenisPekerjaan(element){
          tableShowJenisPekerjaan = $('#tableShowJenisPekerjaan').DataTable({
              "paging": true,
              "searching": true,
-             "info": true
+             "info": true,
+             createdRow: function (row, data, dataIndex) {
+                // Add class to the second column (index 1)
+                $('td', row).eq(0).addClass('text-center');
+                $('td', row).eq(2).addClass('text-right');
+                $('td', row).eq(3).addClass('text-right');
+            }
          });
      } else {
          tableShowJenisPekerjaan = $('#tableShowJenisPekerjaan').DataTable();
@@ -196,11 +178,12 @@ function showJenisPekerjaan(element){
 
         // Add new data to the table
         if (data.length) {
-            data.forEach(function (jenis) {
+            data.forEach(function (jenis, index) {
                 tableShowJenisPekerjaan.row.add([
+                    index + 1, // for number
                     jenis.pkbd_type,
                     jenis.pkbd_num_target,
-                    jenis.pkbd_num_result
+                    `<a href='#' data-id='${jenis.id}' onclick='onShowAktivitasHrian(this)'>${jenis.pkbd_num_result}</a>`
                 ]).draw();
             });
         } else {
@@ -208,8 +191,91 @@ function showJenisPekerjaan(element){
         }
     }
 
-    $('#titleJenisPekerjaan').text("Jenis Pekerjaan");
+    $('#titleJenisPekerjaan').text(`Jenis Pekerjaan Dari Program ${programTitle}`);
     populateTable(jenisPekerjaan);
     $('#myModalJenisPekerjaan').modal('show');
 
+    
+}
+
+const getCallApi = async (pkbd_id) => {
+    try {
+
+        const response = await fetch('/marketings/sasaran/programs/jenis/aktivitas/list', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                pkbd_id: pkbd_id,
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        throw error;
+    }
+};
+
+const showTableAktivitasharian = (idTable, pkbd_id) => {
+    $("#" + idTable).DataTable().clear().destroy();
+    if (idTable == 'tableShowAktivitasHarian') {
+        $("#" + idTable).DataTable({
+            language: {
+                "zeroRecords": "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                "emptyTable": "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                "processing": "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+            },
+            processing: true,
+            serverSide: false,
+            ajax: {
+                type: "POST",
+                dataType: "json",
+                url: `/marketings/sasaran/programs/jenis/aktivitas/list`,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                data: function (d) {
+                    d.pkbd_id = pkbd_id;
+                },
+                dataSrc: function (json) {
+                    return json.data.proker_harian.data; // Mengakses data di dalam kunci 'data'
+                }
+            },
+            autoWidth: false,
+            columnDefs:
+                [
+                    { "targets": [0], "className": "text-center", "width": "1%" },
+                    { "targets": [1], "width": "3%" },
+                    { "targets": [2], "width": "10%" },
+                    { "targets": [3], "width": "5%"},
+                    // { "targets": [5], "className": "text-right", "width": "3%" },
+                    // { "targets": [6], "className": "text-center", "width": "8%" },
+                ],
+            initComplete: function (settings, json) {
+                $('#titleAktivitasHarian').text(`Daftar Kegiatan Harian Dari Jenis Pekerjaan ${json.data.jenis_pekerjaan}`);
+            }
+        });
+    }
+
+    $('#myModalAktivitasHarian').modal('show');
+
+}
+
+async function onShowAktivitasHrian(element){
+    const pkbd_id = element.getAttribute('data-id'); 
+
+    // get aktivitas harian berdasarkan jenis pekerjaann 
+    console.log('Loading...');
+    const responses = await getCallApi(pkbd_id);
+    showTableAktivitasharian('tableShowAktivitasHarian', pkbd_id);
+    console.log('Done...');
+    console.log(responses)
 }

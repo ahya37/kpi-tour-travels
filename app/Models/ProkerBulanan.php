@@ -76,6 +76,16 @@ class ProkerBulanan extends Model
 		return $proker_bulanan_detail;
 	}
 
+    public static function getProkerBulananDetailByid($pkbd_id)
+	{
+		$proker_bulanan_detail = DB::table('proker_bulanan_detail as a')
+                                    ->select('a.id','b.uuid','a.pkbd_type')
+                                    ->join('proker_bulanan as b','a.pkb_id','=','b.id')
+                                    ->where('a.id', $pkbd_id)->first();
+						
+		return $proker_bulanan_detail;
+	}
+
     public static function getProgramByDivisi($groupDivisionID, $year, $month, $week = null)
     {
         $programs = DB::table('proker_bulanan as a')
@@ -150,7 +160,7 @@ class ProkerBulanan extends Model
     public static function getJenisPekerjaan($pkb_id)
 	{
 		$proker_bulanan_detail = DB::table('proker_bulanan_detail as a')
-                                    ->select('a.pkb_id','a.id','a.pkbd_type' , 'a.pkbd_num_target' , 'a.pkbd_num_result')
+                                    ->select('a.id','a.pkb_id','a.id','a.pkbd_type' , 'a.pkbd_num_target' , 'a.pkbd_num_result')
                                     ->join('proker_bulanan as b','a.pkb_id','=','b.id')
                                     ->where('a.pkb_id', $pkb_id)
                                     ->orderBy('a.created_at','asc')

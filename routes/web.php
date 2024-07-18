@@ -59,6 +59,7 @@ Route::group(['middleware' => ['auth']], function () {
     //  GET EVALUASI MARKETING
      Route::get('/marketings/sasaran',[ProgramKerjaController::class, 'getSasaran']);
 	 Route::post('/marketings/sasaran/programs',[ProgramKerjaController::class, 'getProgramKerjaBulananBySasaran']);
+	 Route::post('/marketings/sasaran/programs/jenis/aktivitas/list',[ProgramKerjaController::class, 'getAktivitasHarianByJenisPekerjaan']);
 
     //marketing
     Route::prefix('marketings')->controller(MarketingController::class)->group(function(){

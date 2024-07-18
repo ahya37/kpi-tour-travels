@@ -28,6 +28,16 @@
         display: none;
     }
 </style>
+<style>
+    .text-right {
+        text-align: right;
+        width: 5%
+    }
+    .text-center {
+        text-align: center;
+        width: 1%
+    }
+</style>
 
 
 @endpush
@@ -85,7 +95,7 @@
                         <table class="table table-striped table-bordered table-hover " id="datatableEvaluasiSasaranUmum">
                             <thead>
                                 <tr>
-                                    <th class="centered" width="2%" style="background-color: #F5B487">No</th>
+                                    <th class="centered" width="1%" style="background-color: #F5B487">No</th>
                                     <th class="centered" width="25%" style="background-color: #F5B487">Bulan</th>
                                     <th class="centered" width="25%" style="background-color: #F5B487">Pencapaian Program</th>
                                     <th class="centered" width="15%" style="background-color: #F5B487" id="pencapaian">Realisasi</th>
@@ -162,7 +172,7 @@
                         <table class="table table-striped table-bordered table-hover " id="datatable">
                             <thead>
                                 <tr>
-                                    <th class="centered" width="2%" style="background-color: #F5B487">No</th>
+                                    <th class="centered" width="1%" style="background-color: #F5B487">No</th>
                                     <th class="centered" width="25%" style="background-color: #F5B487">Program</th>
                                     <th class="centered" width="15%" style="background-color: #F5B487" id="pencapaianProgram">Pencapaian</th>
                                     <th class="centered" style="background-color: #F5B487" id="hasilProgram">Realisasi</th>
@@ -202,7 +212,7 @@
                     <table class="table table-striped table-bordered table-hover" id="dataRincian">
                         <thead>
                             <tr>
-                                <th class="centered" width="8%" style="background-color: #F5B487">No.</th>
+                                <th class="centered" width="1%" style="background-color: #F5B487">No</th>
                                 <th class="centered" width="8%" style="background-color: #F5B487">Tanggal Pelaksanaan
                                 </th>
                                 <th class="centered" width="25%" style="background-color: #F5B487">Kegiatan</th>
@@ -234,7 +244,7 @@
                     <table class="table table-striped table-bordered table-hover" id="dataRincianPerminggu">
                         <thead>
                             <tr>
-                                <th class="centered" width="8%" style="background-color: #F5B487">No.</th>
+                                <th class="centered" width="1%" style="background-color: #F5B487">No</th>
                                 <th class="centered" width="25%" style="background-color: #F5B487">Program</th>
                                 <th class="centered" style="background-color: #F5B487">Minggu ke 1</th>
                                 <th class="centered" style="background-color: #F5B487">Minggu ke 2</th>
@@ -298,9 +308,42 @@
                     <table class="table table-striped table-bordered table-hover" id="tableShowJenisPekerjaan">
                         <thead>
                             <tr>
+                                <th class="centered" width="1%" style="background-color: #F5B487">No</th>
                                 <th class="centered" width="25%" style="background-color: #F5B487">Jenis Pekerjaan</th>
-                                <th class="centered" style="background-color: #F5B487">Target</th>
-                                <th class="centered" style="background-color: #F5B487">Hasil</th>
+                                <th class="centered" width="5%" style="background-color: #F5B487">Target</th>
+                                <th class="centered" width="5%" style="background-color: #F5B487">Hasil</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="myModalAktivitasHarian" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="titleAktivitasHarian"></h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="tableShowAktivitasHarian">
+                        <thead>
+                            <tr>
+                                <th class="centered" width="1%" style="background-color: #F5B487">No</th>
+                                <th class="centered" width="25%" style="background-color: #F5B487">Tanggal</th>
+                                <th class="centered" style="background-color: #F5B487">Kegiatan</th>
+                                <th class="centered" style="background-color: #F5B487">Pelaksana</th>
                             </tr>
                         </thead>
                         <tbody></tbody>

@@ -1653,7 +1653,7 @@ class ProgramKerjaController extends Controller
                         $i + 1,
                         $result['pkb_title'],
                         $result['persentage_pencapaian_progam'].' %',
-                        '<a href="#" class="btn btn-sm" data-jenispekerjaan=\''.htmlspecialchars(json_encode($result['jenis_pekerjaan'])).'\' onclick="showJenisPekerjaan(this)">'.$result['hasil'].'</a>',
+                        '<a href="#" data-title='.$result['pkb_title'].' data-jenispekerjaan=\''.htmlspecialchars(json_encode($result['jenis_pekerjaan'])).'\' onclick="showJenisPekerjaan(this)">'.$result['hasil'].'</a>',
                         $result['target'],
                     );
                 }
@@ -1706,6 +1706,57 @@ class ProgramKerjaController extends Controller
             ]);
         }
 	}
+
+    public function getAktivitasHarianByJenisPekerjaan()
+    {
+        try {
+
+            #id proker bulanan detail 
+            $pkbd_id = request()->pkbd_id; 
+
+            $jenis_pekerjaan = ProkerBulanan::getProkerBulananDetailByid($pkbd_id);
+
+            #get data aktivitas harian nya
+            $proker_harian = ProkerHarian::getProkerHarianByProkerBulananAndBulananDetail($jenis_pekerjaan->uuid, $pkbd_id);
+
+            if(!empty($proker_harian)) {
+            
+                foreach($proker_harian as $i => $result) {
+
+                    $data[]     = array(
+                        $i + 1,
+                        date('d-m-Y', strtotime($result->pkh_date)),
+                        $result->pkh_title,
+                        $result->name,
+                    );
+                }
+                
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => $data,
+                );
+            } else {
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => [],
+                );
+            }
+
+            
+            return ResponseFormatter::success([
+                    'jenis_pekerjaan' => $jenis_pekerjaan->pkbd_type,
+                    'proker_harian' => $output,
+                    'message' => 'Berhasil menampilkan data !'
+                ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal ambil data!'
+            ]);
+        }
+
+    }
 
     public function countingNumResult()
     {
