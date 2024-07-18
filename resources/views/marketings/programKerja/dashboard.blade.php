@@ -195,7 +195,7 @@
                                     <thead>
                                         <tr>
                                             <th class="text-center align-middle">No</th>
-                                            <th class="text-center align-middle">Uraian</th>
+                                            <th class="text-center align-middle">Program</th>
                                             <th class="text-center align-middle">Bulan</th>
                                             <th class="text-center align-middle">Divisi</th>
                                             <th class="text-center align-middle">Target</th>
