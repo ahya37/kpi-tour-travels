@@ -394,7 +394,7 @@
                     <div class="row mb-2">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label>Judul</label>
+                                <label>Uraian</label>
                                 <input type="text" class="form-control form-control-sm" id="jpk_title" name="jpk_title" placeholder="Uraian" autocomplete="off">
                             </div>
                         </div>
