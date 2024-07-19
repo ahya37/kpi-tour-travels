@@ -133,9 +133,11 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/simpanProgram/{jenis}', [MarketingController::class, 'marketing_programKerja_simpanProgram']);
                 Route::post('/deleteProgram/{id}', [MarketingController::class, 'marketing_programKerja_deleteProgram']);
                 Route::get('/listMasterProgram', [MarketingController::class, 'marketing_programKerja_masterProgram']);
+                Route::get('/listDetailProgram/{id}', [MarketingController::class, 'marketing_programKerja_listDetailProgram']);
             });
             // JENIS PEKERJAAN
             Route::prefix('jenisPekerjaan')->group(function(){
+                Route::get('/', [MarketingController::class, 'marketing_programKerja_jenisPekerjaanDahsboard'])->name('marketing.jenisPekerjaan.index');
                 Route::get('/dataProgram', [MarketingController::class, 'marketing_programKerja_dataProgram']);
                 Route::get('/dataProgramDetail/{programID}', [MarketingController::class, 'marketing_programKerja_dataProgramDetail']);
                 Route::post('/doSimpan', [MarketingController::class, 'marketing_programKerja_doSimpanJenisPekerjaan']);

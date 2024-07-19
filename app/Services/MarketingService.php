@@ -890,6 +890,7 @@ class MarketingService
 
             DB::table('proker_harian')->insert($data_simpan_harian);
             $harian_id      = DB::getPdo()->lastInsertId();
+            $harian_uuid    = DB::table('proker_harian')->select('uuid')->where(['id'=>$harian_id ])->get()[0]->uuid;
             
             // UPDATE BULANAN 
             $pkb_bulanan_id    = explode(' | ', $data['sendData']['jenis_pekerjaan_programIDDetail'])[0];
@@ -967,7 +968,7 @@ class MarketingService
         try {
             DB::commit();
             if($data['sendData']['jenis_pekerjaan_type_trans'] == 'add') {
-                LogHelper::create('add', 'Berhasil Menambahkan Data Jenis Pekerjaan : '.$harian_id, $data['ip']);
+                LogHelper::create('add', 'Berhasil Menambahkan Data Jenis Pekerjaan : '.$harian_uuid, $data['ip']);
             } else if($data['sendData']['jenis_pekerjaan_type_trans'] == 'edit') {
                 LogHelper::create('edit', 'Berhasil Merubah Data Jenis Pekerjaan : '.$data_harian_where['uuid'], $data['ip']);
             }

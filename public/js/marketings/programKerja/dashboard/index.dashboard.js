@@ -363,6 +363,19 @@ function show_modal(id_modal, jenis, value)
                 })
                 console.log(err);
             })
+    } else if(id_modal == 'modalDetailProgram') {
+        console.log({id_modal, jenis, value});
+
+        // Swal.fire({
+        //     title   : 'Data Sedang Dimuat',
+        // });
+        // Swal.showLoading();
+
+        // setTimeout(function(){
+        //     Swal.close();
+        //     $("#"+id_modal).modal({ backdrop : 'static', keyboard: false });
+        //     $("#"+id_modal).modal('show');
+        // }, 1000);
     }
 }
 
@@ -400,6 +413,8 @@ function close_modal(id_modal)
             today  = moment().format('YYYY-MM-DD');
             $("#jpk_btnHapus").prop('disabled', true);
         });
+    } else if(id_modal == 'modalDetailProgram') {
+        $("#"+id_modal).modal('hide');
     }
 }
 
@@ -834,7 +849,7 @@ function do_simpan(id_form, jenis)
                     }).then((results)   => {
                         if(results.isConfirmed) {
                             close_modal('modalTransJenisPekerjaan');
-                            showCalendar(moment().format('YYYY-MM-DD'));
+                            showCalendar(today);
                             showDataDashboard();
                         }
                     })

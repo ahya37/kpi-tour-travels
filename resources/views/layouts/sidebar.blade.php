@@ -163,8 +163,8 @@
                 </ul>
             </li>
 
-            <li class="{{ request()->is('aktivitas') ? 'active' : '' }}">
-                <a href="{{ route('aktivitas.harian.index') }}"><i class="fa fa-pencil"></i> <span
+            <li class="{{ request()->is('marketings/programKerja/jenisPekerjaan') ? 'active' : '' }}">
+                <a href="{{ route('marketing.jenisPekerjaan.index') }}"><i class="fa fa-pencil"></i> <span
                         class="nav-label">Aktivitas Harian</span></a>
             </li>
             @endif
