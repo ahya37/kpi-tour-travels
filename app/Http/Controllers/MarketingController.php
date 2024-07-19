@@ -1444,7 +1444,7 @@ class MarketingController extends Controller
                     
                     "<button class='btn btn-sm btn-primary' value='".$prog_id."' title='Edit Data' onclick='show_modal(`modalProgram`, `edit`, this.value)'><i class='fa fa-edit'></i></button> 
                         
-                    <button type='button' class='btn btn-sm btn-success' value='" . $prog_id . "' title='Lihat Data'><i class='fa fa-eye'></i></button>",
+                    <button type='button' class='btn btn-sm btn-success' value='" . $prog_id . "' title='Lihat Data' onclick='show_modal(`modalDetailProgram`, `view`, this.value)'><i class='fa fa-eye'></i></button>",
                 );
             }
         } else {
@@ -1784,5 +1784,18 @@ class MarketingController extends Controller
         }
 
         return Response::json($output, $output['status']);
+    }
+
+    // 19 JULY 2024
+    // NOTE : DASHBOARD JENIS PEKERJAAN
+    public function marketing_programKerja_jenisPekerjaanDahsboard()
+    {
+        $data   = [
+            "title"         => "Dashboard - Jenis Pekerjaan",
+            "sub_title"     => "Dashboard - Jenis Pekerjaan",
+            "current_role"  => Auth::user()->getRoleNames()[0]
+        ];
+
+        return view('marketings.programKerja.jenisPekerjaan.index', $data);
     }
 }

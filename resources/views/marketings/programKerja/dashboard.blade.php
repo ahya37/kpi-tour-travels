@@ -316,6 +316,72 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalDetailProgram">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="modalDetailProgram_title">Test</h4>
+                    <button class="close" onclick="close_modal('modalDetailProgram')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="card card-body">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="row mb-2">
+                                            <div class="col-sm-4 pt-2">
+                                                <label>Program</label>
+                                            </div>
+                                            <div class="col-sm-8 pt-2">
+                                                <span id="modalDetailProgram_programTitle">Test</span>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-sm-4 pt-2">
+                                                <label>Bulan</label>
+                                            </div>
+                                            <div class="col-sm-8 pt-2">
+                                                <span id="modalDetailProgram_programBulan">July</span>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-sm-4 pt-2">
+                                                <label>Divisi</label>
+                                            </div>
+                                            <div class="col-sm-8 pt-2">
+                                                <span id="modalDetailProgram_programDivisi">Marketing dan Pemasaran Digital</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bodered table-hover table-striped" id="modalDetailProgram_table" style="width: 100%">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Jenis Pekerjaan</th>
+                                            <th class="text-center align-middle">Target</th>
+                                            <th class="text-center align-middle">Realisasi</th>
+                                            <th class="text-center align-middle">Persentase (%)</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- MODAL JENIS PEKERJAAN --}}
     <div class="modal fade" id="modalJenisPekerjaan">
         <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
