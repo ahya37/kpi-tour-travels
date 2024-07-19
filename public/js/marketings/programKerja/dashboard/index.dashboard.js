@@ -364,7 +364,66 @@ function show_modal(id_modal, jenis, value)
                 console.log(err);
             })
     } else if(id_modal == 'modalDetailProgram') {
-        console.log({id_modal, jenis, value});
+        close_modal('modalTableProgram','');
+
+        var url     = "/marketings/programKerja/program/listDetailProgram/"+value;
+        var type    = "GET";
+        var data    = "";
+        var message = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+        var isAsync = true;
+
+        var listTrans   = [
+            doTrans(url, type, data, message, isAsync),
+        ];
+
+        Promise.all(listTrans)
+            .then((success) => {
+                var header  = success[0].data.header;
+                var detail  = success[0].data.detail;
+                $("#"+id_modal).modal({ backdrop : 'static', keyboard : false });
+                $("#"+id_modal).modal('show');
+
+                // HEADER
+                $("#modalDetailProgram_programKategori").html(header.pkb_title.toUpperCase());
+                $("#modalDetailProgram_programTitle").html(header.pkb_sub_title);
+                $("#modalDetailProgram_programBulan").html(moment(header.pkb_month_periode).format('MMMM').toUpperCase());
+                $("#modalDetailProgram_programDivisi").html(header.group_division_name);
+
+                $("#modalDetailProgram_title").html('Detail Program : '+header.pkb_title.toUpperCase()+' - '+header.pkb_sub_title);
+                
+                // DETAIL
+                show_table('modalDetailProgram_table', '%');
+                var total_target    = 0;
+                var total_result    = 0;
+                
+                for(var i = 0; i < detail.length; i++) {
+                    var detail_seq      = i + 1;
+                    var detail_title    = detail[i].pkbd_title;
+                    var detail_target   = detail[i].pkbd_target;
+                    var detail_result   = detail[i].pkbd_result;
+                    var detail_percent  = (parseFloat(detail_result) / parseFloat(detail_target)) * 100;
+                    total_target    += detail_target;
+                    total_result    += detail_result;
+                    
+                    $("#modalDetailProgram_table").DataTable().row.add([
+                        detail_seq,
+                        detail_title,
+                        detail_target,
+                        detail_result,
+                        $.isNumeric(detail_percent) === false ? parseFloat(0).toFixed(2)+" %" : parseFloat(detail_percent).toFixed(2)+' %',
+                    ]).draw('false');
+                }
+                let percentage  = $.isNumeric((total_result / total_target) * 100) === false ? 0 : (total_result / total_target) * 100;
+                $("#modalDetailProgram_table_totalTarget").html(parseFloat(total_target).toFixed(0));
+                $("#modalDetailProgram_table_totalRealisasi").html(parseFloat(total_result).toFixed(0));
+                $("#modalDetailProgram_table_totalPercent").html(parseFloat(percentage).toFixed(2)+" %");
+
+                Swal.close();
+            })
+            .catch((err)    => {
+                Swal.close();
+                console.log(err);
+            })
 
         // Swal.fire({
         //     title   : 'Data Sedang Dimuat',
@@ -415,6 +474,7 @@ function close_modal(id_modal)
         });
     } else if(id_modal == 'modalDetailProgram') {
         $("#"+id_modal).modal('hide');
+        show_modal('modalTableProgram', '', '')
     }
 }
 
@@ -625,6 +685,20 @@ function show_table(id_table, value)
             ],
             pageLength  : 5,
         })
+    } else if(id_table == 'modalDetailProgram_table') {
+        $("#"+id_table).DataTable().clear().destroy();
+        $("#"+id_table).DataTable({
+            pageLength  : -1,
+            paging      : false,
+            searching   : false,
+            bInfo       : false,
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width": "8%" },
+                { "targets" : [2, 3], "className" : "text-right align-middle", "width" : "10%" },
+                { "targets" : [4], "className" : "text-left align-middle", "width" : "15%" },
+            ],
+        });
     }
 }
 

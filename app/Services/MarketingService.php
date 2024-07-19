@@ -1183,4 +1183,50 @@ class MarketingService
 
         return $output;
     }
+
+    // 19 JULY 2024
+    // NOTE : GET LIST PROGRAM DETAIL
+    public static function getListDetailProgram($id)
+    {
+        $header     = DB::select(
+            "
+            SELECT 	a.uuid as pkb_id,
+                    a.pkb_title as pkb_title,
+                    UPPER(c.pktd_title) as pkb_sub_title,
+                    EXTRACT(YEAR FROM a.pkb_start_date) as pkb_year_periode,
+                    CASE
+                        WHEN LENGTH(EXTRACT(MONTH FROM a.pkb_start_date)) < 2 THEN CONCAT('0',EXTRACT(MONTH FROM a.pkb_start_date))
+                        ELSE EXTRACT(MONTH FROM a.pkb_start_date)
+                    END as pkb_month_periode,
+                    UPPER(e.name) as group_division_name
+            FROM 	proker_bulanan a
+            JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
+            JOIN 	proker_tahunan_detail c ON (SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) = c.pktd_seq AND b.id = c.pkt_id)
+            JOIN 	master_program d ON a.master_program_id = d.id
+            JOIN 	group_divisions e ON d.division_group_id = e.id
+            WHERE 	uuid = '$id'
+            AND     a.pkb_is_active = 't'
+            "
+        );
+
+        $detail     = DB::select(
+            "
+            SELECT 	b.id as pkbd_id,
+                    b.pkbd_type as pkbd_title,
+                    b.pkbd_num_target as pkbd_target,
+                    b.pkbd_num_result as pkbd_result
+            FROM 	proker_bulanan a
+            JOIN 	proker_bulanan_detail b ON b.pkb_id = a.id
+            WHERE 	a.uuid = '$id'
+            AND 	a.pkb_is_active = 't'
+            "
+        );
+
+        $output     = array(
+            "header"    => $header[0],
+            "detail"    => $detail,
+        );
+
+        return $output;
+    }
 }

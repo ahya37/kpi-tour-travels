@@ -30,6 +30,7 @@ use Illuminate\Support\Collection;
 use function Laravel\Prompts\select;
 use Illuminate\Support\Facades\Response;
 use Carbon\Carbon;
+use LDAP\Result;
 
 class MarketingController extends Controller
 {
@@ -1797,5 +1798,29 @@ class MarketingController extends Controller
         ];
 
         return view('marketings.programKerja.jenisPekerjaan.index', $data);
+    }
+
+    // NOTE : PEMBUATAN DETAIL LIST PROGRAM
+    public function marketing_programKerja_listDetailProgram($id)
+    {
+        $getData    = MarketingService::getListDetailProgram($id);
+
+        if( !empty($getData['header']) && count($getData['detail']) > 0) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data Program Kerja Detail",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Ambil Data Program Kerja Detail",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
     }
 }

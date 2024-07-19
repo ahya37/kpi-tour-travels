@@ -278,6 +278,30 @@ Route::group(['middleware' => ['auth']], function () {
         });
     });
     
+    Route::prefix('operasional')->group(function(){
+        Route::get('/', [DivisiController::class, 'indexOperasional'])->name('index.operasional');
+            Route::get('/dataTableGenerateJadwalUmrah', [DivisiController::class, 'dataTableGenerateJadwalUmrah']);
+            Route::get('/generateRules', [DivisiController::class, 'generateRules']);
+            Route::get('/getDataDashboard/{year}', [DivisiController::class, 'getDataDashboard']);
+            Route::get('/getDataRulesJadwal/{idJadwalProgram}', [DivisiController::class, 'getDataRulesJadwal']);
+            Route::get('/getDataRulesJadwalDetail', [DivisiController::class, 'getDataRulesJadwalDetail']);
+            Route::get('/getJobUser', [DivisiController::class, 'getDataJobUser']);
+
+            Route::prefix('program')->group(function(){
+                Route::get('/', [DivisiController::class, 'indexProgram'])->name('index.operasional.program');
+                Route::get('/listJadwalumrah', [DivisiController::class, 'listJadwalUmrah']);
+                Route::post('/simpanJadwalUmrah', [DivisiController::class, 'simpanJadwalUmrah']);
+                Route::get('/getDataJadwalUmrah', [DivisiController::class, 'getDataJadwalUmrah']);
+                Route::post('/hapusProgram/{id}', [DivisiController::class, 'hapusProgram']);
+            });
+            Route::prefix('rules')->group(function(){
+                Route::get('/', [DivisiController::class, 'indexRuleProkerBulanan'])->name('index.operasional.rulesprokerbulanan');
+                Route::get('/listRules', [DivisiController::class, 'listRules']);
+                Route::post('/simpanDataRules/{tipe}', [DivisiController::class, 'simpanDataRules']);
+                Route::get('/getRulesDetail/{rulesID}', [DivisiController::class, 'getRulesDetail']);
+            });
+    });
+
     Route::prefix('divisi')->group(function(){
         Route::prefix('operasional')->group(function(){
             Route::get('/', [DivisiController::class, 'indexOperasional'])->name('index.operasional');

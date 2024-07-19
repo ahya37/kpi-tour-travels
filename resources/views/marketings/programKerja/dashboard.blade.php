@@ -320,7 +320,7 @@
         <div class="modal-dialog modal-dialog-scrollable modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 id="modalDetailProgram_title">Test</h4>
+                    <h4 id="modalDetailProgram_title"></h4>
                     <button class="close" onclick="close_modal('modalDetailProgram')">&times;</button>
                 </div>
                 <div class="modal-body">
@@ -331,10 +331,18 @@
                                     <div class="col-sm-6">
                                         <div class="row mb-2">
                                             <div class="col-sm-4 pt-2">
+                                                <label>Kategori</label>
+                                            </div>
+                                            <div class="col-sm-8 pt-2">
+                                                <span id="modalDetailProgram_programKategori"></span>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-sm-4 pt-2">
                                                 <label>Program</label>
                                             </div>
                                             <div class="col-sm-8 pt-2">
-                                                <span id="modalDetailProgram_programTitle">Test</span>
+                                                <span id="modalDetailProgram_programTitle"></span>
                                             </div>
                                         </div>
                                         <div class="row mb-2">
@@ -342,7 +350,7 @@
                                                 <label>Bulan</label>
                                             </div>
                                             <div class="col-sm-8 pt-2">
-                                                <span id="modalDetailProgram_programBulan">July</span>
+                                                <span id="modalDetailProgram_programBulan"></span>
                                             </div>
                                         </div>
                                         <div class="row mb-2">
@@ -350,7 +358,7 @@
                                                 <label>Divisi</label>
                                             </div>
                                             <div class="col-sm-8 pt-2">
-                                                <span id="modalDetailProgram_programDivisi">Marketing dan Pemasaran Digital</span>
+                                                <span id="modalDetailProgram_programDivisi"></span>
                                             </div>
                                         </div>
                                     </div>
@@ -367,12 +375,22 @@
                                     <thead>
                                         <tr>
                                             <th class="text-center align-middle">No</th>
-                                            <th class="text-center align-middle">Jenis Pekerjaan</th>
+                                            <th class="text-left align-middle">Jenis Pekerjaan</th>
                                             <th class="text-center align-middle">Target</th>
                                             <th class="text-center align-middle">Realisasi</th>
-                                            <th class="text-center align-middle">Persentase (%)</th>
+                                            <th class="text-left align-middle">Persentase (%)</th>
                                         </tr>
                                     </thead>
+                                    <tbody></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th></th>
+                                            <th class="text-right align-middle">Total</th>
+                                            <th id="modalDetailProgram_table_totalTarget"></th>
+                                            <th id="modalDetailProgram_table_totalRealisasi"></th>
+                                            <th id="modalDetailProgram_table_totalPercent"></th>
+                                        </tr>
+                                    </tfoot>
                                 </table>
                             </div>
                         </div>
