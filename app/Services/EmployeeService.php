@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-
+use App\Helpers\LogHelper;
 date_default_timezone_set('Asia/Jakarta');
 
 class EmployeeService
@@ -61,7 +61,7 @@ class EmployeeService
         return $query;
     }
     
-    public static function doSaveDataEmployee($data)
+    public static function doSaveDataEmployee($data, $ip)
     {
         DB::beginTransaction();
 
@@ -112,11 +112,14 @@ class EmployeeService
                         "updated_at"=> date('Y-m-d H:i:s'),
                     );
                     $insertJobEmployee  = JobEmployee::create($dataJobEmployees);
+
+                    $employeeID     = DB::getPdo()->lastInsertId();
                     DB::commit();
                     $output     = array(
                         "status"    => "berhasil",
                         "errMsg"    => "",
                     );
+                    LogHelper::create('add', 'Berhasil Menambahkan Data Employee Baru : '.$employeeID, $ip);
                 } catch(\Exception $e) {
                     DB::rollback();
                     Log::channel('daily')->error($e->getMessage());
@@ -124,56 +127,52 @@ class EmployeeService
                         "status"    => "gagal",
                         "errMsg"    => $e->getMessage(),
                     );
+
+                    LogHelper::create('error_system', 'Gagal Menambahkan Data Employee Baru', $ip);
                 }
             } else if($data['transJenis'] == 'edit') {
                 // GET USER ID
+                $employeeID     = $data['empID'];
+                $roleName       = $data['empRole'];
+                $query_user_id  = DB::select(
+                    "
+                    SELECT  *
+                    FROM    employees 
+                    WHERE   id = '".$employeeID."'
+                    "
+                );
+                $userID     = $query_user_id[0]->user_id;
+                $roleID     = $data['empRole'];
+                $user       = User::find($userID);
+                $user->roles()->detach();
+                $user->roles()->attach($roleID);
+
+                // UBAH DATA USERS
+                $data_where     = array(
+                    "employee_id"   => $data['empID'],
+                );
+
+                $data_update    = array(
+                    "group_division_id"     => explode(" | ", $data['empGDID'])[0],
+                    "sub_division_id"       => explode(" | ", $data['empGDID'])[1],
+                );
+
+                DB::table('job_employees')->where($data_where)->update($data_update);
                 try {
                     // UBAH ROLES
-                    $employeeID     = $data['empID'];
-                    $roleName       = $data['empRole'];
-                    $query_user_id  = DB::select(
-                        "
-                        SELECT  *
-                        FROM    employees 
-                        WHERE   id = '".$employeeID."'
-                        "
-                    );
-                    $query_role_id  = DB::select(
-                        "
-                        SELECT  *
-                        FROM    roles
-                        WHERE   name = '$roleName'
-                        "
-                    );
-                    $userID     = $query_user_id[0]->user_id;
-                    $roleID     = $query_role_id[0]->id;
-                    $user       = User::find($userID);
-                    $user->roles()->detach();
-                    $user->roles()->attach($roleID);
-
-                    // UBAH DATA USERS
-                    $data_where     = array(
-                        "employee_id"   => $data['empID'],
-                    );
-
-                    $data_update    = array(
-                        "group_division_id"     => explode(" | ", $data['empGDID'])[0],
-                        "sub_division_id"       => explode(" | ", $data['empGDID'])[1],
-                    );
-
-                    DB::table('job_employees')->where($data_where)->update($data_update);
-
                     DB::commit();
                     $output     = array(
                         "status"    => "berhasil",
                         "errMsg"    => "",
                     );
+                    LogHelper::create('edit', 'Berhasil Mengubah Data Employee : '. $data['empID'], $ip);
                 } catch(\Exception $e) {
                     DB::rollback();
                     $output     = array(
                         "status"    => "gagal",
                         "errMsg"    => $e->getMessage(),
                     );
+                    LogHelper::create('error_system', 'Gagal Merubah Data Employee', $ip);
                 }
             }
         }

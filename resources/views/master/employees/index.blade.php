@@ -68,7 +68,7 @@
                             <h4>Nama Lengkap</h4>
                         </div>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control form-control-sm" placeholder="Nama Lengkap" id="empNameAdd" autocomplete="off">
+                            <input type="text" class="form-control form-control-sm" placeholder="Nama Lengkap" id="empNameAdd" autocomplete="off" style="height: 37.5px;" autocomplete="off" onkeyup="generateEmailUser(this.value)">
                         </div>
                     </div>
                     <div class="form-row mb-2">
@@ -92,7 +92,7 @@
                             <h4>ETA Username</h4>
                         </div>
                         <div class="col-sm-8">
-                            <input id="empUsernameAdd" type="text" class="form-control form-control-sm" placeholder="Estimasi Username" readonly>
+                            <input id="empUsernameAdd" type="text" class="form-control form-control-sm" placeholder="Estimasi Username" readonly style="height: 37.5px;">
                         </div>
                     </div>
                 </div>
