@@ -119,3 +119,61 @@ function onSingkron(data) {
     }
   });
 }
+
+
+function onImportTargetUmrahFromUmhaj(data) {
+  const id = data.id;
+  const CSRF_TOKEN = $('meta[name="csrf-token"]').attr("content");
+  Swal.fire({
+    title: `Yakin Singkronkan?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Ya",
+    cancelButtonText: "Batal",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: '/marketings/target/umrahpetahun',
+        method: "POST",
+        cache: false,
+        data: {
+          id: id,
+          _token: CSRF_TOKEN,
+        },
+        beforeSend: () => {
+          Swal.fire({
+            title   : 'Data Sedang Diproses',
+        });
+        Swal.showLoading();
+        },
+        success: function (data) {
+          Swal.close();
+          Swal.fire({
+            position: "center",
+            icon: "success",
+            title: `${data.data.message}`,
+            showConfirmButton: false,
+            width: 500,
+            timer: 900,
+          });
+        },
+        error: function(error){
+          Swal.close();
+          Swal.fire({
+            title: "Gagal!",
+            position: "center",
+            icon: "warning",
+            type: "danger",
+            text: error.responseJSON.data.message,
+            showConfirmButton: true,
+            width: 500,
+          });
+          
+        }
+      });
+      table.ajax.reload();
+    }
+  });
+}

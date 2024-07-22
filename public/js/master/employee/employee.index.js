@@ -43,103 +43,57 @@ function show_table(idTable, value)
     }
 }
 
-function show_select(idSelect, value)
-{
-    $("#"+idSelect).select2({
-        theme   : 'bootstrap4',
-    });
-    if(idSelect == 'empGdIDAdd') {
-        var url     = "/master/employees/trans/get/dataGroupDivision/";
-        var type    = "GET";
-        var sendData= "";
-
-        var html    = "<option selected disabled>Pilih Grup Divisi</option>";
-
-        getData(url, type, sendData).then(function(xhr){
-            var data    = xhr.data;
-            $.each(data, function(i,item){
-                var gdID    = item['group_division_id'];
-                var gdName  = item['group_division_name'];
-                var sdID    = item['sub_division_id'];
-                var sdName  = item['sub_division_name'];
-
-                html    += "<option value='" +gdID+ " | " + sdID + "'>" + gdName + " > " + sdName + "</option>";
-            });
-            $("#empGdIDAdd").html(html);
-            console.log(html);
-        }).catch(function(xhr){
-            $("#empGdIDAdd").html(html);
-            console.log(xhr.responseJSON);
-        })
-
-    } else if(idSelect == 'empRoleAdd') {
-        var url     = "/master/data/trans/get/dataRoles";
-        var type    = "GET";
-        var sendData= "%";
-
-        var html    = "<option selected disabled>Pilih Role User</option>";
-        getData(url, type, sendData).then(function(xhr){
-            var data    = xhr.data;
-            $.each(data, function(i,item){
-                var roleID      = item['role_id'];
-                var roleName    = item['role_name'];
-                html    += "<option value='" + roleName + "'>" + roleName + "</option>";
-            });
-            $("#empRoleAdd").html(html);
-        }).catch(function(xhr){
-            $("#empRoleAdd").html(html);
-        })
-    }
-}
-
 function show_modal(idModal, jenis, value) {
-    $("#"+idModal).modal({backdrop: 'static', keyboard: false});
-    $("#"+idModal).modal('show');
-    show_select('empGdIDAdd');
-    show_select('empRoleAdd');
+    if(idModal == 'modalForm') {
 
-    if(jenis == 'add') {
-        $("#empNameAdd").val(null);
-        $("#empUsernameAdd").val(null);
-        
-
-        // FOCUS ON FORM
-        $("#"+idModal).on('shown.bs.modal', function(){
-            $("#empNameAdd").focus();
-        })
-
-        // GENERATE EMAIL AFTER USER TYPING
-        $("#empNameAdd").on('keyup', function(){
-            generateEmailUser(this.value);
-        });
-
-        $("#btnSimpan").val(jenis);
-    } else if(jenis == 'edit') {
-        // GET DATA
-        var url         = getURL()+"/getDataEmployeesDetail";
         var sendData    = {
             "idEmployee"    : value,
         };
-        var type        = "GET";
+        // GET DATA
+        var getAllData     = [
+            getData('/master/employees/trans/get/dataGroupDivision/', 'GET', '', '', true),
+            getData('/master/data/trans/get/dataRoles', 'GET', '%', '', true),
+            jenis == 'add' ? '' : getData('/master/employees/getDataEmployeesDetail', 'GET', sendData, '', true),
+        ];
 
-        $("#empNameAdd").attr('readonly', 'readonly');
+        Swal.fire({
+            title   : 'Data Sedang Dimuat',
+        });
+        Swal.showLoading();
 
-        getData(url, type, sendData)
-            .then(function(xhr){
-                var getData     = xhr.data;
-                $("#empIDAdd").val(value);
-                $("#empNameAdd").val(getData['employee_name']);
-                $("#empGdIDAdd").val(getData['group_division_id']+" | "+getData['sub_division_id']).trigger('change');
-                $("#empRoleAdd").val(getData['roles_name']);
-                $("#empUsernameAdd").val(getData['employee_email']);
+        Promise.all(getAllData)
+            .then((success) => {
+                // CLOSE ALERT
+                // SHOW MODAL
+                $("#"+idModal).modal({ backdrop : 'static', keyboard : false });
 
-                $("#"+idModal).on('shown.bs.modal', function(){
+                $("#"+idModal).on('shown.bs.modal', () => {
                     $("#empNameAdd").focus();
-                })
+                });
+
+                // SHOW DATA
+                show_select('empGdIDAdd', success[0], '');
+                show_select('empRoleAdd', success[1], '');
+
+                // PLACE DATA ON COLUMN
+                if(jenis == 'edit') {
+                    $("#empIDAdd").val(success[2].data.employee_id);
+                    $("#empNameAdd").prop('readonly', true);
+                    $("#empNameAdd").val(success[2].data.employee_name);
+                    $("#empGdIDAdd").val(success[2].data.group_division_id+" | "+success[2].data.sub_division_id).trigger('change');
+                    $("#empRoleAdd").val(success[2].data.roles_id).trigger('change');
+                    $("#empUsernameAdd").val(success[2].data.employee_email);
+                } else if(jenis == 'add') {
+                    $("#empNameAdd").prop('readonly', false);
+                }
+                Swal.close();
             })
-            .catch(function(xhr){
-                console.log(xhr);
-            });
+            .catch((err)    => {
+                console.log(err);
+                show_select('empGdIDAdd', '', '');
+                show_select('empRoleAdd', '', '');
+            })
+
         $("#btnSimpan").val(jenis);
     }
 }
@@ -149,7 +103,43 @@ function close_modal(idModal) {
     $("#"+idModal).on('hidden.bs.modal', function(){
         $("#btnSimpan").removeAttr('value');
         $("#empNameAdd").removeAttr('readonly');
+        $("#empNameAdd").val(null);
+        $("#empUsernameAdd").val(null);
+
     })
+}
+
+function show_select(idSelect, valueCari, valueSelect)
+{
+    $("#"+idSelect).select2({
+        theme   : 'bootstrap4',
+    });
+    if(idSelect == 'empGdIDAdd') {
+        var html    = "<option selected disabled>Pilih Grup Divisi</option>";
+        if(valueCari != '') {
+            $.each(valueCari.data, (i, item) => {
+                var gdID    = item['group_division_id'];
+                var gdName  = item['group_division_name'];
+                var sdID    = item['sub_division_id'];
+                var sdName  = item['sub_division_name'];
+
+                html    += "<option value='" +gdID+ " | " + sdID + "'>" + gdName + " > " + sdName + "</option>";
+            })
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'empRoleAdd') {
+        var html    = "<option selected disabled>Pilih Role</option>";
+        if(valueCari != '') {
+            $.each(valueCari.data, (i, item)    => {
+                html    += "<option value='" + item.role_id + "'>" + item.role_name + "</option>";
+            });
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    }
 }
 
 // GENERATE EMAIL U/ USER
@@ -209,7 +199,6 @@ function getData(url, type, data, customMessage)
 {
     return new Promise(function(resolve, reject){
         $.ajax({
-            async       : false,
             cache       : false,
             type        : type,
             beforeSend  : function() {

@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
         // $this->call(BahanProspekSeeder::class);
         // $this->call(SasaranSeeder::class);
         // $this->call(MasterProgram::class);
-        // $this->call(ProkerProgramSeeder::class);
-        $this->call(JenisPekerjaanSeeder::class);
+        $this->call(ProkerProgramSeeder::class);
+        // $this->call(JenisPekerjaanSeeder::class);
     }
 }

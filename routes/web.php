@@ -59,6 +59,7 @@ Route::group(['middleware' => ['auth']], function () {
     //  GET EVALUASI MARKETING
      Route::get('/marketings/sasaran',[ProgramKerjaController::class, 'getSasaran']);
 	 Route::post('/marketings/sasaran/programs',[ProgramKerjaController::class, 'getProgramKerjaBulananBySasaran']);
+	 Route::post('/marketings/sasaran/programs/jenis/aktivitas/list',[ProgramKerjaController::class, 'getAktivitasHarianByJenisPekerjaan']);
 
     //marketing
     Route::prefix('marketings')->controller(MarketingController::class)->group(function(){
@@ -110,8 +111,10 @@ Route::group(['middleware' => ['auth']], function () {
 		
         // PROGRAM KERJA
         Route::prefix('programKerja')->group(function(){
-            Route::get('/programKerja', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
+            Route::get('/programKerja/', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
             Route::get('/Dashboard', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
+            Route::get('/getListSasaran', [MarketingController::class, 'marketing_programKerja_dashboardSasaran']);
+            Route::get('/getListDashboard', [MarketingController::class, 'marketing_programKerja_dashboardList']);
 
             // SASARAN
             Route::prefix('sasaran')->group(function(){
@@ -127,15 +130,20 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/listProgramMarketing', [MarketingController::class, 'marketing_programKerja_listProgramMarketing']);
                 Route::get('/listSelectedProgramMarketing', [MarketingController::class, 'marketing_programKerja_listSelectedProgramMarketing']);
                 Route::get('/listSelectSasaranMarketing', [MarketingController::class, 'marketing_programKerja_listSelectSasaranMarketing']);
-                Route::post('/simpanProgram/{jenis}', [MarketingController::class, 'marketing_programKerja_simpanProgram']);    
+                Route::post('/simpanProgram/{jenis}', [MarketingController::class, 'marketing_programKerja_simpanProgram']);
+                Route::post('/deleteProgram/{id}', [MarketingController::class, 'marketing_programKerja_deleteProgram']);
+                Route::get('/listMasterProgram', [MarketingController::class, 'marketing_programKerja_masterProgram']);
+                Route::get('/listDetailProgram/{id}', [MarketingController::class, 'marketing_programKerja_listDetailProgram']);
             });
             // JENIS PEKERJAAN
             Route::prefix('jenisPekerjaan')->group(function(){
+                Route::get('/', [MarketingController::class, 'marketing_programKerja_jenisPekerjaanDahsboard'])->name('marketing.jenisPekerjaan.index');
                 Route::get('/dataProgram', [MarketingController::class, 'marketing_programKerja_dataProgram']);
                 Route::get('/dataProgramDetail/{programID}', [MarketingController::class, 'marketing_programKerja_dataProgramDetail']);
                 Route::post('/doSimpan', [MarketingController::class, 'marketing_programKerja_doSimpanJenisPekerjaan']);
                 Route::get('/dataEventsCalendar', [MarketingController::class, 'marketing_programKerja_jpkDataEventsCalendar']);
                 Route::get('/dataDetailEventsCalendar/{id}', [MarketingController::class, 'marketing_programKerja_jpkDataDetailEventsCalendar']);
+                Route::post('/deleteJeniPekerjaan/{id}', [MarketingController::class, 'marketing_programKerja_deleteJenisPekerjaan']);
             });
             // ADDITIONAL
         });
@@ -270,6 +278,39 @@ Route::group(['middleware' => ['auth']], function () {
         });
     });
     
+    Route::prefix('operasional')->group(function(){
+        Route::get('/', [DivisiController::class, 'indexOperasional'])->name('index.operasional');
+            Route::get('/dataTableGenerateJadwalUmrah', [DivisiController::class, 'dataTableGenerateJadwalUmrah']);
+            Route::get('/generateRules', [DivisiController::class, 'generateRules']);
+            Route::get('/getDataDashboard/{year}', [DivisiController::class, 'getDataDashboard']);
+            Route::get('/getDataRulesJadwal/{idJadwalProgram}', [DivisiController::class, 'getDataRulesJadwal']);
+            Route::get('/getDataRulesJadwalDetail', [DivisiController::class, 'getDataRulesJadwalDetail']);
+            Route::get('/getJobUser', [DivisiController::class, 'getDataJobUser']);
+
+            Route::prefix('program')->group(function(){
+                Route::get('/', [DivisiController::class, 'indexProgram'])->name('index.operasional.program');
+                Route::get('/listJadwalumrah', [DivisiController::class, 'listJadwalUmrah']);
+                Route::post('/simpanJadwalUmrah', [DivisiController::class, 'simpanJadwalUmrah']);
+                Route::get('/getDataJadwalUmrah', [DivisiController::class, 'getDataJadwalUmrah']);
+                Route::post('/hapusProgram/{id}', [DivisiController::class, 'hapusProgram']);
+            });
+            Route::prefix('rules')->group(function(){
+                Route::get('/', [DivisiController::class, 'indexRuleProkerBulanan'])->name('index.operasional.rulesprokerbulanan');
+                Route::get('/listRules', [DivisiController::class, 'listRules']);
+                Route::post('/simpanDataRules/{tipe}', [DivisiController::class, 'simpanDataRules']);
+                Route::get('/getRulesDetail/{rulesID}', [DivisiController::class, 'getRulesDetail']);
+            });
+            Route::prefix('daily')->group(function(){
+                Route::get('/listFilterDaily', [DivisiController::class, 'operasional_programKerja_listFilter']);
+                Route::get('/listEventsCalendarOperasional', [DivisiController::class, 'operasional_programKerja_listDaily']);
+                Route::get('/listProkerOperasional', [DivisiController::class, 'operasional_programKerja_listProkerAll']);
+                Route::get('/listPIC', [DivisiController::class, 'operasional_programKerja_listPIC']);
+                Route::get('/detailEventsCalendarOperasional', [DivisiController::class, 'operasional_programKerja_detailCalendarOperasional']);
+                Route::post('/simpan', [DivisiController::class, 'operasional_programKerja_simpanJenisPekerjaan']);
+                Route::post('/hapus', [DivisiController::class, 'operasional_programKerja_hapusJenisPekerjaan']);
+            });
+    });
+
     Route::prefix('divisi')->group(function(){
         Route::prefix('operasional')->group(function(){
             Route::get('/', [DivisiController::class, 'indexOperasional'])->name('index.operasional');

@@ -62,7 +62,6 @@ class MarketingController extends Controller
        
         // $detailMatketingTargets = MarketingService::detailMarketingTarget($marketingTargetId);
 
-
         return view('marketings.detail-marketing-target', [
             'title' => 'Detail Target Marketing',
             'marketingTargetId' => $marketingTargetId,
@@ -1392,6 +1391,18 @@ class MarketingController extends Controller
                     ],
                 ],
             );
+        } else if($doSimpan['status'] == 'transaction') {
+            $output     = array(
+                "status"    => 500,
+                "success"   => false,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Tidak Bisa mengubah data ini, dikarenakan ada relasi dengan jenis pekerjaan yang telah dibuat",
+                    ],
+                ],
+            );
         } else {
             $output     = array(
                 "status"    => 500,
@@ -1414,32 +1425,29 @@ class MarketingController extends Controller
     {
         $getData    = MarketingService::getListProgramMarketing($request->all()['sendData']);
 
-        if(!empty($getData)) {
+        if(count($getData['header']) > 0 || count($getData['detail'])) {
             for($i = 0; $i < count($getData['header']); $i++) {
                 $ke         = $i + 1;
-                $prog_id    = $getData['header'][$i]->id;
-                $prog_title = $getData['header'][$i]->name;
-                $prog_cat   = $getData['header'][$i]->kategori;
-                $prog_sasaran_id    = $getData['header'][$i]->sasaran_id;
-                $prog_sasaran_seq   = $getData['header'][$i]->sasaran_sequence;
+                $prog_id    = $getData['header'][$i]->pkb_id;
+                $prog_title = $getData['header'][$i]->pkb_title;
                 $prog_sasaran_group_divisi  = $getData['header'][$i]->group_division_name;
-                $prog_total_target  = $getData['header'][$i]->total_target;
+                $prog_total_target  = !empty($getData['header'][$i]->total_target) ? $getData['header'][$i]->total_target : 0;
                 $prog_bulan         = date('F', strtotime($getData['header'][$i]->program_date));
 
                 $data[]     = array(
                     $ke,
-                    $prog_title . " - " . $prog_cat,
+                    $prog_title,
                     $prog_bulan,
                     $prog_sasaran_group_divisi,
                     $prog_total_target,
                     
                     "<button class='btn btn-sm btn-primary' value='".$prog_id."' title='Edit Data' onclick='show_modal(`modalProgram`, `edit`, this.value)'><i class='fa fa-edit'></i></button> 
                         
-                    <button type='button' class='btn btn-sm btn-success' value='" . $prog_id . "' title='Lihat Data'><i class='fa fa-eye'></i></button>",
+                    <button type='button' class='btn btn-sm btn-success' value='" . $prog_id . "' title='Lihat Data' onclick='show_modal(`modalDetailProgram`, `view`, this.value)'><i class='fa fa-eye'></i></button>",
                 );
             }
         } else {
-            $data   = [];
+            $data    = [];
         }
         
         $output     = array(
@@ -1456,8 +1464,9 @@ class MarketingController extends Controller
 
         if(!empty($getData)) {
             $data       = [
-                "programID"                 => $getData['header'][0]->id,
-                "programTitle"              => $getData['header'][0]->name,
+                "programID"                 => $getData['header'][0]->pkb_id,
+                "programTitle"              => $getData['header'][0]->pkb_title,
+                "program_masterProgramID"   => $getData['header'][0]->pkb_master_program_id,
                 "program_sasaranID"         => $getData['header'][0]->sasaran_id,
                 "program_sasaranSequence"   => $getData['header'][0]->sasaran_sequence,
                 "program_bulan"             => $getData['header'][0]->program_date,
@@ -1483,9 +1492,9 @@ class MarketingController extends Controller
 
     // 12 JULI 2024
     // NOTE : AMBIL DATA PROGRAM UNTUK JENIS PEKERJAAN
-    public function marketing_programKerja_dataProgram()
+    public function marketing_programKerja_dataProgram(Request $request)
     {
-        $getData    = MarketingService::doGetDataProgram();
+        $getData    = MarketingService::doGetDataProgram($request->all()['sendData']);
         
         if(!empty($getData)) {
             $output     = array(
@@ -1622,6 +1631,253 @@ class MarketingController extends Controller
                 "success"   => false,
                 "status"    => 404,
                 "message"   => "Data yang dicari tidak ada",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    
+    // 15 JULI 2024
+    public function marketing_programKerja_deleteProgram($id, Request $request)
+    {
+        $data_kirim     = [
+            "programID" => $id,
+            "ip"        => $request->ip(),
+        ];
+
+        $doDelete   = MarketingService::doDeleteProgram($data_kirim);
+
+        if($doDelete['status'] == 'berhasil')
+        {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Menghapus Data Program",
+                        "errMsg"    => [],
+                    ],
+                ],
+            );
+        } else if($doDelete['status'] == 'gagal') {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Gagal Menghapus Data Program",
+                        "errMsg"    => $doDelete['errMsg'],
+                    ],
+                ],
+            );
+        } else if($doDelete['status'] == 'data_ada') {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => $doDelete['errMsg'],
+                        "errMsg"    => $doDelete['errMsg'],
+                    ],
+                ],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : UNTUK DASHBOARD
+    public function marketing_programKerja_dashboardSasaran()
+    {
+        $getData    = MarketingService::doGetDashboardSasaran();
+
+        if(count($getData) > 0) {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Data Berhasil Dimuat",
+                "data"      => $getData,
+            ];
+        } else {
+            $output     = [
+                "status"    => 500,
+                "success"   => false,
+                "message"   => "Data Gagal Dimuat",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function marketing_programKerja_masterProgram()
+    {
+        $getData    = MarketingService::getMasterProgram();
+
+        if(!empty($getData)) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Master Program Berhasil Dimuat",
+                "data"      => $getData,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Tidak Ada Data Yang Bisa Ditampilkan",
+                "data"      => $getData,
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 16 JULI 2024
+    // NOTE : DELETE JENIS PEKERJAAN
+    public function marketing_programKerja_deleteJenisPekerjaan($id, Request $request)
+    {
+        $sendData   = [
+            "jpk_ID"        => $id,
+            "ip"            => $request->ip(),
+            "current_user"  => Auth::user()->id,
+            "current_role"  => Auth::user()->getRoleNames()[0],
+        ];
+
+        $doDelete   = MarketingService::doDeleteJenisPekerjaan($sendData);
+
+        if($doDelete['status'] == 'berhasil') {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"  => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "message"   => "Data Berhasil Dihapus",
+                        "errMsg"    => [],
+                    ],
+                ],
+            );
+        } else if($doDelete['status'] == 'gagal') {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"  => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "message"   => "Gagal Menghapus Data",
+                        "errMsg"    => $doDelete['errMsg'],
+                    ],
+                ],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 19 JULY 2024
+    // NOTE : DASHBOARD JENIS PEKERJAAN
+    public function marketing_programKerja_jenisPekerjaanDahsboard()
+    {
+        $data   = [
+            "title"         => "Dashboard - Jenis Pekerjaan",
+            "sub_title"     => "Dashboard - Jenis Pekerjaan",
+            "current_role"  => Auth::user()->getRoleNames()[0]
+        ];
+
+        return view('marketings.programKerja.jenisPekerjaan.index', $data);
+    }
+
+    public function importTargetUmrahByTahun()
+    {
+        try {
+
+            DB::beginTransaction();
+            
+            // save target haji
+            $marketingTargetId = request()->id;
+
+            $marketingTarget = MarketingTarget::select('year','id')->where('id', $marketingTargetId)->first();
+
+            $formData['year'] = $marketingTarget->year; 
+
+            $res       = MarketingService::getTargetBulanFromUmhajByTahun($formData);
+            $res_umrah = $res['data']['umrah'];
+
+            // save to table detailed_marketing_target
+            foreach ($res_umrah as  $bulan) {
+                foreach ($bulan['programs'] as  $program) {
+
+                    // $cek_program = DB::table('programs')->where('id','!=', $program['erp_program_id'])->count();
+                    // if ($cek_program > 0) {
+                    //     return ResponseFormatter::error([
+                    //         'message' => $cek_program
+                    //     ]);
+                    // }else{
+
+                    // }
+
+                    $DetailMarketingTarget      =  new DetailMarketingTarget();
+                    $DetailMarketingTarget->id = Str::random(30);
+                    $DetailMarketingTarget->marketing_target_id = $marketingTarget->id;
+                    $DetailMarketingTarget->program_id = $program['erp_program_id'] ?? '';
+                    $DetailMarketingTarget->month_number = (int) $program['bulan'];
+                    $DetailMarketingTarget->month_name   = Months::monthName($program['bulan']);
+                    $DetailMarketingTarget->target       = (int) $program['kapasitas'];
+                    $DetailMarketingTarget->realization = 0;
+                    $DetailMarketingTarget->difference  = 0;
+                    $DetailMarketingTarget->jamaah_alumni = 0;
+                    $DetailMarketingTarget->jamaah_baru = 0;
+                    $DetailMarketingTarget->created_by   = Auth::user()->id;
+                    $DetailMarketingTarget->updated_by   = Auth::user()->id;
+                    $DetailMarketingTarget->save();
+                    
+                }
+            }
+
+            DB::commit();
+
+            return ResponseFormatter::success([
+                'message' => 'Berhasil menyimpan target umrah !'
+            ]);
+
+         } catch (\Exception $e) {
+             DB::rollback();
+             Log::channel('daily')->error($e->getMessage());
+             return ResponseFormatter::error([
+                 'message' => 'Gagal menyimpan target umrah'
+             ]);
+ 
+         }
+
+    }
+
+    public function marketing_programKerja_listDetailProgram($id)
+    {
+        $getData    = MarketingService::getListDetailProgram($id);
+
+        if( !empty($getData['header']) && count($getData['detail']) > 0) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data Program Kerja Detail",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Ambil Data Program Kerja Detail",
                 "data"      => [],
             );
         }

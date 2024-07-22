@@ -163,8 +163,8 @@
                 </ul>
             </li>
 
-            <li class="{{ request()->is('aktivitas') ? 'active' : '' }}">
-                <a href="{{ route('aktivitas.harian.index') }}"><i class="fa fa-pencil"></i> <span
+            <li class="{{ request()->is('marketings/programKerja/jenisPekerjaan') ? 'active' : '' }}">
+                <a href="{{ route('marketing.jenisPekerjaan.index') }}"><i class="fa fa-pencil"></i> <span
                         class="nav-label">Aktivitas Harian</span></a>
             </li>
             @endif
@@ -182,6 +182,23 @@
             </li>
             <li class="{{ request()->is('divisi/*') ? 'active' : '' }}">
                 <a href="#">
+                    <i class="fa fa-diamond"></i>
+                    <span class="nav-label">Operasional</span> 
+                    <span class="fa arrow"></span>
+                </a>
+                <ul class="nav nav-second-level">
+                    <li class="{{ request()->is('divisi/operasional') ? 'active' : '' }}"><a href="{{ route('index.operasional') }}">Dashboard</a></li>
+                </ul>
+                <ul class="nav nav-second-level">
+                    <li class="{{ request()->is('divisi/operasional/program') ? 'active' : '' }}"><a href="{{ route('index.operasional.program') }}">Jadwal Umrah</a></li>
+                </ul>
+                
+                <ul class="nav nav-second-level">
+                    <li class="{{ request()->is('divisi/operasional/rules') ? 'active' : '' }}"><a href="{{ route('index.operasional.rulesprokerbulanan') }}">Aturan Program Kerja</a></li>
+                </ul>
+            </li>
+            {{-- <li class="{{ request()->is('divisi/*') ? 'active' : '' }}">
+                <a href="#">
                     <i class='fa fa-users'></i>
                     <span class="nav-label">Divisi</span><span class='fa arrow'></span>
                 </a>
@@ -191,7 +208,7 @@
                         <a href="{{ route('index.operasional') }}">Operasional</a>
                     </li>
                 </ul>
-            </li>
+            </li> --}}
             @endif
             @if (Auth::user()->hasRole('it'))
             <li class="{{ request()->is('master/*') ? 'active' : '' }}">

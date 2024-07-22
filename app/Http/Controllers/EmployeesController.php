@@ -144,7 +144,7 @@ class EmployeesController extends Controller
                 ],
             );
         } else {
-            $simpanData     = EmployeeService::doSaveDataEmployee($request->all()['sendData']);
+            $simpanData     = EmployeeService::doSaveDataEmployee($request->all()['sendData'], $request->ip());
             if($simpanData['status'] == 'berhasil') {
                 $output     = array(
                     'success'   => true,

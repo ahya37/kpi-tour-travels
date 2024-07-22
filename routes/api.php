@@ -21,6 +21,8 @@ Route::get('/marketings/proker/report/evaluasi',[ProgramKerjaController::class, 
 
 Route::post('/marketings/proker/jenispekerjaan/counting',[ProgramKerjaController::class, 'countingNumResult']);
 
+#GENERATE DUMY DATA RENCANA KERJA MARKETING
+Route::post('/marketings/proker/dumy',[ProgramKerjaController::class, 'generateDumyData']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();

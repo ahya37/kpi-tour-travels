@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 use Route;
 use Str;
 
+use function Psy\debug;
+
 date_default_timezone_set('Asia/Jakarta');
 
 class DivisiService 
@@ -746,6 +748,350 @@ class DivisiService
                 "errMsg"    => $e->getMessage(),
             );
             LogHelper::create('error_system', 'Gagal Membatalkan Program', $ip);
+        }
+
+        return $output;
+    }
+
+    public static function getListDailyOperasional($data)
+    {
+        $start_date     = $data['start_date'];
+        $end_date       = $data['end_date'];
+        $program        = $data['program'];
+        $sub_division   = $data['sub_divisi'];
+
+        $query  = DB::select(
+            "
+            SELECT 	pkb.*
+            FROM 	(
+                    SELECT 	a.uuid as pkb_id,
+                            CONCAT('[', UPPER(g.name), '] ', UPPER(a.pkb_description)) as pkb_title,
+                            a.pkb_start_date, 
+                            a.pkb_end_date,
+                            e.prog_pkb_is_created,
+                            e.prog_jdw_id as programs_id
+                    FROM 	proker_bulanan a
+                    JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
+                    JOIN 	proker_tahunan_detail c ON (SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) = c.pktd_seq AND b.id = c.pkt_id)
+                    JOIN 	group_divisions d ON b.division_group_id = d.id
+                    JOIN    tr_prog_jdw e ON a.uuid = e.prog_pkb_id
+                    JOIN 	programs_jadwal f ON e.prog_jdw_id = f.jdw_uuid
+                    JOIN 	programs g ON f.jdw_programs_id = g.id
+                    JOIN 	programs_jadwal_rules h ON e.prog_rul_id = h.id
+                    WHERE   d.name LIKE '%operasional%'
+                    AND 	a.pkb_is_active = 't'
+                    AND 	h.rul_pic_sdid LIKE '$sub_division'
+
+                    UNION ALL
+
+                    SELECT 	a.uuid as pkb_id,
+                            UPPER(a.pkb_title) as pkb_title, 
+                            a.pkb_start_date, 
+                            a.pkb_end_date,
+                            null as prog_pkb_is_created,
+                            'programs_id' as programs_id
+                    FROM 	proker_bulanan a
+                    JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
+                    JOIN 	proker_tahunan_detail c ON (SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) = c.pktd_seq AND b.id = c.pkt_id)
+                    JOIN 	group_divisions d ON b.division_group_id = d.id
+                    WHERE	pkb_title NOT LIKE '%[%'
+                    AND 	d.name LIKE '%operasional%'
+                    AND 	a.pkb_is_active = 't'
+                    ) pkb
+            WHERE   pkb.pkb_start_date BETWEEN '$start_date' AND '$end_date'
+            AND     pkb.programs_id LIKE '$program'
+            ORDER BY pkb.pkb_start_date ASC
+            "
+        );
+
+        return $query;
+    }
+
+    // 20 JULY 2024
+    public static function getListProkerAllOperasional($data)
+    {
+        $role   = $data['current_role'];
+        $userID = $data['current_id'];
+
+        $tahunan = DB::select(
+            "
+            SELECT 	a.uid as pkt_id,
+                    a.pkt_title,
+                    a.pkt_year,
+                    c.pktd_seq,
+                    c.pktd_title,
+                    b.name as group_divisi
+            FROM 	proker_tahunan a
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            JOIN 	proker_tahunan_detail c ON c.pkt_id = a.id
+            WHERE 	b.name LIKE '%$role%'
+            AND 	a.pkt_year = EXTRACT(YEAR FROM CURRENT_DATE)
+            "
+        );
+
+        $tahunan_header = [];
+
+        if(!empty($tahunan)) {
+            for($i = 0; $i < count($tahunan); $i++) {
+                $temp_header[] = array(
+                    "pkt_id"        => $tahunan[$i]->pkt_id,
+                    "pkt_title"     => $tahunan[$i]->pkt_title,
+                    "pkt_year"      => $tahunan[$i]->pkt_year,
+                    "pkt_group_division_name"   => $tahunan[$i]->group_divisi,
+                    "detail"        => [],
+                );
+            }
+
+            // TAHUNAN HEADER
+            $header_remove_duplicate    = array_reduce($temp_header, function($carry, $item){
+                if(!isset($carry[$item['pkt_id']])) {
+                    $carry[$item['pkt_id']]     = $item;
+                }
+                return $carry;
+            }, []);
+    
+            $tahunan_header   = array_values($header_remove_duplicate);
+
+            for($j = 0; $j < count($tahunan_header); $j++) {
+
+                for($k = 0; $k < count($tahunan); $k++) {
+                    if($tahunan[$k]->pkt_id == $tahunan_header[$j]['pkt_id']) {
+                        $tahunan_detail     = [
+                            "pktd_seq"      => $tahunan[$k]->pktd_seq,
+                            "pktd_title"    => $tahunan[$k]->pktd_title,
+                        ];
+                        array_push($tahunan_header[$j]['detail'], $tahunan_detail);
+                    }
+                }
+            }
+
+            $output     = array(
+                "tahunan"   => $tahunan_header,
+            );
+        } else {
+            $output     = array(
+                "tahunan"   => $tahunan_header
+            );
+        }
+
+        return $output;
+    }
+
+    public static function getListPIC($data)
+    {
+        $role   = $data['current_role'];
+        return DB::select(
+            "
+            SELECT 	a.user_id,
+                    a.name as user_name
+            FROM 	employees a
+            JOIN 	job_employees b ON b.employee_id = a.id
+            JOIN 	group_divisions c ON b.group_division_id = c.id
+            JOIN 	roles d ON c.roles_id = d.id
+            WHERE 	d.name LIKE '%$role%'
+            ORDER BY user_id ASC
+            "
+        );
+    }
+
+    public static function getDetailCalendarOperasional($data)
+    {
+        $pkb_id     = $data['pkb_id'];
+        $query      = DB::select(
+            "
+            SELECT 	a.uuid as pkb_id,
+                    a.pkb_start_date,
+                    a.pkb_end_date,
+                    a.pkb_title,
+                    a.pkb_description,
+                    SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) as pkt_id,
+                    SUBSTRING_INDEX(a.pkb_pkt_id,' | ',-1) as pktd_id,
+				    a.created_by
+            FROM 	proker_bulanan a
+            WHERE 	uuid = '$pkb_id'
+            "
+        );
+
+        return $query;
+    }
+
+    // 22 JULY 2024
+    // NOTE : SIMPAN DATA CALENDAR
+    public static function doSimpanOperasionalJenisPekerjaan($data)
+    {
+        DB::beginTransaction();
+        $ip         = $data['ip'];
+        $user_id    = $data['user_id'];
+        $user_role  = $data['user_role'];
+
+        $pkb_id         = $data['data']['pkb_id'];
+        $pkb_pkt_id     = $data['data']['pkt_id']." | ".$data['data']['pktd_id'];
+        $pkb_created_by = $data['data']['pkb_created_by'];
+        $pkb_title      = $data['data']['pkb_title'];
+        $pkb_description= $data['data']['pkb_description'];
+        $pkb_start_date = $data['data']['pkb_start_date'];
+        $pkb_end_date   = $data['data']['pkb_end_date'];
+
+        $employee_id    = DB::table('employees')->select('id')->where(['user_id' => $pkb_created_by])->get()[0]->id;
+        
+        $jenis          = $data['data']['jenis'];
+        
+        if($jenis == 'add') {
+            $data_simpan    = [
+                "uuid"              => Str::random(30),
+                "pkb_title"         => $pkb_title,
+                "pkb_start_date"    => $pkb_start_date,
+                "pkb_end_date"      => $pkb_end_date,
+                "pkb_description"   => $pkb_description,
+                "pkb_pkt_id"        => $pkb_pkt_id,
+                "pkb_employee_id"   => $employee_id,
+                "pkb_is_active"     => "t",
+                "created_by"        => $pkb_created_by,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('proker_bulanan')->insert($data_simpan);
+            $id     = DB::getPdo()->lastInsertId();
+            $pkb_id     = DB::table('proker_bulanan')->select('uuid')->where(['id' => $id])->get()[0]->uuid;
+        } else if($jenis == 'edit') {
+            // CHECK APAKAH DIA YANG PLANNING ATAU BUKAN
+            $check      = DB::table('tr_prog_jdw')->where(['prog_pkb_id' => $pkb_id, 'prog_pkb_is_created' => 'f'])->get();
+            if(count($check) > 0) {
+                // UPDATE TR PROG JDW
+                $where_prog_jdw     = [
+                    "prog_pkb_id"           => $pkb_id,
+                    "prog_pkb_is_created"   => "f",
+                ];
+                $update_data        = [
+                    "prog_pkb_is_created"   => "t",
+                ];
+                DB::table('tr_prog_jdw')->where($where_prog_jdw)->update($update_data);
+            } else {
+                // DO NOTHING
+            }
+            // UPDATE PROKER BULANAN
+            $where_proker_bulanan   = [
+                "uuid"          => $pkb_id,
+                "pkb_is_active" => "t",
+            ];
+            $data_proker_bulanan    = [
+                "pkb_title"         => $pkb_title,
+                "pkb_start_date"    => $pkb_start_date,
+                "pkb_end_date"      => $pkb_end_date,
+                "pkb_description"   => $pkb_description,
+                "pkb_pkt_id"        => $pkb_pkt_id,
+                "pkb_employee_id"   => $employee_id,
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'), 
+            ];
+            DB::table('proker_bulanan')->where($where_proker_bulanan)->update($data_proker_bulanan);
+        }
+
+        try {
+            DB::commit();
+            $jenis == 'add' ? LogHelper::create('add', 'Berhasil Menambahkan Program Kerja Operasional Baru : '.$pkb_id, $ip) : LogHelper::create('edit', 'Berhasil Mengubah Program Kerja Operasional : '.$pkb_id, $ip);
+
+            $output     = array(
+                "status"    => "berhasil",
+                "errMsg"    => [],
+            );
+        } catch(\Exception $e) {
+            DB::rollBack();
+            $jenis == 'add' ? LogHelper::create('error_system', 'Gagal Menambahkan Program Kerja Bulanan Baru', $ip) : LogHelper::create('error_system', 'Gagal Merubah Program Kerja Bulanan Baru', $ip);
+            
+            $output     = array(
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            );
+        }
+
+        return $output;
+    }
+
+    public static function getDataListFilter()
+    {
+        // GET DATA PROGRAM
+        $query_program  = DB::select(
+            "
+            SELECT 	UPPER(d.name) as program_name,
+                    c.jdw_depature_date as program_start_date,
+                    c.jdw_arrival_date as program_end_date,
+                    c.jdw_uuid
+            FROM 	proker_bulanan a
+            JOIN 	tr_prog_jdw b ON a.uuid = b.prog_pkb_id
+            JOIN 	programs_jadwal c ON b.prog_jdw_id = c.jdw_uuid
+            JOIN 	programs d ON c.jdw_programs_id = d.id
+            WHERE 	pkb_title LIKE '%[%'
+            AND 	a.pkb_is_active = 't'
+            GROUP BY d.name, c.jdw_depature_date, c.jdw_arrival_date, c.jdw_uuid
+            "
+        );
+
+        $query_sub_division     = DB::select(
+            "
+            SELECT 	e.id as sub_division_id,
+                    e.name as sub_division_name
+            FROM 	employees a
+            JOIN 	job_employees b ON a.id = b.employee_id
+            JOIN 	group_divisions c ON b.group_division_id = c.id
+            JOIN 	roles d ON c.roles_id = d.id
+            JOIN 	sub_divisions e ON e.division_group_id = c.id
+            WHERE 	d.name LIKE '%operasional%'
+            GROUP BY e.id, e.name
+            "
+        );
+
+        $output     = [
+            "program"       => $query_program,
+            "sub_division"  => $query_sub_division,
+        ];
+
+        return $output;
+    }
+
+    public static function getCurrentSubDivision()
+    {
+        $user_id    = Auth::user()->id;
+
+        return DB::select(
+            "
+            SELECT 	c.id as sub_division_id,
+                    LOWER(c.name) as sub_division_name
+            FROM 	employees a 
+            JOIN 	job_employees b ON a.id = b.employee_id
+            JOIN 	sub_divisions c ON b.sub_division_id = c.id
+            WHERE 	a.user_id = '$user_id'
+            "
+        );
+    }
+
+    public static function doHapusJenisPekerjaan($data)
+    {
+        DB::beginTransaction();
+
+        $pkb_id     = $data['pkb_id'];
+        $ip         = $data['ip'];
+        $user_id    = $data['user_id'];
+
+        DB::table('proker_bulanan')->where(['uuid' => $pkb_id])->update(['pkb_is_active'=>'f', 'updated_by' => $user_id, 'updated_at' => date('Y-m-d H:i:s')]);
+
+        try {
+            DB::commit();
+            LogHelper::create('delete', 'Berhasil Menghapus Program Kerja Operasional : '.$pkb_id, $ip);
+            $output     = array(
+                "status"    => "berhasil",
+                "errMsg"    => '',
+            );
+        } catch(\Exception $e) {
+            DB::rollBack();
+            LogHelper::create('error_system', 'Gagal Hapus Proker Bulanan', $ip);
+
+            $output     = array(
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            );
         }
 
         return $output;
