@@ -10,32 +10,53 @@ $(document).ready(function(){
     var currMonth   = moment().format('MM');
     var currYear    = moment().format('YYYY');
     var currPaket   = '%';
+    var data_calendar   = {
+        "start_date"    : currYear + "-01-01",
+        "end_date"      : currYear + "-12-31",
+        "program"       : '%',
+        "sub_divisi"    : '%',
+    };
 
     // SHOW DATA DASHBOARD
-    var url     = site_url + "/getDataDashboard/"+currYear;
-    var type    = "GET";
-    var message = NProgress.start();
+    
+    var getAllData  = [
+        doTrans('/divisi/operasional/getDataDashboard/'+currYear, 'GET', '', '', true),
+        doTrans('/operasional/daily/listEventsCalendarOperasional/', 'GET', data_calendar, '', true)
+    ];
 
-    doTrans(url, type, '', message, true)
-        .then((xhr)=>{
-            var getData     = xhr.data[0];
+    Promise.all(getAllData)
+        .then((success) => {
+            var getData     = success[0].data[0];
+            var daily       = success[1];
             $("#dashboard_jadwal_umrah").html(getData.grand_total_jadwal_umrah);
             $("#dashboard_rules").html(getData.grand_total_rule);
-            NProgress.done();
+            $("#dashboard_activity").html(daily.data.length);
+
+            // SHOW SELECT FOR FILTER
+            showSelect('programFilterBulan', '%', '%', '');
+            showSelect('programFilterTahun', '%', currYear, '');
+            showSelect('programFilterPaket', '%', currPaket, true);
+
+            // SHOW TABLE JADWAL
+            var inputCurrMonth  = $("#programFilterBulan").val();
+            showTable('table_jadwal_umrah', [inputCurrMonth, currYear, '%', currPaket]);
+            
+            // SHOW CHART
+            showDataOperasional();
         })
-        .catch((xhr)=>{
+        .catch((err)    => {
+            console.log(err);
             $("#dashboard_jadwal_umrah").html(0);
             $("#dashboard_rules").html(0);
-            NProgress.done();
+            showSelect('programFilterBulan', '%', '%', '');
+            showSelect('programFilterTahun', '%', currYear, '');
+            showSelect('programFilterPaket', '%', currPaket, true);
+
+            var inputCurrMonth  = $("#programFilterBulan").val();
+
+            showTable('table_jadwal_umrah', [inputCurrMonth, currYear, '%', currPaket]);
+            showDataOperasional();
         })
-
-    showSelect('programFilterBulan', '%', '%', '');
-    showSelect('programFilterTahun', '%', currYear, '');
-    showSelect('programFilterPaket', '%', currPaket, true);
-
-    var inputCurrMonth  = $("#programFilterBulan").val();
-
-    showTable('table_jadwal_umrah', [inputCurrMonth, currYear, '%', currPaket]);
 
     $("#programFilterBtnCari").on('click', function(){
         var selectedMonth   = $("#programFilterBulan").val();
@@ -43,7 +64,6 @@ $(document).ready(function(){
         var selectedPaket   = $("#programFilterPaket").val();
         showTable('table_jadwal_umrah', [selectedMonth, selectedYear, '%', selectedPaket])
     });
-    showDataOperasional();
 });
 
 function showModal(idForm, valueCari, jenis)
