@@ -308,6 +308,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/detailEventsCalendarOperasional', [DivisiController::class, 'operasional_programKerja_detailCalendarOperasional']);
                 Route::post('/simpan', [DivisiController::class, 'operasional_programKerja_simpanJenisPekerjaan']);
                 Route::post('/hapus', [DivisiController::class, 'operasional_programKerja_hapusJenisPekerjaan']);
+                Route::get('/listAktivitasProgram', [DivisiController::class, 'operasional_programKerja_listAktivitasProgram']);
             });
     });
 

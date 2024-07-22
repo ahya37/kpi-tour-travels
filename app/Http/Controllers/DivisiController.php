@@ -7,6 +7,7 @@ use App\Services\DivisiService;
 use App\Services\BaseService;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
+use LDAP\Result;
 
 use function PHPSTORM_META\map;
 
@@ -357,35 +358,6 @@ class DivisiController extends Controller
                 "data"      => []
             );
         }
-
-        // if(!empty($getData)) {
-        //     for($i = 0; $i < count($getData['jadwal']); $i++) {
-        //         $data[$i]     = array(
-        //             $i + 1,
-        //             $getData['jadwal'][$i]->rules,
-        //             date('d-M-Y', strtotime($getData['jadwal'][$i]->start_date_job))." s/d ".date('d-M-Y', strtotime($getData['jadwal'][$i]->end_date_job)),
-        //             $getData['jadwal'][$i]->pic_role,
-        //             $getData['jadwal'][$i]->duration_day,
-        //             !empty($getData['jadwal'][$i]->realization_start_date) ? ($getData['jadwal'][$i]->realization_start_date == $getData['jadwal'][$i]->realization_end_date ? date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_start_date)) : date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_start_date))." s/d ".date('d-M-Y', strtotime($getData['jadwal'][$i]->realization_end_date))) : null,
-        //             $getData['jadwal'][$i]->realization_duration_day != 0 ? ($getData['jadwal'][$i]->realization_duration_day <= $getData['jadwal'][$i]->duration_day_num ? "<span class='badge badge-primary d-block' style='font-size: 0.8rem;'>+" .$getData['jadwal'][$i]->realization_duration_day. " Hari</span>" : "<span class='badge badge-danger d-block' style='font-size: 0.8rem;'>-" .$getData['jadwal'][$i]->realization_duration_day. " Hari</span>") : '',
-        //         );
-        //     }
-
-        //     $output     = array(
-        //         "status"    => 200,
-        //         "success"   => true,
-        //         "message"   => "Berhasil Ambil Data",
-        //         "data"      => $data,
-        //     );
-        // } else {
-        //     $output     = array(
-        //         "status"    => 404,
-        //         "success"   => false,
-        //         "message"   => "Gagal Mengambil Data",
-        //         "data"      => [],
-        //     );
-        // }
-
         return Response::json($output, $output['status']);
 
     }
@@ -789,6 +761,29 @@ class DivisiController extends Controller
                 ],
                 "errMsg"    => $doHapus['errMsg']
             );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function operasional_programKerja_listAktivitasProgram()
+    {
+        $getData    = DivisiService::getListAktivitasProgram();
+
+        if(count($getData) > 0) {
+            $output     = [
+                'status'    => 200,
+                'success'   => true,
+                'message'   => 'Berhasil',
+                'data'      => $getData,
+            ];
+        } else {
+            $output     = [
+                "status"    => 404,
+                "success"   => true,
+                "message"   => "Gagal Ambil Data",
+                "data"      => [],
+            ];
         }
 
         return Response::json($output, $output['status']);

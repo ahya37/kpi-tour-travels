@@ -469,13 +469,18 @@ class DivisiService
                     LEFT(d.rul_sla, 1) as duration_cond,
                     d.rul_condition,
                     CASE
-                        WHEN LEFT(d.rul_sla, 1) = '-' THEN DATE_ADD(b.jdw_depature_date, INTERVAL d.rul_sla DAY)
-                        WHEN LEFT(d.rul_sla, 1) = '+' THEN b.jdw_arrival_date
+                        WHEN LEFT(d.rul_sla, 1) = '-' AND d.rul_condition = 'bf-dpt' THEN DATE_ADD(b.jdw_depature_date, INTERVAL d.rul_sla DAY)
+                        WHEN LEFT(d.rul_sla, 1) = '-' AND d.rul_condition = 'bf-arv' THEN DATE_ADD(b.jdw_arrival_date, INTERVAL d.rul_sla DAY)
+                        WHEN LEFT(d.rul_sla, 1) = '+' AND d.rul_condition = 'af-arv' THEN b.jdw_arrival_date
+                        WHEN LEFT(d.rul_sla, 1) = '+' AND d.rul_condition = 'af-dpt' THEN b.jdw_depature_date
                         ELSE b.jdw_depature_date
                     END as start_date_job,
                     CASE
-                        WHEN LEFT(d.rul_sla, 1) = '-' THEN b.jdw_depature_date
-                        WHEN LEFT(d.rul_sla, 1) = '+' THEN DATE_ADD(b.jdw_arrival_date, INTERVAL d.rul_sla DAY)
+                        WHEN LEFT(d.rul_sla, 1) = '-' AND d.rul_condition = 'bf-dpt' THEN b.jdw_depature_date
+                        WHEN LEFT(d.rul_sla, 1) = '-' AND d.rul_condition = 'bf-arv' THEN b.jdw_arrival_date
+                        WHEN LEFT(d.rul_sla, 1) = '+' AND d.rul_condition = 'af-arv' THEN DATE_ADD(b.jdw_arrival_date, INTERVAL d.rul_sla DAY)
+                        WHEN LEFT(d.rul_sla, 1) = '+' AND d.rul_condition = 'af-dpt' THEN DATE_ADD(b.jdw_depature_date, INTERVAL d.rul_sla DAY)
+                        ELSE b.jdw_arrival_date
                     END as end_date_job,
 				    e.name as pic_role_name
             FROM 	tr_prog_jdw a
@@ -491,7 +496,8 @@ class DivisiService
             "
             SELECT 	b.prog_rul_id,
                     a.pkb_start_date,
-                    a.pkb_end_date
+                    a.pkb_end_date,
+                    b.prog_pkb_is_created as status_created
             FROM 	proker_bulanan a
             JOIN 	tr_prog_jdw b ON a.uuid = b.prog_pkb_id
             WHERE 	b.prog_jdw_id = '$id'
@@ -1095,5 +1101,22 @@ class DivisiService
         }
 
         return $output;
+    }
+
+    public static function getListAktivitasProgram()
+    {
+        $query  = DB::select(
+            "
+            SELECT 	a.id as rule_id,
+                    a.rul_title,
+                    a.rul_pic_sdid as rul_sdid,
+                    b.name as rul_sdid_name
+            FROM 	programs_jadwal_rules a
+            JOIN 	sub_divisions b ON a.rul_pic_sdid = b.id
+            ORDER BY a.id ASC
+            "
+        );
+
+        return $query;
     }
 }

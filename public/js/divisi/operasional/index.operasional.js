@@ -85,28 +85,37 @@ function showModal(idForm, valueCari, jenis)
                 // GENERATE JADWAL TO TABLE
                 if(getData['list_rules'].length > 0) {
                     for(var i = 0; i < getData['list_rules'].length; i++) {
-                        var data_rules  = getData['list_rules'][i];
-                        var rules_id    = data_rules['rul_id'];
-                        var rules_title = data_rules['rul_title'];
-                        var rules_date  = moment(data_rules['start_date_job'], 'YYYY-MM-DD').format('DD-MMM-YYYY')+" s/d "+moment(data_rules['end_date_job'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
-                        var rules_pic   = data_rules['pic_role_name'];
+                        var data_rules      = getData['list_rules'][i];
+                        var rules_id        = data_rules['rul_id'];
+                        var rules_title     = data_rules['rul_title'];
+                        var rules_date      = moment(data_rules['start_date_job'], 'YYYY-MM-DD').format('DD-MMM-YYYY')+" s/d "+moment(data_rules['end_date_job'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
+                        var rules_pic       = data_rules['pic_role_name'];
                         var rules_duration  = data_rules['number_of_processing_day']+" Hari";
                         var rules_realization_date  = "";
+                        var rules_realization_duration = "";
                         if(getData['proker_bulanan'].length > 0) {
                             rules_realization_date  += "<ul>";
                             for(var j = 0; j < getData['proker_bulanan'].length; j++) {
-                                var data_pkb    = getData['proker_bulanan'][j];
-                                var pkb_rul_id  = data_pkb['prog_rul_id'];
+                                var data_pkb        = getData['proker_bulanan'][j];
+                                var pkb_rul_id      = data_pkb['prog_rul_id'];
                                 var pkb_start_date  = moment(data_pkb['pkb_start_date'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
                                 var pkb_end_date    = moment(data_pkb['pkb_end_date'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
+                                var pkb_status      = data_pkb['status_created'];
 
-                                if(rules_id == pkb_rul_id)
-                                {
-                                    if(pkb_start_date == pkb_end_date) {
-                                        rules_realization_date  += "<li>" + pkb_start_date + "</li>";
-                                    } else {
-                                        rules_realization_date  += "<li>" + pkb_start_date + " s/d " + pkb_end_date + "</li>";
+                                if(pkb_status == 't') {
+                                    if(rules_id == pkb_rul_id)
+                                    {
+                                        if(pkb_start_date == pkb_end_date) {
+                                            rules_realization_date  += "<li>" + pkb_start_date + "</li>";
+                                            rules_realization_duration  += "1 Hari";
+                                        } else {
+                                            rules_realization_date      += "<li>" + pkb_start_date + " s/d " + pkb_end_date + "</li>";
+                                            rules_realization_duration  += moment(data_pkb['pkb_end_date']).diff(moment(data_pkb['pkb_start_date']), 'days')+' Hari';
+                                        }
                                     }
+                                } else {
+                                    rules_realization_date  = "";
+                                    rules_realization_duration  = "";
                                 }
                             }
                             rules_realization_date  += "</ul>"
@@ -119,7 +128,7 @@ function showModal(idForm, valueCari, jenis)
                             rules_pic,
                             rules_duration,
                             rules_realization_date,
-                            null,
+                            rules_realization_duration,
                         ]).draw('false');
                     }
                 }
@@ -186,6 +195,7 @@ function showModal(idForm, valueCari, jenis)
         // GET DATA
         var getData     = [
             doTrans('/operasional/daily/listFilterDaily', 'GET', '', '', true),
+            doTrans('/operasional/daily/listAktivitasProgram', 'GET', '', '', true)
         ];
 
         Promise.all(getData)
@@ -193,9 +203,11 @@ function showModal(idForm, valueCari, jenis)
                 var data_program        = success[0].data.program;
                 var data_sub_division   = success[0].data.sub_division;
                 var current_sub_division= $("#current_sub_division").val() == 'pic' ? '%' : $("#current_sub_division_id").val();
+                var aktitivas           = success[1].data;
 
                 showSelect('modal_operasional_daily_program', data_program, '', true);
                 showSelect('modal_operasional_daily_bagian', data_sub_division, '', true);
+                showSelect('modal_operasional_daily_aktivitas', aktitivas, '', true);
 
                 $("#modal_operasional_daily_program").val('%').trigger('change');
                 
@@ -554,13 +566,13 @@ function showTable(idTable, valueCari)
                 "emptyTable"    : "Tidak ada data yang bisa ditampilkan..",
             },
             columnDefs  : [
-                { "targets" : [0, 4], "className":"text-center" },
+                { "targets" : [0, 4], "className":"text-center align-middle" },
                 { "targets" : [0], "width": "5%" },
                 { "targets" : [2], "width": "18%" },
                 { "targets" : [3], "width": "10%" },
                 { "targets" : [5], "width": "22%" },
                 { "targets" : [4, 6], "width" : "8%"},
-                { "targets" : [0, 1, 2, 3, 4, 5, 6]},
+                { "targets" : [0, 1, 2, 3, 4, 5, 6], "className":"align-middle"},
             ],
             pageLength : -1,
             autoWidth   : false,
@@ -759,6 +771,20 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                 var sub_div_name= item.sub_division_name;
 
                 html    += "<option value='" + sub_div_id + "'>" + sub_div_name + "</option>";
+            });
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'modal_operasional_daily_aktivitas') {
+        var html    = "<option selected disabled>Pilih Aktivitas</option>";
+
+        if(valueCari != '') {
+            $.each(valueCari, (i, item) => {
+                var rul_id      = item.rule_id;
+                var rul_title   = item.rul_title;
+
+                html    += "<option value='" + rul_id + "'>" + rul_title + "</option>";
             });
             $("#"+idSelect).html(html);
         } else {

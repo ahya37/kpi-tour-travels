@@ -323,6 +323,9 @@
                             <div class="col-sm-3">
                                 <label>Bagian</label>
                             </div>
+                            <div class="col-sm-4">
+                                <label>Aktivitas</label>
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-sm-3">
@@ -331,7 +334,10 @@
                             <div class="col-sm-3">
                                 <select name="modal_operasional_daily_bagian" id="modal_operasional_daily_bagian" style="width: 100%;"></select>
                             </div>
-                            <div class="col-sm-3">
+                            <div class="col-sm-4">
+                                <select name="modal_operasional_daily_aktivitas" id="modal_operasional_daily_aktivitas" style="width: 100%;"></select>
+                            </div>
+                            <div class="col-sm-2">
                                 <button type="button" class="btn btn-primary" id="modal_operasional_filter_cari" onclick="cariData()">Cari</button>
                             </div>
                         </div>
