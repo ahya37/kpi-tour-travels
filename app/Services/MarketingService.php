@@ -197,6 +197,32 @@ class MarketingService
         }
     }
 
+    public static function getTargetBulanFromUmhajByTahun($formData)
+    {
+       
+        $response =Http::withHeaders([
+            'x-api-key' => env('API_PERCIK_KEY')
+        ])->post(env('API_PERCIK').'/umrah/getTargetUmrahByTahun',$formData);
+        
+        // Check if the request was successful
+        if ($response->successful()) {
+            $data = $response->json();
+            return $data;
+
+        } else {
+
+            $errorCode    = $response->status();
+            $errorMessage = $response->body();
+
+            $data = [
+                'error' => $errorCode,
+                'message' => $errorMessage
+            ];
+
+            return  response()->json($data);
+        }
+    }
+
     public static function getRelisasiUmrah($formData)
     {
        

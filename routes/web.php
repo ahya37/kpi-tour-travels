@@ -76,6 +76,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/target/detail/{marketingTargetId}','detailMarketingTarget');
         Route::post('/target/detail/{marketingTargetId}/store','detailMarketingTargetStore');
         Route::post('/target/detail/list/{detailMarketingTargetId}','detailListTarget');
+        Route::post('/target/umrahpetahun','importTargetUmrahByTahun');
         
         
         // bahan prospek
