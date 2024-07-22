@@ -34,4 +34,5 @@ class DetailMarketingTarget extends Model
                 ->where('b.name', $tipe)
                 ->first();
     }
+
 }

@@ -2,13 +2,9 @@
 @section('title', $title ?? '')
 
 @push('addon-style')
-    <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
-    <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-    <link href="https://unpkg.com/nprogress@0.2.0/nprogress.css" rel="stylesheet">
-    <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
+    @include('layouts.css')
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/customCSS/percik_fullcalendar.css') }}">
 
     <style>
     label {
@@ -32,6 +28,9 @@
 @endsection
 
 @section('content')
+    <input type="hidden" id="current_user" value="@php echo Auth::user()->id @endphp">
+    <input type="hidden" id="current_sub_division" value={{ $sub_division }}>
+    <input type="hidden" id="current_sub_division_id" value={{ $sub_division_id }}>
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
             <div class="col-sm-3">
@@ -60,7 +59,19 @@
                     </a>
                 </div>
             </div>
-            <div class="col-sm-3"></div>
+            <div class="col-sm-3">
+                <div class="card">
+                    <div class="card-header bg-success">
+                        <h4 style="margin-top: 0px; margin-bottom: 0px;"><i class='fa fa-wrench'></i> &nbsp; Aktivitias Harian</h4>
+                    </div>
+                    <div class="card-body">
+                        <h2 style="margin-bottom: 0px; margin-top: 0px;" class="text-right" id="dashboard_activity">0</h2>
+                    </div>
+                    <a href="#" onclick="showModal('modalOperasionalDaily', '')">
+                        <div class="card-footer text-left">Tambahkan Data</div>
+                    </a>
+                </div>
+            </div>
             <div class="col-sm-3"></div>
         </div>
         <div class="row mt-4">
@@ -227,7 +238,7 @@
     <!-- Modal -->
     {{-- STATUS HOLD --}}
     <div class="modal fade" id="modaGenerateRules" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Generate Rules untuk Jadwal Umrah</h4>
@@ -286,21 +297,157 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modalOperasionalDaily">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Aktivitas Harian Operasional</h4>
+                    <button class="close" onclick="closeModal('modalOperasionalDaily')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-8 text-left">
+                            <h2 style="margin: 0px;">Aktivitas Harian Bulan <span id="modal_operasional_daily_month"><div class="spinner-border"></div></span> Tahun <span id="modal_operasional_daily_year"><div class="spinner-border"></div></span></h2>
+                        </div>
+                        <div class="col-sm-4 text-right">
+                            <button class="btn btn-secondary" data-toggle="collapse" data-target="#filterOperasional">Filter</button>
+                        </div>
+                    </div>
+                    <div class="collapse" id="filterOperasional">
+                        <hr>
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <label>Program</label>
+                            </div>
+                            <div class="col-sm-3">
+                                <label>Bagian</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-3">
+                                <select name="modal_operasional_daily_program" id="modal_operasional_daily_program" style="width: 100%;"></select>
+                            </div>
+                            <div class="col-sm-3">
+                                <select name="modal_operasional_daily_bagian" id="modal_operasional_daily_bagian" style="width: 100%;"></select>
+                            </div>
+                            <div class="col-sm-3">
+                                <button type="button" class="btn btn-primary" id="modal_operasional_filter_cari" onclick="cariData()">Cari</button>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div id="calendar" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalOperasionalTransaction">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modalOpperasionalTransaction_title"></h4>
+                    <button class="close" onclick="closeModal('modalOperasionalTransaction')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Pekerjaan Bulanan ID</label>
+                                <input type="text" class="form-control form-control-sm" id="modalOperasionalTransaction_jpkID" name="modalOperasionalTransaction_jpkID" class="form-control form-control-sm" placeholder="Jenis Pekerjaan ID" readonly style="height: 37.5px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Sasaran</label>
+                                <select name="modalOperasionalTransaction_sasaranID" id="modalOperasionalTransaction_sasaranID" class="form-control form-control-sm" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Sasaran Detail</label>
+                                <select name="modalOperasionalTransaction_sasaranDetailID" id="modalOperasionalTransaction_sasaranDetailID" class="form-control form-control-sm" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Grup Divisi</label>
+                                <input type="text" class="form-control form-control-sm" id="modalOperasionalTransaction_groupDivisionName" name="modalOperasionalTransaction_groupDivisionName" placeholder="Grup Divisi" readonly style="height: 37.5px;">
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>PIC / Penanggung Jawab</label>
+                                <select name="modalOperasionalTransaction_picID" id="modalOperasionalTransaction_picID" class="form-control form-control-sm" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Uraian</label>
+                                <input type="text" class="form-control form-control-sm" id="modalOperasionalTransaction_title" name="modalOperasionalTransaction_title" placeholder="Uraian" style="height: 37.5px;" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <div class="form-grpup">
+                                <label>Tanggal Awal Aktivitas</label>
+                                <input type="text" class="form-control form-control-sm tanggal" id="modalOperasionalTransaction_startDate" name="modalOperasionalTransaction_startDate" placeholder="DD/MM/YYYY" style="height: 37.5px; background: white; cursor: pointer" readonly>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Tanggal Akhir Aktivitas</label>
+                                <input type="text" class="form-control form-control-sm tanggal" id="modalOperasionalTransaction_endDate" name="modalOperasionalTransaction_endDate" placeholder="DD/MM/YYYY" style="height: 37.5px; background: white; cursor: pointer" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Deskripsi</label>
+                                <textarea name="modalOperasionalTransaction_description" id="modalOperasionalTransaction_description" class="form-control form-control-sm" rows="4" placeholder="Tulis Deskripsi Pekerjaan"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="row">
+                        <div class="col-sm-12 text-right">
+                            <button type="button" class="btn btn-danger" id="btnHapus" title="Hapus Data" onclick="doHapus('modalOperasionalTransaction')">Hapus Data</button>
+                            <button type="button" class="btn btn-secondary" id="btnClose" title="Tutup Tampilan" onclick="closeModal('modalOperasionalTransaction')">Batal</button>
+                            <button type="button" class="btn btn-primary" id="btnSave" title="Simpan Data" onclick="doSimpan('modalOperasionalTransaction', this.value)">Simpan</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 
 @push('addon-script')
-    <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
+    @include('layouts.js')
+    {{-- <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
-    <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script> --}}
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     {{-- MOMENT AREA --}}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/id.js"></script> 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.36/moment-timezone-with-data.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.36/moment-timezone-with-data.min.js"></script> --}}
     {{-- NPROGRESS --}}
-    <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
-    {{-- CHART JS --}}
-    <script src="{{ asset('assets/js/plugins/chartJs/Chart.min.js') }}"></script>
+    {{-- <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script> --}}
     <script src="{{ asset('js/divisi/operasional/index.operasional.js') }}"></script>
 @endpush

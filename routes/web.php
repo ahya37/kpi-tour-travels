@@ -300,6 +300,15 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/simpanDataRules/{tipe}', [DivisiController::class, 'simpanDataRules']);
                 Route::get('/getRulesDetail/{rulesID}', [DivisiController::class, 'getRulesDetail']);
             });
+            Route::prefix('daily')->group(function(){
+                Route::get('/listFilterDaily', [DivisiController::class, 'operasional_programKerja_listFilter']);
+                Route::get('/listEventsCalendarOperasional', [DivisiController::class, 'operasional_programKerja_listDaily']);
+                Route::get('/listProkerOperasional', [DivisiController::class, 'operasional_programKerja_listProkerAll']);
+                Route::get('/listPIC', [DivisiController::class, 'operasional_programKerja_listPIC']);
+                Route::get('/detailEventsCalendarOperasional', [DivisiController::class, 'operasional_programKerja_detailCalendarOperasional']);
+                Route::post('/simpan', [DivisiController::class, 'operasional_programKerja_simpanJenisPekerjaan']);
+                Route::post('/hapus', [DivisiController::class, 'operasional_programKerja_hapusJenisPekerjaan']);
+            });
     });
 
     Route::prefix('divisi')->group(function(){

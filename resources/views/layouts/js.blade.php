@@ -24,3 +24,5 @@
 <script src="{{ asset('js/customJS/daterangepicker/daterangepicker.min.js') }}"></script>
 {{-- YEAR PICKER --}}
 <script src="{{ asset('assets/js/plugins/yearpicker/yearpicker.js') }}"></script>
+{{-- CHART JS --}}
+<script src="{{ asset('assets/js/plugins/chartJs/Chart.min.js') }}"></script>

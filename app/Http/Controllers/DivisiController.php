@@ -20,6 +20,8 @@ class DivisiController extends Controller
             'title'     => 'Divisi Operasional',
             'sub_title' => 'Dashboard - Divisi Operasional',
             'is_active' => '1',
+            'sub_division'      => DivisiService::getCurrentSubDivision()[0]->sub_division_name,
+            'sub_division_id'   => DivisiService::getCurrentSubDivision()[0]->sub_division_id,
         ];
         return view('divisi/operasional/index', $data);
     }
@@ -560,6 +562,232 @@ class DivisiController extends Controller
                     ],
                 ],
                 "errMsg"    => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 17 JULI 2024
+    // NOTE : AMBIL LIST UNTUK KALENDAR PROGRAM KERJA OPERASIONAL
+    public function operasional_programKerja_listDaily(Request $request)
+    {
+        $sendData   = [
+            "start_date"    => $request->all()['sendData']['start_date'],
+            "end_date"      => $request->all()['sendData']['end_date'],
+            "current_role"  => Auth::user()->getRoleNames()[0],
+            "program"       => $request->all()['sendData']['program'],
+            "sub_divisi"    => $request->all()['sendData']['sub_divisi']
+        ];
+        $getData    = DivisiService::getListDailyOperasional($sendData);
+        
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 20 JULY 2024
+    // NOTE : AMBIL LIST ALL PROKER UNTUK PROGRAM KERJA OPERASIONAL
+    public function operasional_programKerja_listProkerAll(Request $request)
+    {
+        $data       = [
+            "current_role"  => Auth::user()->getRoleNames()[0],
+            "current_id"    => Auth::user()->id,
+        ];
+        $getData    = DivisiService::getListProkerAllOperasional($data);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Ambil Data",
+                "data"      => [],
+            );
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+
+    public function operasional_programKerja_listPIC()
+    {
+        $data       = [
+            "current_role"  => Auth::user()->getRoleNames()[0],
+            "current_id"    => Auth::user()->id,
+        ];
+
+        $getData    = DivisiService::getListPIC($data);
+
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Ambil Data",
+                "data"      => [],
+            );
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+
+    public function operasional_programKerja_detailCalendarOperasional(Request $request)
+    {
+        $data   = [
+            "pkb_id"        => $request->all()['sendData'],
+            "current_role"  => Auth::user()->getRoleNames()[0],
+            "current_id"    => Auth::user()->id,
+        ];
+
+        $getData        = DivisiService::getDetailCalendarOperasional($data);
+        
+        if(!empty($getData)) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $getData[0],
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Ambil Data",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function operasional_programKerja_simpanJenisPekerjaan(Request $request) 
+    {
+        $data   = [
+            "ip"            => $request->ip(),
+            "user_id"       => Auth::user()->id,
+            "user_role"     => Auth::user()->getRoleNames()[0],
+            "data"          => $request->all()['sendData'],
+        ];
+
+        $doSimpan   = DivisiService::doSimpanOperasionalJenisPekerjaan($data);
+
+        if($doSimpan['status'] == 'berhasil') {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => $data['data']['jenis'] == 'add' ? "Berhasil Menambahkan Data Baru" : "Berhasil Mengubah Data", 
+                    ],
+                ],
+                "errMsg"    => $doSimpan['errMsg'],
+            ];
+        } else {
+            $output     = [
+                "status"    => 500,
+                "success"   => false,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Gagal Menambahkan Data Baru", 
+                    ],
+                ],
+                "errMsg"    => $doSimpan['errMsg'],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+
+        print("<pre>".print_r($data, true)."</pre>");
+        // die();
+    }
+    
+    public function operasional_programKerja_listFilter()
+    {
+        $getData    = DivisiService::getDataListFilter();
+
+        if(count($getData) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $getData,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Ambil Data",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function operasional_programKerja_hapusJenisPekerjaan(Request $request)
+    {
+        $data   = [
+            "pkb_id"    => $request->all()['sendData']['id'],
+            "ip"        => $request->ip(),
+            "user_id"   => Auth::user()->id,
+            "user_role" => Auth::user()->getRoleNames()[0]
+        ];
+
+        $doHapus= DivisiService::doHapusJenisPekerjaan($data);
+
+        if($doHapus['status'] == 'berhasil') {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Data Berhasil Dihapus",
+                    ],
+                ],
+                "errMsg"    => $doHapus['errMsg']
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Data Gagal Dihapus",
+                    ],
+                ],
+                "errMsg"    => $doHapus['errMsg']
             );
         }
 

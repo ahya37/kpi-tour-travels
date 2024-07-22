@@ -30,7 +30,6 @@ use Illuminate\Support\Collection;
 use function Laravel\Prompts\select;
 use Illuminate\Support\Facades\Response;
 use Carbon\Carbon;
-use LDAP\Result;
 
 class MarketingController extends Controller
 {
@@ -62,7 +61,6 @@ class MarketingController extends Controller
     {
        
         // $detailMatketingTargets = MarketingService::detailMarketingTarget($marketingTargetId);
-
 
         return view('marketings.detail-marketing-target', [
             'title' => 'Detail Target Marketing',
@@ -1800,7 +1798,70 @@ class MarketingController extends Controller
         return view('marketings.programKerja.jenisPekerjaan.index', $data);
     }
 
-    // NOTE : PEMBUATAN DETAIL LIST PROGRAM
+    public function importTargetUmrahByTahun()
+    {
+        try {
+
+            DB::beginTransaction();
+            
+            // save target haji
+            $marketingTargetId = request()->id;
+
+            $marketingTarget = MarketingTarget::select('year','id')->where('id', $marketingTargetId)->first();
+
+            $formData['year'] = $marketingTarget->year; 
+
+            $res       = MarketingService::getTargetBulanFromUmhajByTahun($formData);
+            $res_umrah = $res['data']['umrah'];
+
+            // save to table detailed_marketing_target
+            foreach ($res_umrah as  $bulan) {
+                foreach ($bulan['programs'] as  $program) {
+
+                    // $cek_program = DB::table('programs')->where('id','!=', $program['erp_program_id'])->count();
+                    // if ($cek_program > 0) {
+                    //     return ResponseFormatter::error([
+                    //         'message' => $cek_program
+                    //     ]);
+                    // }else{
+
+                    // }
+
+                    $DetailMarketingTarget      =  new DetailMarketingTarget();
+                    $DetailMarketingTarget->id = Str::random(30);
+                    $DetailMarketingTarget->marketing_target_id = $marketingTarget->id;
+                    $DetailMarketingTarget->program_id = $program['erp_program_id'] ?? '';
+                    $DetailMarketingTarget->month_number = (int) $program['bulan'];
+                    $DetailMarketingTarget->month_name   = Months::monthName($program['bulan']);
+                    $DetailMarketingTarget->target       = (int) $program['kapasitas'];
+                    $DetailMarketingTarget->realization = 0;
+                    $DetailMarketingTarget->difference  = 0;
+                    $DetailMarketingTarget->jamaah_alumni = 0;
+                    $DetailMarketingTarget->jamaah_baru = 0;
+                    $DetailMarketingTarget->created_by   = Auth::user()->id;
+                    $DetailMarketingTarget->updated_by   = Auth::user()->id;
+                    $DetailMarketingTarget->save();
+                    
+                }
+            }
+
+            DB::commit();
+
+            return ResponseFormatter::success([
+                'message' => 'Berhasil menyimpan target umrah !'
+            ]);
+
+         } catch (\Exception $e) {
+             DB::rollback();
+             Log::channel('daily')->error($e->getMessage());
+             return ResponseFormatter::error([
+                 'message' => 'Gagal menyimpan target umrah'
+             ]);
+ 
+         }
+
+    }
+
     public function marketing_programKerja_listDetailProgram($id)
     {
         $getData    = MarketingService::getListDetailProgram($id);
