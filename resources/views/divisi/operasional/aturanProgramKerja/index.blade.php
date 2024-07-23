@@ -146,11 +146,21 @@
                     <div class="form-group">
                         <div class="form-row">
                             <div class="col-sm-3 pt-2">
-                                Kondisi
+                                <label>Kondisi</label>
                             </div>
                             <div class="col-sm-9">
                                 <select name="ruleCondition" id="ruleCondition" style="width: 100%;">
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col-sm-3 pt-2">
+                                <label>Bobot</label>
+                            </div>
+                            <div class="col-sm-9">
+                                <input class="form-control form-control-sm" type="number" name="rulesBobot" id="rulesBobot" step="1" min="0" max="100" placeholder="Bobot">
                             </div>
                         </div>
                     </div>

@@ -143,12 +143,12 @@ class DivisiService
                 "rul_duration_day"  => $getData['dataDuration'],
                 "rul_sla"       => $getData['dataSLA'],
                 "rul_condition" => $getData['dataCondition'],
+                "rul_value"     => $getData['dataBobot'],
                 "created_by"    => Auth::user()->id,
                 "updated_by"    => Auth::user()->id,
                 "created_at"    => date('Y-m-d H:i:s'),
                 "updated_at"    => date('Y-m-d H:i:s'),
             );
-
             DB::table('programs_jadwal_rules')->insert($data_simpan);
         } else if($jenis == 'edit') {
             $data_where     = array(
@@ -162,6 +162,7 @@ class DivisiService
                 "rul_duration_day"  => $getData['dataDuration'],
                 "rul_sla"           => $getData['dataSLA'],
                 "rul_condition"     => $getData['dataCondition'],
+                "rul_value"         => $getData['dataBobot'],
                 "updated_by"        => Auth::user()->id,
                 "updated_at"        => date('Y-m-d H:i:s'),
             );
@@ -408,7 +409,8 @@ class DivisiService
                     a.rul_duration_day,
                     LEFT(a.rul_sla, 1) as rul_length_day_condition,
                     SUBSTRING_INDEX(SUBSTRING_INDEX(a.rul_sla,'+',-1), '-', -1) as rul_length_day,
-                    a.rul_condition
+                    a.rul_condition,
+                    a.rul_value as rul_bobot
             FROM    programs_jadwal_rules a
             WHERE 	a.id = '$rulesID'
             "
@@ -444,19 +446,6 @@ class DivisiService
     public static function doGetDataRulesJadwal($id, $subDivision)
     {
         $subDivision == 'pic' ? $subDivision = '%' : $subDivision;
-        
-        // $query_get_rule_all     = DB::select(
-        //     "
-        //     SELECT 	a.prog_jdw_id,
-        //             a.prog_rul_id,
-        //             b.rul_title
-        //     FROM 	tr_prog_jdw a
-        //     JOIN 	programs_jadwal_rules b ON a.prog_rul_id = b.id
-        //     WHERE 	prog_jdw_id = '$id'
-        //     GROUP BY a.prog_jdw_id, a.prog_rul_id, b.rul_title
-        //     ORDER BY CAST(a.prog_rul_id AS SIGNED) ASC
-        //     "
-        // );
 
         $query_get_rule_all     = DB::select(
             "
@@ -482,11 +471,12 @@ class DivisiService
                         WHEN LEFT(d.rul_sla, 1) = '+' AND d.rul_condition = 'af-dpt' THEN DATE_ADD(b.jdw_depature_date, INTERVAL d.rul_sla DAY)
                         ELSE b.jdw_arrival_date
                     END as end_date_job,
-				    e.name as pic_role_name
+				    e.name as pic_role_name, 
+                    d.rul_value as rul_bobot
             FROM 	tr_prog_jdw a
             JOIN 	programs_jadwal b ON a.prog_jdw_id = b.jdw_uuid
             JOIN 	programs_jadwal_rules d ON a.prog_rul_id = d.id
-            JOIN  sub_divisions e ON d.rul_pic_sdid = e.id
+            JOIN    sub_divisions e ON d.rul_pic_sdid = e.id
             WHERE 	a.prog_jdw_id = '$id'
             ORDER BY d.id ASC
             "
@@ -765,6 +755,7 @@ class DivisiService
         $end_date       = $data['end_date'];
         $program        = $data['program'];
         $sub_division   = $data['sub_divisi'];
+        $aktivitas      = $data['aktivitas'];
 
         $query  = DB::select(
             "
@@ -787,6 +778,7 @@ class DivisiService
                     WHERE   d.name LIKE '%operasional%'
                     AND 	a.pkb_is_active = 't'
                     AND 	h.rul_pic_sdid LIKE '$sub_division'
+                    AND     e.prog_rul_id LIKE '$aktivitas'
 
                     UNION ALL
 
@@ -1103,16 +1095,19 @@ class DivisiService
         return $output;
     }
 
-    public static function getListAktivitasProgram()
+    public static function getListAktivitasProgram($data)
     {
+        $sub_division   = $data['sub_division_id'];
         $query  = DB::select(
             "
             SELECT 	a.id as rule_id,
                     a.rul_title,
                     a.rul_pic_sdid as rul_sdid,
-                    b.name as rul_sdid_name
+                    b.name as rul_sdid_name,
+                    CONCAT('H', a.rul_sla) as rul_sla
             FROM 	programs_jadwal_rules a
             JOIN 	sub_divisions b ON a.rul_pic_sdid = b.id
+            WHERE   a.rul_pic_sdid LIKE '%$sub_division%'
             ORDER BY a.id ASC
             "
         );

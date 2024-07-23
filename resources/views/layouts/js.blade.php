@@ -11,7 +11,7 @@
 {{-- <script src="{{ asset('js/customJS/DataTables/datatables.min.js') }}"></script> --}}
 <script src="{{ asset('js/customJS/DataTables/buttons.dataTables.js') }}"></script>
 <script src="{{ asset('js/customJS/DataTables/dataTables.buttons.js') }}"></script>
-<script src="{{ asset('js/customJS/DataTables/dataTables.fixedHeader.min.js') }}"></script>
+<script src="{{ asset('js/customJS/DataTables/fixedHeader-3.2.0/dataTables.fixedHeader.min.js') }}"></script>
 {{-- SELECT2 --}}
 <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
 {{-- FULL CALENDAR AREA --}}

@@ -66,6 +66,7 @@ function showModal(idModal, jenisTrans, valueCari)
                 $("#ruleDescription").val(xhr.data[0].rul_title);
                 $("#ruleDurationDay").val(parseInt(xhr.data[0].rul_duration_day));
                 $("#rulesSLADay").val(parseInt(xhr.data[0].rul_length_day));
+                $("#rulesBobot").val(parseInt(xhr.data[0].rul_bobot));
 
                 showSelect('rulePktID', '%', xhr.data[0].rul_pkt, false);
                 showSelect('rulePicID', '%', xhr.data[0].rul_pic, false);
@@ -193,6 +194,7 @@ function simpanData(tipe)
     var dataPlusMin = $("#rulePlusMin");
     var dataID      = $("#rulesID");
     var dataCondition   = $("#ruleCondition");
+    var dataBobot   = $("#rulesBobot");
 
     if(dataTitle.val() == '') {
         Swal.fire({
@@ -232,7 +234,8 @@ function simpanData(tipe)
             "dataPIC"       : dataPIC.val(),
             "dataDuration"  : dataDuration.val(),
             "dataSLA"       : dataPlusMin.val()+""+dataSLA.val(),
-            "dataCondition" : dataCondition.val()
+            "dataCondition" : dataCondition.val(),
+            "dataBobot"     : dataBobot.val(),
         };
         var url     = site_url + "/simpanDataRules/"+tipe;
         var type    = "POST";
