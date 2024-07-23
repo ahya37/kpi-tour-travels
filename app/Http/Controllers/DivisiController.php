@@ -549,7 +549,8 @@ class DivisiController extends Controller
             "end_date"      => $request->all()['sendData']['end_date'],
             "current_role"  => Auth::user()->getRoleNames()[0],
             "program"       => $request->all()['sendData']['program'],
-            "sub_divisi"    => $request->all()['sendData']['sub_divisi']
+            "sub_divisi"    => $request->all()['sendData']['sub_divisi'],
+            "aktivitas"     => $request->all()['sendData']['aktivitas'],
         ];
         $getData    = DivisiService::getListDailyOperasional($sendData);
         
@@ -766,9 +767,12 @@ class DivisiController extends Controller
         return Response::json($output, $output['status']);
     }
 
-    public function operasional_programKerja_listAktivitasProgram()
+    public function operasional_programKerja_listAktivitasProgram(Request $request)
     {
-        $getData    = DivisiService::getListAktivitasProgram();
+        $data       = [
+            "sub_division_id"   => $request->all()['sendData']['sub_division'],
+        ];
+        $getData    = DivisiService::getListAktivitasProgram($data);
 
         if(count($getData) > 0) {
             $output     = [
