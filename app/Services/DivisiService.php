@@ -759,7 +759,7 @@ class DivisiService
 
         $query  = DB::select(
             "
-            SELECT 	pkb.*
+            SELECT 	DISTINCT pkb.*
             FROM 	(
                     SELECT 	a.uuid as pkb_id,
                             CONCAT('[', UPPER(g.name), '] ', UPPER(a.pkb_description)) as pkb_title,
