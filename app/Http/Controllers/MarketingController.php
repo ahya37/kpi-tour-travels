@@ -110,6 +110,7 @@ class MarketingController extends Controller
                 $mergedData = $data1->merge($data2);
                 $res[] = $mergedData;
             }
+            
 
            // Menghapus entri dengan id kosong
             $res_data = array_filter($res, function($entry) {
@@ -165,7 +166,7 @@ class MarketingController extends Controller
             DB::rollback();
             Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
-                'message' =>  'Terjadi kesalahan !'
+                'message' =>  "Terjadi kesalahan !"
             ]);
         }
     }

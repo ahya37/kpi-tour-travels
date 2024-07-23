@@ -228,6 +228,8 @@ class MarketingService
        
         $response =Http::withHeaders([
                     'x-api-key' => env('API_PERCIK_KEY')
+                ])->withOptions([
+                    'verify' => false,
                 ])->post(env('API_PERCIK').'/umrah/realisasi',$formData);
 
         
