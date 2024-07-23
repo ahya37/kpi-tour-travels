@@ -228,6 +228,9 @@ class MarketingService
        
         $response =Http::withHeaders([
                     'x-api-key' => env('API_PERCIK_KEY')
+                ])->withOptions([
+                    'verify' => false,
+                    'timeout' => 60, // set timeout ke 60 detik
                 ])->post(env('API_PERCIK').'/umrah/realisasi',$formData);
 
         

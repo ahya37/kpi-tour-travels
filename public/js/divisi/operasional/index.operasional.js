@@ -5,16 +5,15 @@ var site_url    = window.location.pathname;
 var today       = moment().format('YYYY-MM-DD');
 
 $(document).ready(function(){
-    console.log('test');
-
     var currMonth   = moment().format('MM');
     var currYear    = moment().format('YYYY');
     var currPaket   = '%';
     var data_calendar   = {
         "start_date"    : currYear + "-01-01",
         "end_date"      : currYear + "-12-31",
-        "program"       : '%',
-        "sub_divisi"    : '%',
+        "program"       : "%",
+        "sub_divisi"    : "%",
+        "aktivitas"     : "%",
     };
 
     // SHOW DATA DASHBOARD
@@ -80,21 +79,23 @@ function showModal(idForm, valueCari, jenis)
                 Swal.close();
                 $("#"+idForm).modal('show');
                 var getData     = xhr.data;
-                console.log(getData);
+                // console.log(getData);
 
                 // GENERATE JADWAL TO TABLE
                 if(getData['list_rules'].length > 0) {
                     for(var i = 0; i < getData['list_rules'].length; i++) {
-                        var data_rules      = getData['list_rules'][i];
-                        var rules_id        = data_rules['rul_id'];
-                        var rules_title     = data_rules['rul_title'];
-                        var rules_date      = moment(data_rules['start_date_job'], 'YYYY-MM-DD').format('DD-MMM-YYYY')+" s/d "+moment(data_rules['end_date_job'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
-                        var rules_pic       = data_rules['pic_role_name'];
-                        var rules_duration  = data_rules['number_of_processing_day']+" Hari";
-                        var rules_realization_date  = "";
-                        var rules_realization_duration = "";
+                        var data_rules                  = getData['list_rules'][i];
+                        var rules_id                    = data_rules['rul_id'];
+                        var rules_title                 = data_rules['rul_title'];
+                        var rules_date                  = moment(data_rules['start_date_job'], 'YYYY-MM-DD').format('DD-MMM-YYYY')+" s/d "+moment(data_rules['end_date_job'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
+                        var rules_pic                   = data_rules['pic_role_name'];
+                        var rules_duration              = data_rules['number_of_processing_day']+" Hari";
+                        var rules_bobot                 = data_rules['rul_bobot'];
+                        var rules_realization_duration  = "";
+                        var rules_realization_date      = "";
+                        var rules_realization_num       = "";
+                        var rules_realization_bobot     = "";
                         if(getData['proker_bulanan'].length > 0) {
-                            rules_realization_date  += "<ul>";
                             for(var j = 0; j < getData['proker_bulanan'].length; j++) {
                                 var data_pkb        = getData['proker_bulanan'][j];
                                 var pkb_rul_id      = data_pkb['prog_rul_id'];
@@ -106,19 +107,43 @@ function showModal(idForm, valueCari, jenis)
                                     if(rules_id == pkb_rul_id)
                                     {
                                         if(pkb_start_date == pkb_end_date) {
-                                            rules_realization_date  += "<li>" + pkb_start_date + "</li>";
-                                            rules_realization_duration  += "1 Hari";
+                                            // CHECK APAKAH START_DATE > DEPATURE DATE & START_DATE < ARRIVAL DATE
+                                            if(data_pkb['pkb_start_date'] > data_rules['start_date_job'] && data_pkb['pkb_start_date'] < data_rules['end_date_job']) {
+                                                rules_realization_date  += "<span style='color: #1AB394'>"+pkb_start_date+"</span></li>";
+                                            } else {
+                                                rules_realization_date  += "<span class='text-danger'>"+pkb_start_date+"</span></li>";
+                                            }
+                                            // CHECK CHECK APAKAH REALISASI HARI = DURASI SLA
+                                            if(data_rules['number_of_processing_day'] = 1) {
+                                                rules_realization_duration  += "<span style='color: #1AB394'>1 Hari</span>";
+                                                rules_realization_bobot     += "<span style='color: #1AB394'>" + parseInt(rules_bobot); + "</span>";
+                                            } else {
+                                                rules_realization_duration  += "<span class='text-danger'>1 Hari</span>";
+                                                rules_realization_bobot     += "<span class='text-danger'>"+(parseInt(rules_bobot) - 1)+"</span>";
+                                            }
                                         } else {
-                                            rules_realization_date      += "<li>" + pkb_start_date + " s/d " + pkb_end_date + "</li>";
-                                            rules_realization_duration  += moment(data_pkb['pkb_end_date']).diff(moment(data_pkb['pkb_start_date']), 'days')+' Hari';
+                                            // CHECK APAKAH START_DATE > DEPATURE DATE & END_DATE < ARRIVAL DATE
+                                            if(data_pkb['pkb_start_date'] > data_rules['start_date_job'] && data_pkb['pkb_end_date'] < data_rules['end_date_job']) {
+                                                rules_realization_date  += "<span style='color: #1AB394'>"+ pkb_start_date +" s/d " + pkb_end_date + "</span></li>"
+                                            } else {
+                                                rules_realization_date  += "<span class='text-danger'>" + pkb_start_date + " s/d " + pkb_end_date + "</span></li>"
+                                            }
+                                            // CHECK APAKAH REALISASTI HAIR = DURASI SLA
+                                            if(data_rules['number_of_processing_day'] >= moment(data_pkb['pkb_end_date']).diff(moment(data_pkb['pkb_start_date']), 'days')) {
+                                                rules_realization_duration  += "<span style='color: #1AB394'>" + moment(data_pkb['pkb_end_date']).diff(moment(data_pkb['pkb_start_date']), 'days') + " Hari</span>";
+                                                rules_realization_bobot     += "<span style='color: #1AB394'>" + parseInt(rules_bobot) + "</span>";
+                                            } else {
+                                                rules_realization_duration  += "<span class='text-danger'>" + moment(data_pkb['pkb_end_date']).diff(moment(data_pkb['pkb_start_date']), 'days') + " Hari</span>";
+                                                rules_realization_bobot     += "<span class='text-danger'>" + parseInt(rules_bobot) - moment(data_pkb['pkb_end_date']).diff(moment(data_pkb['pkb_start_date']), 'days') + "</span>";
+                                            }
                                         }
                                     }
                                 } else {
-                                    rules_realization_date  = "";
-                                    rules_realization_duration  = "";
+                                    rules_realization_bobot     += "";
+                                    rules_realization_date      += "";
+                                    rules_realization_duration  += "";
                                 }
                             }
-                            rules_realization_date  += "</ul>"
                         }
 
                         $("#table_list_program_kerja").DataTable().row.add([
@@ -129,6 +154,7 @@ function showModal(idForm, valueCari, jenis)
                             rules_duration,
                             rules_realization_date,
                             rules_realization_duration,
+                            rules_realization_bobot,
                         ]).draw('false');
                     }
                 }
@@ -192,10 +218,16 @@ function showModal(idForm, valueCari, jenis)
                 Swal.close();
             })
     } else if(idForm == 'modalOperasionalDaily') {
+        // DATA U/ CARI LIST AKTIVITAS
+        var sub_division_name   = $("#current_sub_division").val();
+        var sub_division_id     = sub_division_name == 'pic' ? '%' : $("#current_sub_division_id").val();
+        var data_aktivitas      = {
+            "sub_division"      : sub_division_id,
+        };
         // GET DATA
         var getData     = [
             doTrans('/operasional/daily/listFilterDaily', 'GET', '', '', true),
-            doTrans('/operasional/daily/listAktivitasProgram', 'GET', '', '', true)
+            doTrans('/operasional/daily/listAktivitasProgram', 'GET', data_aktivitas, '', true)
         ];
 
         Promise.all(getData)
@@ -210,6 +242,7 @@ function showModal(idForm, valueCari, jenis)
                 showSelect('modal_operasional_daily_aktivitas', aktitivas, '', true);
 
                 $("#modal_operasional_daily_program").val('%').trigger('change');
+                $("#modal_operasional_daily_aktivitas").val('%').trigger('change');
                 
                 if($("#current_sub_division").val() != 'pic') {
                     $("#modal_operasional_daily_bagian").val(current_sub_division).trigger('change');
@@ -406,6 +439,7 @@ function showDataOperasional()
 
 function showCalendar(tglSekarang, value)
 {
+    console.log({value});
     var tgl_sekarang    = tglSekarang;
     var idCalendar      = document.getElementById('calendar');
     var calendar        = new FullCalendar.Calendar(idCalendar,{
@@ -436,6 +470,7 @@ function showCalendar(tglSekarang, value)
                 "end_date"      : end_date,
                 "program"       : value[0] == null ? '%' : value[0],
                 "sub_divisi"    : value[1] == null ? '%' : value[1],
+                "aktivitas"     : value[2] == null ? '%' : value[2],
             };
             var type            = "GET";
             var message         = Swal.fire({ title : "Data Sedang Dimuat" });Swal.showLoading();
@@ -485,7 +520,8 @@ function showCalendar(tglSekarang, value)
                     var hari_ini_bulan_lalu         = moment(today).subtract(1, 'month').format('YYYY-MM-DD');
                     var program                     = $("#modal_operasional_daily_program").val();
                     var bagian                      = $("#modal_operasional_daily_bagian").val();
-                    showCalendar(hari_ini_bulan_lalu, [program, bagian]);
+                    var aktivitas                   = $("#modal_operasional_daily_aktivitas").val();
+                    showCalendar(hari_ini_bulan_lalu, [program, bagian, aktivitas]);
                     today   = hari_ini_bulan_lalu;
                     // VISUAL UPDATE
                     $("#modal_operasional_daily_year").empty();
@@ -499,7 +535,8 @@ function showCalendar(tglSekarang, value)
                     var hari_ini_bulan_depan         = moment(today).add(1, 'month').format('YYYY-MM-DD');
                     var program                     = $("#modal_operasional_daily_program").val();
                     var bagian                      = $("#modal_operasional_daily_bagian").val();
-                    showCalendar(hari_ini_bulan_depan, [program, bagian]);
+                    var aktivitas                   = $("#modal_operasional_daily_aktivitas").val();
+                    showCalendar(hari_ini_bulan_depan, [program, bagian, aktivitas]);
                     today   = hari_ini_bulan_depan;
                     // VISUAL UPDATE
                     $("#modal_operasional_daily_year").empty();
@@ -513,7 +550,8 @@ function showCalendar(tglSekarang, value)
                     today   = moment().format('YYYY-MM-DD');
                     var program                     = $("#modal_operasional_daily_program").val();
                     var bagian                      = $("#modal_operasional_daily_bagian").val();
-                    showCalendar(today, [program, bagian]);
+                    var aktivitas                   = $("#modal_operasional_daily_aktivitas").val();
+                    showCalendar(today, [program, bagian, aktivitas]);
                 }
             }
         },
@@ -570,13 +608,14 @@ function showTable(idTable, valueCari)
                 { "targets" : [0], "width": "5%" },
                 { "targets" : [2], "width": "18%" },
                 { "targets" : [3], "width": "10%" },
-                { "targets" : [5], "width": "22%" },
+                { "targets" : [5], "width": "22%" , "className" : "align-middle"},
                 { "targets" : [4, 6], "width" : "8%"},
-                { "targets" : [0, 1, 2, 3, 4, 5, 6], "className":"align-middle"},
+                { "targets" : [7], "width" : "5%" },
+                { "targets" : [0, 1, 2, 3, 4, 5, 6, 7], "className":"align-middle"},
             ],
-            pageLength : -1,
+            pageLength  : -1,
             autoWidth   : false,
-            paging  : false,
+            paging      : false
         });
     } else if(idTable == 'tableListRules') {
         $("#"+idTable).DataTable().clear().destroy();
@@ -747,7 +786,7 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
                 "<option value='%'>Semua</option>",
             ];
 
-            console.log({valueCari});
+            // console.log({valueCari});
             $.each(valueCari, (i, item) => {
                 var prog_id         = item.jdw_uuid;
                 var prog_name       = item.program_name;
@@ -780,11 +819,13 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
         var html    = "<option selected disabled>Pilih Aktivitas</option>";
 
         if(valueCari != '') {
+            html    += "<option value='%'>Semua</option>";
             $.each(valueCari, (i, item) => {
                 var rul_id      = item.rule_id;
                 var rul_title   = item.rul_title;
+                var rul_sla     = item.rul_sla;
 
-                html    += "<option value='" + rul_id + "'>" + rul_title + "</option>";
+                html    += "<option value='" + rul_id + "'>("+ rul_sla +") " + rul_title + "</option>";
             });
             $("#"+idSelect).html(html);
         } else {
@@ -970,10 +1011,11 @@ function doSimpan(idForm, jenis)
                             closeModal(idForm);
                             var program                     = $("#modal_operasional_daily_program").val();
                             var bagian                      = $("#modal_operasional_daily_bagian").val();
-                            showCalendar(today, [program, bagian]);
+                            var aktivitas                   = $("#modal_operasional_daily_aktivitas").val();
+                            showCalendar(today, [program, bagian, aktivitas]);
                         }
                     })
-                    console.log({success});
+                    // console.log({success});
                 })
                 .catch((err)    => {
                     Swal.fire({
@@ -992,7 +1034,8 @@ function cariData()
 {
     var program_id  = $("#modal_operasional_daily_program").val();
     var sub_divisi  = $("#modal_operasional_daily_bagian").val();
-    showCalendar(today, [program_id, sub_divisi]);
+    var aktivitas   = $("#modal_operasional_daily_aktivitas").val();
+    showCalendar(today, [program_id, sub_divisi, aktivitas]);
 }
 
 function doHapus(idForm)
@@ -1020,7 +1063,7 @@ function doHapus(idForm)
 
                 doTrans(url, 'POST', data, message, isAsync)
                     .then((success) => {
-                        console.log(success);
+                        // console.log(success);
                         Swal.fire({
                             icon    : success.alert.icon,
                             title   : success.alert.message.title,

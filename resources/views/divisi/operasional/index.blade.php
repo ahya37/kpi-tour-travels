@@ -16,6 +16,9 @@
         align-items : center;
         justify-content: center;
     }
+    ul {
+        margin: 0px;
+    }
     </style>
 @endpush
 
@@ -223,6 +226,7 @@
                                             <th class="text-center align-middle">Durasi</th>
                                             <th class="text-center align-middle">Tanggal Realisasi</th>
                                             <th class="text-center align-middle">Durasi Realisasi</th>
+                                            <th class="text-center align-middle">Bobot</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>

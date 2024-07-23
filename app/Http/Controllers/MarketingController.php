@@ -110,6 +110,7 @@ class MarketingController extends Controller
                 $mergedData = $data1->merge($data2);
                 $res[] = $mergedData;
             }
+            
 
            // Menghapus entri dengan id kosong
             $res_data = array_filter($res, function($entry) {
@@ -146,6 +147,7 @@ class MarketingController extends Controller
 
                     }
 
+                    // BIKIN LEMOT
                     PicDetailMarketingTargetListJamaah::where('pic_detailed_marketing_target_id', $PicDetailMarketingTarget->id)->delete();
                     foreach($pic['list_jamaah'] as $jamaah){
                         $this->savePicDetailMarketingTargetListJamaah($jamaah, $PicDetailMarketingTarget->id, $DetailMarketingTarget);
@@ -165,7 +167,7 @@ class MarketingController extends Controller
             DB::rollback();
             Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
-                'message' =>  'Terjadi kesalahan !'
+                'message' =>  "Terjadi kesalahan !"
             ]);
         }
     }
