@@ -89,7 +89,7 @@
                     <div class="row mb-2">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <label>Program Detail</label>
+                                <label>Jenis Pekerjaan</label>
                                 <select name="jpk_programDetail" id="jpk_programDetail" style="width: 100%;" class="form-control form-control-sm"></select>
                             </div>
                         </div>
