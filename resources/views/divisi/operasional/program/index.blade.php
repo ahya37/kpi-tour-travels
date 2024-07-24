@@ -29,8 +29,8 @@
             <div class="ibox-title" style="padding: 16px;">
                 <div class="row">
                     <div class="col-sm-6 text-left">
-                        <button class="btn btn-primary" onclick="showModal('modalForm', '', 'add')">Tambah Data</button>
-                        <button class="btn btn-primary" onclick="showModalV2('modalFormV2', '', 'add')">Tambah Data V2</button>
+                        {{-- <button class="btn btn-primary" onclick="showModal('modalForm', '', 'add')">Tambah Data</button> --}}
+                        <button class="btn btn-primary" onclick="showModalV2('modalFormV2', '', 'add')">Tambah Data</button>
                     </div>
                     <div class="col-sm-6 text-right">
                         <button class="btn btn-secondary" data-toggle="collapse" href="#FilterCollapse" aria-controls="FilterCollapse">Filter</button>

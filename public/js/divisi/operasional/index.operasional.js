@@ -233,6 +233,10 @@ function showModal(idForm, valueCari, jenis)
             "sub_division"      : sub_division_id,
         };
         // GET DATA
+        Swal.fire({
+            title   : 'Data Sedang Dimuat'
+        });
+        Swal.showLoading();
         var getData     = [
             doTrans('/operasional/daily/listFilterDaily', 'GET', '', '', true),
             doTrans('/operasional/daily/listAktivitasProgram', 'GET', data_aktivitas, '', true)

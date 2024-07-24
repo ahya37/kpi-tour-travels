@@ -798,7 +798,7 @@ class DivisiService
                     AND 	d.name LIKE '%operasional%'
                     AND 	a.pkb_is_active = 't'
                     ) pkb
-            WHERE   pkb.pkb_start_date BETWEEN '$start_date' AND '$end_date'
+            WHERE   (pkb.pkb_start_date >= '$start_date' OR pkb.pkb_start_date <= '$end_date' OR pkb.pkb_end_date >= '$start_date' OR pkb.pkb_end_date <= '$end_date')
             AND     pkb.programs_id LIKE '$program'
             ORDER BY pkb.pkb_start_date ASC
             "
