@@ -187,6 +187,7 @@
                                 <thead>
                                     <tr>
                                         <th class="text-center">No</th>
+                                        <th class="text-center">Tour Code</th>
                                         <th class="text-center">Paket</th>
                                         <th class="text-center">Pembimbing</th>
                                         <th class="text-center">Tgl. Keberangkatan</th>

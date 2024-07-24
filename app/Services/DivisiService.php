@@ -28,7 +28,8 @@ class DivisiService
                     UPPER(a.jdw_mentor_name) AS jdw_mentor_name,
                     b.name as jdw_program_name,
                     a.is_generated as status_generated,
-                    a.is_active as status_active
+                    a.is_active as status_active,
+                    a.jdw_tour_code
             FROM 	programs_jadwal a
             JOIN 	programs b on a.jdw_programs_id = b.id
             WHERE   a.jdw_uuid LIKE '$uuid'
@@ -118,7 +119,8 @@ class DivisiService
                     a.jdw_programs_id,
                     b.name as jdw_program_name,
                     a.is_active as status_active,
-                    a.is_generated as status_generated
+                    a.is_generated as status_generated,
+                    a.jdw_tour_code
             FROM 	programs_jadwal a
             JOIN 	programs b on a.jdw_programs_id = b.id
             WHERE   a.jdw_uuid LIKE '$uuid'
@@ -736,14 +738,14 @@ class DivisiService
                 "status"    => "berhasil",
                 "errMsg"    => [],
             );
-            LogHelper::create('delete', 'Berhasil Membatalkan Program ID : '.$id, $ip);
+            LogHelper::create('delete', 'Berhasil Membatalkan Program Umrah : '.$id, $ip);
         } catch(\Exception $e) {
             DB::rollBack();
             $output     = array(
                 "status"    => "error",
                 "errMsg"    => $e->getMessage(),
             );
-            LogHelper::create('error_system', 'Gagal Membatalkan Program', $ip);
+            LogHelper::create('error_system', 'Gagal Membatalkan Program Umrah', $ip);
         }
 
         return $output;
@@ -1113,5 +1115,148 @@ class DivisiService
         );
 
         return $query;
+    }
+
+    public static function doGenerateWithAPI($data_api, $ip)
+    {
+        DB::beginTransaction();
+        // LogHelper::prettier($data_api->data->jadwal);
+
+        $api_data   = $data_api->data->jadwal;
+        $data_ke    = 0;
+        $db_data    = DB::select(
+            "
+            SELECT  *
+            FROM    programs_jadwal
+            "
+        );
+
+        for($i = 0; $i < count($api_data); $i++) {
+            $tour_code  = $api_data[$i]->KODE;
+            $program_id = $api_data[$i]->ERP_PROGRAM_ID;
+            $dpt_date   = date('Y-m-d', strtotime($api_data[$i]->BERANGKAT));
+            $arv_date   = date('Y-m-d', strtotime($api_data[$i]->PULANG));
+
+            for($j = 0; $j < count($db_data); $j++) {
+                $db_data_program_id     = $db_data[$j]->jdw_programs_id;
+                $db_data_dpt_date       = $db_data[$j]->jdw_depature_date;
+                $db_data_arv_date       = $db_data[$j]->jdw_arrival_date;
+                $db_data_jdw_uuid       = $db_data[$j]->jdw_uuid;
+
+                if(($db_data_program_id == $program_id) && ($db_data_dpt_date == $dpt_date)) {
+                    // UPDATE
+                    $update_where   = [
+                        'jdw_uuid'      => $db_data_jdw_uuid,
+                    ];
+
+                    $update_data    = [
+                        'jdw_tour_code' => $tour_code,
+                    ];
+
+                    DB::table('programs_jadwal')->where($update_where)->update($update_data);
+                    $data_ke    = $data_ke + 1;
+                    break;
+                }
+            }
+        }
+
+        try {
+            DB::commit();
+            LogHelper::create('add', 'Berhasil Generate Data Tour Code sebanyak '.$data_ke, $ip);
+
+            return 'Berhasil Generate Data Tour Code Sebanyak : '.$data_ke;
+        } catch(\Exception $e) {
+            DB::rollBack();
+            LogHelper::create('error_system', $e->getMessage(), $ip);
+
+            return $e->getMessage();
+        }
+    }
+
+    public static function doSimpanJadwalUmrahV2($data)
+    {
+        // LogHelper::prettier($data);
+        DB::beginTransaction();
+
+        $user_id    = $data['user_id'];
+        $user_role  = $data['user_role'];
+        $jenis      = $data['data']['program_umrah_jenis'];
+        $today      = date('Y-m-d H:i:s');
+        $ip         = $data['ip'];
+        $tour_code  = $data['data']['program_umrah_tour_code'];
+        // SIMPAN DATA KE TABLE
+        if($jenis == 'add') {
+            // CHECK DULU
+            $check          = DB::select(
+                "
+                SELECT  id
+                FROM    programs_jadwal
+                WHERE   jdw_tour_code = '$tour_code'
+                AND     is_active = 't'
+                "
+            );
+            if(!empty($check)) {
+                DB::rollBack();
+                LogHelper::create('error_system', 'Program Jadwal Umrah telah tersedia', $ip);
+                $output     = array(
+                    "status"    => "duplicate",
+                    "errMsg"    => "Program Jadwal Umrah Telah Dibuat",
+                );
+                return $output;
+            } else {
+                $data_simpan    = array(
+                    "jdw_uuid"          => str::uuid(),
+                    "jdw_programs_id"   => $data['data']['program_umrah_program_id'],
+                    "jdw_depature_date" => $data['data']['program_umrah_dpt_date'],
+                    "jdw_arrival_date"  => $data['data']['program_umrah_arv_date'],
+                    "jdw_mentor_name"   => $data['data']['program_umrah_mentor_name'], 
+                    "jdw_tour_code"     => $data['data']['program_umrah_tour_code'],
+                    "is_generated"      => "f",
+                    "is_active"         => "t",
+                    "created_by"        => $user_id,
+                    "created_at"        => $today,
+                    "updated_by"        => $user_id,
+                    "updated_at"        => $today,
+                );
+                DB::table('programs_jadwal')->insert($data_simpan);
+                $jdw_uuid   = $data_simpan['jdw_uuid'];
+            }
+        } else if($jenis == 'edit') {
+            $jdw_uuid   = $data['data']['program_umrah_id'];
+            
+            $data_where = [
+                "jdw_uuid"      => $jdw_uuid,
+            ];
+            
+            $data_update= [
+                "jdw_programs_id"   => $data['data']['program_umrah_program_id'],
+                "jdw_depature_date" => $data['data']['program_umrah_dpt_date'], 
+                "jdw_arrival_date"  => $data['data']['program_umrah_arv_date'],
+                "jdw_mentor_name"   => $data['data']['program_umrah_mentor_name'],
+                "jdw_tour_code"     => $data['data']['program_umrah_tour_code'],
+                "updated_by"        => $user_id,
+                "updated_at"        => $today
+            ];
+
+            DB::table('programs_jadwal')->where($data_where)->update($data_update);
+        }
+
+        try {
+            DB::commit();
+            $jenis == 'add' ? LogHelper::create('add', 'Berhasil Menambahkan Program Umrah Baru : '.$jdw_uuid, $ip) : LogHelper::create('edit', 'Berhasi Merubah Program Umrah : '.$jdw_uuid, $ip);
+            $output     = array(
+                "status"    => "berhasil",
+                "errMsg"    => "",
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $jenis == 'add' ? LogHelper::create('error_system', 'Gagal Menambahkan Program Umrah Baru', $ip) : LogHelper::create('error_system', 'Gagal Merubah Program Umrah', $ip);
+            $output     = array(
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            );
+        }
+
+        return $output;
     }
 }
