@@ -187,6 +187,7 @@
                                 <thead>
                                     <tr>
                                         <th class="text-center">No</th>
+                                        <th class="text-center">Tour Code</th>
                                         <th class="text-center">Paket</th>
                                         <th class="text-center">Pembimbing</th>
                                         <th class="text-center">Tgl. Keberangkatan</th>
@@ -363,7 +364,7 @@
                     <button class="close" onclick="closeModal('modalOperasionalTransaction')">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="row mb-2">
+                    <div class="row mb-2 d-none">
                         <div class="col-sm-12">
                             <div class="form-group">
                                 <label>Pekerjaan Bulanan ID</label>

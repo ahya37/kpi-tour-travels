@@ -18,6 +18,14 @@ $(document).ready(function(){
 
     // SHOW DATA DASHBOARD
     
+    // ambilData()
+    //     .then((success) => {
+    //         console.log(success);
+    //     })
+    //     .catch((err)    => {
+    //         console.log(err);
+    //     })
+
     var getAllData  = [
         doTrans('/divisi/operasional/getDataDashboard/'+currYear, 'GET', '', '', true),
         doTrans('/operasional/daily/listEventsCalendarOperasional/', 'GET', data_calendar, '', true)
@@ -108,7 +116,7 @@ function showModal(idForm, valueCari, jenis)
                                     {
                                         if(pkb_start_date == pkb_end_date) {
                                             // CHECK APAKAH START_DATE > DEPATURE DATE & START_DATE < ARRIVAL DATE
-                                            if(data_pkb['pkb_start_date'] > data_rules['start_date_job'] && data_pkb['pkb_start_date'] < data_rules['end_date_job']) {
+                                            if(data_pkb['pkb_start_date'] >= data_rules['start_date_job'] && data_pkb['pkb_start_date'] <= data_rules['end_date_job']) {
                                                 rules_realization_date  += "<span style='color: #1AB394'>"+pkb_start_date+"</span></li>";
                                             } else {
                                                 rules_realization_date  += "<span class='text-danger'>"+pkb_start_date+"</span></li>";
@@ -124,9 +132,9 @@ function showModal(idForm, valueCari, jenis)
                                         } else {
                                             // CHECK APAKAH START_DATE > DEPATURE DATE & END_DATE < ARRIVAL DATE
                                             if(data_pkb['pkb_start_date'] > data_rules['start_date_job'] && data_pkb['pkb_end_date'] < data_rules['end_date_job']) {
-                                                rules_realization_date  += "<span style='color: #1AB394'>"+ pkb_start_date +" s/d " + pkb_end_date + "</span></li>"
+                                                rules_realization_date  += "<li><span style='color: #1AB394'>"+ pkb_start_date +" s/d " + pkb_end_date + "</span></li>"
                                             } else {
-                                                rules_realization_date  += "<span class='text-danger'>" + pkb_start_date + " s/d " + pkb_end_date + "</span></li>"
+                                                rules_realization_date  += "<li><span class='text-danger'>" + pkb_start_date + " s/d " + pkb_end_date + "</span></li>"
                                             }
                                             // CHECK APAKAH REALISASTI HAIR = DURASI SLA
                                             if(data_rules['number_of_processing_day'] >= moment(data_pkb['pkb_end_date']).diff(moment(data_pkb['pkb_start_date']), 'days')) {
@@ -225,6 +233,10 @@ function showModal(idForm, valueCari, jenis)
             "sub_division"      : sub_division_id,
         };
         // GET DATA
+        Swal.fire({
+            title   : 'Data Sedang Dimuat'
+        });
+        Swal.showLoading();
         var getData     = [
             doTrans('/operasional/daily/listFilterDaily', 'GET', '', '', true),
             doTrans('/operasional/daily/listAktivitasProgram', 'GET', data_aktivitas, '', true)
@@ -579,9 +591,9 @@ function showTable(idTable, valueCari)
                 "emptyTable"    : "Tidak ada data yang bisa ditampilkan.."
             },
             columnDefs  : [
-                { targets: [0, 5], className: "text-center", width: "7%" },
-                { targets: [3, 4], className: "text-center", width: "16%" },
-                { targets: [1], className: "text-left", width: "18%" },
+                { targets: [0, 6], className: "text-center", width: "7%" },
+                { targets: [4, 5], className: "text-center", width: "16%" },
+                { targets: [2], className: "text-left", width: "18%" },
             ],
             processing  : true,
             serverSide  : false,
@@ -593,7 +605,7 @@ function showTable(idTable, valueCari)
                         cari    : valueCari,
                     },
                 },
-                url     : site_url + '/dataTableGenerateJadwalUmrah'
+                url     : '/divisi/operasional/dataTableGenerateJadwalUmrah',
             },
         })
     } else if(idTable == 'table_list_program_kerja') {
@@ -1112,3 +1124,32 @@ function doTrans(url, type, data, customMessage, isAsync)
         })
     });
 }
+
+// function ambilData()
+// {
+//     var apiUrl  = 'https://api-percik.perciktours.com/api';
+//     var apiKey  = 'YjIzMTE5NTg1ZDQ1MDJiYWMyMTJmMDZhZDAxMGY1MjM4NWNhOTQxOQ==';
+
+//     var headers = {
+//         'x-api-key' : apiKey,
+//         'Access-Control-Allow-Origin': '*',
+//         'Content-Type':'application/json'
+//     };
+
+//     return new Promise((resolve, reject)    => {
+//         $.ajax({
+//             cache   : false,
+//             type    : 'GET',
+//             async   : true,
+//             url     : apiUrl+"/umrah/tourcode?year=2025",
+//             headers : headers,
+//             dataType: "json",
+//             success : (success) => {
+//                 console.log(success);
+//             },
+//             error   : (err) => {
+//                 console.log(err);
+//             }
+//         })
+//     }) 
+// }

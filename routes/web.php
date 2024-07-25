@@ -293,6 +293,8 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/simpanJadwalUmrah', [DivisiController::class, 'simpanJadwalUmrah']);
                 Route::get('/getDataJadwalUmrah', [DivisiController::class, 'getDataJadwalUmrah']);
                 Route::post('/hapusProgram/{id}', [DivisiController::class, 'hapusProgram']);
+                // V2
+                Route::post('/simpanJadwalUmrahV2', [DivisiController::class, 'simpanJadwalUmrahV2']);
             });
             Route::prefix('rules')->group(function(){
                 Route::get('/', [DivisiController::class, 'indexRuleProkerBulanan'])->name('index.operasional.rulesprokerbulanan');
@@ -309,6 +311,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/simpan', [DivisiController::class, 'operasional_programKerja_simpanJenisPekerjaan']);
                 Route::post('/hapus', [DivisiController::class, 'operasional_programKerja_hapusJenisPekerjaan']);
                 Route::get('/listAktivitasProgram', [DivisiController::class, 'operasional_programKerja_listAktivitasProgram']);
+                Route::get('/generateProgramWithAPI', [DivisiController::class, 'generate_with_api']);
             });
     });
 

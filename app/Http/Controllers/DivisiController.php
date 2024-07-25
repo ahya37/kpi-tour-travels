@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\LogHelper;
 use Illuminate\Http\Request;
 use App\Services\DivisiService;
 use App\Services\BaseService;
+use Http;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
 use LDAP\Result;
@@ -46,6 +48,7 @@ class DivisiController extends Controller
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
                 $sequence       = $i + 1;
+                $tour_code      = $getData[$i]->jdw_tour_code;
                 $program_name   = $getData[$i]->jdw_program_name;
                 $mentor_name    = $getData[$i]->jdw_mentor_name;
                 $dpt_date       = $getData[$i]->jdw_depature_date;
@@ -66,12 +69,12 @@ class DivisiController extends Controller
 
                 $data[]     = array(
                     $sequence,
-                    $program_name,
+                    $tour_code,
                     $mentor_name,
                     date('d-M-Y', strtotime($dpt_date)),
                     date('d-M-Y', strtotime($arv_date)),
                     $badge,
-                    "<button type='button' class='btn btn-sm btn-primary' value='" . $getData[$i]->jdw_id . "' title='Lihat Data' onclick='showModal(`modalForm`, this.value, `edit`)'><i class='fa fa-eye'></i></button>"
+                    "<button type='button' class='btn btn-sm btn-primary' value='" . $getData[$i]->jdw_id . "' title='Lihat Data' onclick='showModalV2(`modalFormV2`, this.value, `edit`)'><i class='fa fa-eye'></i></button>"
                 );
             }
         } else {
@@ -232,6 +235,7 @@ class DivisiController extends Controller
                 $button         = $getData[$i]->status_generated == 'f' ? $button_generate : $button_success;
                 $data[]     = array(
                     $i + 1,
+                    $getData[$i]->jdw_tour_code,
                     $getData[$i]->jdw_program_name,
                     $getData[$i]->jdw_mentor_name,
                     date('d-M-Y', strtotime($getData[$i]->jdw_depature_date)),
@@ -787,6 +791,84 @@ class DivisiController extends Controller
                 "success"   => true,
                 "message"   => "Gagal Ambil Data",
                 "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function generate_with_api(Request $request)
+    {
+        // GET DATA API
+        $api_key    = env('API_PERCIK_KEY');
+        $api_url    = env('API_PERCIK');
+        $header     = [
+            'x-api-key' => $api_key,
+        ];
+        $options    = [
+            'verify'    => false,
+            'timeout'   => 60 // 60 DETIK
+        ];
+        $response   = Http::withHeaders($header)->withOptions($options)->get($api_url.'/umrah/tourcode?year=2024');
+        // PRETIER
+        // print("<pre>".print_r(json_decode($response), true)."</pre>");die();
+        
+        $doGenerate     = DivisiService::doGenerateWithAPI(json_decode($response), $request->ip());
+        
+        echo $doGenerate;
+    }
+    
+    // 24 JULY 2024
+    // NOTE : SMPAN DATA V2
+    public function simpanJadwalUmrahV2(Request $request)
+    {
+        $data   = [
+            "ip"        => $request->ip(),
+            "user_id"   => Auth::user()->id,
+            "user_role" => Auth::user()->getRoleNames()[0],
+            "data"      => $request->all()['sendData'],
+        ];
+
+        $doSimpan   = DivisiService::doSimpanJadwalUmrahV2($data);
+        
+        if($doSimpan['status'] == 'berhasil') {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => $request->all()['sendData']['program_umrah_jenis'] == 'add' ? 'Berhasil Menambahkan Data Program Umrah Baru' : 'Berhasil Merubah Data Program Umrah',
+                    ],
+                ],
+                "errMsg"    => "",
+            ];
+        } else if($doSimpan['status'] == 'gagal') {
+            $output     = [
+                "status"    => 500,
+                "success"   => false,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => $request->all()['sendData']['program_umrah_jenis'] == 'add' ? 'Gagal Menambahkan Data Program Umrah Baru' : 'Gagal Merubah Data Program Umrah',
+                    ],
+                ],
+                "errMsg"    => $doSimpan['errMsg'],
+            ];
+        } else if($doSimpan['status'] == 'duplicate') {
+            $output     = [
+                "status"    => 409,
+                "success"   => false,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => $doSimpan['errMsg'],
+                    ],
+                ],
+                "errMsg"    => $doSimpan['errMsg'],
             ];
         }
 

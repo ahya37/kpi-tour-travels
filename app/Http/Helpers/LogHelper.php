@@ -31,6 +31,11 @@ class LogHelper {
 
         DB::table('log_activity')->insert($dataSimpan);
     }
+
+    public static function prettier($data)
+    {
+        print("<pre>".print_r($data, true)."</pre>");
+    }
 }
 
 ?>

@@ -1,12 +1,12 @@
 $(document).ready(function(){
-    console.log('test');
+    // console.log('test');
     // current_month
     var currMonth   = moment().format('MM');
     var currYear    = moment().format('YYYY');
     var currPaket   = '%';
     showSelect('programFilterBulan', '%', '%', '');
     showSelect('programFilterTahun', '%', currYear, '');
-    showSelect('programFlterPaket', '%', currPaket, true);
+    showSelect('programFilterPaket', '%', currPaket, true);
 
     var inputCurrMonth  = $("#programFilterBulan").val();
 
@@ -15,7 +15,7 @@ $(document).ready(function(){
     $("#programFilterBtnCari").on('click', function(){
         var selectedMonth   = $("#programFilterBulan").val();
         var selectedYear    = $("#programFilterTahun").val();
-        var selectedPaket   = $("#programFlterPaket").val();
+        var selectedPaket   = $("#programFilterPaket").val();
         showTable('table_program_umrah', [selectedMonth, selectedYear, '%', selectedPaket])
     })
 
@@ -48,7 +48,7 @@ function showTable(idTable, valueCari)
                         cari    : valueCari,
                     },
                 },
-                url     : site_url + '/listJadwalumrah',
+                url     : '/divisi/operasional/program/listJadwalumrah',
             },
         });
     }
@@ -131,17 +131,26 @@ function showModal(idModal, valueCari, jenis)
 }
 
 function closeModal(idModal) {
-    $("#"+idModal).modal('hide');
-    $("#"+idModal).on('hidden.bs.modal', function(){
-        $(".programDate").val(moment().format('DD/MM/YYYY'));
-        $("input[type='text']").val(null);
-        $("#btnSimpan").val(null);
-        
-        $("#btnDelete").prop('disabled', false);
-        $("#btnDelete").show();
-        $("#btnBatal").prop('disabled', false);
-        $("#btnSimpan").prop('disabled', false);
-    });
+    if(idModal == 'modalForm') {
+        $("#"+idModal).modal('hide');
+        $("#"+idModal).on('hidden.bs.modal', function(){
+            $(".programDate").val(moment().format('DD/MM/YYYY'));
+            $("input[type='text']").val(null);
+            $("#btnSimpan").val(null);
+            
+            $("#btnDelete").prop('disabled', false);
+            $("#btnDelete").show();
+            $("#btnBatal").prop('disabled', false);
+            $("#btnSimpan").prop('disabled', false);
+        });
+    } else if(idModal == 'modalFormV2') {
+        $("#"+idModal).modal('hide');
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#tourCode_dptDate").val(null);
+            $("#tourCode_arvDate").val(null);
+            $("#tourCode_mentorName").val(null);
+        });
+    }
 }
 
 function showSelect(idSelect, valueCari, valueSelect, isAsync)
@@ -202,7 +211,7 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
         if(valueCari != '') {
             $("#"+idSelect).val(valueSelect).trigger('change');
         }
-    } else if(idSelect == 'programFlterPaket') {
+    } else if(idSelect == 'programFilterPaket') {
         var html    = [
             "<option selected disabled>Pilih Paket Program Umrah</option>",
             "<option value='%'>Semua</option>"
@@ -228,8 +237,33 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
             });
 
         $("#"+idSelect).html(html);
+    } else if(idSelect == 'tourCode_id') {
+        var html    = "<option selected disabled>Pilih Tour Code</option>";
+
+        if(valueCari != '') {
+            if(valueCari.length > 0) {
+                $.each(valueCari, (i, item) => {
+                    html    += "<option value='" + item.KODE + "'>" + item.KODE + "</option>";
+                });
+            }
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'tourCode_programID') {
+        var html    = "<option selected disabled>Pilih Program</option>";
+
+        if(valueCari != '') {
+            $.each(valueCari, (i, item) => {
+                html    += "<option value='" + item.program_id + "'>" + item.program_name + "</option>";
+            });
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
     }
 }
+
 
 function doSimpan(jenis)
 {
@@ -315,8 +349,8 @@ function doSimpan(jenis)
 
 function doDelete(idForm)
 {
-    if(idForm == 'btnDelete') {
-        var programID   = $("#programID").val();
+    if(idForm == 'btnDeleteV2') {
+        var programID   = $("#tourCode_programUmrah_id").val();
 
         Swal.fire({
             icon    : 'question',
@@ -343,7 +377,7 @@ function doDelete(idForm)
                             text    : success.alert.message.text,
                         }).then((results)=>{
                             if(results.isConfirmed) {
-                                closeModal('modalForm');
+                                closeModal('modalFormV2');
                                 var currYear    = moment().format('YYYY');
                                 var currPaket   = '%';
                                 var inputCurrMonth  = $("#programFilterBulan").val();
@@ -357,6 +391,175 @@ function doDelete(idForm)
                     })
             }
         })
+    }
+}
+
+// MODAL V2
+function showModalV2(idModal, value, jenis)
+{
+    if(idModal == 'modalFormV2') {
+        // DEFINE BUTTON
+        $("#btnSimpanV2").val(jenis);
+        // FILL TITLE 
+        if(jenis == 'add') {
+            $("#modalFormV2_title").html('Generate Program Umrah Baru');
+            $("#btnDeleteV2").hide();
+        } else if(jenis == 'edit') {
+            $("#modalFormV2_title").html('Update Program Umrah');
+            $("#btnDeleteV2").show();
+        }
+        // GET TOUR CODE FROM API
+        const dataProgram = {
+            'cari'  : '%',
+        };
+        const detailProgramUmrah    = {
+            "programID" : value,
+        };
+        const message     = Swal.fire({ title : "Data Sedang Dimuat", allowOutsideClick: false }); Swal.showLoading();
+        var getData     = [
+            doTransAPI('/umrah/tourcode?year=2024', 'GET', '', message, true),
+            doTrans('/master/data/getProgramUmrah/umrah', 'GET', dataProgram, '', true),
+            jenis == 'edit' ? doTrans('/divisi/operasional/program/getDataJadwalUmrah', 'GET', detailProgramUmrah, '', true) : '',
+        ];
+        Promise.all(getData)
+            .then((success) => {
+                // DATA API
+                const tour_code_api     = success[0].data.jadwal;
+                const list_program      = success[1].data;
+                const detail_program    = jenis == 'edit' ? success[2].data[0] : '';
+                
+                $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
+                
+                showSelect('tourCode_id', tour_code_api, '', true);
+                showSelect('tourCode_programID', list_program, '', true);
+
+                if(jenis == 'edit') {
+                    const program_umrah_id          = detail_program.jdw_id;
+                    const program_umrah_tour_code   = detail_program.jdw_tour_code;
+                    const program_umrah_dpt_date    = detail_program.jdw_depature_date;
+                    const program_umrah_arv_date    = detail_program.jdw_arrival_date;
+                    const program_umrah_mentor_name = detail_program.jdw_mentor_name;
+                    const program_umrah_program_id  = detail_program.jdw_programs_id;
+
+                    $("#tourCode_programUmrah_id").val(program_umrah_id);
+                    $("#tourCode_dptDate").val(moment(program_umrah_dpt_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                    $("#tourCode_arvDate").val(moment(program_umrah_arv_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                    $("#tourCode_mentorName").val(program_umrah_mentor_name.toUpperCase());
+
+                    $("#tourCode_id").val(program_umrah_tour_code);
+                    $("#tourCode_programID").val(program_umrah_program_id);
+                }
+
+                Swal.close();
+            })
+            .catch((err)    => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : err.statusMessage,
+                })
+                console.log(err);
+            })
+    }
+}
+
+function showData(jenis, value)
+{
+    if(jenis == 'tourCode') {
+        var message     = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+        var url         = "/umrah/tourcode?year=2024&tourcode="+value;
+        var getData     = [
+            doTransAPI(url, 'GET', '', message, true)
+        ];
+
+        Promise.all(getData)
+            .then((success) => {
+                setTimeout(() => {
+                    // console.log(success[0].data.jadwal);
+                    // FILL FORM
+                    const data  = success[0].data.jadwal;
+
+                    $("#tourCode_dptDate").val(moment(data.BERANGKAT).format('DD/MM/YYYY'));
+                    $("#tourCode_arvDate").val(moment(data.PULANG).format('DD/MM/YYYY'));
+                    $("#tourCode_mentorName").val(data.PEMBIMBING);
+                    $("#tourCode_programID").val(data.ERP_PROGRAM_ID).trigger('change');
+                    Swal.close();
+                }, 2000);
+            })
+            .catch((err)    => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : err.statusMessage,
+                })
+                console.log(err);
+            })
+    }
+}
+
+function doSimpanV2(idModal, jenis)
+{
+    if(idModal == 'modalFormV2') {
+        const program_umrah_id          = $("#tourCode_programUmrah_id");
+        const program_umrah_tour_code   = $("#tourCode_id");
+        const program_umrah_dpt_date    = $("#tourCode_dptDate");
+        const program_umrah_arv_date    = $("#tourCode_arvDate");
+        const program_umrah_mentor_name = $("#tourCode_mentorName");
+        const program_umrah_program_id  = $("#tourCode_programID");
+
+        if(program_umrah_tour_code.val() == null) {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Tour Code Tidak Harus Dipilih',
+            }).then((results)   => {
+                if(results.isConfirmed) {
+                    program_umrah_tour_code.select2('open');
+                }
+            })
+        } else {
+            // DO SIMPAN
+            const sendData    = {
+                "program_umrah_id"          : program_umrah_id.val(),
+                "program_umrah_tour_code"   : program_umrah_tour_code.val(),
+                "program_umrah_dpt_date"    : moment(program_umrah_dpt_date.val(), 'DD/MM/YYYY').format('YYYY-MM-DD'), 
+                "program_umrah_arv_date"    : moment(program_umrah_arv_date.val(), 'DD/MM/YYYY').format('YYYY-MM-DD'), 
+                "program_umrah_mentor_name" : program_umrah_mentor_name.val(), 
+                "program_umrah_program_id"  : program_umrah_program_id.val(), 
+                "program_umrah_jenis"       : jenis,
+            };
+            
+            const url       = "/operasional/program/simpanJadwalUmrahV2";
+            const data      = sendData;
+            const type      = "POST";
+            const message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+            const isAsync   = true;
+
+            doTrans(url, type, data, message, isAsync)
+                .then((success) => {
+                    Swal.fire({
+                        icon    : success.alert.icon,
+                        title   : success.alert.message.title,
+                        text    : success.alert.message.text,
+                    }).then((results)   => {
+                        if(results.isConfirmed) {
+                            const selectedMonth   = $("#programFilterBulan").val();
+                            const selectedYear    = $("#programFilterTahun").val();
+                            const selectedPaket   = $("#programFilterPaket").val();
+                            closeModal('modalFormV2');
+                            showTable('table_program_umrah', [selectedMonth, selectedYear, '%', selectedPaket]);
+                        }
+                    })
+                })
+                .catch((err)    => {
+                    const errData   = err.responseJSON;
+                    Swal.fire({
+                        icon    : errData.alert.icon,
+                        title   : errData.alert.message.title,
+                        text    : errData.alert.message.text,
+                    });
+                })
+        }
     }
 }
 
@@ -383,4 +586,30 @@ function doTrans(url, type, data, customMessage, isAsync)
             }
         })
     });
+}
+
+function doTransAPI(url, type, data, customMessage, isAsync)
+{
+    var url_api     = 'https://api-percik.perciktours.com/api';
+    var url_header  = {
+        "x-api-key" : 'YjIzMTE5NTg1ZDQ1MDJiYWMyMTJmMDZhZDAxMGY1MjM4NWNhOTQxOQ==',
+    };
+    return new Promise((resolve, reject)    => {
+        $.ajax({
+            isAsync : isAsync,
+            url     : url_api+""+url,
+            headers : url_header,
+            type    : type,
+            dataType: "json",
+            beforeSend : () => {
+                customMessage;
+            },
+            success     : (success) => {
+                resolve(success);
+            },
+            error       : (err)     => {
+                reject(err);
+            }
+        })
+    })
 }
