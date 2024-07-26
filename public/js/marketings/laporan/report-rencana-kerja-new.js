@@ -180,7 +180,7 @@ const showTablePerMinggu = (idTable, year, month) => {
                     { "targets": [6], "className": "text-center", "width": "8%" },
                 ],
             initComplete: function (settings, json) {
-                $('#titleRincianPerMinggu').text("Program Per Minggu Bulan " + json.data.bulan);
+                $('#titledataRincianPerminggu').text("Program Per Minggu Bulan " + json.data.bulan);
                 $('#jml_minggu_1').text(json.data.jml_minggu_1);
                 $('#jml_minggu_2').text(json.data.jml_minggu_2);
                 $('#jml_minggu_3').text(json.data.jml_minggu_3);
@@ -192,7 +192,18 @@ const showTablePerMinggu = (idTable, year, month) => {
                     let table = $('#datamyModalRincianKegiatan').DataTable({
                         "paging": true,
                         "searching": true,
-                        "info": true
+                        "info": true,
+                         // Inisialisasi DataTables
+                        "rowCallback": function(row, data, index) {
+                            // Tambahkan nomor urut di kolom pertama
+                            $('td:eq(0)', row).html(index + 1);
+                        },
+                        "columns": [
+                                { "title": "No", "className": "text-center", "width": "2%" }, // Kolom untuk nomor urut
+                                { "title": "Tanggal", "width": "1%" },
+                                { "title": "Program" },
+                                { "title": "PIC" }
+                            ]
                     });
 
                     table.clear().destroy();
@@ -204,6 +215,7 @@ const showTablePerMinggu = (idTable, year, month) => {
                     if (lsitRinciankegiatan.length) {
                         lsitRinciankegiatan.forEach(function (detail) {
                             table.row.add([
+                                '',
                                 detail.pkh_dates,
                                 detail.pkh_title,
                                 detail.name
@@ -214,6 +226,8 @@ const showTablePerMinggu = (idTable, year, month) => {
                     }
 
                     $('#myModalRincianKegiatan').modal('show');
+                    $('#titleRincianPerMinggu').text('Daftar Kegiatan Harian');
+                    
                 });
 
             },

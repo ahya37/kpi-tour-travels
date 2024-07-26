@@ -204,7 +204,7 @@
                 <div class="ibox-title">
                     <div class="row">
                         <div class="col-md-10">
-                            <h5 id="titleRincianPerMinggu"></h5>
+                            <h5 id="titledataRincianPerminggu"></h5>
                         </div>
                         <div class="col-md-2">
                             <button type="button" id="lihatPerMinggu" class="btn btn-sm btn-primary d-none" data-toggle="modal" data-target="#myModalPerMinggu" onclick="onLihatPerMinggu(this)">Lihat Per Minggu</button>
@@ -278,40 +278,7 @@
         </div>
     </div>
 </div>
-{{-- 
-<div id="myModalPerMinggu" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="titleRincianPerMinggu"></h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered table-hover" id="dataRincianPerminggu">
-                        <thead>
-                            <tr>
-                                <th class="centered" width="1%" style="background-color: #F5B487">No</th>
-                                <th class="centered" width="25%" style="background-color: #F5B487">Program</th>
-                                <th class="centered" style="background-color: #F5B487">Minggu ke 1</th>
-                                <th class="centered" style="background-color: #F5B487">Minggu ke 2</th>
-                                <th class="centered" style="background-color: #F5B487">Minggu ke 3</th>
-                                <th class="centered" style="background-color: #F5B487">Minggu ke 4</th>
-                                <th class="centered" style="background-color: #F5B487">Minggu ke 5</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
 
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-            </div>
-        </div>
-    </div>
-</div> --}}
 
 <div id="myModalRincianKegiatan" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
@@ -327,6 +294,7 @@
                     <table class="table table-striped table-bordered table-hover" id="datamyModalRincianKegiatan">
                         <thead>
                             <tr>
+                                <th class="centered" style="background-color: #F5B487">No</th>
                                 <th class="centered" style="background-color: #F5B487">Tanggal</th>
                                 <th class="centered" width="25%" style="background-color: #F5B487">Program</th>
                                 <th class="centered" style="background-color: #F5B487">PIC</th>
