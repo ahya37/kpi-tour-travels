@@ -89,7 +89,7 @@ class ProkerBulanan extends Model
     public static function getProgramByDivisi($groupDivisionID, $year, $month, $week = null)
     {
         $programs = DB::table('proker_bulanan as a')
-						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','a.pkb_hasil','e.name as program')
+						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','e.name as program')
 						  ->join('proker_tahunan as b', function($join1){
 							  $join1->on(DB::raw('SUBSTRING_INDEX(a.pkb_pkt_id, "|",1)'), '=', 'b.uid');
 						  })
@@ -106,7 +106,7 @@ class ProkerBulanan extends Model
     public static function getProgramByDivisiNew($groupDivisionID, $year, $month, $week = null)
     {
         $programs = DB::table('proker_bulanan as a')
-						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','a.pkb_hasil','e.name as program',
+						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','e.name as program',
                                 DB::raw("
                                     (
                                         select a1.id  from proker_bulanan as a1 

@@ -1387,7 +1387,6 @@ class ProgramKerjaController extends Controller
                     'uuid' => $value->uuid,
                     'pkb_start_date' => $value->pkb_start_date,
                     'pkb_title' => $value->pkb_title,
-                    'pkb_hasil' => $value->pkb_hasil,
                     'count_minggu_1' => count($minggu_1),
                     'list_minggu_1' => $minggu_1,
                     'count_minggu_2' => count($minggu_2),
@@ -1443,12 +1442,21 @@ class ProgramKerjaController extends Controller
                     "data"  => [],
                 );
             }
-            
+
+            $jml_minggu_1 = collect($results)->sum(function($q){ return $q['count_minggu_1']; });
+            $jml_minggu_2 = collect($results)->sum(function($q){ return $q['count_minggu_2']; });
+            $jml_minggu_3 = collect($results)->sum(function($q){ return $q['count_minggu_3']; });
+            $jml_minggu_4 = collect($results)->sum(function($q){ return $q['count_minggu_4']; });
+            $jml_minggu_5 = collect($results)->sum(function($q){ return $q['count_minggu_5']; });
 
             return ResponseFormatter::success([
                'bulan' =>  Months::monthName($month),
                'perminggu' => $output,
-               'results' => $results
+               'jml_minggu_1' => $jml_minggu_1,
+               'jml_minggu_2' => $jml_minggu_2,
+               'jml_minggu_3' => $jml_minggu_3,
+               'jml_minggu_4' => $jml_minggu_4,
+               'jml_minggu_5' => $jml_minggu_5,
             ]);
 
         } catch (\Exception $e) {
@@ -1726,6 +1734,7 @@ class ProgramKerjaController extends Controller
             #get data aktivitas harian nya
             $proker_harian = ProkerHarian::getProkerHarianByProkerBulananAndBulananDetail($jenis_pekerjaan->uuid, $pkbd_id);
 
+            $data = [];
             if(!empty($proker_harian)) {
             
                 foreach($proker_harian as $i => $result) {

@@ -181,6 +181,11 @@ const showTablePerMinggu = (idTable, year, month) => {
                 ],
             initComplete: function (settings, json) {
                 $('#titleRincianPerMinggu').text("Program Per Minggu Bulan " + json.data.bulan);
+                $('#jml_minggu_1').text(json.data.jml_minggu_1);
+                $('#jml_minggu_2').text(json.data.jml_minggu_2);
+                $('#jml_minggu_3').text(json.data.jml_minggu_3);
+                $('#jml_minggu_4').text(json.data.jml_minggu_4);
+                $('#jml_minggu_5').text(json.data.jml_minggu_5);
 
                 $('#dataRincianPerminggu tbody').on('click', 'a.btn', function () {
 

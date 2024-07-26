@@ -225,6 +225,16 @@
                                     <th class="centered" style="background-color: #F5B487">Minggu ke 5</th>
                                 </tr>
                             </thead>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="2">Jumlah</th>
+                                    <th id="jml_minggu_1"></th>
+                                    <th id="jml_minggu_2"></th>
+                                    <th id="jml_minggu_3"></th>
+                                    <th id="jml_minggu_4"></th>
+                                    <th id="jml_minggu_5"></th>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                     <div id="divLoading"></div>
