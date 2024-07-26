@@ -1426,9 +1426,9 @@ class ProgramKerjaController extends Controller
                     $result['pkb_title'],
                     '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_1'])).'\'>'.$result['count_minggu_1'].'</a>',
                     '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_2'])).'\'>'.$result['count_minggu_2'].'</a>',
-                    $result['count_minggu_3'],
-                    $result['count_minggu_4'],
-                    $result['count_minggu_5'],
+                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_3'])).'\'>'.$result['count_minggu_3'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_4'])).'\'>'.$result['count_minggu_4'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_5'])).'\'>'.$result['count_minggu_5'].'</a>',
                     ];
             
             }

@@ -141,11 +141,87 @@ const showTableProgramBulan = (idTable, yearInProgram, monthInProgram) => {
     }
 }
 
+
+const showTablePerMinggu = (idTable, year, month) => {
+    $("#" + idTable).DataTable().clear().destroy();
+    if (idTable == 'dataRincianPerminggu') {
+        $("#" + idTable).DataTable({
+            language: {
+                "zeroRecords": "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                "emptyTable": "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                "processing": "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+            },
+            processing: true,
+            serverSide: false,
+            ajax: {
+                type: "POST",
+                dataType: "json",
+                url: `/marketings/report/evaluasi/perbulan/perminggu`,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                data: function (d) {
+                    d.year = year,
+                        d.month = month
+                },
+                dataSrc: function (json) {
+                    return json.data.perminggu.data; // Mengakses data di dalam kunci 'data'
+                }
+            },
+            autoWidth: false,
+            columnDefs:
+                [
+                    { "targets": [0], "className": "text-center", "width": "5%" },
+                    { "targets": [1], "width": "15%" },
+                    { "targets": [2], "className": "text-right", "width": "2%" },
+                    { "targets": [3], "width": "2%", "className": "text-right" },
+                    { "targets": [4], "className": "text-right", "width": "2%" },
+                    { "targets": [5], "className": "text-right", "width": "3%" },
+                    { "targets": [6], "className": "text-center", "width": "8%" },
+                ],
+            initComplete: function (settings, json) {
+                $('#titleRincianPerMinggu').text("Program Per Minggu Bulan " + json.data.bulan);
+
+                $('#dataRincianPerminggu tbody').on('click', 'a.btn', function () {
+
+                    let table = $('#datamyModalRincianKegiatan').DataTable({
+                        "paging": true,
+                        "searching": true,
+                        "info": true
+                    });
+
+                    table.clear().destroy();
+
+                    table.clear().draw();
+
+                    let lsitRinciankegiatan = $(this).data('rinciankegiatan');
+
+                    if (lsitRinciankegiatan.length) {
+                        lsitRinciankegiatan.forEach(function (detail) {
+                            table.row.add([
+                                detail.pkh_dates,
+                                detail.pkh_title,
+                                detail.name
+                            ]).draw(false);
+                        });
+                    } else {
+                        table.row.add(['', 'No details available', '']).draw(false);
+                    }
+
+                    $('#myModalRincianKegiatan').modal('show');
+                });
+
+            },
+        });
+    }
+}
+
 async function showMonth(element){
     const yearInProgram = element.getAttribute('data-year'); 
     const monthInProgram = element.getAttribute('data-month'); 
 
     showTableProgramBulan('datatable', yearInProgram, monthInProgram);
+    showTablePerMinggu('dataRincianPerminggu', yearInProgram, monthInProgram);
 }
 
 function showJenisPekerjaan(element){
@@ -199,31 +275,6 @@ function showJenisPekerjaan(element){
     
 }
 
-// const getCallApi = async (pkbd_id) => {
-//     try {
-
-//         const response = await fetch('/marketings/sasaran/programs/jenis/aktivitas/list', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//                 'X-CSRF-TOKEN': csrfToken
-//             },
-//             body: JSON.stringify({
-//                 pkbd_id: pkbd_id,
-//             })
-//         });
-
-//         if (!response.ok) {
-//             throw new Error('Network response was not ok');
-//         }
-
-//         const data = await response.json();
-//         return data;
-
-//     } catch (error) {
-//         throw error;
-//     }
-// };
 
 const showTableAktivitasharian = (idTable, pkbd_id) => {
     $("#" + idTable).DataTable().clear().destroy();
@@ -276,3 +327,4 @@ async function onShowAktivitasHrian(element){
     // get aktivitas harian berdasarkan jenis pekerjaann 
     showTableAktivitasharian('tableShowAktivitasHarian', pkbd_id);
 }
+
