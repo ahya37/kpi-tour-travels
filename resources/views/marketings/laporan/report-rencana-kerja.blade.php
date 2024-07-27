@@ -294,7 +294,7 @@
                     <table class="table table-striped table-bordered table-hover" id="datamyModalRincianKegiatan">
                         <thead>
                             <tr>
-                                <th class="centered" style="background-color: #F5B487">No</th>
+                                <th class="centered" width="1%" style="background-color: #F5B487">No</th>
                                 <th class="centered" style="background-color: #F5B487">Tanggal</th>
                                 <th class="centered" width="25%" style="background-color: #F5B487">Program</th>
                                 <th class="centered" style="background-color: #F5B487">PIC</th>

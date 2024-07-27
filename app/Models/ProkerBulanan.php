@@ -142,6 +142,7 @@ class ProkerBulanan extends Model
                                         and year(a1.pkh_date) = $year
                                         and month(a1.pkh_date) = $month
                                         and FLOOR((DAY(a1.pkh_date) - 1) / 7) + 1 = $week
+                                        and a1.pkh_is_active = 't'
                                     ) as pkb_hasil 
                                     FROM proker_harian AS a
                                     JOIN proker_bulanan AS b ON SUBSTRING_INDEX(a.pkh_pkb_id,'|', 1) = b.uuid 
@@ -151,6 +152,7 @@ class ProkerBulanan extends Model
                                     AND YEAR(a.pkh_date) = $year
                                     AND MONTH(a.pkh_date) = $month
                                     and  FLOOR((DAY(a.pkh_date) - 1) / 7) + 1 = $week
+                                    and a.pkh_is_active = 't'
                                     group by b.id, b.pkb_title
                                 "
                             );

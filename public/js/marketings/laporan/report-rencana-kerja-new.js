@@ -162,7 +162,7 @@ const showTablePerMinggu = (idTable, year, month) => {
                 },
                 data: function (d) {
                     d.year = year,
-                    d.month = month
+                        d.month = month
                 },
                 dataSrc: function (json) {
                     return json.data.perminggu.data; // Mengakses data di dalam kunci 'data'
@@ -187,46 +187,55 @@ const showTablePerMinggu = (idTable, year, month) => {
                 $('#jml_minggu_4').text(json.data.jml_minggu_4);
                 $('#jml_minggu_5').text(json.data.jml_minggu_5);
 
-                $('#dataRincianPerminggu tbody').on('click', 'a.btn', function () {
-
-                    let table = $('#datamyModalRincianKegiatan').DataTable({
-                        "paging": true,
-                        "searching": true,
-                        "info": true,
-                        // Inisialisasi DataTables
-                        "rowCallback": function (row, data, index) {
-                            // Tambahkan nomor urut di kolom pertama
-                            $('td:eq(0)', row).html(index + 1);
-                        },
-                        "columns": [
-                            { "title": "No", "className": "text-center", "width": "2%" }, // Kolom untuk nomor urut
-                            { "title": "Tanggal", "width": "1%" },
-                            { "title": "Program" },
-                            { "title": "PIC" }
-                        ]
-                    });
-
-                    table.clear().destroy();
-
-                    table.clear().draw();
-
-                    let lsitRinciankegiatan = $(this).data('rinciankegiatan');
-
-                    if (lsitRinciankegiatan.length) {
-                        lsitRinciankegiatan.forEach(function (detail) {
-                            table.row.add([
-                                '',
-                                detail.pkh_date,
-                                detail.pkh_title,
-                                detail.name
-                            ]).draw(false);
-                        });
-                    } else {
-                        table.row.add(['', 'No details available', '']).draw(false);
-                    }
+                $('#dataRincianPerminggu tbody').on('click', 'a.btn', async function () {
 
                     $('#myModalRincianKegiatan').modal('show');
-                    $('#titleRincianPerMinggu').text('Daftar Kegiatan Harian');
+
+                    let pkh_pkb_id = $(this).data('uuid');
+                    let week = $(this).data('minggu');
+
+                    $("#datamyModalRincianKegiatan").DataTable().clear().destroy();
+
+                    $("#datamyModalRincianKegiatan").DataTable({
+                        language: {
+                            "zeroRecords": "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                            "emptyTable": "Data Tidak ada, Silahkan tambahkan beberapa data..",
+                            "processing": "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                        },
+                        processing: true,
+                        serverSide: false,
+                        ajax: {
+                            type: "POST",
+                            dataType: "json",
+                            url: `/marketings/report/evaluasi/perbulan/perminggu/list`,
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            data: function (d) {
+                                d.year = year;
+                                d.month = month;
+                                d.pkb_uuid = pkh_pkb_id;
+                                d.week = week;
+                            },
+                            dataSrc: function (json) {
+                                return json.data.proker_harian.data; // Mengakses data di dalam kunci 'data'
+                            }
+                        },
+                        autoWidth: false,
+                        columnDefs:
+                            [
+                                { "targets": [0], "className": "text-center", "width": "1%" },
+                                { "targets": [1], "width": "2%" },
+                                { "targets": [2], "width": "10%" },
+                                { "targets": [3], "width": "5%" },
+                            ],
+                        initComplete: function (settings, json) {
+                            $('#titleRincianPerMinggu').text('Daftar Kegiatan Harian');
+                        }
+                    });
+
+
+
 
                 });
 

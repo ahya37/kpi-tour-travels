@@ -55,6 +55,7 @@ Route::group(['middleware' => ['auth']], function () {
 	 Route::post('/marketings/report/evaluasi',[ProgramKerjaController::class, 'getReportEvaluasiMarketing']);
 	 Route::post('/marketings/report/evaluasi/kegiatan/rincian',[ProgramKerjaController::class, 'getRincianKegiatanByProgramBulanan']);
 	 Route::post('/marketings/report/evaluasi/perbulan/perminggu',[ProgramKerjaController::class, 'getReportProgramPerMingguByBulan']);
+	 Route::post('/marketings/report/evaluasi/perbulan/perminggu/list',[ProgramKerjaController::class, 'getDaftarKegitanHarianPerMinggu']);
 	 
     //  GET EVALUASI MARKETING
      Route::get('/marketings/sasaran',[ProgramKerjaController::class, 'getSasaran']);

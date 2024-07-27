@@ -1416,15 +1416,10 @@ class ProgramKerjaController extends Controller
                     'pkb_start_date' => $value->pkb_start_date,
                     'pkb_title' => $value->pkb_title,
                     'count_minggu_1' => count($minggu_1),
-                    'list_minggu_1' => $minggu_1,
                     'count_minggu_2' => count($minggu_2),
-                    'list_minggu_2' => $minggu_2,
                     'count_minggu_3' => count($minggu_3),
-                    'list_minggu_3' => $minggu_3,
                     'count_minggu_4' => count($minggu_4),
-                    'list_minggu_4' => $minggu_4,
                     'count_minggu_5' => count($minggu_5),
-                    'list_minggu_5' => $minggu_5,
                 ];
             }
 
@@ -1432,30 +1427,16 @@ class ProgramKerjaController extends Controller
 
             if(!empty($results)) {
             
-                // for($i = 0; $i < count($results); $i++) {
-    
-                //     $data[]     = array(
-                //         $i + 1,
-                //         $results[$i]['pkb_title'],
-                //         '<button href="#" class="btn btn-sm" data-list=\''.json_encode($results[$i]['list_minggu_1']).'\'>'.$results[$i]['count_minggu_1'].'</button>',
-                //         '<a href="#" class="btn btn-sm" data-list=\''.json_encode($results[$i]['list_minggu_2']).'\'>'.$results[$i]['count_minggu_2'].'</a>',
-                //         $results[$i]['count_minggu_3'],
-                //         $results[$i]['count_minggu_4'],
-                //         $results[$i]['count_minggu_5'],
-                //     );
-                // }
-
-                
                 foreach($results as $i => $result){
 
                     $data[]     = [
                     $i + 1,
                     $result['pkb_title'],
-                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_1'])).'\'>'.$result['count_minggu_1'].'</a>',
-                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_2'])).'\'>'.$result['count_minggu_2'].'</a>',
-                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_3'])).'\'>'.$result['count_minggu_3'].'</a>',
-                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_4'])).'\'>'.$result['count_minggu_4'].'</a>',
-                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_5'])).'\'>'.$result['count_minggu_5'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-minggu="1" data-uuid='.$result['uuid'].' >'.$result['count_minggu_1'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-minggu="2" data-uuid='.$result['uuid'].' >'.$result['count_minggu_2'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-minggu="3" data-uuid='.$result['uuid'].' >'.$result['count_minggu_3'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-minggu="4" data-uuid='.$result['uuid'].' >'.$result['count_minggu_4'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-minggu="5" data-uuid='.$result['uuid'].' >'.$result['count_minggu_5'].'</a>',
                     ];
             
             }
@@ -1491,6 +1472,58 @@ class ProgramKerjaController extends Controller
             Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
                 'message' => 'Gagal tampilkan data!'
+            ]);
+        }
+    }
+
+    public function getDaftarKegitanHarianPerMinggu()
+    {
+        
+        try {
+
+            $year = request()->year;
+            $month = request()->month;
+            $pkb_uuid = request()->pkb_uuid;
+            $week = request()->week;
+
+            $proker_harian = ProkerHarian::getProkerHarianByProkerBulananPerMinggu($year, $month, $pkb_uuid,$week);
+
+            $data = [];
+
+            if(!empty($proker_harian)) {
+
+                foreach($proker_harian as $i => $result){
+
+                    $result->pkh_date = date('d-m-Y', strtotime($result->pkh_date));
+
+                    $data[]     = [
+                        $i + 1,
+                        $result->pkh_date,
+                        $result->pkh_title,
+                        $result->name,
+                    ];
+            
+            }
+                
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => $data,
+                );
+            } else {
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => [],
+                );
+            }
+
+            return ResponseFormatter::success([
+                'proker_harian' => $output
+             ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal ambil data!'
             ]);
         }
     }
