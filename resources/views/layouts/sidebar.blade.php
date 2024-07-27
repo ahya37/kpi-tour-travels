@@ -269,7 +269,7 @@
             @endif
 
             @if(Auth::user()->hasRole('finance'))
-            <li class="{{ request()->is('master/*') ? 'active' : '' }}">
+            {{-- <li class="{{ request()->is('master/*') ? 'active' : '' }}">
                 <a href="#">
                     <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span class="fa arrow"></span>
                 </a>
@@ -279,6 +279,23 @@
                         <a href={{ route('programKerja.index') }}>Program Kerja</a>
                     </li>
                 </ul>
+            </li> --}}
+            <li class="{{ request()->is('divisi/*') ? 'active' : '' }}">
+                <a href="#">
+                    <i class="fa fa-diamond"></i>
+                    <span class="nav-label">Finance</span> 
+                    <span class="fa arrow"></span>
+                </a>
+                <ul class="nav nav-second-level">
+                    <li class="{{ request()->is('divisi/finance') ? 'active' : '' }}"><a href="{{ route('index.finance') }}">Dashboard</a></li>
+                </ul>
+                {{-- <ul class="nav nav-second-level">
+                    <li class="{{ request()->is('divisi/operasional/program') ? 'active' : '' }}"><a href="{{ route('index.operasional.program') }}">Jadwal Umrah</a></li>
+                </ul>
+                
+                <ul class="nav nav-second-level">
+                    <li class="{{ request()->is('divisi/operasional/rules') ? 'active' : '' }}"><a href="{{ route('index.operasional.rulesprokerbulanan') }}">Aturan Program Kerja</a></li>
+                </ul> --}}
             </li>
             <li class="{{ request()->is('aktivitas') ? 'active' : '' }}">
                 <a href="{{ route('aktivitas.harian.index') }}"><i class="fa fa-pencil"></i> <span

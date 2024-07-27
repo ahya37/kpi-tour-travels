@@ -341,6 +341,14 @@ Route::group(['middleware' => ['auth']], function () {
             });
         });
 
+        Route::prefix('finance')->group(function(){
+            Route::get('/', [DivisiController::class, 'indexFinance'])->name('index.finance');
+            Route::get('/eventsFinance', [DivisiController::class, 'eventsFinance']);
+            Route::get('/getTourCode/{tourcode}', [DivisiController::class, 'finance_programKerja_tourCode']);
+            Route::get('/getEventsFinanceDetail/{id}', [DivisiController::class, 'finance_programKerja_eventsDetail']);
+            Route::post('/simpanAktivitas/{jenis}', [DivisiController::class, 'finance_programKerja_simpanAktivitas']);
+        });
+
         Route::prefix('master')->group(function(){
             Route::get('/getDataProkerTahunan', [DivisiController::class, 'getDataProkerTahunan']);
             Route::get('/getDataSubDivision', [DivisiController::class, 'getDataSubDivision']);

@@ -451,7 +451,6 @@ function showDataOperasional()
 
 function showCalendar(tglSekarang, value)
 {
-    console.log({value});
     var tgl_sekarang    = tglSekarang;
     var idCalendar      = document.getElementById('calendar');
     var calendar        = new FullCalendar.Calendar(idCalendar,{

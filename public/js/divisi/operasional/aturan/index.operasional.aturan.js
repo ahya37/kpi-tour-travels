@@ -50,7 +50,7 @@ function showModal(idModal, jenisTrans, valueCari)
         showSelect('rulePlusMin', '%','', true);
         showSelect('ruleCondition', '', '', true);
     } else if(jenisTrans == 'edit') {
-        var url     = site_url + "/getRulesDetail/" + valueCari;
+        var url     = site_url + "/getRulesDetail/" + valueCari; 
         var type    = "GET";
         var isAsync = true;
         var customMessage   = Swal.fire({title:'Data Sedang Dimuat'});Swal.showLoading();
@@ -68,7 +68,7 @@ function showModal(idModal, jenisTrans, valueCari)
                 $("#rulesSLADay").val(parseInt(xhr.data[0].rul_length_day));
                 $("#rulesBobot").val(parseInt(xhr.data[0].rul_bobot));
 
-                showSelect('rulePktID', '%', xhr.data[0].rul_pkt, false);
+            showSelect('rulePktID', '%', xhr.data[0].rul_pkt, false);
                 showSelect('rulePicID', '%', xhr.data[0].rul_pic, false);
                 showSelect('rulePlusMin', '%', xhr.data[0].rul_length_day_condition, false);
                 showSelect('ruleCondition', xhr.data[0].rul_length_day_condition, xhr.data[0].rul_condition, true);

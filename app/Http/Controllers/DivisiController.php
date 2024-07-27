@@ -874,4 +874,138 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // MODUL FINANCE
+    public function indexFinance()
+    {
+        $data   = [
+            'title'         => 'ERP - Dashboard - Keuangan',
+            'sub_title'     => "Dashboard - Divisi Keuangan"
+        ];
+
+        return view('divisi.finance.dashboard.index', $data);
+    }
+
+    public function eventsFinance(Request $request) 
+    {
+        $data   = [
+            "sendData"  => $request->all()['sendData'],
+            "user_id"   => Auth::user()->id,
+            "user_role" => Auth::user()->getRoleNames()[0]
+        ];
+
+        $getData = DivisiService::getEventsFinance($data);
+        
+        if(count($getData) > 0) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data Jenis Pekerjaan Finance",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Ambil Data Jenis Pekerjaan Finance",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function finance_programKerja_tourCode($tourcode)
+    {
+        // var_dump($tourcode);die();
+        $data   = array(
+            "tour_code" => $tourcode == 'semua' ? '%' : $tourcode, 
+        );
+
+        $getData    = DivisiService::getTourCode($data);
+
+        if(count($getData) > 0) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => false,
+                "status"    => 200,
+                "message"   => "Terjadi Kesalahan",
+                "data"      => [],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function finance_programKerja_simpanAktivitas(Request $request, $jenis)
+    {
+        $data   = array(
+            "sendData"  => $request->all()['sendData'],
+            "ip"        => $request->ip(),
+            "user_id"   => Auth::user()->id,
+            "user_role" => Auth::user()->getRoleNames()[0],
+            "jenis"     => $jenis
+        );
+
+        $doSimpan   = DivisiService::doSimpanAktivitas($data);
+
+        if($doSimpan['status'] == 'berhasil') {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => $jenis == 'add' ? "Berhasil Menambahkan Aktivitas Baru" : "Berhasil Merubah Aktivitas Harian",
+                    ],
+                ],
+                "errMsg"    => $doSimpan['errMsg'],
+            );
+        } else if($doSimpan['status'] == 'gagal') {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Gagal Memproses Data",
+                    ],
+                ],
+                "errMsg"    => $doSimpan['errMsg'],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function finance_programKerja_eventsDetail($eventsID)
+    {
+        $getData    = DivisiService::doGetEventsFinanceDetail($eventsID);
+
+        if(count($getData) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $getData[0],
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data Gagal Diambil",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }
