@@ -16,14 +16,14 @@ class ProkerHarian extends Model
     public static function getProkerHarianByProkerBulanan($pkh_pkb_id)
     {
         return DB::table('proker_harian as a')
-                ->select('a.pkh_date','a.pkh_start_time','a.pkh_end_time','a.pkh_title','b.name')
-                ->join('proker_bulanan_detail as c', function($c){
-                    $c->on(DB::raw("SUBSTRING_INDEX(a.pkh_pkb_id, '|', -1)"),'=','c.id');
-                })
-                ->join('users as b','a.created_by','=','b.id')
-                ->whereRaw(DB::raw("SUBSTRING_INDEX(a.pkh_pkb_id, '|', 1) = '$pkh_pkb_id'"))
-                ->orderBy('a.pkh_date','asc')
-                ->get();
+            ->select('a.pkh_date', 'a.pkh_start_time', 'a.pkh_end_time', 'a.pkh_title', 'b.name')
+            ->join('proker_bulanan_detail as c', function($join) {
+                $join->on(DB::raw("SUBSTRING_INDEX(a.pkh_pkb_id, '|', -1)"), '=', 'c.id');
+            })
+            ->join('users as b', 'a.created_by', '=', 'b.id')
+            ->whereRaw(DB::raw("SUBSTRING_INDEX(a.pkh_pkb_id, '|', 1) = ?"), [$pkh_pkb_id])
+            ->orderBy('a.pkh_date', 'asc')
+            ->get();
     }
 
     public static function getProkerHarianByProkerBulananAndBulananDetail($pkb_id, $pkbd_id)

@@ -53,7 +53,7 @@ const showTableEvaluasiSasaranUmum = (idTable, year, idSasaran) => {
                 },
                 data: function (d) {
                     d.year = year,
-                    d.idSasaran = idSasaran
+                        d.idSasaran = idSasaran
                 },
                 dataSrc: function (json) {
                     return json.data.sasaran_umum.data; // Mengakses data di dalam kunci 'data'
@@ -80,8 +80,8 @@ const showTableEvaluasiSasaranUmum = (idTable, year, idSasaran) => {
 
 $('#goFilter').click(async function () {
     const idSasaran = sasaran.val();
-    const year      = $('#year-start').val();
-    showTableEvaluasiSasaranUmum('datatableEvaluasiSasaranUmum',year, idSasaran);
+    const year = $('#year-start').val();
+    showTableEvaluasiSasaranUmum('datatableEvaluasiSasaranUmum', year, idSasaran);
 
 });
 
@@ -131,7 +131,7 @@ const showTableProgramBulan = (idTable, yearInProgram, monthInProgram) => {
                 $('#targetProgram').text('Target Program');
                 $('#hasilProgram').text('Realisasi Program');
                 // $('#lihatPerMinggu').removeClass('d-none')
-                $('#totalPersentasePerbulan').text(json.data.persentage_total_pencapaian_progam +' %')
+                $('#totalPersentasePerbulan').text(json.data.persentage_total_pencapaian_progam + ' %')
                 $('#totalHasilPerbulan').text(json.data.total_hasil)
                 $('#totalTargetPerbulan').text(json.data.total_target)
 
@@ -162,7 +162,7 @@ const showTablePerMinggu = (idTable, year, month) => {
                 },
                 data: function (d) {
                     d.year = year,
-                        d.month = month
+                    d.month = month
                 },
                 dataSrc: function (json) {
                     return json.data.perminggu.data; // Mengakses data di dalam kunci 'data'
@@ -193,17 +193,17 @@ const showTablePerMinggu = (idTable, year, month) => {
                         "paging": true,
                         "searching": true,
                         "info": true,
-                         // Inisialisasi DataTables
-                        "rowCallback": function(row, data, index) {
+                        // Inisialisasi DataTables
+                        "rowCallback": function (row, data, index) {
                             // Tambahkan nomor urut di kolom pertama
                             $('td:eq(0)', row).html(index + 1);
                         },
                         "columns": [
-                                { "title": "No", "className": "text-center", "width": "2%" }, // Kolom untuk nomor urut
-                                { "title": "Tanggal", "width": "1%" },
-                                { "title": "Program" },
-                                { "title": "PIC" }
-                            ]
+                            { "title": "No", "className": "text-center", "width": "2%" }, // Kolom untuk nomor urut
+                            { "title": "Tanggal", "width": "1%" },
+                            { "title": "Program" },
+                            { "title": "PIC" }
+                        ]
                     });
 
                     table.clear().destroy();
@@ -216,7 +216,7 @@ const showTablePerMinggu = (idTable, year, month) => {
                         lsitRinciankegiatan.forEach(function (detail) {
                             table.row.add([
                                 '',
-                                detail.pkh_dates,
+                                detail.pkh_date,
                                 detail.pkh_title,
                                 detail.name
                             ]).draw(false);
@@ -227,7 +227,7 @@ const showTablePerMinggu = (idTable, year, month) => {
 
                     $('#myModalRincianKegiatan').modal('show');
                     $('#titleRincianPerMinggu').text('Daftar Kegiatan Harian');
-                    
+
                 });
 
             },
@@ -235,40 +235,40 @@ const showTablePerMinggu = (idTable, year, month) => {
     }
 }
 
-async function showMonth(element){
-    const yearInProgram = element.getAttribute('data-year'); 
-    const monthInProgram = element.getAttribute('data-month'); 
+async function showMonth(element) {
+    const yearInProgram = element.getAttribute('data-year');
+    const monthInProgram = element.getAttribute('data-month');
 
     showTableProgramBulan('datatable', yearInProgram, monthInProgram);
     showTablePerMinggu('dataRincianPerminggu', yearInProgram, monthInProgram);
 }
 
-function showJenisPekerjaan(element){
-    const resJenisPekerjaan =  element.getAttribute('data-jenispekerjaan'); 
-    const programTitle =  element.getAttribute('data-title'); 
+function showJenisPekerjaan(element) {
+    const resJenisPekerjaan = element.getAttribute('data-jenispekerjaan');
+    const programTitle = element.getAttribute('data-title');
 
     const jenisPekerjaan = JSON.parse(resJenisPekerjaan);
 
 
-     // Initialize DataTable
-     let tableShowJenisPekerjaan;
-     if (!$.fn.DataTable.isDataTable('#tableShowJenisPekerjaan')) {
-         tableShowJenisPekerjaan = $('#tableShowJenisPekerjaan').DataTable({
-             "paging": true,
-             "searching": true,
-             "info": true,
-             createdRow: function (row, data, dataIndex) {
+    // Initialize DataTable
+    let tableShowJenisPekerjaan;
+    if (!$.fn.DataTable.isDataTable('#tableShowJenisPekerjaan')) {
+        tableShowJenisPekerjaan = $('#tableShowJenisPekerjaan').DataTable({
+            "paging": true,
+            "searching": true,
+            "info": true,
+            createdRow: function (row, data, dataIndex) {
                 // Add class to the second column (index 1)
                 $('td', row).eq(0).addClass('text-center');
                 $('td', row).eq(2).addClass('text-right');
                 $('td', row).eq(3).addClass('text-right');
             }
-         });
-     } else {
-         tableShowJenisPekerjaan = $('#tableShowJenisPekerjaan').DataTable();
-     }
-     // Function to populate table with data
-     function populateTable(data) {
+        });
+    } else {
+        tableShowJenisPekerjaan = $('#tableShowJenisPekerjaan').DataTable();
+    }
+    // Function to populate table with data
+    function populateTable(data) {
         // Clear previous data
         tableShowJenisPekerjaan.clear().draw();
 
@@ -291,7 +291,7 @@ function showJenisPekerjaan(element){
     populateTable(jenisPekerjaan);
     $('#myModalJenisPekerjaan').modal('show');
 
-    
+
 }
 
 
@@ -326,7 +326,7 @@ const showTableAktivitasharian = (idTable, pkbd_id) => {
                     { "targets": [0], "className": "text-center", "width": "1%" },
                     { "targets": [1], "width": "3%" },
                     { "targets": [2], "width": "10%" },
-                    { "targets": [3], "width": "5%"},
+                    { "targets": [3], "width": "5%" },
                     // { "targets": [5], "className": "text-right", "width": "3%" },
                     // { "targets": [6], "className": "text-center", "width": "8%" },
                 ],
@@ -340,10 +340,12 @@ const showTableAktivitasharian = (idTable, pkbd_id) => {
 
 }
 
-async function onShowAktivitasHrian(element){
-    const pkbd_id = element.getAttribute('data-id'); 
+
+async function onShowAktivitasHrian(element) {
+    const pkbd_id = element.getAttribute('data-id');
 
     // get aktivitas harian berdasarkan jenis pekerjaann 
     showTableAktivitasharian('tableShowAktivitasHarian', pkbd_id);
+
 }
 
