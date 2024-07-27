@@ -1499,6 +1499,7 @@ class ProgramKerjaController extends Controller
                     $data[]     = [
                         $i + 1,
                         $result->pkh_date,
+                        $result->pkbd_type,
                         $result->pkh_title,
                         $result->name,
                     ];

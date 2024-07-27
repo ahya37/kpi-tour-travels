@@ -227,7 +227,8 @@ const showTablePerMinggu = (idTable, year, month) => {
                                 { "targets": [0], "className": "text-center", "width": "1%" },
                                 { "targets": [1], "width": "2%" },
                                 { "targets": [2], "width": "10%" },
-                                { "targets": [3], "width": "5%" },
+                                { "targets": [3], "width": "10%" },
+                                { "targets": [4], "width": "5%" },
                             ],
                         initComplete: function (settings, json) {
                             $('#titleRincianPerMinggu').text('Daftar Kegiatan Harian');

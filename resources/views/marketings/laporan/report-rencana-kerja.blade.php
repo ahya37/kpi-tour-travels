@@ -296,8 +296,9 @@
                             <tr>
                                 <th class="centered" width="1%" style="background-color: #F5B487">No</th>
                                 <th class="centered" style="background-color: #F5B487">Tanggal</th>
-                                <th class="centered" width="25%" style="background-color: #F5B487">Program</th>
-                                <th class="centered" style="background-color: #F5B487">PIC</th>
+                                <th class="centered" width="10%" style="background-color: #F5B487">Jenis Pekerjaan</th>
+                                <th class="centered" width="10%" style="background-color: #F5B487">Kegiatan</th>
+                                <th class="centered" style="background-color: #F5B487">Pelaksana</th>
                             </tr>
                         </thead>
                     </table>

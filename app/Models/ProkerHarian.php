@@ -31,7 +31,7 @@ class ProkerHarian extends Model
     {
         return DB::table('proker_harian as a')
                 ->select('a.pkh_pkb_id','a.pkh_date','a.pkh_start_time','a.pkh_end_time','a.pkh_title','b.name')
-                ->join('users as b','a.created_by','=','b.id')
+                ->leftJoin('users as b','a.created_by','=','b.id')
                 ->where('a.pkh_pkb_id', "$pkb_id | $pkbd_id")
                 ->where('a.pkh_is_active','t')
                 ->orderBy('a.pkh_date','asc')
@@ -41,7 +41,7 @@ class ProkerHarian extends Model
     public static function getProkerHarianByProkerBulananPerMinggu($year, $month, $pkb_uuid,$week)
     {
         return DB::select("
-            select a.pkh_date,a.pkh_start_time,a.pkh_end_time,a.pkh_title,c.name 
+            select b.pkbd_type, a.pkh_date,a.pkh_start_time,a.pkh_end_time,a.pkh_title,c.name 
             from proker_harian as a
             left join proker_bulanan_detail as b on substring_index(a.pkh_pkb_id,'|', -1) = b.id 
             left join users as c on a.created_by = c.id 
