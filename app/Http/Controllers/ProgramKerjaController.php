@@ -21,6 +21,8 @@ use App\Helpers\ResponseFormatter;
 use Illuminate\Support\Facades\Log;
 use DB;
 use App\Helpers\NumberFormat;
+use App\Helpers\DateFormat;
+use DateTime;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -1335,49 +1337,75 @@ class ProgramKerjaController extends Controller
             $month = request()->month;
             $week  = request()->week;
 
+
             // get program di proker bulanan per tahun per bulan
             $programs = ProkerBulanan::getProgramByDivisi($groupDivisionID,  $year , $month);
             $results = [];
             foreach($programs as $value){
+                // Mulai dari awal bulan
+                // $minggu1_start = Carbon::create($year, $month, 1)->startOfMonth()->startOfWeek(Carbon::MONDAY);
+                // $minggu1_start = Carbon::create($year, $month, 1)->startOfMonth();
+                // $minggu1_end = $minggu1_start->copy()->endOfWeek();
 
-                $minggu1_start = Carbon::create($year, $month, 1)->startOfMonth()->startOfWeek();
-                $minggu1_end = $minggu1_start->copy()->endOfWeek();
+                //    // Hitung minggu berikutnya
+                // $minggu2_start = $minggu1_end->copy()->addDay();
+                // $minggu2_end   = $minggu2_start->copy()->endOfWeek();
                 
-                $minggu2_start = $minggu1_end->copy()->addDay();
-                $minggu2_end   = $minggu2_start->copy()->endOfWeek();
+                // $minggu3_start = $minggu2_end->copy()->addDay();
+                // $minggu3_end = $minggu3_start->copy()->endOfWeek();
                 
-                $minggu3_start = $minggu2_end->copy()->addDay();
-                $minggu3_end = $minggu3_start->copy()->endOfWeek();
+                // $minggu4_start = $minggu3_end->copy()->addDay();
+                // $minggu4_end = $minggu4_start->copy()->endOfWeek();
                 
-                $minggu4_start = $minggu3_end->copy()->addDay();
-                $minggu4_end = $minggu4_start->copy()->endOfWeek();
-                
-                $minggu5_start = $minggu4_end->copy()->addDay();
-                $minggu5_end = $minggu5_start->copy()->endOfWeek();
+                // $minggu5_start = $minggu4_end->copy()->addDay();
+                // $minggu5_end = $minggu5_start->copy()->endOfWeek();
+
+                //  // Pastikan minggu terakhir tidak melebihi akhir bulan
+                //  $minggu5_end = $minggu5_end->endOfMonth();
 
                 #get jenis pekerjaan di proker_bulanan_detail berdasarkan pkb_id nya
                 $jenis_pekerjaan = ProkerHarian::getProkerHarianByProkerBulanan($value->uuid);
+
+                $weeks = DateFormat::getWeekStartEndDates($year, $month);
+
+
                 $minggu_1 = [];
                 $minggu_2 = [];
                 $minggu_3 = [];
                 $minggu_4 = [];
                 $minggu_5 = [];
 
-                foreach ($jenis_pekerjaan as $detail) {
-                    $detail_date = Carbon::parse($detail->pkh_date);
+                // foreach ($jenis_pekerjaan as $detail) {
+                //     $detail_date = Carbon::parse($detail->pkh_date);
 
-                    $detail->pkh_dates = date('d-m-Y', strtotime($detail->pkh_date));
-
+                //     $detail->pkh_date = date('d-m-Y', strtotime($detail->pkh_date));
             
-                    if ($detail_date->between($minggu1_start, $minggu1_end)) {
+                //     if ($detail_date->between($minggu1_start, $minggu1_end)) {
+                //         $minggu_1[] = $detail;
+                //     } elseif ($detail_date->between($minggu2_start, $minggu2_end)) {
+                //         $minggu_2[] = $detail;
+                //     } elseif ($detail_date->between($minggu3_start, $minggu3_end)) {
+                //         $minggu_3[] = $detail;
+                //     } elseif ($detail_date->between($minggu4_start, $minggu4_end)) {
+                //         $minggu_4[] = $detail;
+                //     } elseif ($detail_date->between($minggu5_start, $minggu5_end)) {
+                //         $minggu_5[] = $detail;
+                //     }
+                // }
+
+                foreach ($jenis_pekerjaan as $detail) {
+                    $detail_date = new DateTime($detail->pkh_date);
+                    $detail->pkh_date = date('d-m-Y', strtotime($detail->pkh_date));
+            
+                    if ($detail_date >= new DateTime($weeks[0]['start']) && $detail_date <= new DateTime($weeks[0]['end'])) {
                         $minggu_1[] = $detail;
-                    } elseif ($detail_date->between($minggu2_start, $minggu2_end)) {
+                    } elseif (isset($weeks[1]) && $detail_date >= new DateTime($weeks[1]['start']) && $detail_date <= new DateTime($weeks[1]['end'])) {
                         $minggu_2[] = $detail;
-                    } elseif ($detail_date->between($minggu3_start, $minggu3_end)) {
+                    } elseif (isset($weeks[2]) && $detail_date >= new DateTime($weeks[2]['start']) && $detail_date <= new DateTime($weeks[2]['end'])) {
                         $minggu_3[] = $detail;
-                    } elseif ($detail_date->between($minggu4_start, $minggu4_end)) {
+                    } elseif (isset($weeks[3]) && $detail_date >= new DateTime($weeks[3]['start']) && $detail_date <= new DateTime($weeks[3]['end'])) {
                         $minggu_4[] = $detail;
-                    } elseif ($detail_date->between($minggu5_start, $minggu5_end)) {
+                    } elseif (isset($weeks[4]) && $detail_date >= new DateTime($weeks[4]['start']) && $detail_date <= new DateTime($weeks[4]['end'])) {
                         $minggu_5[] = $detail;
                     }
                 }
@@ -1387,17 +1415,11 @@ class ProgramKerjaController extends Controller
                     'uuid' => $value->uuid,
                     'pkb_start_date' => $value->pkb_start_date,
                     'pkb_title' => $value->pkb_title,
-                    'pkb_hasil' => $value->pkb_hasil,
                     'count_minggu_1' => count($minggu_1),
-                    'list_minggu_1' => $minggu_1,
                     'count_minggu_2' => count($minggu_2),
-                    'list_minggu_2' => $minggu_2,
                     'count_minggu_3' => count($minggu_3),
-                    'list_minggu_3' => $minggu_3,
                     'count_minggu_4' => count($minggu_4),
-                    'list_minggu_4' => $minggu_4,
                     'count_minggu_5' => count($minggu_5),
-                    'list_minggu_5' => $minggu_5,
                 ];
             }
 
@@ -1405,30 +1427,16 @@ class ProgramKerjaController extends Controller
 
             if(!empty($results)) {
             
-                // for($i = 0; $i < count($results); $i++) {
-    
-                //     $data[]     = array(
-                //         $i + 1,
-                //         $results[$i]['pkb_title'],
-                //         '<button href="#" class="btn btn-sm" data-list=\''.json_encode($results[$i]['list_minggu_1']).'\'>'.$results[$i]['count_minggu_1'].'</button>',
-                //         '<a href="#" class="btn btn-sm" data-list=\''.json_encode($results[$i]['list_minggu_2']).'\'>'.$results[$i]['count_minggu_2'].'</a>',
-                //         $results[$i]['count_minggu_3'],
-                //         $results[$i]['count_minggu_4'],
-                //         $results[$i]['count_minggu_5'],
-                //     );
-                // }
-
-                
                 foreach($results as $i => $result){
 
                     $data[]     = [
                     $i + 1,
                     $result['pkb_title'],
-                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_1'])).'\'>'.$result['count_minggu_1'].'</a>',
-                    '<a href="#" class="btn btn-sm" data-rinciankegiatan=\''.htmlspecialchars(json_encode($result['list_minggu_2'])).'\'>'.$result['count_minggu_2'].'</a>',
-                    $result['count_minggu_3'],
-                    $result['count_minggu_4'],
-                    $result['count_minggu_5'],
+                    '<a href="#" class="btn btn-sm" data-minggu="1" data-uuid='.$result['uuid'].' >'.$result['count_minggu_1'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-minggu="2" data-uuid='.$result['uuid'].' >'.$result['count_minggu_2'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-minggu="3" data-uuid='.$result['uuid'].' >'.$result['count_minggu_3'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-minggu="4" data-uuid='.$result['uuid'].' >'.$result['count_minggu_4'].'</a>',
+                    '<a href="#" class="btn btn-sm" data-minggu="5" data-uuid='.$result['uuid'].' >'.$result['count_minggu_5'].'</a>',
                     ];
             
             }
@@ -1443,18 +1451,80 @@ class ProgramKerjaController extends Controller
                     "data"  => [],
                 );
             }
-            
+
+            $jml_minggu_1 = collect($results)->sum(function($q){ return $q['count_minggu_1']; });
+            $jml_minggu_2 = collect($results)->sum(function($q){ return $q['count_minggu_2']; });
+            $jml_minggu_3 = collect($results)->sum(function($q){ return $q['count_minggu_3']; });
+            $jml_minggu_4 = collect($results)->sum(function($q){ return $q['count_minggu_4']; });
+            $jml_minggu_5 = collect($results)->sum(function($q){ return $q['count_minggu_5']; });
 
             return ResponseFormatter::success([
                'bulan' =>  Months::monthName($month),
                'perminggu' => $output,
-               'results' => $results
+               'jml_minggu_1' => $jml_minggu_1,
+               'jml_minggu_2' => $jml_minggu_2,
+               'jml_minggu_3' => $jml_minggu_3,
+               'jml_minggu_4' => $jml_minggu_4,
+               'jml_minggu_5' => $jml_minggu_5,
             ]);
 
         } catch (\Exception $e) {
             Log::channel('daily')->error($e->getMessage());
             return ResponseFormatter::error([
                 'message' => 'Gagal tampilkan data!'
+            ]);
+        }
+    }
+
+    public function getDaftarKegitanHarianPerMinggu()
+    {
+        
+        try {
+
+            $year = request()->year;
+            $month = request()->month;
+            $pkb_uuid = request()->pkb_uuid;
+            $week = request()->week;
+
+            $proker_harian = ProkerHarian::getProkerHarianByProkerBulananPerMinggu($year, $month, $pkb_uuid,$week);
+
+            $data = [];
+
+            if(!empty($proker_harian)) {
+
+                foreach($proker_harian as $i => $result){
+
+                    $result->pkh_date = date('d-m-Y', strtotime($result->pkh_date));
+
+                    $data[]     = [
+                        $i + 1,
+                        $result->pkh_date,
+                        $result->pkbd_type,
+                        $result->pkh_title,
+                        $result->name,
+                    ];
+            
+            }
+                
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => $data,
+                );
+            } else {
+                $output     = array(
+                    "draw"  => 1,
+                    "data"  => [],
+                );
+            }
+
+            return ResponseFormatter::success([
+                'proker_harian' => $output
+             ]);
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error([
+                'message' => 'Gagal ambil data!'
             ]);
         }
     }
@@ -1726,6 +1796,7 @@ class ProgramKerjaController extends Controller
             #get data aktivitas harian nya
             $proker_harian = ProkerHarian::getProkerHarianByProkerBulananAndBulananDetail($jenis_pekerjaan->uuid, $pkbd_id);
 
+            $data = [];
             if(!empty($proker_harian)) {
             
                 foreach($proker_harian as $i => $result) {

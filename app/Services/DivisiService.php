@@ -983,6 +983,8 @@ class DivisiService
                 "pkb_description"   => $pkb_description,
                 "pkb_pkt_id"        => $pkb_pkt_id,
                 "pkb_employee_id"   => $employee_id,
+                "created_by"        => $user_id,
+                "created_at"        => date('Y-m-d H:i:s'),
                 "updated_by"        => $user_id,
                 "updated_at"        => date('Y-m-d H:i:s'), 
             ];
@@ -1258,5 +1260,249 @@ class DivisiService
         }
 
         return $output;
+    }
+
+    public static function getEventsFinance($data)
+    {
+        $start_date     = $data['sendData']['start_date'];
+        $end_date       = $data['sendData']['end_date'];
+        $user_id        = $data['user_id'];
+        $user_role      = $data['user_role'];
+
+        $getData        = DB::select(
+            "
+            SELECT 	a.uuid as pkb_uid,
+                    a.pkb_title,
+                    a.pkb_start_date,
+                    a.pkb_end_date
+            FROM 	proker_bulanan a
+            JOIN 	employees b ON a.created_by	= b.user_id
+            JOIN 	job_employees c ON b.id = c.employee_id
+            JOIN 	group_divisions d ON c.group_division_id = d.id
+            WHERE 	d.name LIKE '%finance%'
+            AND 	a.pkb_is_active = 't'
+            AND 	a.pkb_start_date BETWEEN '$start_date' AND '$end_date'
+            ORDER BY a.pkb_start_date ASC
+            "
+        );
+
+        return $getData;
+    }
+    
+    // 26 JULY 2024
+    // NOTE : GET DATA TOUR CODE
+    public static function getTourCode($data)
+    {
+        $tour_code  = $data['tour_code'];
+
+        $header  = DB::select(
+            "
+            SELECT  a.jdw_tour_code as tour_code,
+                    a.jdw_depature_date,
+                    a.jdw_arrival_date
+            FROM    programs_jadwal a
+            WHERE   a.is_active = 't'
+            AND     a.jdw_uuid LIKE '$tour_code'
+            "
+        );
+
+        $detail     = DB::select(
+            "
+            SELECT  b.uuid as pkb_id,
+                    b.pkb_description as pkb_title,
+                    b.pkb_start_date,
+                    b.pkb_end_date,
+                    c.jdw_tour_code as tour_code
+            FROM    tr_prog_jdw a
+            JOIN    proker_bulanan b ON a.prog_pkb_id = b.uuid
+            JOIN    programs_jadwal c ON a.prog_jdw_id = c.jdw_uuid
+            WHERE   a.prog_pkb_is_created = 't'
+            AND     a.prog_jdw_id LIKE '$tour_code'
+            AND     b.pkb_is_active = 't'
+            AND     b.pkb_is_pay IS NULL
+            "
+        );
+
+        $output     = array(
+            "header"    => $header,
+            "detail"    => $detail, 
+        );
+
+        return $output;
+    }
+
+    public static function doSimpanAktivitas($data)
+    {
+        DB::beginTransaction();
+
+        $jenis      = $data['jenis'];
+        $user_id    = $data['user_id'];
+        $ip         = $data['ip'];
+
+        // GET EMPLOYEE
+        $employee_id    = DB::table('employees')->select('id')->where(['user_id' => $user_id])->get()[0]->id;
+
+        if($jenis == 'add') {
+            // SIMPAN DATA AKTIVIGTAS FINANCE
+            $data_simpan    = [
+                "uuid"              => Str::random(30),
+                "pkb_title"         => $data['sendData']['fin_title'],
+                "pkb_start_date"    => $data['sendData']['fin_date'],
+                "pkb_end_date"      => $data['sendData']['fin_date'],
+                "pkb_description"   => $data['sendData']['fin_description'],
+                "pkb_pkt_id"        => !empty($data['sendData']['opr_pkb_id']) ? $data['sendData']['opr_pkb_id'] : "",
+                "pkb_employee_id"   => $employee_id,
+                "pkb_is_active"     => "t",
+                "created_by"        => $user_id,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('proker_bulanan')->insert($data_simpan);
+
+            if($data['sendData']['fin_category'] == 'jpk_operasional') {
+                // UPDATE PROKER BULANAN
+                $pkb_id     = $data['sendData']['opr_pkb_id'];
+
+                DB::table('proker_bulanan')->where(['uuid' => $pkb_id])->update(['pkb_is_pay' => 't']);
+            }
+
+            try {
+                DB::commit();
+                LogHelper::create('add', 'Berhasil Menambahkan Data Aktivitas Baru : '. $data_simpan['uuid'], $ip);
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => [],
+                ];
+            } catch(\Exception $e) {
+                DB::rollBack();
+                LogHelper::create('add', 'Gagal Menambahkan Data Aktivitas Baru', $ip);
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                ];
+            }
+        } else if($jenis == 'edit') {
+            $data_where     = array(
+                "uuid"      => $data['sendData']['fin_ID'],
+            );
+
+            $data_update    = array(
+                "pkb_title"         => $data['sendData']['fin_title'],
+                "pkb_start_date"    => $data['sendData']['fin_date'], 
+                "pkb_end_date"      => $data['sendData']['fin_date'],
+                "pkb_description"   => $data['sendData']['fin_description'],
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            );
+
+            DB::table('proker_bulanan')->where($data_where)->update($data_update);
+
+            try {
+                DB::commit();
+                LogHelper::create('edit', 'Berhasil Mengubah Data Aktivitas :'.$data['sendData']['fin_ID'], $ip);
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => [],
+                ];
+            } catch(\Exception $e) {
+                DB::rollBack();
+                LogHelper::create('add', 'Gagal Mengubah Data Aktivitas', $ip);
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                ];
+            }
+        } else if($jenis == 'hapus') {
+            $data_where     = array(
+                "uuid"      => $data['sendData']['fin_ID'],
+            );
+
+            $data_update    = array(
+                "pkb_is_active" => "f",
+            );
+
+            DB::table('proker_bulanan')->where($data_where)->update($data_update);
+
+            // CHECK APAKAH AKTIVITAS INI NYAMBUNG DENGAN OPERASIONAL
+            $check   = DB::table('proker_bulanan')->where(['uuid'   => $data['sendData']['fin_ID'], 'pkb_pkt_id' => $data['sendData']['pkb_ID']])->get();
+
+            if(count($check) > 0) {
+                $data_where_update_ref  = [
+                    "uuid"      => $data['sendData']['pkb_ID'],
+                ];
+
+                $data_update_ref        = [
+                    "pkb_is_pay"=> null,
+                ];
+
+                DB::table('proker_bulanan')->where($data_where_update_ref)->update($data_update_ref);
+            }
+
+            try {
+                DB::commit();
+                LogHelper::create('edit', 'Berhasil Menghapus Data Aktivitas :'.$data['sendData']['fin_ID'], $ip);
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => [],
+                ];
+            } catch(\Exception $e) {
+                DB::rollBack();
+                LogHelper::create('add', 'Gagal Menghapus Data Aktivitas', $ip);
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                ];
+            }
+        }
+
+        return $output;
+    }
+
+    public static function doGetEventsFinanceDetail($id)
+    {
+        return DB::select(
+            "
+            SELECT  *
+            FROM    (
+                    SELECT  a.uuid as pkb_id,
+                            a.pkb_title,
+                            a.pkb_start_date,
+                            a.pkb_description,
+                            c.jdw_tour_code,
+                            'jpk_operasional' as jpk_status,
+                            a.pkb_pkt_id as ref_id,
+                            (SELECT pkb_description FROM proker_bulanan WHERE uuid = a.pkb_pkt_id) as ref_title,
+                            (SELECT pkb_start_date FROM proker_bulanan WHERE uuid = a.pkb_pkt_id) as ref_date_start,
+                            (SELECT pkb_end_date FROM proker_bulanan WHERE uuid = a.pkb_pkt_id) as ref_date_end
+                    FROM    proker_bulanan a
+                    JOIN    tr_prog_jdw b ON b.prog_pkb_id = a.pkb_pkt_id
+                    JOIN    programs_jadwal c ON b.prog_jdw_id = c.jdw_uuid
+                    WHERE   a.pkb_is_active = 't'
+
+                    UNION
+
+                    SELECT  a.uuid as pkb_id,
+                            a.pkb_title,
+                            a.pkb_start_date,
+                            a.pkb_description,
+                            null as jdw_tour_code,
+                            'jpk_finance' as jpk_status,
+                            REPLACE(a.pkb_pkt_id, '', 'test') as ref_id,
+                            null as ref_title,
+                            null as ref_date_start,
+                            null as ref_date_end
+                    FROM    proker_bulanan a
+                    JOIN    employees b ON a.created_by = b.user_id
+                    JOIN    job_employees c ON b.id = c.employee_id
+                    JOIN    group_divisions d ON c.group_division_id = d.id
+                    WHERE   d.name LIKE '%finance%'
+                    AND     LENGTH(a.pkb_pkt_id) < 1
+                    AND     a.pkb_is_active = 't'
+            ) as act_det
+            WHERE   act_det.pkb_id LIKE '$id'
+            "
+        );
     }
 }

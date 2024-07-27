@@ -55,6 +55,7 @@ Route::group(['middleware' => ['auth']], function () {
 	 Route::post('/marketings/report/evaluasi',[ProgramKerjaController::class, 'getReportEvaluasiMarketing']);
 	 Route::post('/marketings/report/evaluasi/kegiatan/rincian',[ProgramKerjaController::class, 'getRincianKegiatanByProgramBulanan']);
 	 Route::post('/marketings/report/evaluasi/perbulan/perminggu',[ProgramKerjaController::class, 'getReportProgramPerMingguByBulan']);
+	 Route::post('/marketings/report/evaluasi/perbulan/perminggu/list',[ProgramKerjaController::class, 'getDaftarKegitanHarianPerMinggu']);
 	 
     //  GET EVALUASI MARKETING
      Route::get('/marketings/sasaran',[ProgramKerjaController::class, 'getSasaran']);
@@ -338,6 +339,14 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/simpanDataRules/{tipe}', [DivisiController::class, 'simpanDataRules']);
                 Route::get('/getRulesDetail/{rulesID}', [DivisiController::class, 'getRulesDetail']);
             });
+        });
+
+        Route::prefix('finance')->group(function(){
+            Route::get('/', [DivisiController::class, 'indexFinance'])->name('index.finance');
+            Route::get('/eventsFinance', [DivisiController::class, 'eventsFinance']);
+            Route::get('/getTourCode/{tourcode}', [DivisiController::class, 'finance_programKerja_tourCode']);
+            Route::get('/getEventsFinanceDetail/{id}', [DivisiController::class, 'finance_programKerja_eventsDetail']);
+            Route::post('/simpanAktivitas/{jenis}', [DivisiController::class, 'finance_programKerja_simpanAktivitas']);
         });
 
         Route::prefix('master')->group(function(){

@@ -89,7 +89,7 @@ class ProkerBulanan extends Model
     public static function getProgramByDivisi($groupDivisionID, $year, $month, $week = null)
     {
         $programs = DB::table('proker_bulanan as a')
-						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','a.pkb_hasil','e.name as program')
+						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','e.name as program')
 						  ->join('proker_tahunan as b', function($join1){
 							  $join1->on(DB::raw('SUBSTRING_INDEX(a.pkb_pkt_id, "|",1)'), '=', 'b.uid');
 						  })
@@ -106,7 +106,7 @@ class ProkerBulanan extends Model
     public static function getProgramByDivisiNew($groupDivisionID, $year, $month, $week = null)
     {
         $programs = DB::table('proker_bulanan as a')
-						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','a.pkb_hasil','e.name as program',
+						  ->select('a.id','a.uuid','a.pkb_start_date','a.pkb_title','e.name as program',
                                 DB::raw("
                                     (
                                         select a1.id  from proker_bulanan as a1 
@@ -142,6 +142,7 @@ class ProkerBulanan extends Model
                                         and year(a1.pkh_date) = $year
                                         and month(a1.pkh_date) = $month
                                         and FLOOR((DAY(a1.pkh_date) - 1) / 7) + 1 = $week
+                                        and a1.pkh_is_active = 't'
                                     ) as pkb_hasil 
                                     FROM proker_harian AS a
                                     JOIN proker_bulanan AS b ON SUBSTRING_INDEX(a.pkh_pkb_id,'|', 1) = b.uuid 
@@ -151,6 +152,7 @@ class ProkerBulanan extends Model
                                     AND YEAR(a.pkh_date) = $year
                                     AND MONTH(a.pkh_date) = $month
                                     and  FLOOR((DAY(a.pkh_date) - 1) / 7) + 1 = $week
+                                    and a.pkh_is_active = 't'
                                     group by b.id, b.pkb_title
                                 "
                             );
