@@ -4,7 +4,47 @@ var today       = moment().format('YYYY-MM-DD');
 var isActive    = 0;
 $(document).ready(() => {
     // console.log('test');
+    dataDashboard();
 });
+
+function dataDashboard()
+{
+    let current_year    = moment().format('YYYY');
+    let start_date      = current_year+"-01-01";
+    let end_date        = current_year+"-12-31";
+
+    // GET DATA
+    const url           = "/divisi/finance/eventsFinance";
+    const type          = "GET";
+    const message       = "";
+    const data          = {
+        "start_date"    : start_date,
+        "end_date"      : end_date
+    };
+    $("#act_rkap_loading").removeClass('d-none');
+    $("#act_user_loading").removeClass('d-none');
+    $("#act_rkap_text").addClass('d-none');
+    $("#act_user_text").addClass('d-none');
+    doTrans(url, type, data, message, true)
+        .then((success) => {
+            $("#act_rkap_loading").addClass('d-none');
+            $("#act_user_loading").addClass('d-none');
+
+            $("#act_rkap_text").html(0);
+            $("#act_user_text").html(success.data.length);
+            $("#act_rkap_text").removeClass('d-none');
+            $("#act_user_text").removeClass('d-none');
+        })
+        .catch((err)    => {
+            $("#act_rkap_loading").addClass('d-none');
+            $("#act_user_loading").addClass('d-none');
+
+            $("#act_rkap_text").html(0);
+            $("#act_user_text").html(0);
+            $("#act_rkap_text").removeClass('d-none');
+            $("#act_user_text").removeClass('d-none');
+        })
+}
 
 function showCalendar(today)
 {
@@ -241,6 +281,7 @@ function showModal(idModal, value, jenis)
                     Swal.close();
                 })
                 .catch((err)    => {
+                    Swal.close();
                     console.log(err);
                 })
         }

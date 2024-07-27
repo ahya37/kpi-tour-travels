@@ -34,7 +34,12 @@
                         <h4 style="margin: 0px;">RKAP Tahun @php echo date('Y'); @endphp</h4>
                     </div>
                     <div class="card-body text-right">
-                        <h2 style="margin: 0px;">0</h2>
+                        <h2 style="margin: 0px;">
+                            <span id="act_rkap_loading">
+                                <div class="spinner-border"></div>
+                            </span>
+                            <span id="act_rkap_text" class="d-none"></span>
+                        </h2>
                     </div>
                     <a href="#rkap" class="card-footer" onclick="showModal('modal_rkap_finance', '', '')">
                         Lihat Detail
@@ -47,7 +52,10 @@
                         <h4 style="margin: 0px;">Aktivitas User</h4>
                     </div>
                     <div class="card-body text-right">
-                        <h2 style="margin: 0px;">0</h2>
+                        <h2 style="margin: 0px;">
+                            <span id="act_user_loading"><div class="spinner-border"></div></span>
+                            <span id="act_user_text" class="d-none"></span>
+                        </h2>
                     </div>
                     <a href="#" class="card-footer" onclick="showModal('modal_daily_activity', '', '')">
                         Tambah Data

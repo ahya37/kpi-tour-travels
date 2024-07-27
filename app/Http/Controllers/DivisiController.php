@@ -879,7 +879,7 @@ class DivisiController extends Controller
     public function indexFinance()
     {
         $data   = [
-            'title'         => 'ERP - Dashboard - Keuangan',
+            'title'         => 'Keuangan - Dashboard',
             'sub_title'     => "Dashboard - Divisi Keuangan"
         ];
 

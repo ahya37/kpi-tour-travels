@@ -1498,7 +1498,7 @@ class DivisiService
                     JOIN    job_employees c ON b.id = c.employee_id
                     JOIN    group_divisions d ON c.group_division_id = d.id
                     WHERE   d.name LIKE '%finance%'
-                    AND     LENGTH(a.pkb_pkt_id) < 1
+                    AND     (LENGTH(a.pkb_pkt_id) < 1 OR a.pkb_pkt_id LIKE '%|%')
                     AND     a.pkb_is_active = 't'
             ) as act_det
             WHERE   act_det.pkb_id LIKE '$id'
