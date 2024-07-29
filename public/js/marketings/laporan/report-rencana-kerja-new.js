@@ -178,6 +178,7 @@ const showTablePerMinggu = (idTable, year, month) => {
                     { "targets": [4], "className": "text-right", "width": "2%" },
                     { "targets": [5], "className": "text-right", "width": "3%" },
                     { "targets": [6], "className": "text-center", "width": "8%" },
+                    { "targets": [7], "className": "text-center", "width": "2%" },
                 ],
             initComplete: function (settings, json) {
                 $('#titledataRincianPerminggu').text("Program Per Minggu Bulan " + json.data.bulan);
@@ -186,6 +187,7 @@ const showTablePerMinggu = (idTable, year, month) => {
                 $('#jml_minggu_3').text(json.data.jml_minggu_3);
                 $('#jml_minggu_4').text(json.data.jml_minggu_4);
                 $('#jml_minggu_5').text(json.data.jml_minggu_5);
+                $('#jml_minggu_all').text(json.data.total_all_minggu);
 
                 $('#dataRincianPerminggu tbody').on('click', 'a.btn', async function () {
 

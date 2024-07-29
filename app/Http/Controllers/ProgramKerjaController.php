@@ -1429,6 +1429,8 @@ class ProgramKerjaController extends Controller
             
                 foreach($results as $i => $result){
 
+                    $jml_per_proker_harian = $result['count_minggu_1'] + $result['count_minggu_2'] + $result['count_minggu_3'] + $result['count_minggu_4'] + $result['count_minggu_5'];
+
                     $data[]     = [
                     $i + 1,
                     $result['pkb_title'],
@@ -1437,6 +1439,7 @@ class ProgramKerjaController extends Controller
                     '<a href="#" class="btn btn-sm" data-minggu="3" data-uuid='.$result['uuid'].' >'.$result['count_minggu_3'].'</a>',
                     '<a href="#" class="btn btn-sm" data-minggu="4" data-uuid='.$result['uuid'].' >'.$result['count_minggu_4'].'</a>',
                     '<a href="#" class="btn btn-sm" data-minggu="5" data-uuid='.$result['uuid'].' >'.$result['count_minggu_5'].'</a>',
+                    $jml_per_proker_harian
                     ];
             
             }
@@ -1458,6 +1461,8 @@ class ProgramKerjaController extends Controller
             $jml_minggu_4 = collect($results)->sum(function($q){ return $q['count_minggu_4']; });
             $jml_minggu_5 = collect($results)->sum(function($q){ return $q['count_minggu_5']; });
 
+            $total_all_minggu = $jml_minggu_1 + $jml_minggu_2 + $jml_minggu_3 + $jml_minggu_4 + $jml_minggu_5;
+
             return ResponseFormatter::success([
                'bulan' =>  Months::monthName($month),
                'perminggu' => $output,
@@ -1466,6 +1471,7 @@ class ProgramKerjaController extends Controller
                'jml_minggu_3' => $jml_minggu_3,
                'jml_minggu_4' => $jml_minggu_4,
                'jml_minggu_5' => $jml_minggu_5,
+               'total_all_minggu' => $total_all_minggu
             ]);
 
         } catch (\Exception $e) {
