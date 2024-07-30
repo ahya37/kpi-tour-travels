@@ -79,13 +79,52 @@
         "umrahCreate" : {
           "type": "object",
           "properties": {
-            "description": {
-              "type": "string"
-            },
-            "completed": {
-              "type": "boolean"
-            }
-          }
+                "progrgam": {
+                  "type": "string"
+                },
+                "kapasitas": {
+                  "type": "number"
+                },
+                "tgl_berangkat":{
+                 "type": "string" 
+                },
+                "pembimbing":{
+                 "type": "string" 
+                },
+                "quad_cost_dolar":{
+                 "type": "number" 
+                },
+                "triple_cost_dolar":{
+                 "type": "number" 
+                },
+                "double_cost_dolar":{
+                 "type": "number" 
+                },
+                "lama":{
+                 "type": "number" 
+                },
+                "tujuan":{
+                 "type": "string" 
+                },
+                "rute":{
+                 "type": "string" 
+                },
+                "tgl_pulang":{
+                 "type": "string" 
+                },
+                "tourleader":{
+                 "type": "string" 
+                },
+                "quad_cost_rupiah":{
+                 "type": "number" 
+                },
+                "triple_cost_rupiah":{
+                 "type": "number" 
+                },
+                "double_cost_rupiah":{
+                 "type": "number" 
+                }
+              } 
         },
         "umrah" : {
           "type": "object",
@@ -122,11 +161,8 @@
                 },
                 "TOURLEADER":{
                  "type": "string" 
-                },
-                "KONTAK":{
-                 "type": "string" 
                 }
-              }
+              } 
             }
           }
         }
