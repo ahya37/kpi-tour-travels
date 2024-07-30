@@ -79,7 +79,7 @@
         "umrahCreate" : {
           "type": "object",
           "properties": {
-                "progrgam": {
+                "proggram": {
                   "type": "string"
                 },
                 "kapasitas": {
