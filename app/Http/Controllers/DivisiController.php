@@ -19,14 +19,18 @@ class DivisiController extends Controller
     // IT
     // OPERASIONAL
     public function indexOperasional() {
-        $data   = [
-            'title'     => 'Divisi Operasional',
-            'sub_title' => 'Dashboard - Divisi Operasional',
-            'is_active' => '1',
-            'sub_division'      => DivisiService::getCurrentSubDivision()[0]->sub_division_name,
-            'sub_division_id'   => DivisiService::getCurrentSubDivision()[0]->sub_division_id,
-        ];
-        return view('divisi/operasional/index', $data);
+        if(Auth::user()->getRoleNames()[0] == 'operasional') {
+            $data   = [
+                'title'     => 'Divisi Operasional',
+                'sub_title' => 'Dashboard - Divisi Operasional',
+                'is_active' => '1',
+                'sub_division'      => DivisiService::getCurrentSubDivision()[0]->sub_division_name,
+                'sub_division_id'   => DivisiService::getCurrentSubDivision()[0]->sub_division_id,
+            ];
+            return view('divisi/operasional/index', $data);
+        } else {
+            abort(404);
+        }
     }
     
     // 10/06/2024
