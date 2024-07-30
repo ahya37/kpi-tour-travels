@@ -69,8 +69,13 @@ class ProgramKerjaController extends Controller
             'group_division'    => $currentGroupDivision,
             'sub_division'      => $currentSubDivision,
         ];
+        
+        $datas = [
+            'title' => 'Halaman Sedang Dalam Pengembangan',
+            'sub_title' => 'Halaman Sedang Dalam Pengembangan'
+        ];
 
-        return view('maintenance');
+        return view('maintenance', $datas);
 
         return view('master/programKerja/index', $data);
     }
