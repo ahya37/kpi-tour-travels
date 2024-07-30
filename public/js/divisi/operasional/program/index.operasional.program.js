@@ -295,6 +295,9 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
     } else if(idSelect == 'mst_tourCode_tourLeader') {
         var html    = "<option selected disabled>Pilih Tour Leader</option>";
         if(valueCari != '') {
+            $.each(valueCari, (i, item) => {
+                html    += "<option value='" + item.ID + "'>" + item.NAMA + "</option>";
+            });
             $("#"+idSelect).html(html);
         } else {
             $("#"+idSelect).html(html);
@@ -611,6 +614,7 @@ function showModalTourCode(idModal, jenis)
         doTransAPI('/pembimbing/list', 'GET', '', '', true),
         doTransAPI('/kota/rute/list', 'GET', '', '', true),
         doTransAPI('/kota/tujuan/list', 'GET', '', '', true),
+        doTransAPI('/umrah/tourleader', 'GET', '', '', true)
     ];
 
     Swal.fire({
@@ -630,12 +634,13 @@ function showModalTourCode(idModal, jenis)
             const data_pembimbing   = success[1].data.pembimbing;
             const data_rute         = success[2].data.rute;
             const data_kota_tujuan  = success[3].data.kota;
+            const data_tour_leader  = success[4].data.tourleader;
 
             showSelect('mst_tourCode_program', data_program, '', true);
             showSelect('mst_tourCode_mentor', data_pembimbing, '', true);
             showSelect('mst_tourCode_route', data_rute, '', true);
             showSelect('mst_tourCode_destination', data_kota_tujuan, '', true);
-            showSelect('mst_tourCode_tourLeader', '', '', true);
+            showSelect('mst_tourCode_tourLeader', data_tour_leader, '', true);
 
             Swal.close();
         })
