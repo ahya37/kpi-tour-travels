@@ -29,7 +29,13 @@ class DivisiController extends Controller
             ];
             return view('divisi/operasional/index', $data);
         } else {
-            abort(404);
+            // abort(404);
+            $data = [
+                'title' => 'Halaman Sedang Dalam Pengembangan',
+                'sub_title' => 'Halaman Sedang Dalam Pengembangan'
+            ];
+            return view('maintenance', $data);
+
         }
     }
     
