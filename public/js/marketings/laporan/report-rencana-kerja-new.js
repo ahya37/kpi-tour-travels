@@ -193,6 +193,7 @@ const showTablePerMinggu = (idTable, year, month) => {
 
                     $('#myModalRincianKegiatan').modal('show');
 
+                    let pkbd_id = $(this).data('pkbdid');
                     let pkh_pkb_id = $(this).data('uuid');
                     let week = $(this).data('minggu');
 
@@ -216,6 +217,7 @@ const showTablePerMinggu = (idTable, year, month) => {
                             data: function (d) {
                                 d.year = year;
                                 d.month = month;
+                                d.pkbd_id = pkbd_id;
                                 d.pkb_uuid = pkh_pkb_id;
                                 d.week = week;
                             },
