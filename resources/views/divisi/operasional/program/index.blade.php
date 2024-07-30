@@ -31,6 +31,7 @@
                     <div class="col-sm-6 text-left">
                         {{-- <button class="btn btn-primary" onclick="showModal('modalForm', '', 'add')">Tambah Data</button> --}}
                         <button class="btn btn-primary" onclick="showModalV2('modalFormV2', '', 'add')">Tambah Data</button>
+                        <button class="btn btn-primary" onclick="showModalTourCode('modalShowTourCode', 'add')">Tambah Data Tour Code</button>
                     </div>
                     <div class="col-sm-6 text-right">
                         <button class="btn btn-secondary" data-toggle="collapse" href="#FilterCollapse" aria-controls="FilterCollapse">Filter</button>
@@ -74,66 +75,6 @@
                             <tbody></tbody>
                         </table>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalForm">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah Data Jadwal Umrah</h5>
-                    <button type="button" class="close" onclick="closeModal('modalForm')">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="row" style="display: none;">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label>ID Program Umrah</label>
-                                <input type="text" class="form-control form-control-sm" name="programID" id="programID" readonly placeholder="Program Bulanan ID">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label>Tgl. Keberangkatan</label>
-                                <input type="text" class="form-control form-control-sm programDate" name="programDepDate" id="programDepDate" style="background: white; cursor: pointer;" placeholder="DD/MM/YYYY" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label>Tgl. Kedatangan</label>
-                                <input type="text" class="form-control form-control-sm programDate" name="programArvDate" id="programArvDate" style="background: white; cursor: pointer;" placeholder="DD/MM/YYYY" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label>Pembimbing</label>
-                                <input type="text" class="form-control form-control-sm" name="programPembimbing" id="programPembimbing" placeholder="Nama Pembimbing" autocomplete="off">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label>Paket</label>
-                                <select name="programPaket" id="programPaket" style="width: 100%;"></select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" id="btnDelete" onclick="doDelete(this.id)">Hapus Data</button>
-                    <button type="button" class="btn btn-secondary" id="btnBatal" onclick="closeModal('modalForm')">Batal</button>
-                    <button type="button" class="btn btn-primary" id="btnSimpan" onclick="doSimpan(this.value)">Simpan</button>
                 </div>
             </div>
         </div>
@@ -203,6 +144,159 @@
                     <button type="button" class="btn btn-danger" id="btnDeleteV2" onclick="doDelete(this.id)">Hapus</button>
                     <button type="button" class="btn btn-secondary" id="btnCancelV2" onclick="closeModal('modalFormV2')">Batal</button>
                     <button type="button" class="btn btn-primary" id="btnSimpanV2" onclick="doSimpanV2('modalFormV2', this.value)">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalShowTourCode">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 style="margin: 0px;" class="mdoal-title">Tambah Data Jadwal Umrah</h4>
+                    <button class="close" onclick="closeModalTourCode('modalShowTourCode')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label>Tour Code</label>
+                                <input type="text" class="form-control form-control-sm" name="mst_tourCode_id" id="mst_tourCode_id" placeholder="Generate Otomatis" readonly style="height: 38px;">
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Program</label>
+                                        <select class="form-control form-control-sm" style="width: 100%;" name="mst_tourCode_program" id="mst_tourCode_program"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <label>Kapasitas (Orang)</label>
+                                        <input type="text" name="mst_tourCode_capacity" id="mst_tourCode_capacity" inputmode="numeric" placeholder="Kapasitas" class="form-control form-control-sm" style="height: 38px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Tgl. Keberangkatan & Tgl. Kepulangan</label>
+                                        <input type="text" name="mst_tourCode_date" id="mst_tourCode_date" placeholder="DD/MM/YYYY s/d DD/MM/YYYY" class="form-control form-control-sm" style="height: 38px; background: white; cursor: pointer;" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Pembimbing</label>
+                                        <select class="form-control form-control-sm" id="mst_tourCode_mentor" name="mst_tourCode_mentor" style="width: 100%;"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Quad Cost ($)</label>
+                                        <input type="text" name="mst_tourCode_cost41" id="mst_tourCode_cost41" inputmode="numeric" placeholder="Quad Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Triple Cost ($)</label>
+                                        <input type="text" name="mst_tourCode_cost31" id="mst_tourCode_cost31" inputmode="numeric" placeholder="Triple Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Double Cost ($)</label>
+                                        <input type="text" name="mst_tourCode_cost21" id="mst_tourCode_cost21" inputmode="numeric" placeholder="Double Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Lamanya (hari)</label>
+                                        <input type="text" name="mst_tourCode_duration" id="mst_tourCode_duration" inputmode="numeric" placeholder="Lamanya" class="form-control form-control-sm" style="height: 38px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Tujuan</label>
+                                        <select class="form-control form-control-sm" id="mst_tourCode_destination" name="mst_tourCode_destination" style="width: 100%;"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Rute</label>
+                                        <select class="form-control form-control-sm" id="mst_tourCode_route" name="mst_tourCode_route" style="width: 100%;"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Tour Leader</label>
+                                        <select class="form-control form-control-sm" id="mst_tourCode_tourLeader" name="mst_tourCode_tourLeader" style="width: 100%;"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Quad Cost ($)</label>
+                                        <input type="text" name="mst_tourCode_cost42" id="mst_tourCode_cost42" inputmode="numeric" placeholder="Quad Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Triple Cost ($)</label>
+                                        <input type="text" name="mst_tourCode_cost32" id="mst_tourCode_cost32" inputmode="numeric" placeholder="Triple Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label>Double Cost ($)</label>
+                                        <input type="text" name="mst_tourCode_cost22" id="mst_tourCode_cost22" inputmode="numeric" placeholder="Double Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label>Note</label>
+                                <textarea class="form-control form-control-sm" id="mst_tourCode_note" name="mst_tourCode_note" rows="4" placeholder="Keterangan"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModalTourCode('modalShowTourCode')">Batal</button>
+                    <button class="btn btn-primary" onclick="simpanProgramV2(this.value)">Simpan</button>
                 </div>
             </div>
         </div>

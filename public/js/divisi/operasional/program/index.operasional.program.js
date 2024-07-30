@@ -131,19 +131,7 @@ function showModal(idModal, valueCari, jenis)
 }
 
 function closeModal(idModal) {
-    if(idModal == 'modalForm') {
-        $("#"+idModal).modal('hide');
-        $("#"+idModal).on('hidden.bs.modal', function(){
-            $(".programDate").val(moment().format('DD/MM/YYYY'));
-            $("input[type='text']").val(null);
-            $("#btnSimpan").val(null);
-            
-            $("#btnDelete").prop('disabled', false);
-            $("#btnDelete").show();
-            $("#btnBatal").prop('disabled', false);
-            $("#btnSimpan").prop('disabled', false);
-        });
-    } else if(idModal == 'modalFormV2') {
+    if(idModal == 'modalFormV2') {
         $("#"+idModal).modal('hide');
         $("#"+idModal).on('hidden.bs.modal', () => {
             $("#tourCode_dptDate").val(null);
@@ -257,6 +245,56 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
             $.each(valueCari, (i, item) => {
                 html    += "<option value='" + item.program_id + "'>" + item.program_name + "</option>";
             });
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    }
+
+    // SHOW SELECT V3
+    else if(idSelect == 'mst_tourCode_program') {
+        var html    = "<option selected disabled>Pilih Program</option>";
+        if(valueCari != '') {
+            $.each(valueCari, (i, item) => {
+                html    += "<option value='" + item.id + "'>" + item.PROGRAM + "</option>";
+            });
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'mst_tourCode_mentor') {
+        var html    = "<option selected disabled>Pilih Pembimbing</option>";
+        if(valueCari != '') {
+            $.each(valueCari, (i, item) => {
+                html    += "<option value='" + item.ID + "'>" + item.NAMA + "</option>";
+            });
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'mst_tourCode_destination') {
+        var html    = "<option selected disabled>Pilih Tujuan</option>";
+        if(valueCari != '') {
+            $.each(valueCari, (i, item) => {
+                html    += "<option value='" + item.ID + "'>" + item.KODE + " - " + item.NAMA + "</option>";
+            })
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'mst_tourCode_route') {
+        var html    = "<option selected disabled>Pilih Rute</option>";
+        if(valueCari != '') {
+            $.each(valueCari, (i, item) => {
+                html    += "<option value='" + item.id + "'>" + item.inisial + "</option>";
+            })
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    } else if(idSelect == 'mst_tourCode_tourLeader') {
+        var html    = "<option selected disabled>Pilih Tour Leader</option>";
+        if(valueCari != '') {
             $("#"+idSelect).html(html);
         } else {
             $("#"+idSelect).html(html);
@@ -561,6 +599,107 @@ function doSimpanV2(idModal, jenis)
                 })
         }
     }
+}
+
+// MODAL TOUR CODE V3
+
+function showModalTourCode(idModal, jenis)
+{
+
+    const doTrans   = [
+        doTransAPI('/program/list', 'GET', '', '', true),
+        doTransAPI('/pembimbing/list', 'GET', '', '', true),
+        doTransAPI('/kota/rute/list', 'GET', '', '', true),
+        doTransAPI('/kota/tujuan/list', 'GET', '', '', true),
+    ];
+
+    Swal.fire({
+        title   : "Data Sedang Dimuat..",
+    });
+    Swal.showLoading();
+
+    $("#mst_tourCode_date").daterangepicker({
+        format      : 'DD/MM/YYYY',
+        autoApply   : true,
+    });
+
+    Promise.all(doTrans)
+        .then((success) => {
+            $("#"+idModal).modal({ backdrop : 'static', keyboard : false });
+            const data_program      = success[0].data.program;
+            const data_pembimbing   = success[1].data.pembimbing;
+            const data_rute         = success[2].data.rute;
+            const data_kota_tujuan  = success[3].data.kota;
+
+            showSelect('mst_tourCode_program', data_program, '', true);
+            showSelect('mst_tourCode_mentor', data_pembimbing, '', true);
+            showSelect('mst_tourCode_route', data_rute, '', true);
+            showSelect('mst_tourCode_destination', data_kota_tujuan, '', true);
+            showSelect('mst_tourCode_tourLeader', '', '', true);
+
+            Swal.close();
+        })
+        .catch((err)    => {
+            $("#"+idModal).modal({ backdrop : 'static', keyboard : false });
+            showSelect('mst_tourCode_program', '', '', true);
+            showSelect('mst_tourCode_mentor', '', '', true);
+            showSelect('mst_tourCode_route', '', '', true);
+            showSelect('mst_tourCode_destination', '', '', true);
+            showSelect('mst_tourCode_tourLeader', '', '', true);
+            Swal.close();
+            console.log(err);
+        })
+
+}
+
+function closeModalTourCode(idModal)
+{
+    $("#"+idModal).modal('hide');
+}
+
+
+function simpanProgramV2(jenis)
+{
+    var tourCode_id         = $("#mst_tourCode_id").val();
+    var tourCode_date       = $("#mst_tourCode_date").val().split(' - ');
+    var tourCode_dpt_date   = tourCode_date[0];
+    var tourCode_arv_date   = tourCode_date[1];
+    var tourCode_program    = $("#mst_tourCode_program").val();
+    var tourCode_duration   = $("#mst_tourCode_duration").val();
+    var tourCode_capacity   = $("#mst_tourCode_capacity").val();
+    var tourCode_destination= $("#mst_tourCode_destination").val();
+    var tourCode_route      = $("#mst_tourCode_route").val();
+    var tourCode_mentor     = $("#mst_tourCode_mentor").val();
+    var tourCode_tourLeader = $("#mst_tourCode_tourLeader").val();
+    var tourCode_quadCost1  = $("#mst_tourCode_cost41").val();
+    var tourCode_tripleCost1= $("#mst_tourCode_cost31").val();
+    var tourCode_doubleCost1= $("#mst_tourCode_cost21").val();
+    var tourCode_quadCost2  = $("#mst_tourCode_cost42").val();
+    var tourCode_tripleCost2= $("#mst_tourCode_cost32").val();
+    var tourCode_doubleCost2= $("#mst_tourCode_cost21").val();
+    var tourCode_description= $("#mst_tourCode_note").val();
+
+    const sendData  = {
+        "tourCode_id"           : tourCode_id,
+        "tourCode_dpt_date"     : tourCode_dpt_date,
+        "tourCode_arv_date"     : tourCode_arv_date,
+        "tourCode_program"      : tourCode_program,
+        "tourCode_duration"     : tourCode_duration,
+        "tourCode_capacity"     : tourCode_capacity,
+        "tourCode_destination"  : tourCode_destination,
+        "tourCode_route"        : tourCode_route,
+        "tourCode_mentor"       : tourCode_mentor,
+        "tourCode_tourLeader"   : tourCode_tourLeader,
+        "tourCode_quadCost1"    : tourCode_quadCost1,
+        "tourCode_tripleCost1"  : tourCode_tripleCost1,
+        "tourCode_doubleCost1"  : tourCode_doubleCost1,
+        "tourCode_quadCost2"    : tourCode_quadCost2,
+        "tourCode_tripleCost2"  : tourCode_tripleCost2,
+        "tourCode_doubleCost2"  : tourCode_doubleCost2,
+        "tourCode_decsription"  : tourCode_description,
+    };
+
+    console.log({sendData});
 }
 
 function doTrans(url, type, data, customMessage, isAsync)

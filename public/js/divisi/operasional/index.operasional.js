@@ -87,6 +87,7 @@ function showModal(idForm, valueCari, jenis)
                 Swal.close();
                 $("#"+idForm).modal('show');
                 var getData     = xhr.data;
+                let transTempData               = [];
                 // console.log(getData);
 
                 // GENERATE JADWAL TO TABLE
@@ -117,9 +118,9 @@ function showModal(idForm, valueCari, jenis)
                                         if(pkb_start_date == pkb_end_date) {
                                             // CHECK APAKAH START_DATE > DEPATURE DATE & START_DATE < ARRIVAL DATE
                                             if(data_pkb['pkb_start_date'] >= data_rules['start_date_job'] && data_pkb['pkb_start_date'] <= data_rules['end_date_job']) {
-                                                rules_realization_date  += "<span style='color: #1AB394'>"+pkb_start_date+"</span></li>";
+                                                rules_realization_date  += "<span style='color: #1AB394'>"+pkb_start_date+"</span>";
                                             } else {
-                                                rules_realization_date  += "<span class='text-danger'>"+pkb_start_date+"</span></li>";
+                                                rules_realization_date  += "<span class='text-danger'>"+pkb_start_date+"</span>";
                                             }
                                             // CHECK CHECK APAKAH REALISASI HARI = DURASI SLA
                                             if(data_rules['number_of_processing_day'] = 1) {
@@ -131,10 +132,10 @@ function showModal(idForm, valueCari, jenis)
                                             }
                                         } else {
                                             // CHECK APAKAH START_DATE > DEPATURE DATE & END_DATE < ARRIVAL DATE
-                                            if(data_pkb['pkb_start_date'] > data_rules['start_date_job'] && data_pkb['pkb_end_date'] < data_rules['end_date_job']) {
-                                                rules_realization_date  += "<li><span style='color: #1AB394'>"+ pkb_start_date +" s/d " + pkb_end_date + "</span></li>"
+                                            if(data_pkb['pkb_start_date'] >= data_rules['start_date_job'] && data_pkb['pkb_end_date'] <= data_rules['end_date_job']) {
+                                                rules_realization_date  += "<span style='color: #1AB394'>"+ pkb_start_date +" s/d " + pkb_end_date + "</span>"
                                             } else {
-                                                rules_realization_date  += "<li><span class='text-danger'>" + pkb_start_date + " s/d " + pkb_end_date + "</span></li>"
+                                                rules_realization_date  += "<span class='text-danger'>" + pkb_start_date + " s/d " + pkb_end_date + "</span>"
                                             }
                                             // CHECK APAKAH REALISASTI HAIR = DURASI SLA
                                             if(data_rules['number_of_processing_day'] >= moment(data_pkb['pkb_end_date']).diff(moment(data_pkb['pkb_start_date']), 'days')) {
@@ -142,7 +143,7 @@ function showModal(idForm, valueCari, jenis)
                                                 rules_realization_bobot     += "<span style='color: #1AB394'>" + parseInt(rules_bobot) + "</span>";
                                             } else {
                                                 rules_realization_duration  += "<span class='text-danger'>" + moment(data_pkb['pkb_end_date']).diff(moment(data_pkb['pkb_start_date']), 'days') + " Hari</span>";
-                                                rules_realization_bobot     += "<span class='text-danger'>" + parseInt(rules_bobot) - moment(data_pkb['pkb_end_date']).diff(moment(data_pkb['pkb_start_date']), 'days') + "</span>";
+                                                rules_realization_bobot     += "<span class='text-danger'>" + (parseFloat(rules_bobot) - parseFloat(moment(data_pkb['pkb_end_date']).diff(moment(data_pkb['pkb_start_date']), 'days'))) + "</span>";
                                             }
                                         }
                                     }
