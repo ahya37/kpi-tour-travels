@@ -642,6 +642,75 @@ function showModalTourCode(idModal, jenis)
             showSelect('mst_tourCode_destination', data_kota_tujuan, '', true);
             showSelect('mst_tourCode_tourLeader', data_tour_leader, '', true);
 
+            $("#mst_tourCode_cost41").on('keyup', () => {
+                const quadCostDollar    = $("#mst_tourCode_cost41").val() != '' ? formatRibuan($("#mst_tourCode_cost41").val()) : '';
+                $("#mst_tourCode_cost41").val(quadCostDollar);
+            });
+
+            $("#mst_tourCode_cost41").on('blur', () => {
+                const quadCostDollar    = $("#mst_tourCode_cost41");
+                quadCostDollar.val() == '' ? quadCostDollar.val(0) : quadCostDollar.val(quadCostDollar.val());
+            });
+
+            $("#mst_tourCode_cost31").on('keyup', () => {
+                const tripleCostDollar  = $("#mst_tourCode_cost31").val() != '' ? formatRibuan($("#mst_tourCode_cost31").val()) : '';
+                $("#mst_tourCode_cost31").val(tripleCostDollar);
+            });
+
+            $("#mst_tourCode_cost31").on('blur', () => {
+                const tripleCostDollar    = $("#mst_tourCode_cost31");
+                tripleCostDollar.val() == '' ? tripleCostDollar.val(0) : tripleCostDollar.val(tripleCostDollar.val());
+            });
+
+            $("#mst_tourCode_cost21").on('keyup', () => {
+                const doubleCostDollar      = $("#mst_tourCode_cost21").val() != '' ? formatRibuan($("#mst_tourCode_cost21").val()) : '';
+                $("#mst_tourCode_cost21").val(doubleCostDollar);
+            });
+
+            $("#mst_tourCode_cost21").on('blur', () => {
+                const doubleCostDollar    = $("#mst_tourCode_cost21");
+                doubleCostDollar.val() == '' ? doubleCostDollar.val(0) : doubleCostDollar.val(doubleCostDollar.val());
+            });
+
+            $("#mst_tourCode_cost42").on('keyup', () => {
+                const quadCostDollar    = $("#mst_tourCode_cost42").val() != '' ? formatRibuan($("#mst_tourCode_cost42").val()) : '';
+                $("#mst_tourCode_cost42").val(quadCostDollar);
+            });
+
+            $("#mst_tourCode_cost42").on('blur', () => {
+                const quadCostDollar    = $("#mst_tourCode_cost42");
+                quadCostDollar.val() == '' ? quadCostDollar.val(0) : quadCostDollar.val(quadCostDollar.val());
+            });
+
+            $("#mst_tourCode_cost32").on('keyup', () => {
+                const tripleCostDollar  = $("#mst_tourCode_cost32").val() != '' ? formatRibuan($("#mst_tourCode_cost32").val()) : '';
+                $("#mst_tourCode_cost32").val(tripleCostDollar);
+            });
+
+            $("#mst_tourCode_cost32").on('blur', () => {
+                const tripleCostDollar    = $("#mst_tourCode_cost32");
+                tripleCostDollar.val() == '' ? tripleCostDollar.val(0) : tripleCostDollar.val(tripleCostDollar.val());
+            });
+
+            $("#mst_tourCode_cost22").on('keyup', () => {
+                const doubleCostDollar      = $("#mst_tourCode_cost22").val() != '' ? formatRibuan($("#mst_tourCode_cost22").val()) : '';
+                $("#mst_tourCode_cost22").val(doubleCostDollar);
+            });
+
+            $("#mst_tourCode_cost22").on('blur', () => {
+                const doubleCostDollar    = $("#mst_tourCode_cost22");
+                doubleCostDollar.val() == '' ? doubleCostDollar.val(0) : doubleCostDollar.val(doubleCostDollar.val());
+            });
+
+            $("#mst_tourCode_date").on('apply.daterangepicker', (e, ev) => {
+                const tgl_awal  = $("#mst_tourCode_date").val().split(' - ')[0];
+                const tgl_akhir = $("#mst_tourCode_date").val().split(' - ')[1];
+
+                const lamanya   = moment(tgl_akhir, 'DD/MM/YYYY').diff(moment(tgl_awal, 'DD/MM/YYYY'), 'days');
+                $("#mst_tourCode_duration").val(parseInt(lamanya));
+
+            })
+
             Swal.close();
         })
         .catch((err)    => {
@@ -652,7 +721,6 @@ function showModalTourCode(idModal, jenis)
             showSelect('mst_tourCode_destination', '', '', true);
             showSelect('mst_tourCode_tourLeader', '', '', true);
             Swal.close();
-            console.log(err);
         })
 
 }
@@ -665,46 +733,114 @@ function closeModalTourCode(idModal)
 
 function simpanProgramV2(jenis)
 {
-    var tourCode_id         = $("#mst_tourCode_id").val();
-    var tourCode_date       = $("#mst_tourCode_date").val().split(' - ');
-    var tourCode_dpt_date   = tourCode_date[0];
-    var tourCode_arv_date   = tourCode_date[1];
-    var tourCode_program    = $("#mst_tourCode_program").val();
-    var tourCode_duration   = $("#mst_tourCode_duration").val();
-    var tourCode_capacity   = $("#mst_tourCode_capacity").val();
-    var tourCode_destination= $("#mst_tourCode_destination").val();
-    var tourCode_route      = $("#mst_tourCode_route").val();
-    var tourCode_mentor     = $("#mst_tourCode_mentor").val();
-    var tourCode_tourLeader = $("#mst_tourCode_tourLeader").val();
-    var tourCode_quadCost1  = $("#mst_tourCode_cost41").val();
-    var tourCode_tripleCost1= $("#mst_tourCode_cost31").val();
-    var tourCode_doubleCost1= $("#mst_tourCode_cost21").val();
-    var tourCode_quadCost2  = $("#mst_tourCode_cost42").val();
-    var tourCode_tripleCost2= $("#mst_tourCode_cost32").val();
-    var tourCode_doubleCost2= $("#mst_tourCode_cost21").val();
-    var tourCode_description= $("#mst_tourCode_note").val();
+    // VALIDATE
+    if($("#mst_tourCode_program").val() == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Program Tidak Boleh Kosong',
+            didClose : () => {
+                $("#mst_tourCode_program").select2('open');
+            }
+        });
+    } else if($("#mst_tourCode_capacity").val() == '') {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Kapasitas Tidak Boleh Kosong',
+            didClose    : () => {
+                $("#mst_tourCode_capacity").focus();
+            }
+        })
+    } else if($("#mst_tourCode_destination").val() == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Tujuan Harus Dipilih',
+            didClose    : () => {
+                $("#mst_tourCode_destination").select2('open')
+            }
+        })
+    } else if($("#mst_tourCode_route").val() == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Rute Harus Dipilih',
+            didClose    : () => {
+                $("#mst_tourCode_route").select2('open')
+            }
+        })
+    } else if($("#mst_tourCode_mentor").val() == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Pembimbing Harus Dipilih',
+            didClose    : () => {
+                $("#mst_tourCode_mentor").select2('open');
+            }
+        })
+    } else if($("#mst_tourCode_tourLeader").val() == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Pilih Tour Leader',
+            didClose    : () => {
+                $("#mst_tourCode_tourLeader").select2('open')
+            }
+        })
+    } else {
+        const url   = "/umrah/jadwal/save";
+        const type  = "POST";
+        const data  = {
+            "program"           : $("#mst_tourCode_program option:selected").text(),
+            "kapasitas"         : $("#mst_tourCode_capacity").val(),
+            "tgl_berangkat"     : moment($("#mst_tourCode_date").val().split(' - ')[0], 'DD/MM/YYYY').format('DD-MM-YYYY'),
+            "pembimbing"        : $("#mst_tourCode_mentor option:selected").text(),
+            "lama"              : $("#mst_tourCode_duration").val(),
+            "tujuan"            : $("#mst_tourCode_destination option:selected").text().split(' - ')[0],
+            "rute"              : $("#mst_tourCode_route option:selected").text(),
+            "tgl_pulang"        : moment($("#mst_tourCode_date").val().split(' - ')[1], 'DD/MM/YYYY').format('DD-MM-YYYY'),
+            "tourleader"        : $("#mst_tourCode_tourLeader option:selected").text(),
+            "quad_cost_dolar"   : $("#mst_tourCode_cost41").val().replace(/,/g,''),
+            "triple_cost_dolar" : $("#mst_tourCode_cost31").val().replace(/,/g,''),
+            "double_cost_dolar" : $("#mst_tourCode_cost21").val().replace(/,/g,''),
+            "quad_cost_rupiah"  : $("#mst_tourCode_cost42").val().replace(/,/g,''),
+            "triple_cost_rupiah": $("#mst_tourCode_cost32").val().replace(/,/g,''),
+            "double_cost_rupiah": $("#mst_tourCode_cost22").val().replace(/,/g,''),
+            "note"              : $("#mst_tourCode_note").val(),
+            "created_by"        : $("#mst_tourCode_createdBy").val(),
+        };
 
-    const sendData  = {
-        "tourCode_id"           : tourCode_id,
-        "tourCode_dpt_date"     : tourCode_dpt_date,
-        "tourCode_arv_date"     : tourCode_arv_date,
-        "tourCode_program"      : tourCode_program,
-        "tourCode_duration"     : tourCode_duration,
-        "tourCode_capacity"     : tourCode_capacity,
-        "tourCode_destination"  : tourCode_destination,
-        "tourCode_route"        : tourCode_route,
-        "tourCode_mentor"       : tourCode_mentor,
-        "tourCode_tourLeader"   : tourCode_tourLeader,
-        "tourCode_quadCost1"    : tourCode_quadCost1,
-        "tourCode_tripleCost1"  : tourCode_tripleCost1,
-        "tourCode_doubleCost1"  : tourCode_doubleCost1,
-        "tourCode_quadCost2"    : tourCode_quadCost2,
-        "tourCode_tripleCost2"  : tourCode_tripleCost2,
-        "tourCode_doubleCost2"  : tourCode_doubleCost2,
-        "tourCode_decsription"  : tourCode_description,
-    };
+        const sendData  = [
+            doTransAPIV2(url, type, data, '', true),
+        ];
 
-    console.log({sendData});
+        Swal.fire({
+            title   : 'Data Sedang Diproses',
+        });
+        Swal.showLoading();
+
+        Promise.all(sendData)
+            .then((success) => {
+                Swal.fire({
+                    icon    : 'success', 
+                    title   : 'Berhasil',
+                    text    : success.data.message,
+                }).then((results)   => {
+                    if(results.isConfirmed) {
+                        closeModal('modalShowTourCode');
+                        showTable('table_program_umrah');
+                    }
+                });
+            })
+            .catch((err)    => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Tidak Bisa Menyimpan Data',
+                });
+            })
+    }
 }
 
 function doTrans(url, type, data, customMessage, isAsync)
@@ -756,4 +892,53 @@ function doTransAPI(url, type, data, customMessage, isAsync)
             }
         })
     })
+}
+
+function doTransAPIV2(url, type, data, customMessage, isAsync)
+{
+    var url_api     = 'https://api-percik.perciktours.com/api';
+    var url_header  = {
+        "x-api-key" : 'YjIzMTE5NTg1ZDQ1MDJiYWMyMTJmMDZhZDAxMGY1MjM4NWNhOTQxOQ==',
+    };
+    return new Promise((resolve, reject)    => {
+        $.ajax({
+            isAsync : isAsync,
+            url     : url_api+""+url,
+            headers : url_header,
+            type    : type,
+            dataType: "json",
+            data    : data, 
+            beforeSend : () => {
+                customMessage;
+            },
+            success     : (success) => {
+                resolve(success);
+            },
+            error       : (err)     => {
+                reject(err);
+            }
+        })
+    })
+}
+
+function formatRibuan(val)
+{
+    if(typeof val === 'undefined') {
+        return null;
+    } else {
+        var number_string   = val.replace(/[^.\d]/g, '').toString(),
+        split               = number_string.split('.'),
+        sisa                = split[0].length % 3,
+        sisa                = split[0].length % 3,
+        angka_hasil         = split[0].substr(0, sisa),
+        ribuan              = split[0].substr(sisa).match(/\d{3}/gi);
+
+        if(ribuan){
+            separator = sisa ? ',' : '';
+            angka_hasil += separator + ribuan.join(',');
+        }
+
+        angka_hasil = split[1] != undefined ? angka_hasil + '.' + split[1] : angka_hasil;
+        return angka_hasil; 
+    }
 }

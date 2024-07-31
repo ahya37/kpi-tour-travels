@@ -150,6 +150,7 @@
     </div>
 
     <div class="modal fade" id="modalShowTourCode">
+        <input type="hidden" name="mst_tourCode_createdBy" id="mst_tourCode_createdBy" value="@php echo Auth::user()->name; @endphp">
         <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -204,7 +205,7 @@
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <label>Quad Cost ($)</label>
-                                        <input type="text" name="mst_tourCode_cost41" id="mst_tourCode_cost41" inputmode="numeric" placeholder="Quad Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                        <input type="text" name="mst_tourCode_cost41" id="mst_tourCode_cost41" inputmode="numeric" placeholder="Quad Cost" class="form-control form-control-sm text-right" style="height: 38px;" value="0" onclick="this.select();">
                                     </div>
                                 </div>
                             </div>
@@ -212,7 +213,7 @@
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <label>Triple Cost ($)</label>
-                                        <input type="text" name="mst_tourCode_cost31" id="mst_tourCode_cost31" inputmode="numeric" placeholder="Triple Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                        <input type="text" name="mst_tourCode_cost31" id="mst_tourCode_cost31" inputmode="numeric" placeholder="Triple Cost" class="form-control form-control-sm text-right" style="height: 38px;" value="0" onclick="this.select();">
                                     </div>
                                 </div>
                             </div>
@@ -220,7 +221,7 @@
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <label>Double Cost ($)</label>
-                                        <input type="text" name="mst_tourCode_cost21" id="mst_tourCode_cost21" inputmode="numeric" placeholder="Double Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                        <input type="text" name="mst_tourCode_cost21" id="mst_tourCode_cost21" inputmode="numeric" placeholder="Double Cost" class="form-control form-control-sm text-right" style="height: 38px;" value="0" onclick="this.select();">
                                     </div>
                                 </div>
                             </div>
@@ -230,7 +231,7 @@
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <label>Lamanya (hari)</label>
-                                        <input type="text" name="mst_tourCode_duration" id="mst_tourCode_duration" inputmode="numeric" placeholder="Lamanya" class="form-control form-control-sm" style="height: 38px;">
+                                        <input type="text" name="mst_tourCode_duration" id="mst_tourCode_duration" inputmode="numeric" placeholder="Lamanya" class="form-control form-control-sm" style="height: 38px;" readonly value="0">
                                     </div>
                                 </div>
                             </div>
@@ -261,24 +262,24 @@
                             <div class="form-group">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label>Quad Cost ($)</label>
-                                        <input type="text" name="mst_tourCode_cost42" id="mst_tourCode_cost42" inputmode="numeric" placeholder="Quad Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                        <label>Quad Cost (Rp)</label>
+                                        <input type="text" name="mst_tourCode_cost42" id="mst_tourCode_cost42" inputmode="numeric" placeholder="Quad Cost" class="form-control form-control-sm text-right" style="height: 38px;" value="0" onclick="this.select();">
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label>Triple Cost ($)</label>
-                                        <input type="text" name="mst_tourCode_cost32" id="mst_tourCode_cost32" inputmode="numeric" placeholder="Triple Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                        <label>Triple Cost (Rp)</label>
+                                        <input type="text" name="mst_tourCode_cost32" id="mst_tourCode_cost32" inputmode="numeric" placeholder="Triple Cost" class="form-control form-control-sm text-right" style="height: 38px;" value="0" onclick="this.select();">
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="row">
                                     <div class="col-sm-12">
-                                        <label>Double Cost ($)</label>
-                                        <input type="text" name="mst_tourCode_cost22" id="mst_tourCode_cost22" inputmode="numeric" placeholder="Double Cost" class="form-control form-control-sm" style="height: 38px;" value="0">
+                                        <label>Double Cost (Rp)</label>
+                                        <input type="text" name="mst_tourCode_cost22" id="mst_tourCode_cost22" inputmode="numeric" placeholder="Double Cost" class="form-control form-control-sm text-right" style="height: 38px;" value="0" onclick="this.select();">
                                     </div>
                                 </div>
                             </div>
