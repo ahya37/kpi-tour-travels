@@ -236,9 +236,10 @@ class UserController extends Controller
                         File::delete($currFile);
                     }
                 }
-                if(!is_dir($tujuan_upload)) {
-                    mkdir($tujuan_upload, 0755, true);
-                }
+                
+                // if(!is_dir($tujuan_upload)) {
+                //     mkdir($tujuan_upload, 0755, true);
+                // }
     
                 if(file_exists($tujuan_upload)) {
                     File::delete($tujuan_upload);

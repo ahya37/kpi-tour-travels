@@ -334,8 +334,8 @@
                 success : (success) => {
                     if(success.length > 0) {
                         localStorage.clear();
-                        localStorage.setItem('profile_pict', success[0].pict_dir);
-                        $("#profile_image").prop('src', success[0].pict_dir);
+                        localStorage.setItem('profile_pict', success[0].pict_dir == null ? 'assets/img/9187604.png' : success[0].pict_dir);
+                        $("#profile_image").prop('src', success[0].pict_dir == null ? 'assets/img/9187604.png' : success[0].pict_dir);
                     } else {
                         localStorage.clear();
                         localStorage.setItem('profile_pict', 'assets/img/9187604.png');

@@ -22,7 +22,7 @@ function getDataDashboard()
             const dataAct_month_2   = dataAct.grand_total_bulan_lalu == null ? 0 : dataAct.grand_total_bulan_lalu;
             
             if(dataUser != '') {
-                var dataUser_image    = dataUser.pict_dir;
+                var dataUser_image    = dataUser.pict_dir == null ? '' : dataUser.pict_dir;
             } else {
                 var dataUser_image    = '';
             }
@@ -47,6 +47,7 @@ function getDataDashboard()
                 $("#img_found_image").append("<img src='"+dataUser_image+"' style='width: 80px; height: 80px;' class='rounded-circle m-b-md' alt='profile'>");
                 $("#img_not_found").addClass('d-none');
             } else {
+                $("#img_found_image").prop('src', '');
                 $("#img_not_found").removeClass('d-none');
                 $("#img_found").addClass('d-none');
             }
