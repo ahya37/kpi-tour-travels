@@ -5,7 +5,7 @@
                 <div id="profile_id" style="margin-top: 32px; margin-bottom: 32px;">
                     <div class="row">
                         <div class="col-sm-12">
-                            <img alt="image" class="rounded-circle" src="{{ asset('assets/img/9187604.png') }}"
+                            <img alt="image" class="rounded-circle" id="profile_image" src="{{ asset('assets/img/9187604.png') }}"
                                 width="64px" height="64px" />
                         </div>
                     </div>
@@ -317,3 +317,35 @@
 
     </div>
 </nav>
+
+<script src="{{ asset('assets/js/jquery-3.1.1.min.js') }}"></script>
+
+<script type="text/javascript">
+    $(document).ready(()    => {
+        if(localStorage.length > 0) {
+            const profile_pict  = localStorage.getItem('profile_pict');
+            $("#profile_image").prop('src', profile_pict);
+        } else {
+            // GET DATA DARI EMPLOYEES
+            $.ajax({
+                cache   : false,
+                type    : "GET",
+                url     : '/accounts/userProfiles/getDataUser',
+                success : (success) => {
+                    if(success.length > 0) {
+                        localStorage.clear();
+                        localStorage.setItem('profile_pict', success[0].pict_dir);
+                        $("#profile_image").prop('src', success[0].pict_dir);
+                    } else {
+                        localStorage.clear();
+                        localStorage.setItem('profile_pict', 'assets/img/9187604.png');
+                        $("#profile_image").prop('src', 'assets/img/9187604.png');
+                    }
+                },
+                error   : (err)     => {
+                    console.log(err);
+                }
+            });
+        }
+    })
+</script>

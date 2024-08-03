@@ -167,14 +167,20 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/users', 'index')->name('users.index')->middleware('permission:users.index');
             Route::get('/users/create', 'create')->name('users.create')->middleware('permission:users.create');
             Route::post('/users/store', 'store')->name('users.store');
-            Route::get('/userProfiles', 'userProfiles')->name('accounts.user.profile');
-            Route::get('/userProfiles/ChangePasswordUser', 'ChangePasswordUser');
-            Route::get('/userProfiles/CheckPasswordCurrentUser', 'CheckPasswordCurrentUser');
             Route::prefix('userLog')->group(function(){
                 Route::get('/', 'userLog')->name('accounts.user.log');
                 Route::get('/dataTableUserLog', 'dataTableUserLog');
             });
             Route::get('/userLog', 'userLog')->name('accounts.user.log');
+            Route::prefix('userProfiles')->group(function(){
+                Route::get('/', 'userProfiles')->name('accounts.user.profile');
+                Route::get('/ChangePasswwordUser', 'ChangePasswordUser');
+                Route::get('/CheckPasswordCurrentUser', 'CheckPasswordCurrentUser');
+                Route::get('/getUserData', 'getUserData');
+                Route::post('/updatePicture', 'updateProfilePicture')->name('accounts.changePicture');
+                Route::get('/getDataUser', 'getDataUser');
+            });
+            // Route::get('/userProfiles/updateProfilePict', 'updateProfilePicture')->name('accounts.do.upload');
         });
 
         Route::controller(RoleController::class)->group(function(){
