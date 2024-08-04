@@ -69,8 +69,13 @@ class ProgramKerjaController extends Controller
             'group_division'    => $currentGroupDivision,
             'sub_division'      => $currentSubDivision,
         ];
+        
+        $datas = [
+            'title' => 'Halaman Sedang Dalam Pengembangan',
+            'sub_title' => 'Halaman Sedang Dalam Pengembangan'
+        ];
 
-        return view('maintenance');
+        return view('maintenance', $datas);
 
         return view('master/programKerja/index', $data);
     }
@@ -1366,14 +1371,21 @@ class ProgramKerjaController extends Controller
                 #get jenis pekerjaan di proker_bulanan_detail berdasarkan pkb_id nya
                 $jenis_pekerjaan = ProkerHarian::getProkerHarianByProkerBulanan($value->uuid);
 
-                $weeks = DateFormat::getWeekStartEndDates($year, $month);
+                // $weeks = DateFormat::getWeekStartEndDates($year, $month);
 
 
-                $minggu_1 = [];
-                $minggu_2 = [];
-                $minggu_3 = [];
-                $minggu_4 = [];
-                $minggu_5 = [];
+                // $minggu_1 = [];
+                // $minggu_2 = [];
+                // $minggu_3 = [];
+                // $minggu_4 = [];
+                // $minggu_5 = [];
+
+                // get data pekerjaan harian berdasarkan program, tahun, bulan, dan minggu , hitung
+                $aktivitas_harian_minggu_1 = ProkerHarian::getProkerHarianByProkerBulananPerMinggu($year, $month, $value->uuid,1);
+                $aktivitas_harian_minggu_2 = ProkerHarian::getProkerHarianByProkerBulananPerMinggu($year, $month, $value->uuid,2);
+                $aktivitas_harian_minggu_3 = ProkerHarian::getProkerHarianByProkerBulananPerMinggu($year, $month, $value->uuid,3);
+                $aktivitas_harian_minggu_4 = ProkerHarian::getProkerHarianByProkerBulananPerMinggu($year, $month, $value->uuid,4);
+                $aktivitas_harian_minggu_5 = ProkerHarian::getProkerHarianByProkerBulananPerMinggu($year, $month, $value->uuid,5);
 
                 // foreach ($jenis_pekerjaan as $detail) {
                 //     $detail_date = Carbon::parse($detail->pkh_date);
@@ -1393,33 +1405,35 @@ class ProgramKerjaController extends Controller
                 //     }
                 // }
 
-                foreach ($jenis_pekerjaan as $detail) {
-                    $detail_date = new DateTime($detail->pkh_date);
-                    $detail->pkh_date = date('d-m-Y', strtotime($detail->pkh_date));
+                // foreach ($jenis_pekerjaan as $detail) {
+                //     $detail_date = new DateTime($detail->pkh_date);
+                //     $detail->pkh_date = date('d-m-Y', strtotime($detail->pkh_date));
             
-                    if ($detail_date >= new DateTime($weeks[0]['start']) && $detail_date <= new DateTime($weeks[0]['end'])) {
-                        $minggu_1[] = $detail;
-                    } elseif (isset($weeks[1]) && $detail_date >= new DateTime($weeks[1]['start']) && $detail_date <= new DateTime($weeks[1]['end'])) {
-                        $minggu_2[] = $detail;
-                    } elseif (isset($weeks[2]) && $detail_date >= new DateTime($weeks[2]['start']) && $detail_date <= new DateTime($weeks[2]['end'])) {
-                        $minggu_3[] = $detail;
-                    } elseif (isset($weeks[3]) && $detail_date >= new DateTime($weeks[3]['start']) && $detail_date <= new DateTime($weeks[3]['end'])) {
-                        $minggu_4[] = $detail;
-                    } elseif (isset($weeks[4]) && $detail_date >= new DateTime($weeks[4]['start']) && $detail_date <= new DateTime($weeks[4]['end'])) {
-                        $minggu_5[] = $detail;
-                    }
-                }
+                //     if ($detail_date >= new DateTime($weeks[0]['start']) && $detail_date <= new DateTime($weeks[0]['end'])) {
+                //         $minggu_1[] = $detail;
+                //     } elseif (isset($weeks[1]) && $detail_date >= new DateTime($weeks[1]['start']) && $detail_date <= new DateTime($weeks[1]['end'])) {
+                //         $minggu_2[] = $detail;
+                //     } elseif (isset($weeks[2]) && $detail_date >= new DateTime($weeks[2]['start']) && $detail_date <= new DateTime($weeks[2]['end'])) {
+                //         $minggu_3[] = $detail;
+                //     } elseif (isset($weeks[3]) && $detail_date >= new DateTime($weeks[3]['start']) && $detail_date <= new DateTime($weeks[3]['end'])) {
+                //         $minggu_4[] = $detail;
+                //     } elseif (isset($weeks[4]) && $detail_date >= new DateTime($weeks[4]['start']) && $detail_date <= new DateTime($weeks[4]['end'])) {
+                //         $minggu_5[] = $detail;
+                //     }
+
+                  
+                // }
                         
                 $results[] = [
                     'id' => $value->id,
                     'uuid' => $value->uuid,
                     'pkb_start_date' => $value->pkb_start_date,
                     'pkb_title' => $value->pkb_title,
-                    'count_minggu_1' => count($minggu_1),
-                    'count_minggu_2' => count($minggu_2),
-                    'count_minggu_3' => count($minggu_3),
-                    'count_minggu_4' => count($minggu_4),
-                    'count_minggu_5' => count($minggu_5),
+                    'count_minggu_1' => count($aktivitas_harian_minggu_1),
+                    'count_minggu_2' => count($aktivitas_harian_minggu_2),
+                    'count_minggu_3' => count($aktivitas_harian_minggu_3),
+                    'count_minggu_4' => count($aktivitas_harian_minggu_4),
+                    'count_minggu_5' => count($aktivitas_harian_minggu_5),
                 ];
             }
 
@@ -1429,14 +1443,17 @@ class ProgramKerjaController extends Controller
             
                 foreach($results as $i => $result){
 
+                    $jml_per_proker_harian = $result['count_minggu_1'] + $result['count_minggu_2'] + $result['count_minggu_3'] + $result['count_minggu_4'] + $result['count_minggu_5'];
+
                     $data[]     = [
-                    $i + 1,
-                    $result['pkb_title'],
-                    '<a href="#" class="btn btn-sm" data-minggu="1" data-uuid='.$result['uuid'].' >'.$result['count_minggu_1'].'</a>',
-                    '<a href="#" class="btn btn-sm" data-minggu="2" data-uuid='.$result['uuid'].' >'.$result['count_minggu_2'].'</a>',
-                    '<a href="#" class="btn btn-sm" data-minggu="3" data-uuid='.$result['uuid'].' >'.$result['count_minggu_3'].'</a>',
-                    '<a href="#" class="btn btn-sm" data-minggu="4" data-uuid='.$result['uuid'].' >'.$result['count_minggu_4'].'</a>',
-                    '<a href="#" class="btn btn-sm" data-minggu="5" data-uuid='.$result['uuid'].' >'.$result['count_minggu_5'].'</a>',
+                        $i + 1,
+                        $result['pkb_title'],
+                        '<a href="#" class="btn btn-sm" data-pkbdid='.$result['id'].' data-minggu="1" data-uuid='.$result['uuid'].' >'.$result['count_minggu_1'].'</a>',
+                        '<a href="#" class="btn btn-sm" data-pkbdid='.$result['id'].' data-minggu="2" data-uuid='.$result['uuid'].' >'.$result['count_minggu_2'].'</a>',
+                        '<a href="#" class="btn btn-sm" data-pkbdid='.$result['id'].' data-minggu="3" data-uuid='.$result['uuid'].' >'.$result['count_minggu_3'].'</a>',
+                        '<a href="#" class="btn btn-sm" data-pkbdid='.$result['id'].' data-minggu="4" data-uuid='.$result['uuid'].' >'.$result['count_minggu_4'].'</a>',
+                        '<a href="#" class="btn btn-sm" data-pkbdid='.$result['id'].' data-minggu="5" data-uuid='.$result['uuid'].' >'.$result['count_minggu_5'].'</a>',
+                        $jml_per_proker_harian
                     ];
             
             }
@@ -1458,6 +1475,8 @@ class ProgramKerjaController extends Controller
             $jml_minggu_4 = collect($results)->sum(function($q){ return $q['count_minggu_4']; });
             $jml_minggu_5 = collect($results)->sum(function($q){ return $q['count_minggu_5']; });
 
+            $total_all_minggu = $jml_minggu_1 + $jml_minggu_2 + $jml_minggu_3 + $jml_minggu_4 + $jml_minggu_5;
+
             return ResponseFormatter::success([
                'bulan' =>  Months::monthName($month),
                'perminggu' => $output,
@@ -1466,6 +1485,7 @@ class ProgramKerjaController extends Controller
                'jml_minggu_3' => $jml_minggu_3,
                'jml_minggu_4' => $jml_minggu_4,
                'jml_minggu_5' => $jml_minggu_5,
+               'total_all_minggu' => $total_all_minggu
             ]);
 
         } catch (\Exception $e) {

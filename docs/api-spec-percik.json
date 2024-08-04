@@ -1,0 +1,171 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+      "title": "PERCIK RESTful API",
+      "description": "API Spec for umrah RESTful API",
+      "version": "1.0.0"
+    },
+    "servers": [
+      {
+        "url": "https://api-percik.perciktours.com/api"
+      }
+    ],
+    "paths": {
+      "/umrah/jadwal/save": {
+        "post": {
+          "security": [{
+            "PercikAuth" :[]
+          }],
+          "tags": ["Jadwal Umrah API"],
+          "description": "Create New Jadwal Umrah",
+          "summary": "Create New Jadwal Umrah",
+          "requestBody": {
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "$ref": "#/components/schemas/umrahCreate"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Success Create jadwal umrah",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "meta": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "number",
+                            "example": 200
+                          },
+                          "status": {
+                            "type": "string",
+                            "example": "success"
+                          },
+                          "message": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": null
+                          }
+                        }
+                      },
+                      "data" : {
+                        "$ref": "#/components/schemas/umrah"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "PercikAuth" : { 
+          "type": "apiKey",
+          "in" : "header",
+          "name": "x-api-key",
+          "description": "Authentication for Percik API"
+        }
+      },
+      "schemas": {
+        "umrahCreate" : {
+          "type": "object",
+          "properties": {
+                "proggram": {
+                  "type": "string"
+                },
+                "kapasitas": {
+                  "type": "number"
+                },
+                "tgl_berangkat":{
+                 "type": "string" 
+                },
+                "pembimbing":{
+                 "type": "string" 
+                },
+                "quad_cost_dolar":{
+                 "type": "number" 
+                },
+                "triple_cost_dolar":{
+                 "type": "number" 
+                },
+                "double_cost_dolar":{
+                 "type": "number" 
+                },
+                "lama":{
+                 "type": "number" 
+                },
+                "tujuan":{
+                 "type": "string" 
+                },
+                "rute":{
+                 "type": "string" 
+                },
+                "tgl_pulang":{
+                 "type": "string" 
+                },
+                "tourleader":{
+                 "type": "string" 
+                },
+                "quad_cost_rupiah":{
+                 "type": "number" 
+                },
+                "triple_cost_rupiah":{
+                 "type": "number" 
+                },
+                "double_cost_rupiah":{
+                 "type": "number" 
+                }
+              } 
+        },
+        "umrah" : {
+          "type": "object",
+          "properties": {
+            "umrah":{
+              "type": "object",
+              "properties": {
+                "KODE": {
+                  "type": "number"
+                },
+                "TPE": {
+                  "type": "string"
+                },
+                "TUJUAN":{
+                 "type": "string" 
+                },
+                "RUTE":{
+                 "type": "string" 
+                },
+                "LAMA":{
+                 "type": "number" 
+                },
+                "BERANGKAT":{
+                 "type": "string" 
+                },
+                "PULANG":{
+                 "type": "string" 
+                },
+                "KAPASITAS":{
+                 "type": "number" 
+                },
+                "PEMBIMBING":{
+                 "type": "string" 
+                },
+                "TOURLEADER":{
+                 "type": "string" 
+                }
+              } 
+            }
+          }
+        }
+      }
+    }
+  }

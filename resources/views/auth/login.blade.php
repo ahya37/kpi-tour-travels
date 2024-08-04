@@ -63,5 +63,9 @@
     <script src="{{asset('/assets/login/js/popper.min.js')}}"></script>
     <script src="{{asset('/assets/login/js/bootstrap.min.js')}}"></script>
     <script src="{{asset('/assets/login/js/main.js')}}"></script>
+
+    <script type="text/javascript">
+      localStorage.clear();
+    </script>
   </body>
 </html>

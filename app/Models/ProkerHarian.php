@@ -16,8 +16,8 @@ class ProkerHarian extends Model
     public static function getProkerHarianByProkerBulanan($pkh_pkb_id)
     {
         return DB::table('proker_harian as a')
-            ->select('a.pkh_date', 'a.pkh_start_time', 'a.pkh_end_time', 'a.pkh_title', 'b.name')
-            ->leftJoin('proker_bulanan_detail as c', function($join) {
+            ->select('a.id','a.pkh_date', 'a.pkh_start_time', 'a.pkh_end_time', 'a.pkh_title', 'b.name')
+            ->join('proker_bulanan_detail as c', function($join) {
                 $join->on(DB::raw("SUBSTRING_INDEX(a.pkh_pkb_id, '|', -1)"), '=', 'c.id');
             })
             ->leftJoin('users as b', 'a.created_by', '=', 'b.id')

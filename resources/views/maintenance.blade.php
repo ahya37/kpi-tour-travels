@@ -24,7 +24,7 @@
             <div class="col-lg-12">
                 <div class="ibox ">
                     <div class="ibox-content">
-                       <h1>SEDANG DALAM MAINTENANCE</h1>
+                       <h1></h1>
                     </div>
                 </div>
             </div>
