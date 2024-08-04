@@ -5,8 +5,7 @@
                 <div id="profile_id" style="margin-top: 32px; margin-bottom: 32px;">
                     <div class="row">
                         <div class="col-sm-12">
-                            <img alt="image" class="rounded-circle" id="profile_image" src="{{ asset('assets/img/9187604.png') }}"
-                                width="64px" height="64px" />
+                            <img alt="image" class="rounded-circle" id="profile_image" width="64px" height="64px" src="{{ asset('assets/img/9187604.png') }}" />
                         </div>
                     </div>
                     <div class="row" style="padding-top: 16px;">
@@ -324,12 +323,12 @@
     $(document).ready(()    => {
         if(localStorage.length > 0) {
             const profile_pict  = localStorage.getItem('profile_pict');
-            $("#profile_image").prop('src', profile_pict);
+            $("#profile_image").prop('src', '');
+            $("#profile_image").prop('src', '../'+profile_pict);
         } else {
-            // GET DATA DARI EMPLOYEES
             $.ajax({
                 cache   : false,
-                type    : "GET",
+                type    : 'GET',
                 url     : '/accounts/userProfiles/getDataUser',
                 success : (success) => {
                     if(success.length > 0) {
@@ -345,7 +344,7 @@
                 error   : (err)     => {
                     console.log(err);
                 }
-            });
+            })
         }
     })
 </script>

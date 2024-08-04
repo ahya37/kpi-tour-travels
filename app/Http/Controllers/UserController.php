@@ -221,7 +221,7 @@ class UserController extends Controller
                 "file_size"     => $file->getSize(),
                 "custom_name"   => date('YmdHis')."-".Auth::user()->id.".".$file->getClientOriginalExtension(),
                 "user_id"       => Auth::user()->id,
-                "storage_path"  => "/storage/data-files/profile_pictures/".Auth::user()->id,
+                "storage_path"  => "storage/data-files/profile_pictures/".Auth::user()->id,
                 "ip"            => $request->ip()
             ];
     
@@ -254,7 +254,7 @@ class UserController extends Controller
                         'icon'      => 'success',
                         'message'   => [
                             'title'     => 'Berhasil',
-                            'text'      => 'Berhasil Merubah Foto Profiil Akun',
+                            'text'      => 'Berhasil Merubah Foto Profil Akun',
                         ],
                     ],
                 );
@@ -265,8 +265,8 @@ class UserController extends Controller
                     'alert'     => [
                         'icon'      => 'error',
                         'message'   => [
-                            'title'     => 'Berhasil',
-                            'text'      => 'Berhasil Merubah Foto Profiil Akun',
+                            'title'     => 'Terjadi Kesalahan',
+                            'text'      => 'Gagal Merubah Foto Profil Akun',
                         ],
                     ],
                 );

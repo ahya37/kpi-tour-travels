@@ -1,10 +1,13 @@
 $(document).ready(function(){
     getDataDashboard();
+
+    console.log(localStorage);
 })
 
 var site_url                = window.location.pathname;
 var checkPasswordIsTrue     = false;
 var isConfirmPasswordSame   = false;
+var defaultPicturePath      = 'assets/img/9187604.png';
 
 function getDataDashboard()
 {
@@ -44,12 +47,16 @@ function getDataDashboard()
             $("#img_loading").addClass('d-none');
             if(dataUser_image != '') {
                 $("#img_found").removeClass('d-none');
-                $("#img_found_image").append("<img src='"+dataUser_image+"' style='width: 80px; height: 80px;' class='rounded-circle m-b-md' alt='profile'>");
+                $("#img_found_image").append("<img src='/"+dataUser_image+"' style='width: 80px; height: 80px;' class='rounded-circle m-b-md' alt='profile'>");
                 $("#img_not_found").addClass('d-none');
+                localStorage.setItem('profile_pict', dataUser_image);
+                $("#profile_image").prop('src', "../"+dataUser_image);
             } else {
-                $("#img_found_image").prop('src', '');
+                $("#img_found_image").append("<img src='/"+defaultPicturePath+"' style='width: 80px; height: 80px;' class='rounded-circle m-b-md' alt='profile'>");
                 $("#img_not_found").removeClass('d-none');
                 $("#img_found").addClass('d-none');
+                localStorage.setItem('profile_pict', defaultPicturePath);
+                $("#profile_image").prop('src', "../"+defaultPicturePath);
             }
         })
         .catch((err)    => {
