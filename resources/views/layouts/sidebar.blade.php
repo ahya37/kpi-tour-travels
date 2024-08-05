@@ -44,7 +44,7 @@
                     </li>
                 </ul>
                 <ul class="nav nav-second-level">
-                    <li class="{{ request()->is('master/program') ? 'active' : '' }}">
+                    <li class="{{ request()->is('master/programkerja/master_program') ? 'active' : '' }}">
                         <a href={{ route('programKerja.masterProgram.index') }}>Program</a>
                     </li>
                 </ul>
