@@ -248,19 +248,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
+					
+					<div class="form-group">
                         <div class="row">
                             <div class="col-sm-12">
-                                <label>Kategori</label>
-                                {{-- <input type="text" class="form-control form-control-sm" id="program_title" name="program_title" style="height: 37.5px;" placeholder="Uraian" autocomplete="off"> --}}
-                                <select name="program_title" id="program_title" class="form-control form-control-sm" style="width: 100%;"></select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <label>Sasaran</label>
+                                <label>Program Kerja Divisi</label>
                                 <select name="program_sasaranHeaderID" id="program_sasaranHeaderID" class="form-control form-control-sm" style="width: 100%;"></select>
                             </div>
                         </div>
@@ -268,11 +260,22 @@
                     <div class="form-group">
                         <div class="row">
                             <div class="col-sm-12">
-                                <label>Sasaran Detail</label>
+                                <label>Sasaran</label>
                                 <select name="program_sasaranID" id="program_sasaranID" class="form-control form-control-sm" style="width: 100%;"></select>
                             </div>
                         </div>
                     </div>
+					
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label>Program</label> 
+                                {{-- <input type="text" class="form-control form-control-sm" id="program_title" name="program_title" style="height: 37.5px;" placeholder="Uraian" autocomplete="off"> --}}
+                                <select name="program_title" id="program_title" class="form-control form-control-sm" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <div class="row">
                             <div class="col-sm-12">
@@ -329,12 +332,12 @@
                             <div class="card card-body">
                                 <div class="row">
                                     <div class="col-sm-6">
-                                        <div class="row mb-2">
+									 <div class="row mb-2">
                                             <div class="col-sm-4 pt-2">
-                                                <label>Kategori</label>
+                                                <label>Sasaran</label>
                                             </div>
                                             <div class="col-sm-8 pt-2">
-                                                <span id="modalDetailProgram_programKategori"></span>
+                                                <span id="modalDetailProgram_programTitle"></span>
                                             </div>
                                         </div>
                                         <div class="row mb-2">
@@ -342,9 +345,10 @@
                                                 <label>Program</label>
                                             </div>
                                             <div class="col-sm-8 pt-2">
-                                                <span id="modalDetailProgram_programTitle"></span>
+                                                <span id="modalDetailProgram_programKategori"></span>
                                             </div>
                                         </div>
+                                       
                                         <div class="row mb-2">
                                             <div class="col-sm-4 pt-2">
                                                 <label>Bulan</label>
@@ -356,7 +360,7 @@
                                         <div class="row mb-2">
                                             <div class="col-sm-4 pt-2">
                                                 <label>Divisi</label>
-                                            </div>
+                                            </div>  
                                             <div class="col-sm-8 pt-2">
                                                 <span id="modalDetailProgram_programDivisi"></span>
                                             </div>

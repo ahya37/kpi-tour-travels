@@ -43,12 +43,12 @@
                         <a href={{ route('Employees.index') }}>Employee</a>
                     </li>
                 </ul>
-                <ul class="nav nav-second-level">
+				{{-- <ul class="nav nav-second-level">
                     <li
                         class="{{ (request()->is('master/programkerja') || request()->is('master/programkerja/*')) ? 'active' : '' }}">
                         <a href={{ route('programKerja.index') }}>Program Kerja</a>
                     </li>
-                </ul>
+                </ul> --}}
                 <ul class="nav nav-second-level">
                     <li class="{{ request()->is('marketings/prospectmaterial/') || request()->is('marketings/prospectmaterial/*') ? 'active' : '' }}"><a href="{{ route('marketing.prospectmaterial') }}">Generate Bahan Prospek Alumni</a></li>
                 </ul>
