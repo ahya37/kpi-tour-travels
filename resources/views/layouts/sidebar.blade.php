@@ -44,11 +44,16 @@
                     </li>
                 </ul>
                 <ul class="nav nav-second-level">
+                    <li class="{{ request()->is('master/program') ? 'active' : '' }}">
+                        <a href={{ route('programKerja.masterProgram.index') }}>Program</a>
+                    </li>
+                </ul>
+				{{-- <ul class="nav nav-second-level">
                     <li
                         class="{{ (request()->is('master/programkerja') || request()->is('master/programkerja/*')) ? 'active' : '' }}">
                         <a href={{ route('programKerja.index') }}>Program Kerja</a>
                     </li>
-                </ul>
+                </ul> --}}
                 <ul class="nav nav-second-level">
                     <li class="{{ request()->is('marketings/prospectmaterial/') || request()->is('marketings/prospectmaterial/*') ? 'active' : '' }}"><a href="{{ route('marketing.prospectmaterial') }}">Generate Bahan Prospek Alumni</a></li>
                 </ul>
@@ -321,10 +326,12 @@
 
 <script type="text/javascript">
     $(document).ready(()    => {
+        var base_url    = window.location.origin;
+        var default_picture     = base_url+"/assets/img/9187604.png";
         if(localStorage.length > 0) {
             const profile_pict  = localStorage.getItem('profile_pict');
             $("#profile_image").prop('src', '');
-            $("#profile_image").prop('src', '../'+profile_pict);
+            $("#profile_image").prop('src', profile_pict);
         } else {
             $.ajax({
                 cache   : false,
@@ -333,12 +340,12 @@
                 success : (success) => {
                     if(success.length > 0) {
                         localStorage.clear();
-                        localStorage.setItem('profile_pict', success[0].pict_dir == null ? 'assets/img/9187604.png' : success[0].pict_dir);
-                        $("#profile_image").prop('src', success[0].pict_dir == null ? 'assets/img/9187604.png' : success[0].pict_dir);
+                        localStorage.setItem('profile_pict', success[0].pict_dir == null ? base_url + '/assets/img/9187604.png' : base_url + '/'+ success[0].pict_dir);
+                        $("#profile_image").prop('src', success[0].pict_dir == null ? base_url + '/assets/img/9187604.png' : base_url + '/'+ success[0].pict_dir);
                     } else {
                         localStorage.clear();
-                        localStorage.setItem('profile_pict', 'assets/img/9187604.png');
-                        $("#profile_image").prop('src', 'assets/img/9187604.png');
+                        localStorage.setItem('profile_pict', default_picture);
+                        $("#profile_image").prop('src', default_picture);
                     }
                 },
                 error   : (err)     => {
