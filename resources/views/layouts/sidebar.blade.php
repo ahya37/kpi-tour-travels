@@ -43,6 +43,11 @@
                         <a href={{ route('Employees.index') }}>Employee</a>
                     </li>
                 </ul>
+                <ul class="nav nav-second-level">
+                    <li class="{{ request()->is('master/program') ? 'active' : '' }}">
+                        <a href={{ route('programKerja.masterProgram.index') }}>Program</a>
+                    </li>
+                </ul>
 				{{-- <ul class="nav nav-second-level">
                     <li
                         class="{{ (request()->is('master/programkerja') || request()->is('master/programkerja/*')) ? 'active' : '' }}">

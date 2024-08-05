@@ -79,8 +79,8 @@
                                     <select class="form-control form-control-sm" name="master_program_divisi" id="master_program_divisi" data-placeholder="Pilih Divisi" style="width: 100%;" multiple="multiple"></select>
                                 </div>
                                 <div class="form-group mt-2">
-                                    <label>Uraian</label>
-                                    <input type="text" name="master_program_uraian" id="master_program_uraian" class="form-control" placeholder="Uraian" style="height: 37.5px;">
+                                    <label>Program</label>
+                                    <input type="text" name="master_program_uraian" id="master_program_uraian" class="form-control" placeholder="Program" style="height: 37.5px;">
                                 </div>
                             </div>
                         </div>
