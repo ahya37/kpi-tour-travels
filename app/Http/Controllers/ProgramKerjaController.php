@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Log;
 use DB;
 use App\Helpers\NumberFormat;
 use App\Helpers\DateFormat;
+use Database\Seeders\ProgramSeeder;
 use DateTime;
 
 date_default_timezone_set('Asia/Jakarta');
@@ -1953,5 +1954,83 @@ class ProgramKerjaController extends Controller
         }
 
     }
+    public function index_masterProgram()
+    {
+        $data   = [
+            "title"     => "Master Program", 
+            "sub_title" => "Master Program - Dashboard",
+        ];
 
+        return view('master.programKerja.master_program.index', $data);
+    }
+
+    public function get_list_master_program(Request $request)
+    {
+        $data   = [
+            "user_role" => Auth::user()->getRoleNames()[0],
+            "program_id"=> $request->all()['id'],
+        ];
+
+        $getData    = ProgramKerjaService::do_get_list_master_program($data);
+
+        if(count($getData) > 0) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Data Berhasil Ditemukan",
+                "data"      => $getData,
+            );
+        } else {
+            $output     = array(
+                "success"   => true,
+                "status"    => 404,
+                "message"   => "Data Tidak Ditemukan",
+                "data"      => $getData,
+            );
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+
+    public function simpan_master_group($jenis, Request $request)
+    {
+        $data_simpan    = [
+            "id"        => $request->all()['id'],
+            "divisi"    => $request->all()['divisi'],
+            "uraian"    => $request->all()['uraian'],
+            "ip"        => $request->ip(),
+            "user_id"   => Auth::user()->id,
+            "jenis"     => $jenis,
+        ];
+
+        $do_simpan      = ProgramKerjaService::do_simpan_master_group($data_simpan);
+
+        if($do_simpan['status'] == 'berhasil') {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => $jenis == 'add' ? "Berhasil Menyimpan Data Program Baru" : "Berhasil Mengubah Data Program"
+                    ],
+                ],
+            );
+        } else if($do_simpan['status'] == 'gagal') {
+            $output     = array(
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => $jenis == 'add' ? "Gagal Menyimpan Data Program Baru" : "Gagal Mengubah Data Program"
+                    ],
+                ],
+            );
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

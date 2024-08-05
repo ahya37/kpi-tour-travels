@@ -1467,4 +1467,97 @@ class ProgramKerjaService
 
         return $output;
     }
+
+    public static function do_get_list_master_program($data)
+    {
+        $current_role   = $data['user_role'] == 'admin' ? '%' : $data['user_role'];
+        $master_id      = $data['program_id'];
+
+        // GET GROUP DIVISION ID
+        if($current_role != '%') {
+            $group_division_id  = DB::select(
+                "
+                SELECT  a.id as gd_id
+                FROM    group_divisions a
+                JOIN    roles b ON a.roles_id = b.id
+                WHERE   b.name LIKE '$current_role'
+                "
+            )[0]->gd_id;
+        } else {
+            $group_division_id  = '%';
+        }
+
+        // GET DATA MASTER PROGRAM
+        $master_program     = DB::select(
+            "
+            SELECT  a.*,
+                    b.name as group_division_name
+            FROM    master_program a
+            JOIN    group_divisions b ON a.division_group_id = b.id
+            WHERE   a.division_group_id LIKE '$group_division_id'
+            AND     a.id LIKE '$master_id'
+            ORDER BY id DESC
+            "
+        );
+        
+        return $master_program;
+    }
+
+    public static function do_simpan_master_group($data)
+    {
+        DB::beginTransaction();
+        // BONGKAR DULU DATANYA
+        $master_program_id      = $data['id'];
+        $master_program_divisi  = $data['divisi'];
+        $master_program_uraian  = $data['uraian'];
+        $jenis                  = $data['jenis'];
+        $ip                     = $data['ip'];
+        $user_id                = $data['user_id'];
+        $today                  = date('Y-m-d H:i:s');
+        $message_success        = "";
+        $message_failed         = "";
+        
+        if($jenis == 'add') {
+            for($i = 0; $i < count($master_program_divisi); $i++) {
+                // SIMPAN DATA
+                $data_simpan    = [
+                    "name"              => $master_program_uraian,
+                    "division_group_id" => $master_program_divisi[$i],
+                    "created_by"        => $user_id,
+                    "created_at"        => $today,
+                    "updated_by"        => $user_id,
+                    "updated_at"        => $today,
+                ];
+
+                DB::table('master_program')->insert($data_simpan);
+            };
+        } else if($jenis == 'edit') {
+            $data_where     = [
+                "id"    => $master_program_id
+            ];
+            $data_update    = [
+                "name"  => $master_program_uraian,
+            ];
+
+            DB::table('master_program')->where($data_where)->update($data_update);
+        }
+
+        try {
+            DB::commit();
+            $jenis == 'add' ? LogHelper::create('add', 'Berhasil Menambahkan Data Master Program Baru', $ip) : LogHelper::create('edit', 'Berhasil Merubah Data Master Program : '.$master_program_id, $ip);
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => "",
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+            $jenis == 'add' ? LogHelper::create('add', 'Berhasil Menambahkan Data Master Program Baru', $ip) : LogHelper::create('edit', 'Berhasil Merubah Data Master Program : '.$master_program_id, $ip);
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => "",
+            ];
+        }
+
+        return $output;
+    }
 }
