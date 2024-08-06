@@ -386,7 +386,7 @@ function show_modal(id_modal, jenis, value)
                 // HEADER
                 $("#modalDetailProgram_programKategori").html(header.pkb_title.toUpperCase());
                 $("#modalDetailProgram_programTitle").html(header.pkb_sub_title);
-                $("#modalDetailProgram_programBulan").html(moment(header.pkb_month_periode).format('MMMM').toUpperCase());
+                $("#modalDetailProgram_programBulan").html(moment(header.pkb_month_periode, 'MM').format('MMMM').toUpperCase());
                 $("#modalDetailProgram_programDivisi").html(header.group_division_name);
 
                 $("#modalDetailProgram_title").html('Detail Program : '+header.pkb_title.toUpperCase()+' - '+header.pkb_sub_title);
@@ -628,15 +628,15 @@ function show_table(id_table, value)
             },
             processing  : true,
             serverSide  : false,
-            ajax        : {
-                url     : "/marketings/programKerja/program/listProgramMarketing",
-                type    : "GET",
-                dataType: "json",
-                data    : {
-                    "_token"    : CSRF_TOKEN,
-                    "sendData"  : '%',
-                },
-            },
+            // ajax        : {
+            //     url     : "/marketings/programKerja/program/listProgramMarketing",
+            //     type    : "GET",
+            //     dataType: "json",
+            //     data    : {
+            //         "_token"    : CSRF_TOKEN,
+            //         "sendData"  : '%',
+            //     },
+            // },
             columnDefs  : [
                 { "targets" : [1, 3], "className" : "align-middle" },
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
@@ -644,37 +644,47 @@ function show_table(id_table, value)
                 { "targets" : [4], "className" : "text-right align-middle", "width" : "5%" },
                 { "targets" : [5], "className" : "text-center align-middle", "width" : "15%" },
             ],
-            footerCallback: function (tr, data, start, end, display) {
-                var api = this.api();
-                $(api.column(4).footer()).html(
-                    api
-                        .column(4)
-                        .data()
-                        .reduce(function (a, b) {
-                            return parseInt(a) + parseInt(b);
-                        }, 0)
-                );
-            }
+            // footerCallback: function (tr, data, start, end, display) {
+            //     var api = this.api();
+            //     $(api.column(4).footer()).html(
+            //         api
+            //             .column(4)
+            //             .data()
+            //             .reduce(function (a, b) {
+            //                 return parseInt(a) + parseInt(b);
+            //             }, 0)
+            //     );
+            // }
         });
         
         // GET DATATABLE
-        // doTrans('/marketings/programKerja/program/listProgramMarketing', 'GET', '%', '', true)
-        //     .then((success) => {
-        //         for(let i = 0; i < success.data.length; i++) {
-        //             $("#"+id_table).DataTable.row.add([
-        //                 i + 1,
-        //                 null,
-        //                 null,
-        //                 null,
-        //                 null,
-        //                 null,
-        //             ]).draw(false);
-        //         }
-        //     })
-        //     .catch((err)    => {
-        //         console.log(err);
-        //         $(".dataTables_empty").html('Tidak ada data yang bisa dimuat, silahkan tambahkan beberapa..');
-        //     })
+        doTrans('/marketings/programKerja/program/listProgramMarketing', 'GET', '%', '', true)
+            .then((success) => {
+                if(success.data.length > 0) {
+                    for(let i = 0; i < success.data.length; i++) {
+                        const seq           = i + 1;
+                        const id            = success.data[i].pkb_id;
+                        const title         = success.data[i].pkb_title;
+                        const date          = success.data[i].program_date;
+                        const groupDivision = success.data[i].group_division_name;
+                        const target        = +success.data[i].total_target;
+                        const buttonEdit    = "<button type='button' class='btn btn-sm btn-primary' title='Ubah Data' value='" + id + "' onclick=' show_modal(`modalProgram`, `edit`, this.value)'><i class='fa fa-edit'></i></button>";
+                        const buttonCheck   = "<button type='button' class='btn btn-sm btn-success' title='Lihat Data' value='" + id + "' onclick='show_modal(`modalDetailProgram`, `view`, this.value)'><i class='fa fa-eye'></i></button>";
+                        $("#"+id_table).DataTable().row.add([
+                            seq,
+                            title,
+                            moment(date, 'YYYY-MM-DD').format('MMMM'),
+                            groupDivision,
+                            target,
+                            buttonEdit+"&nbsp;"+buttonCheck,
+                        ]).draw(false);
+                    }
+                }
+            })
+            .catch((err)    => {
+                console.log(err);
+                $(".dataTables_empty").html('Tidak ada data yang bisa dimuat, silahkan tambahkan beberapa..');
+            })
 
         
     } else if(id_table == 'table_jenis_pekerjaan') {

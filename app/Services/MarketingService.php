@@ -509,9 +509,18 @@ class MarketingService
             FROM 	employees a
             JOIN 	job_employees b ON b.employee_id = a.id
             JOIN 	group_divisions c ON b.group_division_id = c.id
-            WHERE 	a.user_id = '$userID'
+            WHERE 	a.user_id LIKE '$userID'
             "
         );
+
+        $query_get_group_divsision_mkt  = DB::select(
+            "
+            SELECT 	a.id
+            FROM 	group_divisions a
+            JOIN 		roles b ON a.roles_id = b.id
+            WHERE 	b.name LIKE '%marketing%'
+            "
+        )[0]->id;
 
         if($data['jenis'] == 'add') {
             // UPDATE HEADER
@@ -520,8 +529,8 @@ class MarketingService
                 "pkt_title"                 => $data_table['prtTitle'],
                 "pkt_description"           => $data_table['prtDescription'],
                 "pkt_year"                  => $data_table['prtPeriode'],
-                "pkt_pic_job_employee_id"   => $query_get_employee[0]->employee_id,
-                "division_group_id"         => $query_get_employee[0]->employee_group_division_id,
+                "pkt_pic_job_employee_id"   => Auth::user()->getRoleNames()[0] == 'admin' ? '' : $query_get_employee[0]->employee_id,
+                "division_group_id"         => Auth::user()->getRoleNames()[0] == 'admin' ? $query_get_group_divsision_mkt : $query_get_employee[0]->employee_group_division_id,
                 "created_by"                => $userID,
                 "updated_by"                => $userID,
                 "created_at"                => date('Y-m-d H:i:s'),
