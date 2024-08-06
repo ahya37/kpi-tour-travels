@@ -896,20 +896,43 @@ class MarketingService
 
     public static function doGetDataProgramDetail($id)
     {
-        return DB::select(
-            "
-            SELECT 	a.uuid as pkb_id,
-                    b.id as pkbd_id,
-                    b.pkbd_type as pkbd_title,
-                    b.pkbd_num_target,
-                    b.pkbd_num_result
-            FROM 	proker_bulanan a
-            JOIN 	proker_bulanan_detail b ON b.pkb_id = a.id
-            WHERE 	a.master_program_id IS NOT NULL
-            AND 	a.uuid = '$id'
-            ORDER BY b.id ASC
-            "
-        );
+        $user_role  = Auth::user()->getRoleNames()[0];
+        $user_id    = Auth::user()->id;
+
+        if($user_role == 'admin') {
+            $query  = DB::select(
+                "
+                SELECT 	a.uuid as pkb_id,
+                        b.id as pkbd_id,
+                        b.pkbd_type as pkbd_title,
+                        b.pkbd_num_target,
+                        b.pkbd_num_result
+                FROM 	proker_bulanan a
+                JOIN 	proker_bulanan_detail b ON b.pkb_id = a.id
+                WHERE 	a.master_program_id IS NOT NULL
+                AND 	a.uuid = '$id'
+                ORDER BY b.id ASC
+                "
+            );
+        } else {
+            $query  = DB::select(
+                "
+                SELECT 	a.uuid as pkb_id,
+                        b.id as pkbd_id,
+                        b.pkbd_type as pkbd_title,
+                        b.pkbd_num_target,
+                        b.pkbd_num_result
+                FROM 	proker_bulanan a
+                JOIN 	proker_bulanan_detail b ON b.pkb_id = a.id
+                WHERE 	a.master_program_id IS NOT NULL
+                AND 	a.uuid = '$id'
+                AND     b.pkbd_pic IN ('0', '$user_id')
+                ORDER BY b.id ASC
+                "
+            );
+        }
+
+        return $query;
     }
 
     public static function doSimpanJenisPekerjaan($data)
