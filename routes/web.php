@@ -147,6 +147,9 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/deleteJeniPekerjaan/{id}', [MarketingController::class, 'marketing_programKerja_deleteJenisPekerjaan']);
             });
             // ADDITIONAL
+            Route::prefix('master')->group(function(){
+                Route::get('/getListPIC', [MarketingController::class, 'marketing_programKerja_dataPIC']);
+            });
         });
 		
         

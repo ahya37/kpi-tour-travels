@@ -718,6 +718,7 @@ class MarketingService
                     "pkbd_type"         => $sendData['program_detail'][$i]['detail_title'],
                     "pkbd_num_target"   => $sendData['program_detail'][$i]['detail_target'],
                     "pkbd_num_result"   => "0",
+                    "pkbd_pic"          => $sendData['program_detail'][$i]['detail_pic'],
                     "created_by"        => $user_id,
                     "created_at"        => date('Y-m-d H:i:s'),
                     "updated_by"        => $user_id,
@@ -781,6 +782,7 @@ class MarketingService
                         "pkbd_type"         => $temp_detail[$j]['detail_title'],
                         "pkbd_num_target"   => $temp_detail[$j]['detail_target'],
                         "pkbd_num_result"   => 0,
+                        "pkbd_pic"          => $temp_detail[$j]['detail_pic'],
                         "created_by"        => $user_id,
                         "created_at"        => date('Y-m-d H:i:s'),
                         "updated_by"        => $user_id,
@@ -851,7 +853,8 @@ class MarketingService
                         WHEN b.pkbd_num_target IS NULL THEN 0
                         ELSE b.pkbd_num_target
                     END AS pkbd_num_target,
-                    b.pkbd_num_result
+                    b.pkbd_num_result,
+                    b.pkbd_pic
             FROM 	proker_bulanan a
             JOIN 	proker_bulanan_detail b ON b.pkb_id = a.id
             WHERE 	a.uuid = '$id'
@@ -1276,5 +1279,21 @@ class MarketingService
         );
 
         return $output;
+    }
+
+    public static function getDataPICMarketing()
+    {
+        return DB::select(
+            "
+            SELECT 	a.user_id,
+                    a.name
+            FROM 	employees a
+            JOIN 	job_employees b ON b.employee_id = a.id
+            JOIN 	group_divisions c ON b.group_division_id = c.id
+            JOIN 	roles d ON c.roles_id = d.id
+            WHERE 	d.name LIKE '%marketing%'
+            ORDER BY a.user_id ASC
+            "
+        );
     }
 }

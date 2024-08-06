@@ -20,6 +20,7 @@ use App\Models\Reason;
 use App\Models\DetailMarketingTarget;
 use App\Models\PicDetailMarketingTarget;
 use App\Models\PicDetailMarketingTargetListJamaah;
+use App\Services\DivisiService;
 use App\Services\MarketingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -1867,6 +1868,29 @@ class MarketingController extends Controller
                 "message"   => "Gagal Ambil Data Program Kerja Detail",
                 "data"      => [],
             );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function marketing_programKerja_dataPIC()
+    {
+        $getData    = MarketingService::getDataPICMarketing();
+        
+        if(count($getData) > 0) {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Data Berhasil Dimuat",
+                "data"      => $getData,
+            ];
+        } else {
+            $output     = [
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Tidak Ada Data",
+                "data"      => [],
+            ];
         }
 
         return Response::json($output, $output['status']);
