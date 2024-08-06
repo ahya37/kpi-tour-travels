@@ -1217,7 +1217,6 @@ class MarketingController extends Controller
                         $data[]     = array(
                             $i + 1,
                             $header[$i]->pkt_title,
-                            $header[$i]->pkt_total_job,
                             $header[$i]->pkt_year,
                             "<button class='btn btn-sm btn-primary' title='Preview' value='" . $header[$i]->pkt_uuid . "' onclick='show_modal(`modalForm`, `edit`, this.value)'><i class='fa fa-eye'></i></button>",
                         );

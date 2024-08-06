@@ -30,8 +30,8 @@ function show_table(id_table)
                 url     : site_url + "/listSasaranMarketing",
             },
             columnDefs  : [
-                { "targets" : [0, 4], "width":"5%", "className":"text-center" },
-                { "targets" : [2, 3], "width":"15%"},
+                { "targets" : [0, 3], "width":"5%", "className":"text-center" },
+                { "targets" : [2], "width":"15%"},
             ],
         });
     } else if(id_table == 'tblSubProk') {

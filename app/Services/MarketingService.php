@@ -438,15 +438,12 @@ class MarketingService
             SELECT 	a.uid as pkt_uuid,
                     a.pkt_title,
                     a.pkt_description,
-                    a.pkt_year,
-                    COUNT(d.pkt_id) as pkt_total_job
+                    a.pkt_year
             FROM 	proker_tahunan a
             JOIN 	group_divisions b ON a.division_group_id = b.id
-            JOIN 	roles c ON b.roles_id = c.id 
-            JOIN 	proker_tahunan_detail d ON a.id = d.pkt_id
+            JOIN 	roles c ON b.roles_id = c.id
             WHERE 	a.pkt_year = '$curr_year'
             AND 	c.name LIKE '$curr_role'
-            GROUP BY a.uid, a.pkt_title, a.pkt_description, a.pkt_year
             ORDER BY a.created_by ASC
             "
         );
