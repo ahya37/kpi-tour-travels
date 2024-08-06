@@ -1444,19 +1444,20 @@ class MarketingController extends Controller
                     $prog_total_target,
                     
                     "<button class='btn btn-sm btn-primary' value='".$prog_id."' title='Edit Data' onclick='show_modal(`modalProgram`, `edit`, this.value)'><i class='fa fa-edit'></i></button> 
-                        
+                            
                     <button type='button' class='btn btn-sm btn-success' value='" . $prog_id . "' title='Lihat Data' onclick='show_modal(`modalDetailProgram`, `view`, this.value)'><i class='fa fa-eye'></i></button>",
                 );
             }
+            $output     = array(
+                "draw"  => 1,
+                "data"  => $data,
+            );
         } else {
-            $data    = [];
+            $output     = [
+                "draw"  => 1,
+                "data"  => [],
+            ];
         }
-        
-        $output     = array(
-            "draw"  => 1,
-            "data"  => $data,
-        );
-
         return Response::json($output, 200);
     }
 

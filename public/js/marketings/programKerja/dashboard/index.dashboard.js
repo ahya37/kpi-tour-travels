@@ -594,7 +594,9 @@ function show_select(id_select, valueCari, valueSelect, isAsync)
 
         if(valueCari != '') {
             $.each(valueCari, (i, item) => {
-                html    += "<option value='"+ item.id +"'>" + item.name + "</option>";
+                if(item.is_active == 't') {
+                    html    += "<option value='"+ item.id +"'>" + item.name + "</option>";
+                }
             });
             $("#"+id_select).html(html);
         } else {
@@ -621,8 +623,8 @@ function show_table(id_table, value)
         $("#"+id_table).DataTable({
             language    : {
                 "processing"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
-                "emptyTable"    : "Tidak ada data yang bisa ditampilkan..",
-                "zeroRecords"    : "Tidak ada data yang bisa ditampilkan..",
+                "emptyTable"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                "zeroRecords"   : "Tidak ada data yang bisa ditampilkan..",
             },
             processing  : true,
             serverSide  : false,
@@ -654,6 +656,27 @@ function show_table(id_table, value)
                 );
             }
         });
+        
+        // GET DATATABLE
+        // doTrans('/marketings/programKerja/program/listProgramMarketing', 'GET', '%', '', true)
+        //     .then((success) => {
+        //         for(let i = 0; i < success.data.length; i++) {
+        //             $("#"+id_table).DataTable.row.add([
+        //                 i + 1,
+        //                 null,
+        //                 null,
+        //                 null,
+        //                 null,
+        //                 null,
+        //             ]).draw(false);
+        //         }
+        //     })
+        //     .catch((err)    => {
+        //         console.log(err);
+        //         $(".dataTables_empty").html('Tidak ada data yang bisa dimuat, silahkan tambahkan beberapa..');
+        //     })
+
+        
     } else if(id_table == 'table_jenis_pekerjaan') {
         $("#"+id_table).DataTable().clear().destroy();
         $("#"+id_table).DataTable({

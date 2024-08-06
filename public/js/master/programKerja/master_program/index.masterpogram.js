@@ -52,6 +52,45 @@ function showModal(idModal, data, category)
             const idForm  = $("#master_program_uraian").val();
             $("#master_program_uraian").val(idForm.toUpperCase());
         })
+    } else if(idModal == 'delete_master_program') {
+        console.log({idModal, data, category});
+        
+        Swal.fire({
+            icon    : 'question',
+            title   : 'Hapus Data?',
+            text    : 'Data yang dihapus tidak akan muncul kembali pada tabel',
+            showConfirmButton   : true,
+            showCancelButton    : true,
+            confirmButtonText   : 'Ya, Hapus',
+            confirmButtonColor  : '#ED5565',
+            cancelButtonText    : 'Batal',
+        }).then((res)   => {
+            if(res.isConfirmed) {
+                const sendData  = {
+                    "idProgram" : data,
+                };
+                const message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+                doTrans('/master/programkerja/master_program/hapus_master_program', 'POST', sendData, message)
+                    .then((success) => {
+                        Swal.fire({
+                            icon    : success.alert.icon,
+                            title   : success.alert.message.title,
+                            text    : success.alert.message.text,
+                        }).then((results)   => {
+                            if(results.isConfirmed) {
+                                showTable('table_list_master_program');
+                            }
+                        })
+                    })
+                    .catch((err)    => {
+                        Swal.fire({
+                            icon    : err.responseJSON.alert.icon,
+                            title   : err.responseJSON.alert.message.title,
+                            text    : err.responseJSON.alert.message.text,
+                        });
+                    })
+            }
+        })
     }
 }
 
@@ -96,12 +135,14 @@ function showTable(idTable)
                 let i = 1;
                 for(const item of success.data)
                 {
-                    $("#"+idTable).DataTable().row.add([
-                        i++,
-                        item.name,
-                        item.group_division_name,
-                        "<button class='btn btn-sm btn-primary' title='Ubah Data' value='" + item.id + "' onclick='showModal(`modal_master_program`, this.value, `edit`)'><i class='fa fa-edit'></i></button>",
-                    ]).draw(false);
+                    if(item.is_active == 't') {
+                        $("#"+idTable).DataTable().row.add([
+                            i++,
+                            item.name,
+                            item.group_division_name,
+                            "<button class='btn btn-sm btn-primary' title='Ubah Data' value='" + item.id + "' onclick='showModal(`modal_master_program`, this.value, `edit`)'><i class='fa fa-edit'></i></button>&nbsp;<button class='btn btn-sm btn-danger' title='Hapus Data' value='" + item.id + "' onclick='showModal(`delete_master_program`, this.value, `delete`)'><i class='fa fa-trash'></i></button>",
+                        ]).draw(false);
+                    }
                 }
             })
             .catch((err)    => {
@@ -171,7 +212,7 @@ function simpanData(idForm, jenis)
             const message   = Swal.fire({ title : "Data Sedang Diproses" }); Swal.showLoading();
 
             // SIMPAN DATA
-            const doSimpan  = doTrans('/master/programkerja/master_program/simpan_master_group/'+jenis, 'POST', sendData, message);
+            const doSimpan  = doTrans('/master/programkerja/master_program/simpan_master_program/'+jenis, 'POST', sendData, message);
 
             doSimpan
                 .then((success) => {
