@@ -528,8 +528,7 @@ function show_select(id_select, valueCari, valueSelect, isAsync)
             }
 
             $("#"+id_select).on('select2:select', function(){
-                var prev_seq    = parseInt($("#btnTambahData").val()) - 1;
-                $("#jk_title"+prev_seq).focus();
+                $("#program_title").select2('open');
             });
         } else { 
             $("#"+id_select).html(html);

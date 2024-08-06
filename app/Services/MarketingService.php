@@ -431,7 +431,7 @@ class MarketingService
     public static function doGetListSasaran()
     {
         $curr_year  = date('Y');
-        $curr_role  = Auth::user()->hasRole('admin') ? '%' : Auth::user()->getRoleNames()[0];
+        $curr_role  = Auth::user()->hasRole('admin') ? 'marketing' : Auth::user()->getRoleNames()[0];
 
         $query_header   = DB::select(
             "
@@ -677,36 +677,39 @@ class MarketingService
 
         if($jenis == 'add')
         {   
-            $get_employee       = DB::table('employees')
-                                    ->select('id')
-                                    ->where(['user_id'  => $user_id])
-                                    ->get();
-            $employee_id        = $get_employee[0]->id;
+            if($user_role != 'admin') {
+                $get_employee       = DB::table('employees')
+                                        ->select('id')
+                                        ->where(['user_id'  => $user_id])
+                                        ->get();
+                $employee_id        = $get_employee[0]->id;   
+            } else {
+                $employee_id        = "";
+            }
 
             // SIMPAN DATA TO PROKER BULANAN
             $data_simpan_bulanan    = array(
-                "uuid"              => Str::random(30),
-                "pkb_title"         => strtoupper($sendData['program_uraian']),
-                "pkb_start_date"    => "2024-".$sendData['program_bulan']."-01",
-                "pkb_pkt_id"        => $sendData['program_sasaranID']." | ".$sendData['program_detailSasaranID'],
-                "master_program_id" => $sendData['program_masterID'],
-                "pkb_employee_id"   => $employee_id,
-                "pkb_is_active"     => "t",
-                "created_by"        => $user_id,
-                "created_at"        => date('Y-m-d H:i:s'),
-                "updated_by"        => $user_id,
-                "updated_at"        => date('Y-m-d H:i:s'),
+                "uuid"                  => Str::random(30),
+                "pkb_title"             => strtoupper($sendData['program_uraian']),
+                "pkb_start_date"        => "2024-".$sendData['program_bulan']."-01",
+                "pkb_pkt_id"            => $sendData['program_sasaranID']." | ".$sendData['program_detailSasaranID'],
+                "master_program_id"     => $sendData['program_masterID'],
+                "pkb_employee_id"       => $employee_id,
+                "pkb_is_active"         => "t",
+                "created_by"            => $user_id,
+                "created_at"            => date('Y-m-d H:i:s'),
+                "updated_by"            => $user_id,
+                "updated_at"            => date('Y-m-d H:i:s'),
             );
             DB::table('proker_bulanan')->insert($data_simpan_bulanan);
             
-
             $pkb_id     = DB::getPdo()->lastInsertId();
             $pkb_uuid   = DB::table('proker_bulanan')->select('uuid')->where(['id'=>$pkb_id])->get()[0]->uuid;
             
             for($i = 0; $i < count($sendData['program_detail']); $i++) {
                 $data_simpan_bulanan_detail     = array(
-                    "pkb_id"    => $pkb_id,
-                    "pkbd_type" => $sendData['program_detail'][$i]['detail_title'],
+                    "pkb_id"            => $pkb_id,
+                    "pkbd_type"         => $sendData['program_detail'][$i]['detail_title'],
                     "pkbd_num_target"   => $sendData['program_detail'][$i]['detail_target'],
                     "pkbd_num_result"   => "0",
                     "created_by"        => $user_id,
@@ -800,6 +803,7 @@ class MarketingService
                 "errMsg"    => $e->getMessage(),
             );
             LogHelper::create("error_system", "Gagal Membuat Data Master Program", $ip);
+            Log::channel('daily')->error($e->getMessage());
         }
 
         return $output;
@@ -1164,7 +1168,16 @@ class MarketingService
 
     public static function getMasterProgram()
     {
-        return DB::table('master_program')->orderBy('name')->get();
+        // return DB::table('master_program')->orderBy('name')->get();
+        return DB::select(
+            "
+            SELECT 	a.*
+            FROM    master_program a
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            AND 	b.name LIKE '%marketing%'
+            ORDER BY a.name, a.id ASC
+            "
+        );
     }
 
     public static function doDeleteJenisPekerjaan($data)

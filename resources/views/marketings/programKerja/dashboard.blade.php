@@ -248,7 +248,14 @@
                             </div>
                         </div>
                     </div>
-					
+					<div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label>Bulan</label>
+                                <select name="program_bulan" id="program_bulan" class="form-control form-control-sm" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
 					<div class="form-group">
                         <div class="row">
                             <div class="col-sm-12">
@@ -265,22 +272,12 @@
                             </div>
                         </div>
                     </div>
-					
                     <div class="form-group">
                         <div class="row">
                             <div class="col-sm-12">
                                 <label>Program</label> 
                                 {{-- <input type="text" class="form-control form-control-sm" id="program_title" name="program_title" style="height: 37.5px;" placeholder="Uraian" autocomplete="off"> --}}
                                 <select name="program_title" id="program_title" class="form-control form-control-sm" style="width: 100%;"></select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <label>Bulan</label>
-                                <select name="program_bulan" id="program_bulan" class="form-control form-control-sm" style="width: 100%;"></select>
                             </div>
                         </div>
                     </div>
