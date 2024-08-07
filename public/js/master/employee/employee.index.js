@@ -81,7 +81,7 @@ function show_modal(idModal, jenis, value) {
                     $("#empNameAdd").prop('readonly', true);
                     $("#empNameAdd").val(success[2].data.employee_name);
                     $("#empGdIDAdd").val(success[2].data.group_division_id+" | "+success[2].data.sub_division_id).trigger('change');
-                    $("#empRoleAdd").val(success[2].data.roles_id).trigger('change');
+                    $("#empRoleAdd").val(success[2].data.roles_name).trigger('change');
                     $("#empUsernameAdd").val(success[2].data.employee_email);
                 } else if(jenis == 'add') {
                     $("#empNameAdd").prop('readonly', false);
@@ -133,7 +133,7 @@ function show_select(idSelect, valueCari, valueSelect)
         var html    = "<option selected disabled>Pilih Role</option>";
         if(valueCari != '') {
             $.each(valueCari.data, (i, item)    => {
-                html    += "<option value='" + item.role_id + "'>" + item.role_name + "</option>";
+                html    += "<option value='" + item.role_name + "'>" + item.role_name + "</option>";
             });
             $("#"+idSelect).html(html);
         } else {

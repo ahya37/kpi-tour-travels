@@ -128,6 +128,8 @@ class EmployeeService
                         "errMsg"    => $e->getMessage(),
                     );
 
+                    var_dump($e->getMessage());die();
+
                     LogHelper::create('error_system', 'Gagal Menambahkan Data Employee Baru', $ip);
                 }
             } else if($data['transJenis'] == 'edit') {
