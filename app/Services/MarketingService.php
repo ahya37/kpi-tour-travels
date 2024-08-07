@@ -819,6 +819,7 @@ class MarketingService
     
     public static function getListProgramMarketing($id)
     {
+        $role   = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
         $query  = DB::select(
             "
             SELECT 	a.uuid as pkb_id,
@@ -838,7 +839,7 @@ class MarketingService
             JOIN 	proker_bulanan_detail f ON a.id = f.pkb_id
             WHERE  	a.master_program_id IS NOT NULL
             AND 	a.pkb_is_active = 't'
-            AND 	e.name LIKE '%marketing%'
+            AND 	e.name LIKE '%$role%'
             AND 	a.uuid LIKE '$id'
             GROUP BY a.uuid, UPPER(CONCAT(a.pkb_title, ' - ', c.pktd_title)), e.name, a.pkb_start_date, b.uid, c.pktd_seq, a.master_program_id
             ORDER BY a.pkb_start_date DESC
@@ -1200,13 +1201,13 @@ class MarketingService
 
     public static function getMasterProgram()
     {
-        // return DB::table('master_program')->orderBy('name')->get();
+        $role   = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
         return DB::select(
             "
             SELECT 	a.*
             FROM    master_program a
             JOIN 	group_divisions b ON a.division_group_id = b.id
-            AND 	b.name LIKE '%marketing%'
+            AND 	b.name LIKE '%$role%'
             ORDER BY a.name, a.id ASC
             "
         );
@@ -1306,6 +1307,7 @@ class MarketingService
 
     public static function getDataPICMarketing()
     {
+        $roles   = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0];
         return DB::select(
             "
             SELECT 	a.user_id,
@@ -1314,7 +1316,7 @@ class MarketingService
             JOIN 	job_employees b ON b.employee_id = a.id
             JOIN 	group_divisions c ON b.group_division_id = c.id
             JOIN 	roles d ON c.roles_id = d.id
-            WHERE 	d.name LIKE '%marketing%'
+            WHERE 	d.name LIKE '%$roles%'
             ORDER BY a.user_id ASC
             "
         );

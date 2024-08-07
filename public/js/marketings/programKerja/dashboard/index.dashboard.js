@@ -535,7 +535,7 @@ function show_select(id_select, valueCari, valueSelect, isAsync)
         }
     } else if(id_select == 'jpk_programDetail') {
         var html    = "<option selected disabled>Pilih Program Detail</option>";
-        console.log({id_select, valueCari, valueSelect, isAsync});
+        // console.log({id_select, valueCari, valueSelect, isAsync});
         if(valueCari != '') {
             var url     = "/marketings/programKerja/jenisPekerjaan/dataProgramDetail/"+valueCari;
             var type    = "GET";
@@ -604,7 +604,7 @@ function showSelectDynamic(idSelect, data, seq)
             html    += "<option value='0'>Semua</option>";
 
             $.each(data[0], (i, item) => {
-                console.log(item);
+                // console.log(item);
                 html    += "<option value='" + item.user_id + "'>" + item.name + "</option>";
             });
 

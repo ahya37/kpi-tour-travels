@@ -1187,6 +1187,8 @@ class MarketingController extends Controller
             );
 
             return view('marketings.programKerja.dashboard', $data);
+        } else {
+            abort(404);
         }
     }
 
