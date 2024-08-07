@@ -364,6 +364,10 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/simpanAktivitas/{jenis}', [DivisiController::class, 'finance_programKerja_simpanAktivitas']);
         });
 
+        Route::prefix('digital')->group(function(){
+            Route::get('/aktivitasHarian', [DivisiController::class, 'digital_programKerja_index'])->name('index.programKerja.digital');
+        });
+
         Route::prefix('master')->group(function(){
             Route::get('/getDataProkerTahunan', [DivisiController::class, 'getDataProkerTahunan']);
             Route::get('/getDataSubDivision', [DivisiController::class, 'getDataSubDivision']);

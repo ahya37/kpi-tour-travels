@@ -1018,4 +1018,19 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // DIGITAL
+    public function digital_programKerja_index()
+    {
+        if(Auth::user()->getRoleNames()[0] == 'digital') {
+            $data   = [
+                "title"     => "Aktivitas Harian - Digital",
+                "sub_title" => "List Aktivitas Harian",
+            ];
+
+            return view('divisi/digital/aktivitas_harian/index', $data);
+        } else {
+            abort(404);
+        }
+    }
 }
