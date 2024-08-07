@@ -1,7 +1,7 @@
 var today   = moment().format('YYYY-MM-DD');
 moment.locale('id');
 $(document).ready(function(){
-    console.log('test');
+    // console.log('test');
     showCalendar(today);
 })
 
@@ -74,19 +74,6 @@ function showCalendar(tgl_sekaramg)
                     var hari_ini_bulan_lalu         = moment(today).subtract(1, 'month').format('YYYY-MM-DD');
                     showCalendar(hari_ini_bulan_lalu);
                     today   = hari_ini_bulan_lalu;
-                    // var hari_ini                = $("#current_date").val();
-                    // var groupDivision           = $("#groupDivisionName").val();
-                    // var hari_ini_bulan_lalu     = moment(hari_ini).subtract(1, 'month').format('YYYY-MM-DD');
-                    // var tgl_awal_bulan_lalu     = moment(hari_ini_bulan_lalu).startOf('month').format('YYYY-MM-DD');
-                    // var tgl_akhir_bulan_lalu    = moment(hari_ini_bulan_lalu).endOf('month').format('YYYY-MM-DD');
-                    // showCalendar(tgl_awal_bulan_lalu, tgl_awal_bulan_lalu, tgl_akhir_bulan_lalu, groupDivision);
-                    // $("#current_date").val(hari_ini_bulan_lalu);
-                    // // VISUAL UPDATE
-                    // $("#titleBulan").html(moment(hari_ini_bulan_lalu).format('MMMM'));
-                    // $("#titleTahun").html(moment(hari_ini_bulan_lalu).format('YYYY'));
-                    // // UPDATE FILTER
-                    // $("#prokerBulananStartDate").val(moment(tgl_awal_bulan_lalu).format('DD/MM/YYYY'));
-                    // $("#prokerBulananEndDate").val(moment(tgl_akhir_bulan_lalu).format('DD/MM/YYYY'));
                 }
             },
             nextCustomButton : {
@@ -94,30 +81,12 @@ function showCalendar(tgl_sekaramg)
                     var hari_ini_bulan_depan         = moment(today).add(1, 'month').format('YYYY-MM-DD');
                     showCalendar(hari_ini_bulan_depan);
                     today   = hari_ini_bulan_depan;
-                    // var today                   = $("#current_date").val();
-                    // var groupDivision           = $("#groupDivisionName").val();
-                    // var hari_ini_bulan_depan    = moment(today).add(1, 'month').format('YYYY-MM-DD');
-                    // var tgl_awal_bulan_depan    = moment(hari_ini_bulan_depan).startOf('month').format('YYYY-MM-DD');
-                    // var tgl_akhir_bulan_depan   = moment(hari_ini_bulan_depan).endOf('month').format('YYYY-MM-DD');
-                    // showCalendar(tgl_awal_bulan_depan, tgl_awal_bulan_depan, tgl_akhir_bulan_depan, groupDivision);
-                    // $("#current_date").val(hari_ini_bulan_depan);
-                    // // VISUAL UPDATE
-                    // $("#titleBulan").html(moment(hari_ini_bulan_depan).format('MMMM'));
-                    // $("#titleTahun").html(moment(hari_ini_bulan_depan).format('YYYY'));
-                    // // UPDATE FILTER
-                    // $("#prokerBulananStartDate").val(moment(tgl_awal_bulan_depan).format('DD/MM/YYYY'));
-                    // $("#prokerBulananEndDate").val(moment(tgl_akhir_bulan_depan).format('DD/MM/YYYY'));
                 }
             },
             refreshCustomButton     : {
                 click   : function() {
                     today   = moment().format('YYYY-MM-DD');
                     showCalendar(today);
-                    // var today           = $("#current_date").val();
-                    // var groupDivision   = $("#groupDivisionName").val();
-                    // var tgl_awal        = moment(today).startOf('month').format('YYYY-MM-DD');
-                    // var tgl_akhir       = moment(today).endOf('month').format('YYYY-MM-DD');
-                    // showCalendar(today, tgl_awal, tgl_akhir, groupDivision);
                 }
             }
         },
@@ -135,9 +104,11 @@ function showCalendar(tgl_sekaramg)
 
 function show_modal(id_modal, jenis, value)
 {
-    console.log({id_modal, jenis, value});
     if(id_modal == 'modalTransJenisPekerjaan') {
+        // BUTTON
         $("#jpk_btnSimpan").val(jenis);
+        
+        // TIMEPICKER
         $(".waktu").daterangepicker({
             singleDatePicker    : true,
             autoApply   : true,
@@ -152,12 +123,40 @@ function show_modal(id_modal, jenis, value)
             picker.container.find(".calendar-table").hide();
         });
         
+        // DEFINE TANGGAL AWAL
         if(jenis == 'add') {
             var waktu   = value.startStr;
         } else {
             var waktu   = value.event.startStr;
         }
 
+        // MENGUBAH MENJADI KAPITAL PADA ONKEYUP URAIAN
+        $("#jpk_title").on('keyup', ()=> {
+            const upper_jpk_title   = $("#jpk_title").val().toUpperCase();
+            $("#jpk_title").val(upper_jpk_title);
+        });
+
+        // BLUR BANYAKNYA AKTIVITAS
+        $("#jpk_aktivitas").on('blur', () => {
+            const val_jpk_aktivitas     = $("#jpk_aktivitas").val();
+            
+            if(val_jpk_aktivitas == '') {
+                $("#jpk_aktivitas").val(1);
+            } else {
+                $("#jpk_aktivitas").val(val_jpk_aktivitas);
+            }
+        });
+
+        $("#jpk_aktivitas").on('click', () => {
+            $("#jpk_aktivitas").select();
+        });
+
+        $("#jpk_aktivitas").on('keyup', () => {
+            const val_jpk_aktivitas   = $("#jpk_aktivitas").val().replace(/[^0-9\.]/g,'');
+            $("#jpk_aktivitas").val(val_jpk_aktivitas);
+        });
+
+        // GET DATA
         var getData     = [
             doTrans('/marketings/programKerja/jenisPekerjaan/dataProgram', 'GET', waktu, '', true),
             jenis == 'edit' ? doTrans('/marketings/programKerja/jenisPekerjaan/dataDetailEventsCalendar/'+value.event.id, "GET", '', '', true) : '',
@@ -180,15 +179,18 @@ function show_modal(id_modal, jenis, value)
                     $("#jpk_date").val(value.startStr);
                     $("#jpk_btnHapus").prop('disabled', true);
                 } else if(jenis == 'edit') {
-                    var getData     = success[1].data[0];
-                    var masterID    = getData.master_program_id;
-                    var pkb_id      = getData.pkb_id;
-                    var programID   = getData.pkh_pkb_id;
-                    var start_time  = getData.pkh_start_time.split(' ')[1];
-                    var end_time    = getData.pkh_end_time.split(' ')[1];
-                    var title       = getData.pkh_title;
-                    var pkh_date    = getData.pkh_date;
-                    var description = "";
+                    var getData             = success[1].data[0];
+                    var masterID            = getData.master_program_id;
+                    var pkb_id              = getData.pkb_id;
+                    var programID           = getData.pkh_pkb_id;
+                    var start_time          = getData.pkh_start_time.split(' ')[1];
+                    var end_time            = getData.pkh_end_time.split(' ')[1];
+                    var title               = getData.pkh_title;
+                    var pkh_date            = getData.pkh_date;
+                    var pkh_total_actiity   = getData.pkh_total_activity;
+                    var description         = "";
+
+                    console.log({getData});
 
                     $("#jpk_ID").val(value.event.id);
                     $("#jpk_date").val(pkh_date);
@@ -199,6 +201,7 @@ function show_modal(id_modal, jenis, value)
                     $("#jpk_description").val(description);
                     show_select('jpk_programDetail', pkb_id, programID, true);
                     $("#jpk_btnHapus").prop('disabled', false);
+                    $("#jpk_aktivitas").val(pkh_total_actiity);
                 }
                 Swal.close();
             })
@@ -225,6 +228,7 @@ function close_modal(id_modal)
             $("#jpk_date").val(null);
             today  = moment().format('YYYY-MM-DD');
             $("#jpk_btnHapus").prop('disabled', true);
+            $("#jpk_aktivitas").val(1);
         });
     }
 }
@@ -248,7 +252,7 @@ function show_select(id_select, valueCari, valueSelect, isAsync)
         }
     } else if(id_select == 'jpk_programDetail') {
         var html    = "<option selected disabled>Pilih Program Detail</option>";
-        console.log({id_select, valueCari, valueSelect, isAsync});
+        // console.log({id_select, valueCari, valueSelect, isAsync});
         if(valueCari != '') {
             var url     = "/marketings/programKerja/jenisPekerjaan/dataProgramDetail/"+valueCari;
             var type    = "GET";
@@ -290,6 +294,7 @@ function do_simpan(id_form, jenis)
         var jenis_pekerjaan_title           = $("#jpk_title");
         var jenis_pekerjaan_description     = $("#jpk_description");
         var jenis_pekerjaan_date            = $("#jpk_date");
+        var jenis_pekerjaan_total_act       = $("#jpk_aktivitas");
 
         if(jenis_pekerjaan_programID.val() == null) {
             Swal.fire({
@@ -332,6 +337,7 @@ function do_simpan(id_form, jenis)
                 "jenis_pekerjaan_title"             : jenis_pekerjaan_title.val(),
                 "jenis_pekerjaan_description"       : jenis_pekerjaan_description.val(),
                 "jenis_pekerjaan_type_trans"        : jenis,
+                "jenis_pekerjaan_total_activity"    : jenis_pekerjaan_total_act.val(),
             };
 
             var url     = '/marketings/programKerja/jenisPekerjaan/doSimpan';

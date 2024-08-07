@@ -285,6 +285,32 @@ function show_modal(id_modal, jenis, value)
             var waktu   = value.event.startStr;
         }
 
+         // MENGUBAH MENJADI KAPITAL PADA ONKEYUP URAIAN
+         $("#jpk_title").on('keyup', ()=> {
+            const upper_jpk_title   = $("#jpk_title").val().toUpperCase();
+            $("#jpk_title").val(upper_jpk_title);
+        });
+
+        // BLUR BANYAKNYA AKTIVITAS
+        $("#jpk_aktivitas").on('blur', () => {
+            const val_jpk_aktivitas     = $("#jpk_aktivitas").val();
+            
+            if(val_jpk_aktivitas == '') {
+                $("#jpk_aktivitas").val(1);
+            } else {
+                $("#jpk_aktivitas").val(val_jpk_aktivitas);
+            }
+        });
+
+        $("#jpk_aktivitas").on('click', () => {
+            $("#jpk_aktivitas").select();
+        });
+
+        $("#jpk_aktivitas").on('keyup', () => {
+            const val_jpk_aktivitas   = $("#jpk_aktivitas").val().replace(/[^0-9\.]/g,'');
+            $("#jpk_aktivitas").val(val_jpk_aktivitas);
+        });
+
         var getData     = [
             doTrans('/marketings/programKerja/jenisPekerjaan/dataProgram', 'GET', waktu, '', true),
             jenis == 'edit' ? doTrans('/marketings/programKerja/jenisPekerjaan/dataDetailEventsCalendar/'+value.event.id, "GET", '', '', true) : '',
@@ -316,6 +342,7 @@ function show_modal(id_modal, jenis, value)
                     var title       = getData.pkh_title;
                     var pkh_date    = getData.pkh_date;
                     var description = "";
+                    var pkh_total_act   = getData.pkh_total_activity;
 
                     $("#jpk_ID").val(value.event.id);
                     $("#jpk_date").val(pkh_date);
@@ -326,6 +353,7 @@ function show_modal(id_modal, jenis, value)
                     $("#jpk_description").val(description);
                     show_select('jpk_programDetail', pkb_id, programID, true);
                     $("#jpk_btnHapus").prop('disabled', false);
+                    $("#jpk_aktivitas").val(pkh_total_act);
                 }
                 Swal.close();
             })
@@ -398,17 +426,6 @@ function show_modal(id_modal, jenis, value)
                 Swal.close();
                 console.log(err);
             })
-
-        // Swal.fire({
-        //     title   : 'Data Sedang Dimuat',
-        // });
-        // Swal.showLoading();
-
-        // setTimeout(function(){
-        //     Swal.close();
-        //     $("#"+id_modal).modal({ backdrop : 'static', keyboard: false });
-        //     $("#"+id_modal).modal('show');
-        // }, 1000);
     }
 }
 
@@ -445,6 +462,7 @@ function close_modal(id_modal)
             $("#jpk_date").val(null);
             today  = moment().format('YYYY-MM-DD');
             $("#jpk_btnHapus").prop('disabled', true);
+            $("#jpk_aktivitas").val(1);
         });
     } else if(id_modal == 'modalDetailProgram') {
         $("#"+id_modal).modal('hide');
@@ -882,6 +900,7 @@ function do_simpan(id_form, jenis)
         var jenis_pekerjaan_title           = $("#jpk_title");
         var jenis_pekerjaan_description     = $("#jpk_description");
         var jenis_pekerjaan_date            = $("#jpk_date");
+        var jenis_pekerjaan_total_act       = $("#jpk_aktivitas");
 
         if(jenis_pekerjaan_programID.val() == null) {
             Swal.fire({
@@ -924,6 +943,7 @@ function do_simpan(id_form, jenis)
                 "jenis_pekerjaan_title"             : jenis_pekerjaan_title.val(),
                 "jenis_pekerjaan_description"       : jenis_pekerjaan_description.val(),
                 "jenis_pekerjaan_type_trans"        : jenis,
+                "jenis_pekerjaan_total_activity"    : jenis_pekerjaan_total_act.val(),
             };
 
             var url     = '/marketings/programKerja/jenisPekerjaan/doSimpan';

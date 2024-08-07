@@ -948,6 +948,7 @@ class MarketingService
                 "pkh_end_time"      => $data['sendData']['jenis_pekerjaan_date']." ".$data['sendData']['jenis_pekerjaan_end_time'],
                 "pkh_pkb_id"        => $data['sendData']['jenis_pekerjaan_programIDDetail'],
                 "pkh_is_active"     => "t",
+                "pkh_total_activity"=> $data['sendData']['jenis_pekerjaan_total_activity'],
                 "created_by"        => $data['user_id'],
                 "created_at"        => date('Y-m-d H:i:s'),
                 "updated_by"        => $data['user_id'],
@@ -975,7 +976,7 @@ class MarketingService
 
             $pkb_hasil  = $query_get_proker_bulanan[0]->pkbd_num_result;
             $pkb_id     = $query_get_proker_bulanan[0]->pkb_id;
-            $pkb_hasil_baru     = $pkb_hasil + 1;
+            $pkb_hasil_baru     = $pkb_hasil + $data['sendData']['jenis_pekerjaan_total_activity'];
 
             $data_where_bulanan = array(
                 "pkb_id"        => $pkb_id,
@@ -994,20 +995,23 @@ class MarketingService
 
             $get_data_harian    = DB::table('proker_harian')->where($data_harian_where)->get()[0];
 
+            $pkh_pkb_id         = $get_data_harian->pkh_pkb_id;
+            $pkh_old_num        = $get_data_harian->pkh_total_activity;
+
             $data_harian_update = array(
                 "pkh_title"         => $data['sendData']['jenis_pekerjaan_title'],
                 "pkh_start_time"    => $data['sendData']['jenis_pekerjaan_date']." ".$data['sendData']['jenis_pekerjaan_start_time'],
                 "pkh_end_time"      => $data['sendData']['jenis_pekerjaan_date']." ".$data['sendData']['jenis_pekerjaan_end_time'],
                 "pkh_pkb_id"        => $data['sendData']['jenis_pekerjaan_programIDDetail'],
                 "pkh_is_active"     => "t",
+                "pkh_total_activity"=> $data['sendData']['jenis_pekerjaan_total_activity'],
                 "updated_by"        => $data['user_id'],
                 "updated_at"        => date('Y-m-d H:i:s'),
             );
             
             DB::table('proker_harian')->where($data_harian_where)->update($data_harian_update);
-            
-            $pkh_pkb_id         = $get_data_harian->pkh_pkb_id;
 
+            // KEITKA PINDAH PROGRAM MAKA LAKUKAN FUNGSI DI BAWAH
             if($pkh_pkb_id != $data['sendData']['jenis_pekerjaan_programIDDetail']) {
                 $pkb_id_old     = explode(' | ', $pkh_pkb_id)[0];
                 $pkb_id_seq_old = explode(' | ', $pkh_pkb_id)[1];
@@ -1020,14 +1024,30 @@ class MarketingService
                 $get_data_bulanan_detail_old= DB::table('proker_bulanan_detail')->where(['id' => $pkb_id_seq_old, 'pkb_id'=> $get_data_bulanan_old->id])->get()[0];
                 
                 $result_old                 = $get_data_bulanan_detail_old->pkbd_num_result;
-                $new_result_old         = $result_old - 1;
+                $new_result_old             = $result_old - $pkh_old_num;
                 DB::table('proker_bulanan_detail')->where(['id' => $pkb_id_seq_old])->update(['pkbd_num_result' => $new_result_old]);
 
                 // INSERT VALUE BARU
                 $get_data_bulanan_new       = DB::table('proker_bulanan')->where(['uuid' => $pkb_id_new])->get()[0];
                 $get_data_bulanan_detail_new= DB::table('proker_bulanan_detail')->where(['id' => $pkb_id_seq_new, 'pkb_id' => $get_data_bulanan_new->id])->get()[0];
-                $new_result                 = $get_data_bulanan_detail_new->pkbd_num_result + 1;
+                $new_result                 = $get_data_bulanan_detail_new->pkbd_num_result + $pkh_old_num;
                 DB::table('proker_bulanan_detail')->where(['id' => $pkb_id_seq_new])->update(['pkbd_num_result' => $new_result]);
+            }
+
+            // BALIKIN DATA PKBD_NUM_RESULTS
+            if($pkh_old_num != $data['sendData']['jenis_pekerjaan_total_activity'])
+            {
+                $pkb_id_old     = explode(' | ', $pkh_pkb_id)[0];
+                $pkb_id_seq_old = explode(' | ', $pkh_pkb_id)[1];
+                
+                // GET DATA PKBD ID
+                $get_data_bulanan_old       = DB::table('proker_bulanan')->where(['uuid' => $pkb_id_old])->get()[0];
+                $get_data_bulanan_detail_old= DB::table('proker_bulanan_detail')->where(['id' => $pkb_id_seq_old, 'pkb_id'=> $get_data_bulanan_old->id])->get()[0];
+
+                // BALIKIN DAN SIMPAN DATA KE PKBD_NUM_RESULT
+                $pkbd_num_result_old    = $get_data_bulanan_detail_old->pkbd_num_result - $pkh_old_num;
+                $pkbd_num_result_new    = $data['sendData']['jenis_pekerjaan_total_activity'] + $pkbd_num_result_old;
+                DB::table('proker_bulanan_detail')->where(['id' => $pkb_id_seq_old, 'pkb_id' => $get_data_bulanan_old->id])->update(['pkbd_num_result' => $pkbd_num_result_new]);
             }
         }
 
@@ -1045,6 +1065,7 @@ class MarketingService
         } catch(\Exception $e) {
             DB::rollBack();
             LogHelper::create('error_system', 'Gagal Membuat Jenis Pekerjaan', $data['ip']);
+            Log::channel('daily')->error($e->getMessage());
             $output     = array(
                 "status"    => "gagal",
                 "errMsg"    => $e->getMessage(),
@@ -1091,7 +1112,8 @@ class MarketingService
                     a.pkh_end_time,
                     a.pkh_pkb_id,
                     b.master_program_id,
-                    b.uuid as pkb_id
+                    b.uuid as pkb_id,
+                    a.pkh_total_activity
             FROM 	proker_harian a
             JOIN 	proker_bulanan b ON SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = b.uuid
             WHERE 	a.uuid = '$id'
@@ -1233,7 +1255,7 @@ class MarketingService
         $pkbd_id    = explode(' | ', $get_ref->pkh_pkb_id)[1];
 
         $get_result_detail  = DB::table('proker_bulanan_detail')->where(['id' => $pkbd_id])->get()[0];
-        $new_results_detail = $get_result_detail->pkbd_num_result - 1;
+        $new_results_detail = $get_result_detail->pkbd_num_result - $get_ref->pkh_total_activity;
         DB::table('proker_bulanan_detail')->where(['id' => $pkbd_id])->update(['pkbd_num_result' => $new_results_detail]);
 
         try {

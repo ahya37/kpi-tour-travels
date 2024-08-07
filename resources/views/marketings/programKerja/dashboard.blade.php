@@ -485,6 +485,15 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Banyaknya Aktivitas</label>
+                                <input type="text" class="form-control" id="jpk_aktivitas" name="jpk_aktivitas" placeholder="Banyaknya Aktivitas" inputmode="numeric" style="height: 37.5px;" value="1">
+                                <small style="color: #dc3545">Note : Diisi dengan banyaknya aktivitas yang akan dikerjakan</small>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row mb-2" style="display: none;">
                         <div class="col-sm-12">
                             <div class="form-group">
