@@ -1505,4 +1505,231 @@ class DivisiService
             "
         );
     }
+
+    public static function getListEventsDigital($data)
+    {
+        $user_id    = $data['user_id'];
+        $start_date = $data['start_date'];
+        $end_date   = $data['end_date'];
+        return DB::select(
+            "
+            SELECT 	uuid as pkh_id,
+                    pkh_title,
+                    pkh_date
+            FROM 	proker_harian
+            WHERE 	created_by = '$user_id'
+            AND 	pkh_date BETWEEN '$start_date' AND '$end_date'
+            AND     pkh_is_active = 't'
+            "
+        );
+    }
+
+    public static function getListEventDigitalDetail($data)
+    {
+        $pkh_id     = $data['id'];
+        $user_id    = $data['user_id'];
+
+        return DB::select(
+            "
+            SELECT  uuid as pkh_id,
+                    pkh_title,
+                    pkh_pkb_id,
+                    pkh_start_time,
+                    pkh_end_time
+            FROM    proker_harian
+            WHERE   uuid = '$pkh_id'
+            AND     created_by = '$user_id'
+            "
+        );
+    }
+
+    public static function getListProgramDigital($data)
+    {
+        $current_month  = date('m', strtotime($data['today']));
+        $current_year   = date('Y', strtotime($data['today']));
+        $user_id        = $data['user_id'];
+
+        $header  = DB::select(
+            "
+            SELECT 	a.id,
+                    b.uuid as pkb_id,
+                    a.name,
+                    d.pktd_title,
+                    b.pkb_is_active
+            FROM 	master_program a
+            JOIN 	proker_bulanan b ON a.id = b.master_program_id
+            JOIN 	proker_tahunan c ON SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', 1) = c.uid
+            JOIN 	proker_tahunan_detail d ON (d.pkt_id = c.id AND SUBSTRING_INDEX(b.pkb_pkt_id, ' | ', -1) = d.pktd_seq)
+            JOIN 	proker_bulanan_detail f ON b.id = f.pkb_id
+            WHERE 	EXTRACT(YEAR FROM b.pkb_start_date) = '$current_year'
+            AND 	EXTRACT(MONTH FROM b.pkb_start_date) = '$current_month'
+            AND 	f.pkbd_pic LIKE '$user_id'
+            AND 	b.pkb_is_active = 't'
+            GROUP BY a.id, b.uuid, a.name, d.pktd_title, b.pkb_is_active
+            "
+        );
+
+        $detail     = DB::select(
+            "
+            SELECT 	a.uuid as pkb_id,
+                    b.id as pkbd_id,
+                    b.pkbd_type,
+                    b.pkbd_pic
+            FROM 	proker_bulanan a
+            JOIN 	proker_bulanan_detail b ON a.id = b.pkb_id
+            WHERE 	a.pkb_is_active = 't'
+            AND 	b.pkbd_pic LIKE '$user_id'
+            AND 	EXTRACT(YEAR FROM a.pkb_start_date) = '$current_year'
+            AND 	EXTRACT(MONTH FROM a.pkb_start_date) = '$current_month'
+            ORDER BY a.pkb_start_date, a.id, b.id ASC
+            "
+        );
+
+        $output     = [
+            "header"    => $header,
+            "detail"    => $detail
+        ];
+
+        return $output;
+    }
+
+    public static function doSimpanAktivitasHarianDigital($data)
+    {
+        DB::beginTransaction();
+
+        if($data['jenis'] == 'add') {
+            // SIMPAN KE PROKER HARIAN
+            $data_insert_proker_harian  = [
+                "uuid"              => Str::random(30),
+                "pkh_title"         => $data['data']['daily_title'],
+                "pkh_date"          => $data['data']['daily_date'],
+                "pkh_start_time"    => $data['data']['daily_date']." ".$data['data']['daily_startTime'],
+                "pkh_end_time"      => $data['data']['daily_date']." ".$data['data']['daily_endTime'],
+                "pkh_pkb_id"        => $data['data']['daily_programID']." | ".$data['data']['daily_programDetailID'],
+                "pkh_is_active"     => "t",
+                "pkh_total_activity"=> 1,
+                "created_by"        => $data['user_id'],
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_by"        => $data['user_id'],
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('proker_harian')->insert($data_insert_proker_harian);
+
+            // UPDATE PPROKER BULANAN HEADER
+            $query_bulanan_header   = DB::table('proker_bulanan')->where([ 'uuid' => $data['data']['daily_programID'] ]);
+            if(!empty($query_bulanan_header)) {
+                $pkb_where  = [ 'uuid' => $data['data']['daily_programID'] ];
+                $pkb_update = [ 'updated_by' => $data['user_id'], 'updated_at' => date('Y-m-d H:i:s') ];
+                DB::table('proker_bulanan')->where($pkb_where)->update($pkb_update);
+            }
+            // UPDATE PROKER BULANAN DETAIL
+            $query_bulanan_detail   = DB::table('proker_bulanan_detail')->where(['id' => $data['data']['daily_programDetailID']])->get();
+            if(!empty($query_bulanan_detail)) {
+                $pkbd_num_result    = $query_bulanan_detail[0]->pkbd_num_result + 1;
+                $pkbd_where_update  = [ 'id' => $data['data']['daily_programDetailID'] ];
+                DB::table('proker_bulanan_detail')->where($pkbd_where_update)->update(['pkbd_num_result' => $pkbd_num_result]);
+            }
+        } else if($data['jenis'] == 'edit') {
+            // PROKER BALIKIN DATA PROKER BULANAN
+            $pkh_id     = $data['data']['daily_ID'];
+
+            $query_get_proker_bulanan   = DB::select(
+                "
+                SELECT  *
+                FROM    proker_harian
+                WHERE   uuid = '$pkh_id'
+                "
+            );
+
+            if(!empty($query_get_proker_bulanan)) {
+                $data_where     = [
+                    "uuid"      => $data['data']['daily_ID'],
+                ];
+                $data_update    = [
+                    "pkh_title"         => $data['data']['daily_title'],
+                    "pkh_start_time"    => $data['data']['daily_date']." ".$data['data']['daily_startTime'],
+                    "pkh_end_time"      => $data['data']['daily_date']." ".$data['data']['daily_endTime'],
+                    "pkh_pkb_id"        => $data['data']['daily_programID']." | ".$data['data']['daily_programDetailID'],
+                    "updated_by"        => $data['user_id'],
+                    "updated_at"        => date('Y-m-d H:i:s'),
+                ];
+                DB::table('proker_harian')->where($data_where)->update($data_update);
+                
+                // UPDATE TABLE BULANAN JIKA ADA PERUBAHAN
+                if($data['data']['daily_programID']." | ".$data['data']['daily_programDetailID'] != $query_get_proker_bulanan[0]->pkh_pkb_id) {
+                    // BALIKIN DATA LAMA
+                    $proker_bulanan_seq     = explode(" | ", $query_get_proker_bulanan[0]->pkh_pkb_id)[1];
+                    $query_proker_bulanan_detail    = DB::table('proker_bulanan_detail')->where([ 'id' => $proker_bulanan_seq ])->get()[0];
+                    $pkbd_num_result_old            = $query_proker_bulanan_detail->pkbd_num_result - 1;
+                    // UPDATE PROKER BULANAN DETAIL OLD
+                    DB::table('proker_bulanan_detail')->where(['id'=>$proker_bulanan_seq])->update(['pkbd_num_result' => $pkbd_num_result_old]);
+
+                    // UBAH DATA BARU
+                    $proker_bulanan_seq_baru            = $data['data']['daily_programDetailID'];
+                    $query_proker_bulanan_detail_baru   = DB::table('proker_bulanan_detail')->where([ 'id'  => $proker_bulanan_seq_baru ])->get()[0];
+                    $pkbd_num_result_new                = $query_proker_bulanan_detail_baru->pkbd_num_result + 1;
+                    DB::table('proker_bulanan_detail')->where(['id'=>$proker_bulanan_seq_baru])->update(['pkbd_num_result' => $pkbd_num_result_new]);
+                }
+            }
+        } else if($data['jenis'] == 'hapus') {
+            $pkh_id     = $data['data']['daily_ID'];
+            // $pkh_id      = 9999;
+
+            $query_get_proker_harian    = DB::table('proker_harian')->where(['uuid' => $pkh_id])->get();
+            if(count($query_get_proker_harian) > 0) {
+                $proker_bulanan_uuid    = explode(' | ', $query_get_proker_harian[0]->pkh_pkb_id)[0];
+                $proker_bulanan_seq     = explode(' | ', $query_get_proker_harian[0]->pkh_pkb_id)[1];
+
+                // UPDATE DATA PROKER HARIAN
+                DB::table('proker_harian')
+                    ->where(['uuid' => $pkh_id])
+                    ->update(['pkh_is_active' => 'f', 'updated_by' => $data['user_id'], 'updated_at' => date('Y-m-d H:i:s')]);
+
+                // UPDATE DATA PROKER BULANAN
+                DB::table('proker_bulanan')
+                    ->where(['uuid' => $proker_bulanan_uuid])
+                    ->update(['updated_by' => $data['user_id'], 'updated_at' => date('Y-m-d H:i:s')]);
+                
+                // BALIKIN DARA DETAIL
+                $query_get_proker_bulanan_detail    = DB::table('proker_bulanan_detail')
+                                                        ->where(['id' => $proker_bulanan_seq])
+                                                        ->get()[0];
+                $pkbd_num_result_table              = $query_get_proker_bulanan_detail->pkbd_num_result - 1;
+                DB::table('proker_bulanan_detail')
+                    ->where(['id' => $proker_bulanan_seq])
+                    ->update(['pkbd_num_result' => $pkbd_num_result_table]);
+            }
+        }
+
+        try {
+            DB::commit();
+            switch($data['jenis']) {
+                case 'add' :
+                        LogHelper::create('add', 'Berhasil Menambahkan Data Jenis Pekerjaan Baru : '.$data_insert_proker_harian['uuid'], $data['ip']);
+                    break;
+                case 'edit' :
+                        LogHelper::create('edit', 'Berhasil Merubah Data Jenis Pekerjaan : '.$data['data']['dailyID'], $data['ip']);
+                    break;
+                case 'hapus' :
+                        LogHelper::create('delete', 'Berhasil Menghapus Data Jenis Pekerjaan : '.$data['data']['daily_ID'], $data['ip']);
+                    break;
+            }
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => ""
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+            LogHelper::create('error_system', 'Gagal Melakukan Transaksi Jenis Pekerjaan Divisi Digital', $data['ip']);
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage()
+            ];
+        }
+        
+        return $output;
+    }
 }

@@ -366,6 +366,10 @@ Route::group(['middleware' => ['auth']], function () {
 
         Route::prefix('digital')->group(function(){
             Route::get('/aktivitasHarian', [DivisiController::class, 'digital_programKerja_index'])->name('index.programKerja.digital');
+            Route::get('/listEventsCalendarDigital', [DivisiController::class, 'digital_programKerja_listEvents']);
+            Route::get('/listEventsCalendarDigitalDetail', [DivisiController::class, 'digital_programKerja_listEventDetail']);
+            Route::get('/getDataProgramDigital', [DivisiController::class, 'digital_programKerja_listProgram']);
+            Route::post('/simpanAktivitasHarian/{jenis}', [DivisiController::class, 'digital_programKerja_simpanAktivitasHarian']);
         });
 
         Route::prefix('master')->group(function(){
