@@ -1785,7 +1785,7 @@ class MarketingController extends Controller
             "current_role"  => Auth::user()->getRoleNames()[0]
         ];
 
-        return view('marketings.programKerja.jenisPekerjaan.index', $data);
+        return view('marketings/programKerja/jenisPekerjaan/index', $data);
     }
 
     public function importTargetUmrahByTahun()
@@ -1891,6 +1891,36 @@ class MarketingController extends Controller
                 "status"    => 404,
                 "success"   => false,
                 "message"   => "Tidak Ada Data",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 10 AGUSTUS 2024
+    // NOTE : PEMBUATAN LIST ACTIVITY USER
+    public function marketing_programKerja_listActivityUser(Request $request)
+    {
+        $data   = [
+            "selected_date" => $request->all()['sendData']['today'],
+            "user_id"       => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id,
+        ];
+
+        $getData    = MarketingService::getListActivityUser($data);
+
+        if(count($getData) > 0) {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Ambil Data Aktivitas User",
+                "data"      => $getData,
+            ];
+        } else {
+            $output     = [
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Gagal Ambil Data Aktivitas User",
                 "data"      => [],
             ];
         }

@@ -1343,4 +1343,31 @@ class MarketingService
             "
         );
     }
+
+    // 10 AGUSTUS 2024
+    public static function getListActivityUser($data)
+    {
+        $user_id        = $data['user_id'];
+        $selected_date  = $data['selected_date'];
+        return DB::select(
+            "
+            SELECT 	a.uuid as pkb_id,
+                    CONCAT(a.pkb_title, ' - ', UPPER(d.pktd_title)) as pkb_title,
+                    UPPER(e.pkbd_type) as pkbd_title,
+                    e.pkbd_pic as pkb_pic,
+                    e.pkbd_num_target as pkb_target,
+                    e.pkbd_num_result as pkb_realisasi
+            FROM 	proker_bulanan a
+            JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id,' | ',1) = b.uid
+            JOIN 	group_divisions c ON b.division_group_id = c.id
+            JOIN 	proker_tahunan_detail d ON (SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) = d.pktd_seq AND b.id = d.pkt_id)
+            JOIN 	proker_bulanan_detail e ON a.id = e.pkb_id
+            WHERE 	a.pkb_is_active = 't'
+            AND 	c.name LIKE '%marketing%'
+            AND 	a.pkb_start_date = '$selected_date'
+            AND 	(e.pkbd_pic LIKE '$user_id' OR e.pkbd_pic IN ('0', '$user_id'))
+            ORDER BY a.id, e.pkbd_type ASC             
+            "
+        );
+    }
 }

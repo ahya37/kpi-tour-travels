@@ -14,6 +14,7 @@ function showTable(idTable)
             language    : {
                 "emptyTable"    : "Tidak ada data, silahkan masukkan beberapa",
                 "zeroRecords"   : "Tidak ada data, silahkan masukkan beberapa",
+                "processing"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat.."
             },
             columnDefs   : [
                 {

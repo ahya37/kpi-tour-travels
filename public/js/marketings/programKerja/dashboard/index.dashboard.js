@@ -563,7 +563,7 @@ function show_select(id_select, valueCari, valueSelect, isAsync)
             doTrans(url, type, data, message, isAsync)
                 .then((success) => {
                     $.each(success.data,(i, item)   => {
-                        html    += "<option value='" + item.pkb_id +   " | " + item.pkbd_id + "'>" + item.pkbd_title + "</option>";
+                        html    += "<option value='" + item.pkb_id +   " | " + item.pkbd_id + "'>" + item.pkbd_title + " (Target : " + item.pkbd_num_target + ")</option>";
                     });
                     $("#"+id_select).html(html);
 

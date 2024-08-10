@@ -2,6 +2,7 @@ var today   = moment().format('YYYY-MM-DD');
 moment.locale('id');
 $(document).ready(function(){
     // console.log('test');
+
     showCalendar(today);
 })
 
@@ -31,33 +32,85 @@ function showCalendar(tgl_sekaramg)
             var start_date      = moment(current_date, 'YYYY-MM-DD').startOf('month').format('YYYY-MM-DD');
             var end_date        = moment(current_date, 'YYYY-MM-DD').endOf('month').format('YYYY-MM-DD');
 
-            var url             = '/marketings/programKerja/jenisPekerjaan/dataEventsCalendar';
-            var data            = {
-                "start_date"    : start_date,
-                "end_date"      : end_date
-            };
-            var type            = "GET";
-            var message         = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
-            var isAsync         = true;
+            // var url             = '/marketings/programKerja/jenisPekerjaan/dataEventsCalendar';
+            // var data            = {
+            //     "start_date"    : start_date,
+            //     "end_date"      : end_date
+            // };
+            // var type            = "GET";
+            // var message         = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+            // var isAsync         = true;
             
-            doTrans(url, type, data, message, isAsync)
+            // doTrans(url, type, data, message, isAsync)
+            //     .then((success) => {
+            //         var temp    = [];
+            //         for(var i = 0; i < success.data.length; i++) {
+            //             temp.push({
+            //                 title   : success.data[i].pkh_title,
+            //                 start   : success.data[i].pkh_date,
+            //                 end     : moment(success.data[i].pkh_date, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD'),
+            //                 allDay  : true,
+            //                 id      : success.data[i].uuid
+            //             });
+            //         }
+            //         successCallback(temp);
+            //         Swal.close();
+            //     })
+            //     .catch((err)    => {
+            //         Swal.close();
+            //         console.log(err);
+            //     })
+
+            const calendar_url  = "/marketings/programKerja/jenisPekerjaan/dataEventsCalendar";
+            const calendar_data = {
+                "start_date"    : start_date,
+                "end_date"      : end_date,
+            };
+            
+            const actUser_url   = "/marketings/programKerja/jenisPekerjaan/listActUser";
+            const actUser_data  = {
+                "today" : moment(tgl_sekaramg, 'YYYY-MM-DD').startOf('month').format('YYYY-MM-DD'),
+            };
+            const global_type   = "GET";
+
+            const sendData      = [
+                doTrans(calendar_url, global_type, calendar_data, '', true),
+                doTrans(actUser_url, global_type, actUser_data, '', true),
+            ];
+
+            Swal.fire({
+                title   : 'Data Sedang Dimuat',
+            });
+            Swal.showLoading();
+
+            Promise.all(sendData)
                 .then((success) => {
-                    var temp    = [];
-                    for(var i = 0; i < success.data.length; i++) {
+                    // CALENDAR AREA
+                    const resultDataCalendar     = success[0].data;
+                    const temp                  = [];
+                    for(const item of resultDataCalendar) {
                         temp.push({
-                            title   : success.data[i].pkh_title,
-                            start   : success.data[i].pkh_date,
-                            end     : moment(success.data[i].pkh_date, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD'),
+                            title   : item.pkh_title,
+                            start   : item.pkh_date,
+                            end     : moment(item.pkh_date, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD'),
                             allDay  : true,
-                            id      : success.data[i].uuid
+                            id      : item.uuid,
                         });
                     }
                     successCallback(temp);
+
+                    // ADDITIONAL
+                    const resultDataActUser  = success[1].data;
+                    $(".badge.badge-white").empty();
+                    $(".badge.badge-white").html(resultDataActUser.length);
+
                     Swal.close();
                 })
                 .catch((err)    => {
-                    Swal.close();
+                    $(".badge.badge-white").empty();
+                    $(".badge.badge-white").html(0);
                     console.log(err);
+                    Swal.close();
                 })
         },
         select  : function(arg) {
@@ -70,23 +123,38 @@ function showCalendar(tgl_sekaramg)
         customButtons: {
             prevCustomButton: {
                 // text: "",
-                click: function() {
+                click: () => {
+                    $(".badge.badge-white").empty();
+                    $(".badge.badge-white").html("<i class='fa fa-spinner fa-spin'></i>");
                     var hari_ini_bulan_lalu         = moment(today).subtract(1, 'month').format('YYYY-MM-DD');
                     showCalendar(hari_ini_bulan_lalu);
                     today   = hari_ini_bulan_lalu;
+
+                    $("#jpk_year_periode").html(moment(hari_ini_bulan_lalu, 'YYYY-MM-DD').format('YYYY'));
+                    $("#jpk_month_periode").html(moment(hari_ini_bulan_lalu, 'YYYY-MM-DD').format('MMMM'));
                 }
             },
             nextCustomButton : {
-                click : function() {
+                click : () => {
+                    $(".badge.badge-white").empty();
+                    $(".badge.badge-white").html("<i class='fa fa-spinner fa-spin'></i>");
                     var hari_ini_bulan_depan         = moment(today).add(1, 'month').format('YYYY-MM-DD');
                     showCalendar(hari_ini_bulan_depan);
                     today   = hari_ini_bulan_depan;
+
+                    $("#jpk_year_periode").html(moment(hari_ini_bulan_depan, 'YYYY-MM-DD').format('YYYY'));
+                    $("#jpk_month_periode").html(moment(hari_ini_bulan_depan, 'YYYY-MM-DD').format('MMMM'));
                 }
             },
             refreshCustomButton     : {
-                click   : function() {
+                click   : () => {
+                    $(".badge.badge-white").empty();
+                    $(".badge.badge-white").html("<i class='fa fa-spinner fa-spin'></i>");
                     today   = moment().format('YYYY-MM-DD');
                     showCalendar(today);
+
+                    $("#jpk_year_periode").html(moment(today, 'YYYY-MM-DD').format('YYYY'));
+                    $("#jpk_month_periode").html(moment(today, 'YYYY-MM-DD').format('MMMM'));
                 }
             }
         },
@@ -100,6 +168,7 @@ function showCalendar(tgl_sekaramg)
     $("#jpk_year_periode").html(moment(today, 'YYYY-MM-DD').format('YYYY'));
     $("#jpk_month_periode").empty();
     $("#jpk_month_periode").html(moment(today, 'YYYY-MM-DD').format('MMMM'));
+    
 }
 
 function show_modal(id_modal, jenis, value)
@@ -213,6 +282,36 @@ function show_modal(id_modal, jenis, value)
                 })
                 console.log(err);
             })
+    } else if(id_modal == 'modal_list_pekerjaan') {
+        const actUser_data  = {
+            "today" : moment(today, 'YYYY-MM-DD').startOf('month').format('YYYY-MM-DD'),
+        };
+        const actUser_url   = "/marketings/programKerja/jenisPekerjaan/listActUser";
+        const actUser_type  = "GET";
+
+        const sendData  = [
+            doTrans(actUser_url, actUser_type, actUser_data, '', true)
+        ];
+
+        Swal.fire({
+            title   : 'Data Sedang Dimuat',
+        });
+        Swal.showLoading();
+
+        Promise.all(sendData)
+            .then((success) => {
+                const actUser_getData   = success[0].data;
+                show_table('table_list_pekerjaan', actUser_getData);
+                $("#"+id_modal).modal({ backdrop : 'static', keyboard: false });
+                Swal.close();
+            })
+            .catch((err)    => {
+                console.log(err);
+                show_table('table_list_pekerjaan', []);
+                $("#"+id_modal).modal({ backdrop : 'static', keyboard: false });
+                Swal.close();
+            })
+        $("#month_modal_list_pekerjaan").html(moment(today, 'YYYY-MM-DD').format('MMMM'));
     }
 }
 
@@ -230,6 +329,8 @@ function close_modal(id_modal)
             $("#jpk_btnHapus").prop('disabled', true);
             $("#jpk_aktivitas").val(1);
         });
+    } else if(id_modal == 'modal_list_pekerjaan') {
+        $("#"+id_modal).modal('hide');
     }
 }
 
@@ -280,6 +381,49 @@ function show_select(id_select, valueCari, valueSelect, isAsync)
         } else {
             $("#"+id_select).html(html);   
         }
+    }
+}
+
+function show_table(id_table, data)
+{
+    if(id_table == 'table_list_pekerjaan') {
+        $("#"+id_table).DataTable().clear().destroy();
+        
+        $("#"+id_table).DataTable({
+            language    : {
+                "emptyTable"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                "zeroRecords"   : "Tidak Ada Data Yang Bisa Dimuat",  
+            },
+            columnDefs  : [
+                { "targets" : [0], "width" : "2%", "className" : "text-center align-middle" },
+                { "targets" : [1], "width" : "35%", "className" : "text-left align-middle" },
+                { "targets" : [3], "width" : "15%", "className" : "text-right align-middle" },
+                { "targets" : [4], "width" : "15%", "className" : "text-left align-middle" },
+            ],
+            paging      : false,
+            pageLength  : -1,
+        });
+        
+        let total   = 0;
+        if(data.length > 0) {
+            let seq     = 1;
+            for(const item of data)
+            {
+                $("#"+id_table).DataTable().row.add([
+                    seq++,
+                    item.pkb_title,
+                    item.pkbd_title,
+                    item.pkb_target,
+                    item.pkb_pic == '0' ? 'Umum' : 'Khusus',
+                ]).draw('false');
+
+                total   += item.pkb_target;
+            }
+        }
+
+        $("#target_table_list_pekerjaan").removeClass('text-center align-middle text-left');
+        $("#target_table_list_pekerjaan").addClass('text-right');
+        $("#total_table_list_pekerjaan").html(total);
     }
 }
 

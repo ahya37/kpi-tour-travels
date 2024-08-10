@@ -42,15 +42,17 @@
             <div class="col-sm-12">
                 <div class="card shadow mb-4">
                     <div class="card-header">
-                        <h4>Jenis Pekerjaan</h4>
+                        <div class="d-flex flex-row justify-content-between align-items-center">
+                            <h4 class="no-margins">
+                                Kalendar Tahun <span id="jpk_year_periode"><i class="fa fa-spinner fa-spin"></i></span> Bulan <span id="jpk_month_periode"><i class="fa fa-spinner fa-spin"></i></span>
+                            </h4>
+                            <button class="btn btn-primary" onclick="show_modal('modal_list_pekerjaan')">
+                                <span class="badge badge-white"><i class='fa fa-spinner fa-spin'></i></span>
+                                List Pekerjaan
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-sm-12 text-center">
-                                <h2 style="margin: 0px;">Kalendar Tahun <span id="jpk_year_periode"><i class="fa fa-spinner fa-spin"></i></span> Bulan <span id="jpk_month_periode"><i class="fa fa-spinner fa-spin"></i></span></h2>
-                            </div>
-                        </div>
-                        <hr>
                         <div class="row">
                             <div class="col-sm-12">
                                 <div id="calendar" style="width: 100%;"></div>
@@ -139,6 +141,44 @@
                     <button class="btn btn-danger" id="jpk_btnHapus" onclick="hapus_data('modalTransJenisPekerjaan')" disabled>Hapus Data</button>
                     <button class="btn btn-secondary" onclick="close_modal('modalTransJenisPekerjaan')">Batal</button>
                     <button class="btn btn-primary" id="jpk_btnSimpan" onclick="do_simpan('modalTransJenisPekerjaan', this.value)">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_list_pekerjaan">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-row justify-content-between align-items-center w-100">
+                        <h4 class="no-margins">List Pekerjaan Bulan <span id="month_modal_list_pekerjaan"></span></h4>
+                        <button class="close" onclick="close_modal('modal_list_pekerjaan')">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table class="table table-sm table-striped table-hover" id="table_list_pekerjaan" style="width: 100%">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center align-middle" style="width: 2%;">No</th>
+                                        <th class="text-center align-middle" style="width: 35%;">Program</th>
+                                        <th class="text-center align-middle">Uraian</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Target</th>
+                                        <th class="text-center align-middle" style="width: 15%">Tipe</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" id="target_table_list_pekerjaan">Total : </th>
+                                        <th id="total_table_list_pekerjaan"></th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
