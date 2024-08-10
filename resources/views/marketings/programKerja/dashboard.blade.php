@@ -248,7 +248,14 @@
                             </div>
                         </div>
                     </div>
-					
+					<div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label>Bulan</label>
+                                <select name="program_bulan" id="program_bulan" class="form-control form-control-sm" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
 					<div class="form-group">
                         <div class="row">
                             <div class="col-sm-12">
@@ -265,22 +272,12 @@
                             </div>
                         </div>
                     </div>
-					
                     <div class="form-group">
                         <div class="row">
                             <div class="col-sm-12">
                                 <label>Program</label> 
                                 {{-- <input type="text" class="form-control form-control-sm" id="program_title" name="program_title" style="height: 37.5px;" placeholder="Uraian" autocomplete="off"> --}}
                                 <select name="program_title" id="program_title" class="form-control form-control-sm" style="width: 100%;"></select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <label>Bulan</label>
-                                <select name="program_bulan" id="program_bulan" class="form-control form-control-sm" style="width: 100%;"></select>
                             </div>
                         </div>
                     </div>
@@ -298,6 +295,7 @@
                                                         <th class="text-center align-middle">No</th>
                                                         <th class="text-center align-middle">Uraian</th>
                                                         <th class="text-center align-middle">Target</th>
+                                                        <th class="text-center align-middle">PIC</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody></tbody>
@@ -484,6 +482,15 @@
                             <div class="form-group">
                                 <label>Uraian</label>
                                 <input type="text" class="form-control form-control-sm" id="jpk_title" name="jpk_title" placeholder="Uraian" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Banyaknya Aktivitas</label>
+                                <input type="text" class="form-control" id="jpk_aktivitas" name="jpk_aktivitas" placeholder="Banyaknya Aktivitas" inputmode="numeric" style="height: 37.5px;" value="1">
+                                <small style="color: #dc3545">Note : Diisi dengan banyaknya aktivitas yang akan dikerjakan</small>
                             </div>
                         </div>
                     </div>

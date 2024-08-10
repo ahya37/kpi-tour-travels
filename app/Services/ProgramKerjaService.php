@@ -1560,4 +1560,42 @@ class ProgramKerjaService
 
         return $output;
     }
+
+    public static function do_hapus_master_program($data)
+    {
+        DB::beginTransaction();
+
+        $data_where     = [
+            "id"        => $data['id_program'],
+        ];
+
+        $data_update    = [
+            "is_active"     => "f",
+            "updated_by"    => $data['user_id'],
+            "updated_at"    => date('Y-m-d H:i:s'),
+        ];
+
+        DB::table('master_program')->where($data_where)->update($data_update);
+
+        try {
+            DB::commit();
+            LogHelper::create('delete', 'Berhasil Menhapus DAta Program : '.$data['id_program'], $data['ip']);
+
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => ""
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+            LogHelper::create('error_system', 'Gagal Menhapus Data Program : '.$data['id_program'], $data['ip']);
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage()
+            ];
+        }
+
+        return $output;
+    }
 }

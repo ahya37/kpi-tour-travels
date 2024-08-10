@@ -6,6 +6,7 @@ use App\Helpers\LogHelper;
 use Illuminate\Http\Request;
 use App\Services\DivisiService;
 use App\Services\BaseService;
+use Arr;
 use Http;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
@@ -1013,6 +1014,153 @@ class DivisiController extends Controller
                 "status"    => 404,
                 "message"   => "Data Gagal Diambil",
                 "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // DIGITAL
+    public function digital_programKerja_index()
+    {
+        if(Auth::user()->getRoleNames()[0] == 'digital') {
+            $data   = [
+                "title"     => "Aktivitas Harian - Digital",
+                "sub_title" => "List Aktivitas Harian",
+            ];
+
+            return view('divisi/digital/aktivitas_harian/index', $data);
+        } else {
+            abort(404);
+        }
+    }
+
+    public function digital_programKerja_listEvents(Request $request)
+    {
+        $data   = [
+            "user_id"       => Auth::user()->id,
+            "start_date"    => $request->all()['start_date'],
+            "end_date"      => $request->all()['end_date'],
+        ];
+
+        $getData    = DivisiService::getListEventsDigital($data);
+
+        if(count($getData) > 0) {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Ambil Data Kalendar", 
+                "data"      => $getData,
+            ];
+        } else {
+            $output     = [
+                "status"    => 500,
+                "success"   => false,
+                "message"   => "Gagal Ambil Data Kalendar", 
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function digital_programKerja_listEventDetail(Request $request)
+    {
+        $data   = [
+            "id"        => $request->all()['id'],
+            "user_id"   => Auth::user()->id,
+        ];
+
+        $getData    = DivisiService::getListEventDigitalDetail($data);
+        
+        if(count($getData) > 0) {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $getData,
+            ];
+        } else {
+            $output     = [
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Gagal Ambil Data",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function digital_programKerja_listProgram(Request $request)
+    {
+        $data   = [
+            "today"     => $request->all()['today'],
+            "user_id"   => Auth::user()->getRoleNames()[0] != 'admin' ? Auth::user()->id : '%',
+        ];
+
+        $getData    = DivisiService::getListProgramDigital($data);
+
+        if(count($getData['header']) > 0) {
+            $output     = array(
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data",
+                "data"      => [
+                    "header"    => $getData['header'],
+                    "detail"    => $getData['detail'],
+                ],
+            );
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data",
+                "data"      => [
+                    "header"    => [],
+                    "detail"    => [], 
+                ],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function digital_programKerja_simpanAktivitasHarian($jenis, Request $request)
+    {
+        $data_simpan    = [
+            "data"      => $request->all(),
+            "jenis"     => $jenis,
+            "user_id"   => Auth::user()->id,
+            "user_role" => Auth::user()->getRoleNames()[0],
+            "ip"        => $request->ip()
+        ];
+
+        $doSimpan   = DivisiService::doSimpanAktivitasHarianDigital($data_simpan);
+        
+        if($doSimpan['status'] == 'berhasil') {
+            $output    = [
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => $jenis == 'add' ? "Berhasil Menyimpan Data Aktivitas Baru" : ($jenis != 'delete' ? "Berhasil Mengubah Data Aktivitas" : "Berhasil Menghapus Data Aktivitas"),
+                    ],
+                ],
+            ];
+        } else if($doSimpan['status'] == 'gagal') {
+            $output    = [
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => $jenis == 'add' ? "Berhasil Menyimpan Data Aktivitas Baru" : ($jenis != 'delete' ? "Berhasil Mengubah Data Aktivitas" : "Berhasil Menghapus Data Aktivitas"),
+                    ],
+                ],
             ];
         }
 

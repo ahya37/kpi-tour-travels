@@ -20,6 +20,7 @@ use App\Models\Reason;
 use App\Models\DetailMarketingTarget;
 use App\Models\PicDetailMarketingTarget;
 use App\Models\PicDetailMarketingTargetListJamaah;
+use App\Services\DivisiService;
 use App\Services\MarketingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -1186,6 +1187,8 @@ class MarketingController extends Controller
             );
 
             return view('marketings.programKerja.dashboard', $data);
+        } else {
+            abort(404);
         }
     }
 
@@ -1217,7 +1220,6 @@ class MarketingController extends Controller
                         $data[]     = array(
                             $i + 1,
                             $header[$i]->pkt_title,
-                            $header[$i]->pkt_total_job,
                             $header[$i]->pkt_year,
                             "<button class='btn btn-sm btn-primary' title='Preview' value='" . $header[$i]->pkt_uuid . "' onclick='show_modal(`modalForm`, `edit`, this.value)'><i class='fa fa-eye'></i></button>",
                         );
@@ -1427,37 +1429,23 @@ class MarketingController extends Controller
     {
         $getData    = MarketingService::getListProgramMarketing($request->all()['sendData']);
 
-        if(count($getData['header']) > 0 || count($getData['detail'])) {
-            for($i = 0; $i < count($getData['header']); $i++) {
-                $ke         = $i + 1;
-                $prog_id    = $getData['header'][$i]->pkb_id;
-                $prog_title = $getData['header'][$i]->pkb_title;
-                $prog_sasaran_group_divisi  = $getData['header'][$i]->group_division_name;
-                $prog_total_target  = !empty($getData['header'][$i]->total_target) ? $getData['header'][$i]->total_target : 0;
-                $prog_bulan         = date('F', strtotime($getData['header'][$i]->program_date));
-
-                $data[]     = array(
-                    $ke,
-                    $prog_title,
-                    $prog_bulan,
-                    $prog_sasaran_group_divisi,
-                    $prog_total_target,
-                    
-                    "<button class='btn btn-sm btn-primary' value='".$prog_id."' title='Edit Data' onclick='show_modal(`modalProgram`, `edit`, this.value)'><i class='fa fa-edit'></i></button> 
-                        
-                    <button type='button' class='btn btn-sm btn-success' value='" . $prog_id . "' title='Lihat Data' onclick='show_modal(`modalDetailProgram`, `view`, this.value)'><i class='fa fa-eye'></i></button>",
-                );
-            }
+        if(count($getData['header']) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data",
+                "data"      => $getData['header'],
+            ];
         } else {
-            $data    = [];
+            $output     = [
+                "success"   => true,
+                "status"    => 404,
+                "message"   => "Tidak Ada Data Yang Bisa Dimuat",
+                "data"      => [],
+            ];
         }
-        
-        $output     = array(
-            "draw"  => 1,
-            "data"  => $data,
-        );
 
-        return Response::json($output, 200);
+        return Response::json($output, $output['status']);
     }
 
     public function marketing_programKerja_listSelectedProgramMarketing(Request $request)
@@ -1882,6 +1870,29 @@ class MarketingController extends Controller
                 "message"   => "Gagal Ambil Data Program Kerja Detail",
                 "data"      => [],
             );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function marketing_programKerja_dataPIC()
+    {
+        $getData    = MarketingService::getDataPICMarketing();
+        
+        if(count($getData) > 0) {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Data Berhasil Dimuat",
+                "data"      => $getData,
+            ];
+        } else {
+            $output     = [
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Tidak Ada Data",
+                "data"      => [],
+            ];
         }
 
         return Response::json($output, $output['status']);

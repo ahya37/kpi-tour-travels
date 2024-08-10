@@ -2,6 +2,7 @@ var site_url    = window.location.pathname;
 var isOpen      = 0;
 var isCalendarLoaded    = 0;
 var today       = moment().format('YYYY-MM-DD');
+var tempDataPIC = [];
 $(document).ready(function(){
     $("#tableList").DataTable({
         language    : {
@@ -117,19 +118,6 @@ function showCalendar(tgl_sekaramg)
                     var hari_ini_bulan_lalu         = moment(today).subtract(1, 'month').format('YYYY-MM-DD');
                     showCalendar(hari_ini_bulan_lalu);
                     today   = hari_ini_bulan_lalu;
-                    // var hari_ini                = $("#current_date").val();
-                    // var groupDivision           = $("#groupDivisionName").val();
-                    // var hari_ini_bulan_lalu     = moment(hari_ini).subtract(1, 'month').format('YYYY-MM-DD');
-                    // var tgl_awal_bulan_lalu     = moment(hari_ini_bulan_lalu).startOf('month').format('YYYY-MM-DD');
-                    // var tgl_akhir_bulan_lalu    = moment(hari_ini_bulan_lalu).endOf('month').format('YYYY-MM-DD');
-                    // showCalendar(tgl_awal_bulan_lalu, tgl_awal_bulan_lalu, tgl_akhir_bulan_lalu, groupDivision);
-                    // $("#current_date").val(hari_ini_bulan_lalu);
-                    // // VISUAL UPDATE
-                    // $("#titleBulan").html(moment(hari_ini_bulan_lalu).format('MMMM'));
-                    // $("#titleTahun").html(moment(hari_ini_bulan_lalu).format('YYYY'));
-                    // // UPDATE FILTER
-                    // $("#prokerBulananStartDate").val(moment(tgl_awal_bulan_lalu).format('DD/MM/YYYY'));
-                    // $("#prokerBulananEndDate").val(moment(tgl_akhir_bulan_lalu).format('DD/MM/YYYY'));
                 }
             },
             nextCustomButton : {
@@ -137,30 +125,12 @@ function showCalendar(tgl_sekaramg)
                     var hari_ini_bulan_depan         = moment(today).add(1, 'month').format('YYYY-MM-DD');
                     showCalendar(hari_ini_bulan_depan);
                     today   = hari_ini_bulan_depan;
-                    // var today                   = $("#current_date").val();
-                    // var groupDivision           = $("#groupDivisionName").val();
-                    // var hari_ini_bulan_depan    = moment(today).add(1, 'month').format('YYYY-MM-DD');
-                    // var tgl_awal_bulan_depan    = moment(hari_ini_bulan_depan).startOf('month').format('YYYY-MM-DD');
-                    // var tgl_akhir_bulan_depan   = moment(hari_ini_bulan_depan).endOf('month').format('YYYY-MM-DD');
-                    // showCalendar(tgl_awal_bulan_depan, tgl_awal_bulan_depan, tgl_akhir_bulan_depan, groupDivision);
-                    // $("#current_date").val(hari_ini_bulan_depan);
-                    // // VISUAL UPDATE
-                    // $("#titleBulan").html(moment(hari_ini_bulan_depan).format('MMMM'));
-                    // $("#titleTahun").html(moment(hari_ini_bulan_depan).format('YYYY'));
-                    // // UPDATE FILTER
-                    // $("#prokerBulananStartDate").val(moment(tgl_awal_bulan_depan).format('DD/MM/YYYY'));
-                    // $("#prokerBulananEndDate").val(moment(tgl_akhir_bulan_depan).format('DD/MM/YYYY'));
                 }
             },
             refreshCustomButton     : {
                 click   : function() {
                     today   = moment().format('YYYY-MM-DD');
                     showCalendar(today);
-                    // var today           = $("#current_date").val();
-                    // var groupDivision   = $("#groupDivisionName").val();
-                    // var tgl_awal        = moment(today).startOf('month').format('YYYY-MM-DD');
-                    // var tgl_akhir       = moment(today).endOf('month').format('YYYY-MM-DD');
-                    // showCalendar(today, tgl_awal, tgl_akhir, groupDivision);
                 }
             }
         },
@@ -181,14 +151,16 @@ function show_modal(id_modal, jenis, value)
         // CLOSE MODAL BEFORE
         close_modal('modalTableProgram');
         // GET ALL DATA
-        const getDataSasaran    = doTrans('/marketings/programKerja/program/listSelectSasaranMarketing', 'get', '', '', true);
-        const getDataProgram    = value != '' ? doTrans('/marketings/programKerja/program/listSelectedProgramMarketing', 'get', value, '', true) : '';
+        const getDataSasaran        = doTrans('/marketings/programKerja/program/listSelectSasaranMarketing', 'get', '', '', true);
+        const getDataProgram        = value != '' ? doTrans('/marketings/programKerja/program/listSelectedProgramMarketing', 'get', value, '', true) : '';
         const getKategoriProgram    = doTrans('/marketings/programKerja/program/listMasterProgram', 'GET', '', '', true);
+        const getPIC                = doTrans('/marketings/programKerja/master/getListPIC', 'GET', '', '', true);
 
         var request     = [
             getDataSasaran,
             getDataProgram,
             getKategoriProgram,
+            getPIC
         ];
         
         // SHOW LOADING
@@ -205,6 +177,8 @@ function show_modal(id_modal, jenis, value)
                 var data_sasaran            = response[0].data.detail;
                 var data_sasaran_header     = response[0].data.header;
                 var data_master_program     = response[2].data;
+                
+                tempDataPIC.push(response[3].data);
 
                 show_select('program_sasaranHeaderID', data_sasaran_header, '', '');
                 show_select('program_sasaranID', '', '', '');
@@ -311,6 +285,32 @@ function show_modal(id_modal, jenis, value)
             var waktu   = value.event.startStr;
         }
 
+         // MENGUBAH MENJADI KAPITAL PADA ONKEYUP URAIAN
+         $("#jpk_title").on('keyup', ()=> {
+            const upper_jpk_title   = $("#jpk_title").val().toUpperCase();
+            $("#jpk_title").val(upper_jpk_title);
+        });
+
+        // BLUR BANYAKNYA AKTIVITAS
+        $("#jpk_aktivitas").on('blur', () => {
+            const val_jpk_aktivitas     = $("#jpk_aktivitas").val();
+            
+            if(val_jpk_aktivitas == '') {
+                $("#jpk_aktivitas").val(1);
+            } else {
+                $("#jpk_aktivitas").val(val_jpk_aktivitas);
+            }
+        });
+
+        $("#jpk_aktivitas").on('click', () => {
+            $("#jpk_aktivitas").select();
+        });
+
+        $("#jpk_aktivitas").on('keyup', () => {
+            const val_jpk_aktivitas   = $("#jpk_aktivitas").val().replace(/[^0-9\.]/g,'');
+            $("#jpk_aktivitas").val(val_jpk_aktivitas);
+        });
+
         var getData     = [
             doTrans('/marketings/programKerja/jenisPekerjaan/dataProgram', 'GET', waktu, '', true),
             jenis == 'edit' ? doTrans('/marketings/programKerja/jenisPekerjaan/dataDetailEventsCalendar/'+value.event.id, "GET", '', '', true) : '',
@@ -342,6 +342,7 @@ function show_modal(id_modal, jenis, value)
                     var title       = getData.pkh_title;
                     var pkh_date    = getData.pkh_date;
                     var description = "";
+                    var pkh_total_act   = getData.pkh_total_activity;
 
                     $("#jpk_ID").val(value.event.id);
                     $("#jpk_date").val(pkh_date);
@@ -352,6 +353,7 @@ function show_modal(id_modal, jenis, value)
                     $("#jpk_description").val(description);
                     show_select('jpk_programDetail', pkb_id, programID, true);
                     $("#jpk_btnHapus").prop('disabled', false);
+                    $("#jpk_aktivitas").val(pkh_total_act);
                 }
                 Swal.close();
             })
@@ -386,7 +388,7 @@ function show_modal(id_modal, jenis, value)
                 // HEADER
                 $("#modalDetailProgram_programKategori").html(header.pkb_title.toUpperCase());
                 $("#modalDetailProgram_programTitle").html(header.pkb_sub_title);
-                $("#modalDetailProgram_programBulan").html(moment(header.pkb_month_periode).format('MMMM').toUpperCase());
+                $("#modalDetailProgram_programBulan").html(moment(header.pkb_month_periode, 'MM').format('MMMM').toUpperCase());
                 $("#modalDetailProgram_programDivisi").html(header.group_division_name);
 
                 $("#modalDetailProgram_title").html('Detail Program : '+header.pkb_title.toUpperCase()+' - '+header.pkb_sub_title);
@@ -424,17 +426,6 @@ function show_modal(id_modal, jenis, value)
                 Swal.close();
                 console.log(err);
             })
-
-        // Swal.fire({
-        //     title   : 'Data Sedang Dimuat',
-        // });
-        // Swal.showLoading();
-
-        // setTimeout(function(){
-        //     Swal.close();
-        //     $("#"+id_modal).modal({ backdrop : 'static', keyboard: false });
-        //     $("#"+id_modal).modal('show');
-        // }, 1000);
     }
 }
 
@@ -471,6 +462,7 @@ function close_modal(id_modal)
             $("#jpk_date").val(null);
             today  = moment().format('YYYY-MM-DD');
             $("#jpk_btnHapus").prop('disabled', true);
+            $("#jpk_aktivitas").val(1);
         });
     } else if(id_modal == 'modalDetailProgram') {
         $("#"+id_modal).modal('hide');
@@ -496,7 +488,7 @@ function show_select(id_select, valueCari, valueSelect, isAsync)
             $("#"+id_select).html(html);
         }
     } else if(id_select == 'program_sasaranHeaderID') {
-        var html    = "<option selected disabled>Pilih Sasaran Program</option>";
+        var html    = "<option selected disabled>Pilih Program Kerja Divisi</option>";
         if(valueCari != '' ) {
             $.each(valueCari, (i, item) => {
                 html    += "<option value='" + item.pkt_uuid + "'>" + item.pkt_title + "</option>";
@@ -528,8 +520,7 @@ function show_select(id_select, valueCari, valueSelect, isAsync)
             }
 
             $("#"+id_select).on('select2:select', function(){
-                var prev_seq    = parseInt($("#btnTambahData").val()) - 1;
-                $("#jk_title"+prev_seq).focus();
+                $("#program_title").select2('open');
             });
         } else { 
             $("#"+id_select).html(html);
@@ -562,7 +553,7 @@ function show_select(id_select, valueCari, valueSelect, isAsync)
         }
     } else if(id_select == 'jpk_programDetail') {
         var html    = "<option selected disabled>Pilih Program Detail</option>";
-        console.log({id_select, valueCari, valueSelect, isAsync});
+        // console.log({id_select, valueCari, valueSelect, isAsync});
         if(valueCari != '') {
             var url     = "/marketings/programKerja/jenisPekerjaan/dataProgramDetail/"+valueCari;
             var type    = "GET";
@@ -595,7 +586,9 @@ function show_select(id_select, valueCari, valueSelect, isAsync)
 
         if(valueCari != '') {
             $.each(valueCari, (i, item) => {
-                html    += "<option value='"+ item.id +"'>" + item.name + "</option>";
+                if(item.is_active == 't') {
+                    html    += "<option value='"+ item.id +"'>" + item.name + "</option>";
+                }
             });
             $("#"+id_select).html(html);
         } else {
@@ -615,6 +608,31 @@ function show_select(id_select, valueCari, valueSelect, isAsync)
     }
 }
 
+function showSelectDynamic(idSelect, data, seq)
+{   
+    $("#"+idSelect+""+seq).select2({
+        theme   : 'bootstrap4'
+    });
+    if(idSelect == 'jk_pic') {
+        var html = [
+            "<option selected disabled>PIC</option>",
+        ];
+
+        if(data.length > 0) {
+            html    += "<option value='0'>Semua</option>";
+
+            $.each(data[0], (i, item) => {
+                // console.log(item);
+                html    += "<option value='" + item.user_id + "'>" + item.name + "</option>";
+            });
+
+            $("#"+idSelect+""+seq).html(html);
+        } else {
+            $("#"+idSelect+""+seq).html(html);
+        }
+    }
+}
+
 function show_table(id_table, value)
 {
     if(id_table == 'table_list_program') {
@@ -622,20 +640,11 @@ function show_table(id_table, value)
         $("#"+id_table).DataTable({
             language    : {
                 "processing"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
-                "emptyTable"    : "Tidak ada data yang bisa ditampilkan..",
-                "zeroRecords"    : "Tidak ada data yang bisa ditampilkan..",
+                "emptyTable"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                "zeroRecords"   : "Tidak ada data yang bisa ditampilkan..",
             },
             processing  : true,
             serverSide  : false,
-            ajax        : {
-                url     : "/marketings/programKerja/program/listProgramMarketing",
-                type    : "GET",
-                dataType: "json",
-                data    : {
-                    "_token"    : CSRF_TOKEN,
-                    "sendData"  : '%',
-                },
-            },
             columnDefs  : [
                 { "targets" : [1, 3], "className" : "align-middle" },
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
@@ -643,18 +652,38 @@ function show_table(id_table, value)
                 { "targets" : [4], "className" : "text-right align-middle", "width" : "5%" },
                 { "targets" : [5], "className" : "text-center align-middle", "width" : "15%" },
             ],
-            footerCallback: function (tr, data, start, end, display) {
-                var api = this.api();
-                $(api.column(4).footer()).html(
-                    api
-                        .column(4)
-                        .data()
-                        .reduce(function (a, b) {
-                            return parseInt(a) + parseInt(b);
-                        }, 0)
-                );
-            }
         });
+        
+        // GET DATATABLE
+        doTrans('/marketings/programKerja/program/listProgramMarketing', 'GET', '%', '', true)
+            .then((success) => {
+                if(success.data.length > 0) {
+                    for(let i = 0; i < success.data.length; i++) {
+                        const seq           = i + 1;
+                        const id            = success.data[i].pkb_id;
+                        const title         = success.data[i].pkb_title;
+                        const date          = success.data[i].program_date;
+                        const groupDivision = success.data[i].group_division_name;
+                        const target        = +success.data[i].total_target;
+                        const buttonEdit    = "<button type='button' class='btn btn-sm btn-primary' title='Ubah Data' value='" + id + "' onclick=' show_modal(`modalProgram`, `edit`, this.value)'><i class='fa fa-edit'></i></button>";
+                        const buttonCheck   = "<button type='button' class='btn btn-sm btn-success' title='Lihat Data' value='" + id + "' onclick='show_modal(`modalDetailProgram`, `view`, this.value)'><i class='fa fa-eye'></i></button>";
+                        $("#"+id_table).DataTable().row.add([
+                            seq,
+                            title,
+                            moment(date, 'YYYY-MM-DD').format('MMMM'),
+                            groupDivision,
+                            target,
+                            buttonEdit+"&nbsp;"+buttonCheck,
+                        ]).draw(false);
+                    }
+                }
+            })
+            .catch((err)    => {
+                console.log(err);
+                $(".dataTables_empty").html('Tidak ada data yang bisa dimuat, silahkan tambahkan beberapa..');
+            })
+
+        
     } else if(id_table == 'table_jenis_pekerjaan') {
         $("#"+id_table).DataTable().clear().destroy();
         $("#"+id_table).DataTable({
@@ -663,9 +692,10 @@ function show_table(id_table, value)
                 "zeroRecords"   : "Tidak ada data data..",
             },
             columnDefs  : [
-                { "targets" : [0], "width" : "5%", "className" : "text-center" },
+                { "targets" : [0], "width" : "5%", "className" : "text-center align-middle" },
                 { "targets" : [1], "width" : "10%", "className" : "text-center" },
                 { "targets" : [3], "width" : "15%", "className" : "text-right" },
+                { "targets" : [4], "width" : "1%"},
             ],
             ordering    : false,
             searching   : false,
@@ -707,17 +737,21 @@ function tambah_baris(id_table, value)
     if(id_table == 'table_jenis_pekerjaan') {
         var seq     = $("#btnTambahData").val();
 
-        var input_delete    = "<button class='btn btn-sm btn-danger' value='"+ seq +"' id='jk_btn_delete"+seq+"' title='Hapus Data' onclick='hapus_baris(`table_jenis_pekerjaan`, "+seq+")'><i class='fa fa-trash'></i></button>";
-        var input_seq       = "<input type='text' class='form-control form-control-sm text-center' id='jk_seq"+seq+"' placeholder='seq' readonly>";
-        var input_title     = "<input type='text' class='form-control form-control-sm' id='jk_title"+seq+"' placeholder='Title'>";
-        var input_target    = "<input type='number' class='form-control form-control-sm text-right' onclick='this.select()' id='jk_target"+seq+"' placeholder='Target' max='9999' min='0' step='1'>";
+        var input_delete    = "<button class='btn btn-danger' value='"+ seq +"' id='jk_btn_delete"+seq+"' title='Hapus Data' onclick='hapus_baris(`table_jenis_pekerjaan`, "+seq+")'><i class='fa fa-trash'></i></button>";
+        var input_seq       = "<input type='text' class='form-control text-center' id='jk_seq"+seq+"' placeholder='seq' readonly style='height: 37.5px;'>";
+        var input_title     = "<input type='text' class='form-control' id='jk_title"+seq+"' placeholder='Title' style='height: 37.5px;'>";
+        var input_target    = "<input type='number' class='form-control text-right' onclick='this.select()' id='jk_target"+seq+"' placeholder='Target' max='9999' min='0' step='1' style='height: 37.5px;'>";
+        var input_pic       = "<select id='jk_pic"+seq+"' class='form-control' style='width: 180px;'></select>";
 
         $("#"+id_table).DataTable().row.add([
             input_delete,
             input_seq,
             input_title,
             input_target,
+            input_pic,
         ]).draw('false');
+
+        showSelectDynamic('jk_pic', tempDataPIC, seq);
 
         $("#jk_seq"+seq).val(seq);
 
@@ -742,6 +776,7 @@ function tambah_baris(id_table, value)
         if(value != '') {
             $("#jk_title"+seq).val(value.pkbd_title);
             $("#jk_target"+seq).val(value.pkbd_num_target);
+            $("#jk_pic"+seq).val(value.pkbd_pic).trigger('change');
         } else {
             $("#jk_target"+seq).val(0);
         }
@@ -787,6 +822,7 @@ function do_simpan(id_form, jenis)
                 "detail_seq"    : $("#jk_seq"+seq).val(),
                 "detail_title"  : $("#jk_title"+seq).val(),
                 "detail_target" : $("#jk_target"+seq).val(),
+                "detail_pic"    : $("#jk_pic"+seq).val(),
             });
         }
 
@@ -794,7 +830,7 @@ function do_simpan(id_form, jenis)
             Swal.fire({
                 icon    : 'error',
                 title   : 'Terjadi Kesalahan',
-                text    : 'Kategori Harus Dipilih',
+                text    : 'Program Harus Dipilih',
             }).then((results)   => {
                 if(results.isConfirmed) {
                     kategori.select2('open')
@@ -864,6 +900,7 @@ function do_simpan(id_form, jenis)
         var jenis_pekerjaan_title           = $("#jpk_title");
         var jenis_pekerjaan_description     = $("#jpk_description");
         var jenis_pekerjaan_date            = $("#jpk_date");
+        var jenis_pekerjaan_total_act       = $("#jpk_aktivitas");
 
         if(jenis_pekerjaan_programID.val() == null) {
             Swal.fire({
@@ -906,6 +943,7 @@ function do_simpan(id_form, jenis)
                 "jenis_pekerjaan_title"             : jenis_pekerjaan_title.val(),
                 "jenis_pekerjaan_description"       : jenis_pekerjaan_description.val(),
                 "jenis_pekerjaan_type_trans"        : jenis,
+                "jenis_pekerjaan_total_activity"    : jenis_pekerjaan_total_act.val(),
             };
 
             var url     = '/marketings/programKerja/jenisPekerjaan/doSimpan';

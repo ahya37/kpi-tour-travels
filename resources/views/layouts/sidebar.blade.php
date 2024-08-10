@@ -317,8 +317,16 @@
                 </ul>
             </li>
             @endif
-        </ul>
 
+            @if(Auth::user()->hasRole('digital'))
+                <li class="{{ request()->is('divisi/digital/aktivitasHarian') ? 'active' : '' }}">
+                    <a href="{{ route('index.programKerja.digital') }}">
+                        <i class="fa fa-pencil"></i>
+                        <span class="nav-label">Aktivitas Harian</span>
+                    </a>
+                </li>
+            @endif
+        </ul>
     </div>
 </nav>
 

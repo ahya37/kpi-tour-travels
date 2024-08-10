@@ -66,7 +66,6 @@
                                             <tr>
                                                 <th>No</th>
                                                 <th>Uraian</th>
-                                                <th>Total Sasaran</th>
                                                 <th>Tahun</th>
                                                 <th>Aksi</th>
                                             </tr>

@@ -40,7 +40,7 @@
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
             <div class="col-sm-12">
-                <div class="card shadow">
+                <div class="card shadow mb-4">
                     <div class="card-header">
                         <h4>Jenis Pekerjaan</h4>
                     </div>
@@ -99,13 +99,13 @@
                             <div class="form-group">
                                 <label>Waktu Awal Aktivitas</label>
                                 <input type="hidden" name="jpk_date" id="jpk_date">
-                                <input type="text" class="form-control form-control-sm waktu" id="jpk_start_time" name="jpk_start_time" readonly style="background: white; cursor: pointer" style="height: 37.5px;">
+                                <input type="text" class="form-control form-control-sm waktu" id="jpk_start_time" name="jpk_start_time" readonly style="background: white; cursor: pointer; height: 37.5px;">
                             </div>
                         </div>
                         <div class="col-sm-6">
                             <div class="form-group">
                                 <label>Waktu Akhir Aktivitas</label>
-                                <input type="text" class="form-control form-control-sm waktu" id="jpk_end_time" name="jpk_end_time" readonly style="background: white; cursor: pointer" style="height: 37.5px;">
+                                <input type="text" class="form-control form-control-sm waktu" id="jpk_end_time" name="jpk_end_time" readonly style="background: white; cursor: pointer; height: 37.5px;">
                             </div>
                         </div>
                     </div>
@@ -114,6 +114,15 @@
                             <div class="form-group">
                                 <label>Uraian</label>
                                 <input type="text" class="form-control form-control-sm" id="jpk_title" name="jpk_title" placeholder="Uraian" autocomplete="off" style="height: 37.5px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Banyaknya Aktivitas</label>
+                                <input type="text" class="form-control" id="jpk_aktivitas" name="jpk_aktivitas" placeholder="Banyaknya Aktivitas" inputmode="numeric" style="height: 37.5px;" value="1">
+                                <small style="color: #dc3545">Note : Diisi dengan banyaknya aktivitas yang akan dikerjakan</small>
                             </div>
                         </div>
                     </div>

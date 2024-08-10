@@ -142,10 +142,12 @@ class EmployeeService
                     "
                 );
                 $userID     = $query_user_id[0]->user_id;
-                $roleID     = $data['empRole'];
+
+                // GET USER ID
+                $role_id    = DB::table('roles')->select('id')->where([ 'name' => $data['empRole'] ])->get();
                 $user       = User::find($userID);
                 $user->roles()->detach();
-                $user->roles()->attach($roleID);
+                $user->roles()->attach($role_id[0]->id);
 
                 // UBAH DATA USERS
                 $data_where     = array(

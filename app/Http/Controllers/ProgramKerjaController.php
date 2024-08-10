@@ -1992,7 +1992,7 @@ class ProgramKerjaController extends Controller
         return Response::json($output, $output['status']);
     }
 
-    public function simpan_master_group($jenis, Request $request)
+    public function simpan_master_program($jenis, Request $request)
     {
         $data_simpan    = [
             "id"        => $request->all()['id'],
@@ -2029,6 +2029,46 @@ class ProgramKerjaController extends Controller
                     ],
                 ],
             );
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function hapus_master_program(Request $request)
+    {
+        $data   = [
+            "id_program"    => $request->all()['idProgram'],
+            "user_id"       => Auth::user()->id,
+            "user_role"     => Auth::user()->getRoleNames()[0],
+            "ip"            => $request->ip(),
+        ];
+
+        $doSimpan   = ProgramKerjaService::do_hapus_master_program($data);
+
+        if($doSimpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Menghapus Data Program"
+                    ],
+                ],
+            ];
+        } else if($doSimpan['status'] == 'gagal') {
+            $output     = [
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Gagal Menghapus Data Program"
+                    ],
+                ],
+            ];
         }
 
         return Response::json($output, $output['status']);

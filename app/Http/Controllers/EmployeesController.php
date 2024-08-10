@@ -179,7 +179,7 @@ class EmployeesController extends Controller
                         'icon'      => 'error',
                         'message'   => [
                             'title' => 'Terjadi Kesalahan',
-                            'text'  => 'Sistem sednag gangguan, silahkan tunggu dan coba lagi..',
+                            'text'  => 'Sistem Sedang Gangguan, Silahkan Tunggu dan Coba Lagi..',
                             'errMsg'=> $simpanData['errMsg'],
                         ],
                     ],

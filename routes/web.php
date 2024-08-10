@@ -147,6 +147,9 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/deleteJeniPekerjaan/{id}', [MarketingController::class, 'marketing_programKerja_deleteJenisPekerjaan']);
             });
             // ADDITIONAL
+            Route::prefix('master')->group(function(){
+                Route::get('/getListPIC', [MarketingController::class, 'marketing_programKerja_dataPIC']);
+            });
         });
 		
         
@@ -274,7 +277,8 @@ Route::group(['middleware' => ['auth']], function () {
             Route::prefix('master_program')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'index_masterProgram'])->name('programKerja.masterProgram.index');
                 Route::get('/list_master_program', [ProgramKerjaController::class, 'get_list_master_program']);
-                Route::post('/simpan_master_group/{jenis}', [ProgramKerjaController::class, 'simpan_master_group']);
+                Route::post('/simpan_master_program/{jenis}', [ProgramKerjaController::class, 'simpan_master_program']);
+                Route::post('/hapus_master_program', [ProgramKerjaController::class, 'hapus_master_program']);
             });
             // GLOBAL
             Route::get('/get/data/PIC', [ProgramKerjaController::class, 'getDataPIC'])->name('programKerja.get.data.pic');
@@ -358,6 +362,14 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/getTourCode/{tourcode}', [DivisiController::class, 'finance_programKerja_tourCode']);
             Route::get('/getEventsFinanceDetail/{id}', [DivisiController::class, 'finance_programKerja_eventsDetail']);
             Route::post('/simpanAktivitas/{jenis}', [DivisiController::class, 'finance_programKerja_simpanAktivitas']);
+        });
+
+        Route::prefix('digital')->group(function(){
+            Route::get('/aktivitasHarian', [DivisiController::class, 'digital_programKerja_index'])->name('index.programKerja.digital');
+            Route::get('/listEventsCalendarDigital', [DivisiController::class, 'digital_programKerja_listEvents']);
+            Route::get('/listEventsCalendarDigitalDetail', [DivisiController::class, 'digital_programKerja_listEventDetail']);
+            Route::get('/getDataProgramDigital', [DivisiController::class, 'digital_programKerja_listProgram']);
+            Route::post('/simpanAktivitasHarian/{jenis}', [DivisiController::class, 'digital_programKerja_simpanAktivitasHarian']);
         });
 
         Route::prefix('master')->group(function(){
