@@ -131,10 +131,10 @@
                     <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span class="fa arrow"></span>
                 </a>
                 <ul class="nav nav-second-level">
-                    <li
+                    {{-- <li
                         class="{{ (request()->is('master/programkerja') || request()->is('master/programkerja/*')) ? 'active' : '' }}">
                         <a href={{ route('programKerja.index') }}>Program Kerja</a>
-                    </li>
+                    </li> --}}
                     <li class="{{ request()->is('marketings/prospectmaterial/') || request()->is('marketings/prospectmaterial/*') ? 'active' : '' }}"><a href="{{ route('marketing.prospectmaterial') }}">Generate Bahan Prospek Alumni</a></li>
                 </ul>
             </li>

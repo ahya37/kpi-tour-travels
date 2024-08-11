@@ -1732,4 +1732,31 @@ class DivisiService
         
         return $output;
     }
+
+    public static function getListActUser($data)
+    {
+        $user_id    = $data['user_id'];
+        $today      = $data['today'];
+
+        return DB::select(
+            "
+            SELECT 	a.pkb_title,
+                    a.pkb_start_date,
+                    f.pkbd_type as pkbd_title,
+                    f.pkbd_num_target,
+                    f.pkbd_num_result,
+                    f.pkbd_pic
+            FROM 	proker_bulanan a
+            JOIN 	proker_tahunan b ON SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', 1) = b.uid
+            JOIN 	group_divisions c  ON b.division_group_id = c.id
+            JOIN 	proker_tahunan_detail e ON (e.pkt_id = b.id AND SUBSTRING_INDEX(a.pkb_pkt_id, ' | ', -1) = e.pktd_seq)
+            JOIN 	proker_bulanan_detail f ON f.pkb_id = a.id
+            WHERE 	a.pkb_is_active = 't'
+            AND 	c.name LIKE '%marketing%'
+            AND 	a.pkb_start_date = '$today'
+            AND 	(f.pkbd_pic LIKE '$user_id' OR f.pkbd_pic IN ('0', '$user_id'))
+            ORDER BY a.id, f.id, a.pkb_start_date ASC
+            "
+        );
+    }
 }
