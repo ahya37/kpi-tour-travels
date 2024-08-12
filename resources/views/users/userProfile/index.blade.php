@@ -25,52 +25,50 @@
     <input type="hidden" id="roleName" value={{ Auth::user()->getRoleNames()[0] }}>
     <input type="hidden" value="@php echo Auth::user()->name @endphp">
     <div class="wrapper wrapper-content animated fadeInRight">
-        <div class="row m-b-lg m-t-lg">
+        <div class="row m-b-sm m-t-sm">
             <div class="col-sm-6 m-t-sm">
-                <div class="profile-image">
-                    <div id="img_loading">
-                        <div class="rounded-circle circle-border text-center bg-white" alt="Profile" style="width: 96px; height: 96px; padding: 8px;">
-                            <div class="rounded-circle circle-border text-center bg-primary" style="width: 80px; height: 80px; padding-top: 24px;">
-                                <span class="spinner-border"></span>
+                <div class="d-flex flex-row align-items-center">
+                    <div class="profile-image">
+                        <div id="img_loading">
+                            <div class="rounded-circle circle-border text-center bg-white" alt="Profile" style="width: 96px; height: 96px; padding: 8px;">
+                                <div class="rounded-circle circle-border text-center bg-primary" style="width: 80px; height: 80px; padding-top: 24px;">
+                                    <span class="spinner-border"></span>
+                                </div>
+                            </div>
+                        </div>
+                        {{-- KONDISI KETIKA TIDAK ADA PROFILE PICTURE --}}
+                        <div id="img_not_found" class="d-none">
+                            <div class="rounded-circle circle-border text-center bg-white" alt="Profile" style="width: 96px; height: 96px; padding: 8px;">
+                                <div class="rounded-circle circle-border text-center bg-primary" style="width: 80px; height: 80px; padding-top: 4px;">
+                                    <span style="font-weight: bold; font-size: 48px;" id="default_user_profiles">
+                                        @php echo strtoupper(substr(Auth::user()->name, 0, 1)) @endphp
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {{-- KONDISI KETIKA ADA PROFILE PICTURE --}}
+                        <div id="img_found" class="d-none">
+                            <div class="rounded-circle circle-border text-center bg-white" style="width: 96px; height: 96px; padding: 8px;" id="img_found_image">
+                                {{-- <img src="{{ asset('assets/img/9187604.png') }}" class="rounded-circle m-b-md" alt="profile" style="width: 80px; height: 80px;"> --}}
                             </div>
                         </div>
                     </div>
-                    {{-- KONDISI KETIKA TIDAK ADA PROFILE PICTURE --}}
-                    <div id="img_not_found" class="d-none">
-                        <div class="rounded-circle circle-border text-center bg-white" alt="Profile" style="width: 96px; height: 96px; padding: 8px;">
-                            <div class="rounded-circle circle-border text-center bg-primary" style="width: 80px; height: 80px; padding-top: 4px;">
-                                <span style="font-weight: bold; font-size: 48px;" id="default_user_profiles">
-                                    @php echo strtoupper(substr(Auth::user()->name, 0, 1)) @endphp
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    {{-- KONDISI KETIKA ADA PROFILE PICTURE --}}
-                    <div id="img_found" class="d-none">
-                        <div class="rounded-circle circle-border text-center bg-white" style="width: 96px; height: 96px; padding: 8px;" id="img_found_image">
-                            {{-- <img src="{{ asset('assets/img/9187604.png') }}" class="rounded-circle m-b-md" alt="profile" style="width: 80px; height: 80px;"> --}}
-                        </div>
-                    </div>
-                </div>
-                <div class="profile-info" style="padding-top: 18px;">
-                    <div class="">
-                        <div>
-                            <h2 class="no-margins">
-                                <span id="user_profiles_names">
-                                    @php echo Auth::user()->name @endphp
-                                </span>
-                            </h2>
-                            <h4 id="user_rofiles_roles">
-                                @php echo strtoupper(Auth::user()->getRoleNames()[0]) @endphp
-                            </h4>
-                            <h5 id="user_profiles_sub_division">
-                                <i class="fa fa-spinner fa-spin"></i>
-                            </h5>
-                        </div>
+                    <div class="profile-info no-margins">
+                        <h2 class="no-margins">
+                            <span id="user_profiles_names">
+                                @php echo Auth::user()->name @endphp
+                            </span>
+                        </h2>
+                        <h4 id="user_rofiles_roles">
+                            @php echo strtoupper(Auth::user()->getRoleNames()[0]) @endphp
+                        </h4>
+                        <h5 id="user_profiles_sub_division">
+                            <i class="fa fa-spinner fa-spin"></i>
+                        </h5>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <table class="table m-b-xs">
                     <tbody>
                         <tr>
@@ -96,11 +94,9 @@
         <div class="row">
             <div class="col-sm-12">
                 <div class="card card-body">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <button class="btn btn-primary" onclick="showModal('modal_change_pict', '', '')">Ubah Foto</button>
-                            <button class="btn btn-primary" onclick="showModal('modalChangePassword', '', '')">Ubah Password</button>
-                        </div>
+                    <div class="d-flex flex-row align-items-center">
+                        <button class="btn btn-primary mr-3" onclick="showModal('modal_change_pict', '{{ Auth::user()->getRoleNames()[0] }}')">Ubah Foto</button>
+                        <button class="btn btn-primary" onclick="showModal('modalChangePassword', '{{ Auth::user()->getRoleNames()[0] }}')">Ubah Password</button>
                     </div>
                 </div>
             </div>

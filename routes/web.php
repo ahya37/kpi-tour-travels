@@ -145,7 +145,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/dataEventsCalendar', [MarketingController::class, 'marketing_programKerja_jpkDataEventsCalendar']);
                 Route::get('/dataDetailEventsCalendar/{id}', [MarketingController::class, 'marketing_programKerja_jpkDataDetailEventsCalendar']);
                 Route::post('/deleteJeniPekerjaan/{id}', [MarketingController::class, 'marketing_programKerja_deleteJenisPekerjaan']);
-                Route::get('/listActUser', [MarketingController::class, 'marketing_programKerja_listActivityUser']);
+                Route::get('/listActUser', [MarketingController::class, 'marketing_programKerja_listActUser']);
             });
             // ADDITIONAL
             Route::prefix('master')->group(function(){

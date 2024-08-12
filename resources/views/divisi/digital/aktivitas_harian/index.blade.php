@@ -27,7 +27,7 @@
             <div class="col-sm-12">
                 <div class="card shadow mb-4">
                     <div class="card-header">
-                        <h3 style="margin:0px;" id="card_title">List Aktivitas Harian <span id="kalender_bulan"></span></h3>
+                        <h4 style="margin:0px;" id="card_title">List Aktivitas Harian <span id="kalender_bulan"></span></h4>
                     </div>
                     <div class="card-body">
                         <input type="hidden" id="today">

@@ -1898,29 +1898,29 @@ class MarketingController extends Controller
         return Response::json($output, $output['status']);
     }
 
-    // 10 AGUSTUS 2024
-    // NOTE : PEMBUATAN LIST ACTIVITY USER
-    public function marketing_programKerja_listActivityUser(Request $request)
+    // 11 AGUSTUS 2024
+    // NOTE : PEMBUATAN LIST AKTIVITAS USER
+    public function marketing_programKerja_listActUser(Request $request)
     {
         $data   = [
-            "selected_date" => $request->all()['sendData']['today'],
-            "user_id"       => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id,
+            "today"     => $request->all()['sendData']['today'],
+            "user_id"   => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id,
         ];
 
-        $getData    = MarketingService::getListActivityUser($data);
+        $getData    = DivisiService::getListActUser($data);
 
         if(count($getData) > 0) {
             $output     = [
-                "status"    => 200,
                 "success"   => true,
-                "message"   => "Berhasil Ambil Data Aktivitas User",
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
                 "data"      => $getData,
             ];
         } else {
             $output     = [
-                "status"    => 404,
                 "success"   => false,
-                "message"   => "Gagal Ambil Data Aktivitas User",
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data",
                 "data"      => [],
             ];
         }

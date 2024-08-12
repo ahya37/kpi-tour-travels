@@ -1,7 +1,7 @@
 $(document).ready(function(){
+    // EASTER EGG
+    console.log('Hey, You Found Me!');
     getDataDashboard();
-
-    console.log(localStorage);
 })
 
 var site_url                = window.location.pathname;
@@ -75,29 +75,45 @@ function getDataDashboard()
         })
 }
 
-function showModal(idModal) {
+function showModal(idModal, data) {
     if(idModal == 'modalChangePassword') {
-        $("#"+idModal).modal('show');
-        $("#"+idModal).on('shown.bs.modal', function() {
-            $("#passwordLama").focus();
-
-            $("#passwordLama").on('keyup', function() {
-                $(this).removeClass('is-invalid');
-                $(this).removeClass('is-valid');
-                checkPasswordIsTrue     = false;
-
-                // RESET FORM
-                $("#passwordBaru").val(null);
-                $("#passwordKonfirmasi").removeClass('is-valid');
-                $("#passwordKonfirmasi").prop('readonly', true);
-                $("#passwordKonfirmasi").val(null);
-
-                checkPasswordIsTrue     = false;
-                isConfirmPasswordSame   = false;
+        if(data == 'admin') {
+            Swal.fire({
+                icon    : 'warning',
+                title   : 'Peringatan',
+                text    : 'Admin Tidak Dapat Mengubah Foto Ataupun Password',
             });
-        });
+        } else {
+            $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
+            $("#"+idModal).on('shown.bs.modal', function() {
+                $("#passwordLama").focus();
+
+                $("#passwordLama").on('keyup', function() {
+                    $(this).removeClass('is-invalid');
+                    $(this).removeClass('is-valid');
+                    checkPasswordIsTrue     = false;
+
+                    // RESET FORM
+                    $("#passwordBaru").val(null);
+                    $("#passwordKonfirmasi").removeClass('is-valid');
+                    $("#passwordKonfirmasi").prop('readonly', true);
+                    $("#passwordKonfirmasi").val(null);
+
+                    checkPasswordIsTrue     = false;
+                    isConfirmPasswordSame   = false;
+                });
+            });
+        }
     } else if(idModal == 'modal_change_pict') {
-        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        if(data == 'admin') {
+            Swal.fire({
+                icon    : 'warning',
+                title   : 'Peringatan',
+                text    : 'Admin Tidak Dapat Mengubah Foto Ataupun Password',
+            });
+        } else {
+            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        }
     }
 }
 
