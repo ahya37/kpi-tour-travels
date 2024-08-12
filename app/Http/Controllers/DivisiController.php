@@ -565,8 +565,12 @@ class DivisiController extends Controller
             $ip = 'umhaj_'.$request->ip;
             $log_user_id = 'umhaj_'.$request->username;
             $doDelete   = DivisiService::doHapusProgramByTourcode($request->tourcode, $ip, $request->is_active, $log_user_id);
+			
+            $message   = $request->is_active == 'f' ? 'Berhasil non aktifkan '. $request->tourcode : 'Berhasil aktifkan '. $request->tourcode;
+			
+            if ($doDelete['status'] == '0') return ResponseFormatter::success(null,  $message.' namun tourcode belum tersedia di ERP'); 
 
-            return ResponseFormatter::success($doDelete,'Berhasil non aktifkan tourcode !');
+            return ResponseFormatter::success($doDelete,$message); 
 
         } catch (\Exception $e) {
             Log::channel('daily')->error($e->getMessage());

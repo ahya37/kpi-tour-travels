@@ -755,11 +755,18 @@ class DivisiService
         return $output;
     }
 
-    public static function doHapusProgramByTourcode($tour_code, $ip,$is_activce, $log_user_id)
+    public static function doHapusProgramByTourcode($tour_code, $ip, $is_activce, $log_user_id)
     {
         $jadwal = DB::table('programs_jadwal')->select('jdw_uuid')->where('jdw_tour_code', $tour_code)->first();
-        $update = self::doHapusProgramFromUmhaj($jadwal->jdw_uuid, $ip, $is_activce, $log_user_id);
-        return $update;
+        if (!$jadwal) {
+            $output     = array(
+                "status"    => "0",
+            );
+
+            return $output;
+        }
+        $output = self::doHapusProgramFromUmhaj($jadwal->jdw_uuid, $ip, $is_activce, $log_user_id);
+        return $output;
     }
 
     public static function doHapusProgramFromUmhaj($id, $ip,$is_activce, $log_user_id)
