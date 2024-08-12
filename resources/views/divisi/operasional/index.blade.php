@@ -39,6 +39,23 @@
             <div class="col-sm-3">
                 <div class="card">
                     <div class="card-header bg-primary">
+                        <h4 class="no-margins">
+                            <i class="fa fa-file"></i>&nbsp; RKAP
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <h2 class="no-margins text-right" id="dashboard_rkap">0</h2>
+                    </div>
+                    <a href="#" onclick="showModal('modalRKAPTable', '', '')">
+                        <div class="card-footer text-left">
+                            Lihat Detail
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="card">
+                    <div class="card-header bg-primary">
                         <h4 style="margin-top: 0px; margin-bottom: 0px;"><i class='fa fa-calendar'></i> &nbsp; Jadwal Umrah</h4>
                     </div>
                     <div class="card-body">
@@ -52,7 +69,7 @@
             <div class="col-sm-3">
                 <div class="card">
                     <div class="card-header bg-success">
-                        <h4 style="margin-top: 0px; margin-bottom: 0px;"><i class='fa fa-wrench'></i> &nbsp; Aturan Program Kerja</h4>
+                        <h4 style="margin-top: 0px; margin-bottom: 0px;"><i class='fa fa-cog'></i> &nbsp; Aturan Program Kerja</h4>
                     </div>
                     <div class="card-body">
                         <h2 style="margin-bottom: 0px; margin-top: 0px;" class="text-right" id="dashboard_rules">0</h2>
@@ -440,6 +457,103 @@
                             <button type="button" class="btn btn-secondary" id="btnClose" title="Tutup Tampilan" onclick="closeModal('modalOperasionalTransaction')">Batal</button>
                             <button type="button" class="btn btn-primary" id="btnSave" title="Simpan Data" onclick="doSimpan('modalOperasionalTransaction', this.value)">Simpan</button>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="modalRKAPTable">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-row align-items-center justify-content-between w-100">
+                        <h4 class="no-margins">List RKAP Divisi Operasional</h4>
+                        <button class="close" onclick="closeModal('modalRKAPTable')">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-12">
+                            <button class="btn btn-primary" onclick="showModal('modalRKAP', '', 'add')">Tambah Data</button>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table class="table table-sm table-hover" style="width: 100%;" id="table_list_rkap">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center align-middle" style="width: 15%;">No</th>
+                                        <th class="text-center align-middle">Uraian</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Tahun</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalRKAP">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-row align-items-center justify-content-between w-100">
+                        <h4 class="no-margins"><span id="modalRKAP_title"></span> RKAP Divisi Operasional</h4>
+                        <button class="close" onclick="closeModal('modalRKAP')">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-6 border-right">
+                            {{-- JUDUL RKAP --}}
+                            <div class="form-row mb-2">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label>Uraian</label>
+                                        <input type="text" class="form-control" id="rkap_title" name="rkap_title" style="height: 37.5px;" placeholder="Uraian RKAP">
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- DESKRIPSI --}}
+                            <div class="form-row mb-2">
+                                <div class="col-sm-12">
+                                    <label>Deskripsi</label>
+                                    <textarea class="form-control" name="rkap_description" id="rkap_description" placeholder="Deskripsi Pekerjaan" style="resize: none;" rows="4"></textarea>
+                                </div>
+                            </div>
+                            {{-- TAHUN --}}
+                            <div class="form-row mb-2">
+                                <div class="col-sm-12">
+                                    <label>Tahun</label>
+                                    <input type="text" class="form-control" id="rkap_year" name="rkap_year" placeholder="Tahun" readonly style="background: white; cursor: pointer; height: 37.5px">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <table class="table table-sm table-hover table-border" style="width: 100%;" id="table_detail_rkap">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center align-middle" style="width: 13%;">Aksi</th>
+                                        <th class="text-center align-middle" style="width: 15%;">No</th>
+                                        <th class="text-left align-middle">Uraian</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex flex-row align-items-center justify-content-end">
+                        <button class="btn btn-primary mx-2" id="btnTambahBarisRKAP" value="1" onclick="tambahBaris('table_detail_rkap', this.value, '')">Tambah Baris</button>
+                        <button class="btn btn-secondary mr-2" id="btnBatalRKAP" onclick="closeModal('modalRKAP')">Batal</button>
+                        <button class="btn btn-primary" id="btnSimpanRKAP" value="">Simpan</button>
                     </div>
                 </div>
             </div>

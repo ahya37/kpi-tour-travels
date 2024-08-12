@@ -2,6 +2,7 @@ var today   = moment().format('YYYY-MM-DD');
 moment.locale('id');
 $(document).ready(function(){
     // console.log('test');
+
     showCalendar(today);
 
     $("#jpk_year_periode").empty();
@@ -67,6 +68,7 @@ function showCalendar(tgl_sekarang)
                     // CALENDAR
                     const temp              = [];
                     const calendar_getData  = success[0].data;
+                    console.log(calendar_getData);
                     for(const calendar_item of calendar_getData)
                     {
                         temp.push({
@@ -102,7 +104,9 @@ function showCalendar(tgl_sekarang)
         customButtons: {
             prevCustomButton: {
                 // text: "",
-                click: function() {
+                click: () => {
+                    $(".badge.badge-white").empty();
+                    $(".badge.badge-white").html("<i class='fa fa-spinner fa-spin'></i>");
                     var hari_ini_bulan_lalu         = moment(today).subtract(1, 'month').format('YYYY-MM-DD');
                     showCalendar(hari_ini_bulan_lalu);
                     today   = hari_ini_bulan_lalu;
@@ -115,7 +119,9 @@ function showCalendar(tgl_sekarang)
                 }
             },
             nextCustomButton : {
-                click : function() {
+                click : () => {
+                    $(".badge.badge-white").empty();
+                    $(".badge.badge-white").html("<i class='fa fa-spinner fa-spin'></i>");
                     var hari_ini_bulan_depan         = moment(today).add(1, 'month').format('YYYY-MM-DD');
                     showCalendar(hari_ini_bulan_depan);
                     today   = hari_ini_bulan_depan;
@@ -128,7 +134,9 @@ function showCalendar(tgl_sekarang)
                 }
             },
             refreshCustomButton     : {
-                click   : function() {
+                click   : () => {
+                    $(".badge.badge-white").empty();
+                    $(".badge.badge-white").html("<i class='fa fa-spinner fa-spin'></i>");
                     today   = moment().format('YYYY-MM-DD');
                     showCalendar(today);
 

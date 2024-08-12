@@ -11,6 +11,8 @@ use Http;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
 use LDAP\Result;
+use Illuminate\Support\Facades\Log;
+use App\Helpers\ResponseFormatter;
 
 use function PHPSTORM_META\map;
 
@@ -553,6 +555,27 @@ class DivisiController extends Controller
         }
 
         return Response::json($output, $output['status']);
+    }
+
+    public function hapusJadwalProgramByTourCode(Request $request)
+    {
+        
+        try {
+
+            $ip = 'umhaj_'.$request->ip;
+            $log_user_id = 'umhaj_'.$request->username;
+            $doDelete   = DivisiService::doHapusProgramByTourcode($request->tourcode, $ip, $request->is_active, $log_user_id);
+			
+            $message   = $request->is_active == 'f' ? 'Berhasil non aktifkan '. $request->tourcode : 'Berhasil aktifkan '. $request->tourcode;
+			
+            if ($doDelete['status'] == '0') return ResponseFormatter::success(null,  $message.', namun tourcode belum tersedia di ERP'); 
+
+            return ResponseFormatter::success($doDelete,$message); 
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error(null,'Gagal non aktifkan tourcode !');
+        }
     }
 
     // 17 JULI 2024
@@ -1163,6 +1186,28 @@ class DivisiController extends Controller
                 ],
             ];
         }
+
+        return Response::json($output, $output['status']);
+    }
+    
+    // 12 AGUSTUS 2024
+    // NOTE : PENGAMBILAN RKAP UNTUK OPERASIONAL
+    public function divisi_operasional_getRKAP(Request $request)
+    {
+        $sendData   = [
+            "pkt_id"        => $request->all()['sendData']['pkt_id'],
+            "current_year"  => date('Y'),
+            "current_role"  => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0]
+        ];
+
+        $getData    = DivisiService::doGetRKAPOperasional($sendData);
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Ambil Data",
+            "data"      => $getData,
+        ];
 
         return Response::json($output, $output['status']);
     }

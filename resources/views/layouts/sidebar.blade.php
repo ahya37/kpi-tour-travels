@@ -173,7 +173,7 @@
             </li>
             @endif
             @if (Auth::user()->hasRole('operasional'))
-            <li class="{{ request()->is('master/*') ? 'active' : '' }}">
+            {{-- <li class="{{ request()->is('master/*') ? 'active' : '' }}">
                 <a href="#">
                     <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span class="fa arrow"></span>
                 </a>
@@ -183,7 +183,7 @@
                         <a href={{ route('programKerja.index') }}>Program Kerja</a>
                     </li>
                 </ul>
-            </li>
+            </li> --}}
             <li class="{{ request()->is('divisi/*') ? 'active' : '' }}">
                 <a href="#">
                     <i class="fa fa-diamond"></i>

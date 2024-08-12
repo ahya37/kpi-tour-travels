@@ -32,13 +32,13 @@
                         <hr>
                         <div class="form-row">
                             <div class="col-sm-12">
-                                <table class="table table-sm table-striped table-bordered" id="table_log_user" style="width: 100%;">
+                                <table class="table table-sm table-striped table-hover" id="table_log_user" style="width: 100%;">
                                     <thead>
                                         <tr>
-                                            <th class="text-center" style="vertical-align: top;">No</th>
-                                            <th class="text-center" style="vertical-align: top;">Aktivitas</th>
-                                            <th class="text-center" style="vertical-align: top;">Jenis</th>
-                                            <th class="text-center" style="vertical-align: top;">Waktu</th>
+                                            <th class="text-center align-top" style="width:5%;">No</th>
+                                            <th class="text-left align-top">Aktivitas</th>
+                                            <th class="text-left align-top" style="width: 15%;">Jenis</th>
+                                            <th class="text-center align-top" style="width: 15%;">Waktu</th>
                                         </tr>
                                     </thead>
                                 </table>

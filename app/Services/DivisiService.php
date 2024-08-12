@@ -36,7 +36,8 @@ class DivisiService
             AND     EXTRACT(YEAR FROM a.jdw_depature_date) LIKE '$tahun_cari'
             AND     (EXTRACT(MONTH FROM a.jdw_depature_date) = '$bulan_cari' OR EXTRACT(MONTH FROM a.jdw_depature_date) LIKE '$bulan_cari') 
             AND     a.jdw_programs_id LIKE '$programs_id'
-            ORDER BY a.jdw_depature_date, b.name ASC
+            AND     a.is_active = 't'
+            ORDER BY a.jdw_depature_date DESC
             "
         );
 
@@ -333,7 +334,8 @@ class DivisiService
                     // INSERT TO DETAIL
                     $simpan_detail  = array(
                         "pkb_id"        => $idProkerBulanan,
-                        "pkbd_type"     => $dataRules->rul_title
+                        "pkbd_type"     => $dataRules->rul_title,
+                        "pkbd_pic"      => "0",
                     );
                     DB::table('proker_bulanan_detail')->insert($simpan_detail);
                 } else {
@@ -657,6 +659,7 @@ class DivisiService
             JOIN 	group_divisions d ON c.group_division_id = d.id
             WHERE 	d.name LIKE 'Operasional'
             AND 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+            AND     a.pkb_is_active = 't'
             GROUP BY b.name
             ORDER BY count(a.id) DESC
             "
@@ -726,6 +729,7 @@ class DivisiService
             "jdw_uuid"      => $id,
         ];
 
+
         $query_update   = [
             "is_active"     => "f",
         ];
@@ -746,6 +750,85 @@ class DivisiService
                 "errMsg"    => $e->getMessage(),
             );
             LogHelper::create('error_system', 'Gagal Membatalkan Program Umrah', $ip);
+        }
+
+        return $output;
+    }
+
+    public static function doHapusProgramByTourcode($tour_code, $ip, $is_activce, $log_user_id)
+    {
+        $jadwal = DB::table('programs_jadwal')->select('jdw_uuid')->where('jdw_tour_code', $tour_code)->first();
+        if (!$jadwal) {
+            $output     = array(
+                "status"    => "0",
+            );
+
+            return $output;
+        }
+        $output = self::doHapusProgramFromUmhaj($jadwal->jdw_uuid, $ip, $is_activce, $log_user_id);
+        return $output;
+    }
+
+    public static function doHapusProgramFromUmhaj($id, $ip,$is_activce, $log_user_id)
+    {
+        DB::beginTransaction();
+
+        // CHECK APAKAH ID INI SUDAH MASUK KE PROGRAM KERJA BULANAN
+        $queryCheckProkerBulanan    = DB::select(
+            "
+            SELECT 	*
+            FROM 	tr_prog_jdw a
+            WHERE 	prog_jdw_id = '$id'
+            AND 	REPLACE(a.prog_pkb_id, ' ', '') <> '' 
+            ORDER BY CAST(a.prog_rul_id AS SIGNED) ASC
+            "
+        );
+        
+        if(!empty($queryCheckProkerBulanan)) {
+            for($i = 0; $i < count($queryCheckProkerBulanan); $i++) {
+                $tarik  = $queryCheckProkerBulanan[$i];
+
+                $pkb_ID     = $tarik->prog_pkb_id;
+                // UPDATE PROKER BULANAN
+                $whereUpdateBulanan     = [
+                    "uuid"  => $pkb_ID
+                ];
+                $dataUpdateBulanan      = [
+                    "pkb_is_active"     => $is_activce
+                ];
+
+                DB::table('proker_bulanan')->where($whereUpdateBulanan)->update($dataUpdateBulanan);
+            }
+        } else {
+            // DO NOTHING
+        }
+        
+        // UPDATE JADWAL
+        $query_where    = [
+            "jdw_uuid"      => $id,
+        ];
+
+
+        $query_update   = [
+            "is_active"     => $is_activce,
+        ];
+
+        DB::table('programs_jadwal')->where($query_where)->update($query_update);
+
+        try {
+            DB::commit();
+            $output     = array(
+                "status"    => "berhasil",
+                "errMsg"    => [],
+            );
+            LogHelper::create('delete', 'Berhasil Membatalkan Program Umrah : '.$id, $ip, $log_user_id);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            $output     = array(
+                "status"    => "error",
+                "errMsg"    => $e->getMessage(),
+            );
+            LogHelper::create('error_system', 'Gagal Membatalkan Program Umrah', $ip, $log_user_id);
         }
 
         return $output;
@@ -1758,5 +1841,55 @@ class DivisiService
             ORDER BY a.id, f.id, a.pkb_start_date ASC
             "
         );
+    }
+
+    public static function doGetRKAPOperasional($data)
+    {
+        $current_role   = $data['current_role'];
+        $current_year   = $data['current_year'];
+        $pkt_id         = $data['pkt_id'];
+
+        $header     = DB::select(
+            "
+            SELECT 	a.uid as pkt_id,
+                    a.pkt_title as pkt_title,
+                    a.pkt_year as pkt_year,
+                    a.pkt_description
+            FROM 	proker_tahunan a
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            AND 	b.name LIKE '%$current_role%'
+            AND 	a.pkt_year = '$current_year'
+            AND     a.uid LIKE '%$pkt_id%'
+            ORDER BY a.pkt_year DESC
+            "
+        );
+
+        if($pkt_id != '%') {
+            $detail     = DB::select(
+                "
+                SELECT 	a.uid as pkt_id,
+                        a.pkt_title as pkt_title,
+                        a.pkt_year as pkt_year,
+                        c.pktd_seq as pkt_detail_seq,
+                        c.pktd_title as pkt_detail_title
+                FROM 	proker_tahunan a
+                JOIN 	group_divisions b ON a.division_group_id = b.id
+                JOIN 	proker_tahunan_detail c ON a.id = c.pkt_id
+                AND 	b.name LIKE '%$current_role%'
+                AND 	a.pkt_year = '$current_year'
+                AND     a.uid LIKE '%$pkt_id%'
+                ORDER BY a.pkt_year DESC, CAST(c.pktd_seq AS UNSIGNED) ASC  
+                "
+            );
+        } else {
+            $detail     = "";
+        }
+
+        $output     = [
+            "header"    => !empty($header) ? $header : [],
+            "detail"    => !empty($detail) ? $detail : [],
+        ];
+
+        return $output;
     }
 }

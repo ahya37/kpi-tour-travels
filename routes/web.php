@@ -145,7 +145,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/dataEventsCalendar', [MarketingController::class, 'marketing_programKerja_jpkDataEventsCalendar']);
                 Route::get('/dataDetailEventsCalendar/{id}', [MarketingController::class, 'marketing_programKerja_jpkDataDetailEventsCalendar']);
                 Route::post('/deleteJeniPekerjaan/{id}', [MarketingController::class, 'marketing_programKerja_deleteJenisPekerjaan']);
-                Route::geT('/listActUser', [MarketingController::class, 'marketing_programKerja_listActUser']);
+                Route::get('/listActUser', [MarketingController::class, 'marketing_programKerja_listActUser']);
             });
             // ADDITIONAL
             Route::prefix('master')->group(function(){
@@ -341,6 +341,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/getDataRulesJadwal/{idJadwalProgram}', [DivisiController::class, 'getDataRulesJadwal']);
             Route::get('/getDataRulesJadwalDetail', [DivisiController::class, 'getDataRulesJadwalDetail']);
             Route::get('/getJobUser', [DivisiController::class, 'getDataJobUser']);
+            Route::get('/getRKAP', [DivisiController::class, 'divisi_operasional_getRKAP']);
 
             Route::prefix('program')->group(function(){
                 Route::get('/', [DivisiController::class, 'indexProgram'])->name('index.operasional.program');
