@@ -690,7 +690,7 @@ class DivisiService
 
     // 05 JULI 2024
     // NOTE : PEMBUATAN MODUL HAPUS PROGRAMS
-    public static function doHapusProgram($id, $ip, $log_user_id)
+    public static function doHapusProgram($id, $ip)
     {
         DB::beginTransaction();
 
@@ -742,6 +742,78 @@ class DivisiService
                 "status"    => "berhasil",
                 "errMsg"    => [],
             );
+            LogHelper::create('delete', 'Berhasil Membatalkan Program Umrah : '.$id, $ip);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            $output     = array(
+                "status"    => "error",
+                "errMsg"    => $e->getMessage(),
+            );
+            LogHelper::create('error_system', 'Gagal Membatalkan Program Umrah', $ip);
+        }
+
+        return $output;
+    }
+
+    public static function doHapusProgramByTourcode($tour_code, $ip,$is_activce, $log_user_id)
+    {
+        $jadwal = DB::table('programs_jadwal')->select('jdw_uuid')->where('jdw_tour_code', $tour_code)->first();
+        $update = self::doHapusProgramFromUmhaj($jadwal->jdw_uuid, $ip, $is_activce, $log_user_id);
+        return $update;
+    }
+
+    public static function doHapusProgramFromUmhaj($id, $ip,$is_activce, $log_user_id)
+    {
+        DB::beginTransaction();
+
+        // CHECK APAKAH ID INI SUDAH MASUK KE PROGRAM KERJA BULANAN
+        $queryCheckProkerBulanan    = DB::select(
+            "
+            SELECT 	*
+            FROM 	tr_prog_jdw a
+            WHERE 	prog_jdw_id = '$id'
+            AND 	REPLACE(a.prog_pkb_id, ' ', '') <> '' 
+            ORDER BY CAST(a.prog_rul_id AS SIGNED) ASC
+            "
+        );
+        
+        if(!empty($queryCheckProkerBulanan)) {
+            for($i = 0; $i < count($queryCheckProkerBulanan); $i++) {
+                $tarik  = $queryCheckProkerBulanan[$i];
+
+                $pkb_ID     = $tarik->prog_pkb_id;
+                // UPDATE PROKER BULANAN
+                $whereUpdateBulanan     = [
+                    "uuid"  => $pkb_ID
+                ];
+                $dataUpdateBulanan      = [
+                    "pkb_is_active"     => $is_activce
+                ];
+
+                DB::table('proker_bulanan')->where($whereUpdateBulanan)->update($dataUpdateBulanan);
+            }
+        } else {
+            // DO NOTHING
+        }
+        
+        // UPDATE JADWAL
+        $query_where    = [
+            "jdw_uuid"      => $id,
+        ];
+
+
+        $query_update   = [
+            "is_active"     => $is_activce,
+        ];
+
+        DB::table('programs_jadwal')->where($query_where)->update($query_update);
+
+        try {
+            DB::commit();
+            $output     = array(
+                "status"    => "berhasil",
+                "errMsg"    => [],
+            );
             LogHelper::create('delete', 'Berhasil Membatalkan Program Umrah : '.$id, $ip, $log_user_id);
         } catch(\Exception $e) {
             DB::rollBack();
@@ -753,13 +825,6 @@ class DivisiService
         }
 
         return $output;
-    }
-
-    public static function doHapusProgramByTourcode($tour_code, $ip, $log_user_id)
-    {
-        $jadwal = DB::table('programs_jadwal')->select('jdw_uuid')->where('jdw_tour_code', $tour_code)->first();
-        $update = self::doHapusProgram($jadwal->jdw_uuid, $ip, $log_user_id);
-        return $update;
     }
 
     public static function getListDailyOperasional($data)
