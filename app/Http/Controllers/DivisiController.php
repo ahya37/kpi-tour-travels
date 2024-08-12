@@ -11,6 +11,8 @@ use Http;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
 use LDAP\Result;
+use Illuminate\Support\Facades\Log;
+use App\Helpers\ResponseFormatter;
 
 use function PHPSTORM_META\map;
 
@@ -553,6 +555,23 @@ class DivisiController extends Controller
         }
 
         return Response::json($output, $output['status']);
+    }
+
+    public function hapusJadwalProgramByTourCode(Request $request)
+    {
+        
+        try {
+
+            $ip = 'umhaj_'.$request->ip;
+            $log_user_id = 'umhaj_'.$request->username;
+            $doDelete   = DivisiService::doHapusProgramByTourcode($request->tourcode, $ip, $log_user_id);
+
+            return ResponseFormatter::success($doDelete,'Berhasil non aktifkan tourcode !');
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            return ResponseFormatter::error(null,'Gagal non aktifkan tourcode !');
+        }
     }
 
     // 17 JULI 2024

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\ProgramKerjaController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\TestController;
 
 #All test fitur
@@ -23,6 +24,8 @@ Route::post('/marketings/proker/jenispekerjaan/counting',[ProgramKerjaController
 
 #GENERATE DUMY DATA RENCANA KERJA MARKETING
 Route::post('/marketings/proker/dumy',[ProgramKerjaController::class, 'generateDumyData']);
+
+Route::post('/operasional/hapusProgramByTourcode', [DivisiController::class, 'hapusJadwalProgramByTourCode']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();

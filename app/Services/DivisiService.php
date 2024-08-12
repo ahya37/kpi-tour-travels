@@ -690,7 +690,7 @@ class DivisiService
 
     // 05 JULI 2024
     // NOTE : PEMBUATAN MODUL HAPUS PROGRAMS
-    public static function doHapusProgram($id, $ip)
+    public static function doHapusProgram($id, $ip, $log_user_id)
     {
         DB::beginTransaction();
 
@@ -729,6 +729,7 @@ class DivisiService
             "jdw_uuid"      => $id,
         ];
 
+
         $query_update   = [
             "is_active"     => "f",
         ];
@@ -741,17 +742,24 @@ class DivisiService
                 "status"    => "berhasil",
                 "errMsg"    => [],
             );
-            LogHelper::create('delete', 'Berhasil Membatalkan Program Umrah : '.$id, $ip);
+            LogHelper::create('delete', 'Berhasil Membatalkan Program Umrah : '.$id, $ip, $log_user_id);
         } catch(\Exception $e) {
             DB::rollBack();
             $output     = array(
                 "status"    => "error",
                 "errMsg"    => $e->getMessage(),
             );
-            LogHelper::create('error_system', 'Gagal Membatalkan Program Umrah', $ip);
+            LogHelper::create('error_system', 'Gagal Membatalkan Program Umrah', $ip, $log_user_id);
         }
 
         return $output;
+    }
+
+    public static function doHapusProgramByTourcode($tour_code, $ip, $log_user_id)
+    {
+        $jadwal = DB::table('programs_jadwal')->select('jdw_uuid')->where('jdw_tour_code', $tour_code)->first();
+        $update = self::doHapusProgram($jadwal->jdw_uuid, $ip, $log_user_id);
+        return $update;
     }
 
     public static function getListDailyOperasional($data)
