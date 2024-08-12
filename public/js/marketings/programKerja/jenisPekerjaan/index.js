@@ -60,7 +60,8 @@ function showCalendar(tgl_sekarang)
             ];
 
             Swal.fire({
-                title   : 'Data Sedang Dimuat'
+                title   : 'Data Sedang Dimuat',
+                allowOutsideClick   : false,
             });
             Swal.showLoading();
             Promise.all(sendData)
@@ -68,7 +69,6 @@ function showCalendar(tgl_sekarang)
                     // CALENDAR
                     const temp              = [];
                     const calendar_getData  = success[0].data;
-                    console.log(calendar_getData);
                     for(const calendar_item of calendar_getData)
                     {
                         temp.push({

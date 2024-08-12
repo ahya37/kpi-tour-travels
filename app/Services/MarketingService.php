@@ -1079,6 +1079,7 @@ class MarketingService
     {
         $start_date     = $data['start_date'];
         $end_date       = $data['end_date'];
+        $user_id        = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id;
 
         $query          = DB::select(
             "
@@ -1094,6 +1095,7 @@ class MarketingService
             WHERE 	a.master_program_id IS NOT NULL
             AND 	b.pkh_date BETWEEN '$start_date' AND '$end_date'
             AND     b.pkh_is_active = 't'
+            AND 	b.created_by LIKE '$user_id'
             ORDER BY a.created_at ASC
             "
         );
