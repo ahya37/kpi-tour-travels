@@ -568,7 +568,7 @@ class DivisiController extends Controller
 			
             $message   = $request->is_active == 'f' ? 'Berhasil non aktifkan '. $request->tourcode : 'Berhasil aktifkan '. $request->tourcode;
 			
-            if ($doDelete['status'] == '0') return ResponseFormatter::success(null,  $message.' namun tourcode belum tersedia di ERP'); 
+            if ($doDelete['status'] == '0') return ResponseFormatter::success(null,  $message.', namun tourcode belum tersedia di ERP'); 
 
             return ResponseFormatter::success($doDelete,$message); 
 
