@@ -564,7 +564,7 @@ class DivisiController extends Controller
 
             $ip = 'umhaj_'.$request->ip;
             $log_user_id = 'umhaj_'.$request->username;
-            $doDelete   = DivisiService::doHapusProgramByTourcode($request->tourcode, $ip, $request->is_activce, $log_user_id);
+            $doDelete   = DivisiService::doHapusProgramByTourcode($request->tourcode, $ip, $request->is_active, $log_user_id);
 
             return ResponseFormatter::success($doDelete,'Berhasil non aktifkan tourcode !');
 
