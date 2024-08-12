@@ -367,7 +367,7 @@ function showModal(idForm, valueCari, jenis)
 
 function showDataOperasional()
 {
-    var url     = site_url + "/getJobUser";
+    var url     = "/divisi/operasional/getJobUser";
     var type    = "GET";
     
     doTrans(url, type, '', '', true)

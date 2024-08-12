@@ -36,7 +36,8 @@ class DivisiService
             AND     EXTRACT(YEAR FROM a.jdw_depature_date) LIKE '$tahun_cari'
             AND     (EXTRACT(MONTH FROM a.jdw_depature_date) = '$bulan_cari' OR EXTRACT(MONTH FROM a.jdw_depature_date) LIKE '$bulan_cari') 
             AND     a.jdw_programs_id LIKE '$programs_id'
-            ORDER BY a.jdw_depature_date, b.name ASC
+            AND     a.is_active = 't'
+            ORDER BY a.jdw_depature_date DESC
             "
         );
 
@@ -333,7 +334,8 @@ class DivisiService
                     // INSERT TO DETAIL
                     $simpan_detail  = array(
                         "pkb_id"        => $idProkerBulanan,
-                        "pkbd_type"     => $dataRules->rul_title
+                        "pkbd_type"     => $dataRules->rul_title,
+                        "pkbd_pic"      => "0",
                     );
                     DB::table('proker_bulanan_detail')->insert($simpan_detail);
                 } else {
@@ -657,6 +659,7 @@ class DivisiService
             JOIN 	group_divisions d ON c.group_division_id = d.id
             WHERE 	d.name LIKE 'Operasional'
             AND 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+            AND     a.pkb_is_active = 't'
             GROUP BY b.name
             ORDER BY count(a.id) DESC
             "
