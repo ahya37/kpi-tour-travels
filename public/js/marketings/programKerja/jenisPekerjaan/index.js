@@ -68,12 +68,13 @@ function showCalendar(tgl_sekarang)
                     // CALENDAR
                     const temp              = [];
                     const calendar_getData  = success[0].data;
+                    console.log(calendar_getData);
                     for(const calendar_item of calendar_getData)
                     {
                         temp.push({
-                            title   : success.data[i].pkh_title,
-                            start   : success.data[i].pkh_date,
-                            end     : moment(success.data[i].pkh_date, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD'),
+                            title   : calendar_item.pkh_title,
+                            start   : calendar_item.pkh_date,
+                            end     : moment(calendar_item.pkh_date, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD'),
                             allDay  : true,
                             id      : calendar_item.uuid
                         });
