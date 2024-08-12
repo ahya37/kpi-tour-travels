@@ -1842,4 +1842,54 @@ class DivisiService
             "
         );
     }
+
+    public static function doGetRKAPOperasional($data)
+    {
+        $current_role   = $data['current_role'];
+        $current_year   = $data['current_year'];
+        $pkt_id         = $data['pkt_id'];
+
+        $header     = DB::select(
+            "
+            SELECT 	a.uid as pkt_id,
+                    a.pkt_title as pkt_title,
+                    a.pkt_year as pkt_year,
+                    a.pkt_description
+            FROM 	proker_tahunan a
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            AND 	b.name LIKE '%$current_role%'
+            AND 	a.pkt_year = '$current_year'
+            AND     a.uid LIKE '%$pkt_id%'
+            ORDER BY a.pkt_year DESC
+            "
+        );
+
+        if($pkt_id != '%') {
+            $detail     = DB::select(
+                "
+                SELECT 	a.uid as pkt_id,
+                        a.pkt_title as pkt_title,
+                        a.pkt_year as pkt_year,
+                        c.pktd_seq as pkt_detail_seq,
+                        c.pktd_title as pkt_detail_title
+                FROM 	proker_tahunan a
+                JOIN 	group_divisions b ON a.division_group_id = b.id
+                JOIN 	proker_tahunan_detail c ON a.id = c.pkt_id
+                AND 	b.name LIKE '%$current_role%'
+                AND 	a.pkt_year = '$current_year'
+                AND     a.uid LIKE '%$pkt_id%'
+                ORDER BY a.pkt_year DESC, CAST(c.pktd_seq AS UNSIGNED) ASC  
+                "
+            );
+        } else {
+            $detail     = "";
+        }
+
+        $output     = [
+            "header"    => !empty($header) ? $header : [],
+            "detail"    => !empty($detail) ? $detail : [],
+        ];
+
+        return $output;
+    }
 }

@@ -1189,4 +1189,26 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
     }
+    
+    // 12 AGUSTUS 2024
+    // NOTE : PENGAMBILAN RKAP UNTUK OPERASIONAL
+    public function divisi_operasional_getRKAP(Request $request)
+    {
+        $sendData   = [
+            "pkt_id"        => $request->all()['sendData']['pkt_id'],
+            "current_year"  => date('Y'),
+            "current_role"  => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0]
+        ];
+
+        $getData    = DivisiService::doGetRKAPOperasional($sendData);
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Ambil Data",
+            "data"      => $getData,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
 }
