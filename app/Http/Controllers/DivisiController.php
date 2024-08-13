@@ -1211,4 +1211,25 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 13 AGUSTUS 2024
+    // NOTE : AMBIL DATA LIST AKTIVITAS USER DIVISI DIGITAL
+    public function digital_programKerja_listAktivitasHarian(Request $request)
+    {
+        $sendData   = [
+            "user_id"           => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id,
+            "selected_month"    => $request->all()['today'],
+        ];
+        
+        $getData    = DivisiService::getListAktivitasHarian($sendData);
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Mengambil Data",
+            "data"      => $getData,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
 }

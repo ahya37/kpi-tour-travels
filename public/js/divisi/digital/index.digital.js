@@ -36,69 +36,60 @@ function showCalendar(tglSekarang, value)
             const start_date        = moment(current_date, 'YYYY-MM-DD').startOf('month').format('YYYY-MM-DD');
             const end_date          = moment(current_date, 'YYYY-MM-DD').endOf('month').format('YYYY-MM-DD');
 
-            const sendData          = {
+            Swal.fire({
+                title   : 'Data Sedang Dimuat',
+                allowOutsideClick   : false,
+            });
+            Swal.showLoading();
+
+            // GET DATA CALENDAR
+            const calendar_data     = {
                 "start_date"    : start_date,
                 "end_date"      : end_date,
             };
-            const message           = Swal.fire({ title : 'Data Sedang Dimuat' }); Swal.showLoading();
-            const temp              = [];
+            const calendar_url      = "/divisi/digital/listEventsCalendarDigital";
+
+            // GET DATA ACT UESR
+            const actUser_data  = {
+                "today"     : start_date,
+            };
+            const actUser_url   = "/divisi/digital/listAktivitasHarian";
+
+            const globalType        = "GET";
+
+            const transData     = [
+                doTrans(calendar_url, globalType, calendar_data, ''),
+                doTrans(actUser_url, globalType, actUser_data, '')
+            ];
             
-            doTrans('/divisi/digital/listEventsCalendarDigital', 'GET', sendData, message, '')
-                .then((success) => {
-                    for(let i = 0; i < success.data.length; i++) {
-                        temp.push({
-                            title   : success.data[i].pkh_title,
-                            start   : success.data[i].pkh_date,
-                            end     : moment(success.data[i].pkh_date, 'YYYY-MM-DD').add(1, 'days'),
+            Promise.all(transData)
+                .then((success)     => {
+                    // CALENDAR AREA
+                    const calendar_getData  = success[0].data;
+                    const calendar_temp     = [];
+                    for(const item of calendar_getData)
+                    {
+                        calendar_temp.push({
+                            title   : item.pkh_title,
+                            start   : item.pkh_date,
+                            end     : moment(item.pkh_date, 'YYYY-MM-DD').add(1, 'days').format('YYYY-MM-DD'),
                             allDay  : true,
-                            id      : success.data[i].pkh_id
+                            id      : item.pkh_id
                         });
                     }
-                    Swal.close();
-                    successCallback(temp);
-                })
-                .catch((err)    => {
-                    console.log('Tidak ada data pada bulan ini');
-                    Swal.close();
-                })
+                    successCallback(calendar_temp);
 
-            // var url             = '/operasional/daily/listEventsCalendarOperasional';
-            // var data            = {
-            //     "start_date"    : start_date,
-            //     "end_date"      : end_date,
-            //     "program"       : value[0] == null ? '%' : value[0],
-            //     "sub_divisi"    : value[1] == null ? '%' : value[1],
-            //     "aktivitas"     : value[2] == null ? '%' : value[2],
-            // };
-            // var type            = "GET";
-            // var message         = Swal.fire({ title : "Data Sedang Dimuat" });Swal.showLoading();
-            // var isAsync         = true;
-            // var temp            = [];
-            
-            // doTrans(url, type, data, message, isAsync)
-            //     .then((success) => {
-            //         for(var i = 0; i < success.data.length; i++) {
-            //             if(success.data[i].prog_pkb_is_created == 'f') {
-            //                 var color     = '#dc3545';
-            //             } else {
-            //                 var color     = '#1ab394';
-            //             }
-            //             temp.push({
-            //                 title   : success.data[i].pkb_title,
-            //                 start   : success.data[i].pkb_start_date,
-            //                 end     : success.data[i].pkb_end_date,
-            //                 allDay  : true,
-            //                 id      : success.data[i].pkb_id,
-            //                 color   : color
-            //             });
-            //         }
-            //         successCallback(temp);
-            //         Swal.close();
-            //     })
-            //     .catch((err)    => {
-            //         console.log(err);
-            //         Swal.close();
-            //     })
+                    // ACT USER AREA
+                    const actUser_getData   = success[1].data;
+                    $("#total_act_user").empty();
+                    $("#total_act_user").html(actUser_getData.length);
+
+                    Swal.close();
+                })
+                .catch((err)        => {
+                    Swal.close();
+                    console.log('Tidak ada data yang bisa dimuat');
+                })
         },
         moreLinkContent:function(args){
             return '+'+args.num+' Lainnya';
@@ -247,6 +238,39 @@ function showModal(idModal, data, jenis)
         $("#"+idModal).on('shown.bs.modal', () => {
             $("#btnSimpan").val(jenis);
         })
+    } else if(idModal == 'modal_act_user') {
+        // GET DATA
+        const actUser_url   = "/divisi/digital/listAktivitasHarian";
+        const actUser_data  = {
+            "today" : moment(today, 'YYYY-MM-DD').startOf('month').format('YYYY-MM-DD'),
+        };
+        const actUser_type  = "GET";
+        
+        Swal.fire({
+            title   : 'Data Sedang Dimuat',
+        });
+        Swal.showLoading();
+
+        doTrans(actUser_url, actUser_type, actUser_data, '')
+            .then((success) => {
+                $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+                Swal.close();
+
+                // SHOW TABLE
+                $("#modal_act_usert_month").html(moment(today, 'YYYY-MM-DD').format('MMMM'));
+                const actUser_data  = success.data;
+                showTable('table_list_act_user', actUser_data);
+                $("#dataTables_empty").empty();
+                $("#dataTables_empty").html("Data Berhasil Dimuat");
+            })
+            .catch((err)    => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Tidak ada Program pada bulan '+moment(today, 'YYYY-MM-DD').format('MMMM')
+                });
+                console.log(err);
+            })
     }
 }
 
@@ -262,6 +286,8 @@ function closeModal(idModal)
             $("#jpk_date").val(null);
             $("#btnHapus").addClass('d-none');
         })
+    } else if(idModal == 'modal_act_user') {
+        $("#"+idModal).modal('hide');
     }
 }
 
@@ -292,6 +318,54 @@ function showSelect(idSelect, data, value, seq)
             select.html(html);
         } else {
             select.html(html);
+        }
+    }
+}
+
+function showTable(idTable, data)
+{
+    if(idTable == 'table_list_act_user') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Diproses",
+                "zeroRecords"   : "Data yang dicari tidak ada",
+            },
+            paging      : false,
+            pageLength  : -1,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [1], "className" : "text-left align-middle", "width" : "30%" },
+                { "targets" : [2], "className" : "text-left align-middle"},
+                { "targets" : [3], "className" : "text-left align-middle", "width" : "15%" },
+                { "targets" : [4], "className" : "text-left align-middle", "width" : "10%" },
+                { "targets" : [5], "className" : "text-left align-middle", "width" : "15%" },
+            ],
+        });
+
+        if(data.length > 0) {
+            let i = 1;
+            let total_num_result    = 0;
+            let total_num_target    = 0;
+            for(const item of data)
+            {
+                let actUser_detail_persentase   = (parseInt(item.pkbd_num_result) / parseInt(item.pkbd_num_target)) * 100;
+                const actUser_detail_type       = item.pkbd_pic == '0' ? 'Umum' : 'Khusus';
+                $("#"+idTable).DataTable().row.add([
+                    i++,
+                    item.pkb_title,
+                    item.pkbd_type,
+                    item.pkbd_num_result + " / " + item.pkbd_num_target,
+                    parseFloat(actUser_detail_persentase).toFixed(0)+"%",
+                    actUser_detail_type
+                ]).draw(false);
+
+                total_num_target += item.pkbd_num_target;
+                total_num_result += item.pkbd_num_result;
+            }
+            let total_persentase    = (parseInt(total_num_target) / parseInt(total_num_result)) * 100;
+            $("#table_list_act_user_total_target").html(total_num_target + " / " + total_num_result);
+            $("#table_list_act_user_total_persentase").html(parseFloat(total_persentase).toFixed(0)+"%");
         }
     }
 }

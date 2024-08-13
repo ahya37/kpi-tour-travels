@@ -1892,4 +1892,28 @@ class DivisiService
 
         return $output;
     }
+
+    public static function getListAktivitasHarian($data)
+    {
+        $user_id    = $data['user_id'];
+        $curr_date  = $data['selected_month'];
+
+        $query      = DB::select(
+            "
+            SELECT 	a.uuid as pkb_id,
+                    a.pkb_title,
+                    b.pkbd_type,
+                    b.pkbd_num_result,
+                    b.pkbd_num_target,
+                    b.pkbd_pic
+            FROM 	proker_bulanan a
+            JOIN 	proker_bulanan_detail b ON a.id = b.pkb_id
+            WHERE 	a.pkb_start_date = '$curr_date'
+            AND 	(b.pkbd_pic LIKE '$user_id' AND b.pkbd_pic IN ('0', '$user_id'))
+            AND 	a.pkb_is_active = 't'
+            "
+        );
+
+        return $query;
+    }
 }

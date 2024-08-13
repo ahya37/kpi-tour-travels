@@ -372,6 +372,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/listEventsCalendarDigitalDetail', [DivisiController::class, 'digital_programKerja_listEventDetail']);
             Route::get('/getDataProgramDigital', [DivisiController::class, 'digital_programKerja_listProgram']);
             Route::post('/simpanAktivitasHarian/{jenis}', [DivisiController::class, 'digital_programKerja_simpanAktivitasHarian']);
+            Route::get('/listAktivitasHarian', [DivisiController::class, 'digital_programKerja_listAktivitasHarian']);
         });
 
         Route::prefix('master')->group(function(){
