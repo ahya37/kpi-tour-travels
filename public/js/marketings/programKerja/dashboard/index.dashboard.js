@@ -1,8 +1,9 @@
-var site_url    = window.location.pathname;
-var isOpen      = 0;
-var isCalendarLoaded    = 0;
-var today       = moment().format('YYYY-MM-DD');
-var tempDataPIC = [];
+var site_url        = window.location.pathname;
+var isOpen          = 0;
+var isCalendarLoaded= 0;
+var today           = moment().format('YYYY-MM-DD');
+var tempDataPIC     = [];
+var tempDataDetail  = [];
 $(document).ready(function(){
     $("#tableList").DataTable({
         language    : {
@@ -136,7 +137,7 @@ function showCalendar(tgl_sekaramg)
         },
     });
     calendar.render();
-    $("#modalJenisPekerjaanTitle").html(moment(tgl_sekaramg, 'YYYY-MM-DD').format('MMMM'));
+    $("#modalJenisPekerjaanTitle").html(moment(tgl_sekaramg, 'YYYY-MM-DD').format('MMMM, YYYY'));
 }
 
 
@@ -645,12 +646,14 @@ function show_table(id_table, value)
             },
             processing  : true,
             serverSide  : false,
+            autoWidth   : false,
             columnDefs  : [
-                { "targets" : [1, 3], "className" : "align-middle" },
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
-                { "targets" : [2], "className" : "text-left align-middle", "width" : "20%" },
-                { "targets" : [4], "className" : "text-right align-middle", "width" : "5%" },
-                { "targets" : [5], "className" : "text-center align-middle", "width" : "15%" },
+                { "targets" : [1], "className" : "text-left align-middle", "width" : "40%"},
+                { "targets" : [2], "className" : "text-left align-middle", "width" : "15%" },
+                { "targets" : [3], "className" : "text-left align-middle", "width" : "15%" },
+                { "targets" : [4], "className" : "text-left align-middle", "width" : "10%" },
+                { "targets" : [5], "className" : "text-center align-middle"},
             ],
         });
         
@@ -658,24 +661,32 @@ function show_table(id_table, value)
         doTrans('/marketings/programKerja/program/listProgramMarketing', 'GET', '%', '', true)
             .then((success) => {
                 if(success.data.length > 0) {
+                    let total_result   = 0;
+                    let total_target    = 0;
                     for(let i = 0; i < success.data.length; i++) {
                         const seq           = i + 1;
                         const id            = success.data[i].pkb_id;
-                        const title         = success.data[i].pkb_title;
+                        const title         = success.data[i].pkb_title.length > 50 ? success.data[i].pkb_title.slice(0, 50) + "...." : success.data[i].pkb_title;
                         const date          = success.data[i].program_date;
                         const groupDivision = success.data[i].group_division_name;
-                        const target        = +success.data[i].total_target;
+                        const target        = success.data[i].total_target;
+                        const result        = success.data[i].total_result;
                         const buttonEdit    = "<button type='button' class='btn btn-sm btn-primary' title='Ubah Data' value='" + id + "' onclick=' show_modal(`modalProgram`, `edit`, this.value)'><i class='fa fa-edit'></i></button>";
                         const buttonCheck   = "<button type='button' class='btn btn-sm btn-success' title='Lihat Data' value='" + id + "' onclick='show_modal(`modalDetailProgram`, `view`, this.value)'><i class='fa fa-eye'></i></button>";
                         $("#"+id_table).DataTable().row.add([
                             seq,
-                            title,
+                            "<label class='no-margins' style='font-weight: normal;' title='"+success.data[i].pkb_title+"'>" + title + "</label>",
                             moment(date, 'YYYY-MM-DD').format('MMMM'),
                             groupDivision,
-                            target,
+                            result + " / " + target,
                             buttonEdit+"&nbsp;"+buttonCheck,
                         ]).draw(false);
+
+                        total_result    += parseInt(result);
+                        total_target    += parseInt(target);
                     }
+
+                    $("#tableProgram_total").html(total_result + " / " + total_target);
                 }
             })
             .catch((err)    => {
@@ -738,6 +749,7 @@ function tambah_baris(id_table, value)
         var seq     = $("#btnTambahData").val();
 
         var input_delete    = "<button class='btn btn-danger' value='"+ seq +"' id='jk_btn_delete"+seq+"' title='Hapus Data' onclick='hapus_baris(`table_jenis_pekerjaan`, "+seq+")'><i class='fa fa-trash'></i></button>";
+        var input_id        = "<input type='hidden' class='form-control text-center' id='jk_id"+seq+"'>";
         var input_seq       = "<input type='text' class='form-control text-center' id='jk_seq"+seq+"' placeholder='seq' readonly style='height: 37.5px;'>";
         var input_title     = "<input type='text' class='form-control' id='jk_title"+seq+"' placeholder='Title' style='height: 37.5px;'>";
         var input_target    = "<input type='number' class='form-control text-right' onclick='this.select()' id='jk_target"+seq+"' placeholder='Target' max='9999' min='0' step='1' style='height: 37.5px;'>";
@@ -745,7 +757,7 @@ function tambah_baris(id_table, value)
 
         $("#"+id_table).DataTable().row.add([
             input_delete,
-            input_seq,
+            input_seq+""+input_id,
             input_title,
             input_target,
             input_pic,
@@ -774,11 +786,18 @@ function tambah_baris(id_table, value)
         }
 
         if(value != '') {
+            $("#jk_id"+seq).val(value.pkbd_id);
             $("#jk_title"+seq).val(value.pkbd_title);
             $("#jk_target"+seq).val(value.pkbd_num_target);
             $("#jk_pic"+seq).val(value.pkbd_pic).trigger('change');
         } else {
             $("#jk_target"+seq).val(0);
+        }
+
+        if($("#jk_id"+seq).val()  == '') {
+            $("#jk_btn_delete"+seq).prop('disabled', false);
+        } else {
+            $("#jk_btn_delete"+seq).prop('disabled', true);
         }
 
         $("#btnTambahData").val(parseInt(seq) + 1);
@@ -819,6 +838,7 @@ function do_simpan(id_form, jenis)
         for(var i = 0; i < $("#table_jenis_pekerjaan").DataTable().rows().count(); i++) {
             var seq     = i + 1;
             program_detail.push({
+                "detail_id"     : $("#jk_id"+seq).val(),
                 "detail_seq"    : $("#jk_seq"+seq).val(),
                 "detail_title"  : $("#jk_title"+seq).val(),
                 "detail_target" : $("#jk_target"+seq).val(),

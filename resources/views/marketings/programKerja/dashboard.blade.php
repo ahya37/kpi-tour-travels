@@ -98,79 +98,6 @@
                 </div>
             </div>
         </div>
-        {{-- <div class="row mt-4">
-            <div class="col-sm-12">
-                <div class="card shadow">
-                    <div class="card-header">
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <h4 style="margin: 0px;" class="py-2">Table List Program Kerja</h4>
-                            </div>
-                            <div class="col-sm-6 text-right">
-                                <button class="btn btn-success">Filter</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover table-bordered table-striped" id="tableList">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center align-middle">No</th>
-                                        <th class="text-center align-middle">Sasaran</th>
-                                        <th class="text-center align-middle">Program</th>
-                                        <th class="text-center align-middle">Target</th>
-                                        <th class="text-center align-middle">Terlaksana</th>
-                                        <th class="text-center align-middle">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div> --}}
-        {{-- <div class="row">
-            <div class="col-sm-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title py-2" style="margin: 0px;">Target Sasaran</h4>
-                    </div>
-                    <div class="card-body">
-                        <div id="card_loading">
-                            <div class="d-flex justify-content-center">
-                                <div class="spinner-border"></div>
-                            </div>
-                        </div>
-                        <div id="card_section" style="display: none;">
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <select name="filterSasaran" id="filterSasaran" class="form-control form-control-sm" style="width: 100%;"></select>
-                                </div>
-                            </div>
-                            <div class="row mt-2" id="v_filterSasaranDetail" style="display: none;">
-                                <div class="col-sm-12">
-                                    <select name="filterSasaranDetail" id="filterSasaranDetail" class="form-control form-control-sm" style="width: 100%;"></select>
-                                </div>
-                            </div>
-                            <div id="chartLoad" style="display: none;" class="mt-2">
-                                <div class="d-flex justify-content-center">
-                                    <div class="spinner-border"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="card_button" style="display: none;">
-                            <div class="row mt-2">
-                                <div class="col-sm-12 text-right">
-                                    <button type="button" class="btn btn-primary">Cari</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div> --}}
     </div>
 
     {{-- MDOAL LIST PROGRAM --}}
@@ -194,11 +121,11 @@
                                 <table class="table table-sm table-bordered table-striped table-hover" id="table_list_program" style="width: 100%;">
                                     <thead>
                                         <tr>
-                                            <th class="text-center align-middle">No</th>
-                                            <th class="text-center align-middle">Program</th>
-                                            <th class="text-center align-middle">Bulan</th>
-                                            <th class="text-center align-middle">Divisi</th>
-                                            <th class="text-center align-middle">Target</th>
+                                            <th class="text-center align-middle" style="width: 5%;">No</th>
+                                            <th class="text-center align-middle" style="width: 40%;">Program</th>
+                                            <th class="text-center align-middle" style="width: 20%;">Bulan</th>
+                                            <th class="text-center align-middle" style="width: 15%;">Divisi</th>
+                                            <th class="text-center align-middle" style="width: 5%;">Target</th>
                                             <th class="text-center align-middle">Aksi</th>
                                         </tr>
                                     </thead>
@@ -207,7 +134,7 @@
                                         <tr>
                                             <th colspan="3"></th>
                                             <th class="text-right align-middle">Total</th>
-                                            <th></th>
+                                            <th class="text-left align-middle" id="tableProgram_total"></th>
                                             <th></th>
                                         </tr>
                                     </tfoot>
@@ -407,22 +334,17 @@
         <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
             <div class="modal-content">
                     <div class="modal-header">
-                    <h4 class="modal-title">List Jenis Pekerjaan</h4>
-                        <button type="button" class="close" onclick="close_modal('modalJenisPekerjaan')">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <div class="d-flex flex-row align-items-center justify-content-between w-100">
+                            <h4 class="modal-title">List Jenis Pekerjaan <span id="modalJenisPekerjaanTitle"></span></h4>
+                            <button type="button" class="close" onclick="close_modal('modalJenisPekerjaan')">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
                     </div>
                 <div class="modal-body">
                     <div class="container-fluid">
-                        <div class="row mb-2">
-                            <div class="col-sm-12 text-center">
-                                <h2 style="margin: 0px;">Jenis Pekerjaan Bulan <span id="modalJenisPekerjaanTitle"><i class='fa fa-spin fa-spinner'></i></span></h2>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div id="calendar" style="width: 100%;"></div>
-                            </div>
+                        <div class="d-flex flex-row align-items-center">    
+                            <div id="calendar" class="w-100"></div>
                         </div>
                     </div>
                 </div>
