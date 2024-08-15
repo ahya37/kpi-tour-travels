@@ -22,13 +22,13 @@ class DivisiController extends Controller
     // IT
     // OPERASIONAL
     public function indexOperasional() {
-        if(Auth::user()->getRoleNames()[0] == 'operasional') {
+        if(Auth::user()->getRoleNames()[0] == 'operasional' || Auth::user()->getRoleNames()[0] == 'admin') {
             $data   = [
                 'title'     => 'Divisi Operasional',
                 'sub_title' => 'Dashboard - Divisi Operasional',
                 'is_active' => '1',
-                'sub_division'      => DivisiService::getCurrentSubDivision()[0]->sub_division_name,
-                'sub_division_id'   => DivisiService::getCurrentSubDivision()[0]->sub_division_id,
+                'sub_division'      => Auth::user()->getRoleNames()[0] != 'admin' ? DivisiService::getCurrentSubDivision()[0]->sub_division_name : 'pic',
+                'sub_division_id'   => Auth::user()->getRoleNames()[0] != 'admin' ? DivisiService::getCurrentSubDivision()[0]->sub_division_id : '%',
             ];
             return view('divisi/operasional/index', $data);
         } else {
@@ -1227,6 +1227,24 @@ class DivisiController extends Controller
             "success"   => true,
             "status"    => 200,
             "message"   => "Berhasil Mengambil Data",
+            "data"      => $getData,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function operasional_dahsboard_actDetailUserChart(Request $request)
+    {
+        $sendData   = [
+            "user_name" => $request->all()['sendData']['user_name'],
+        ];
+
+        $getData    = DivisiService::doGetDataActUserChart($sendData);
+        
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Data Berhasil Dimuat",
             "data"      => $getData,
         ];
 

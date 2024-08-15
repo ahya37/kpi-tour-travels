@@ -1916,4 +1916,48 @@ class DivisiService
 
         return $query;
     }
+
+    public static function doGetDataActUserChart($data)
+    {
+        $user_name  = $data['user_name'];
+
+        $user_id    = DB::table('users')->where(['name' => $user_name])->get()[0]->id;
+
+        $query      = DB::select(
+            "
+            SELECT 	*
+            FROM 	(
+                    SELECT 	a.id,
+                            a.uuid as pkb_id,
+                            a.pkb_start_date, 
+                            a.pkb_end_date,
+                            a.pkb_description,
+                            c.jdw_tour_code,
+                            a.created_at
+                    FROM 	proker_bulanan a
+                    JOIN 	tr_prog_jdw b ON a.uuid = b.prog_pkb_id
+                    JOIN 	programs_jadwal c ON b.prog_jdw_id = c.jdw_uuid
+                    WHERE 	a.pkb_is_active = 't'
+                    AND 	a.created_by = '$user_id'
+
+                    UNION ALL
+
+                    SELECT 	a.id,
+                            a.uuid as pkb_id,
+                            a.pkb_start_date,
+                            a.pkb_end_date,
+                            a.pkb_title,
+                            null as jdw_tour_code,
+                            a.created_at
+                    FROM 	proker_bulanan a
+                    WHERE 	a.created_by = '$user_id'
+                    AND 	a.pkb_is_active = 't'
+                    AND 	a.pkb_title NOT LIKE '%[%]%'
+            ) AS pkb_chart
+            ORDER BY pkb_chart.created_at DESC
+            "
+        );
+
+        return $query;
+    }
 }

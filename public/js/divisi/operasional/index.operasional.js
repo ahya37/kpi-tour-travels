@@ -440,6 +440,40 @@ function showModal(idForm, valueCari, jenis)
             $("#rkap_title").focus();
             $("#btnSimpanRKAP").val(jenis);
         })
+    } else if(idForm == 'modalDetailAktivitas') {
+        const actUser_url       = "/divisi/operasional/getListAktivitasUserChart";
+        const actUser_sendData  = {
+            "user_name" : valueCari,
+        };
+        const actUser_type      = "GET";
+
+        const sendData  = [
+            doTrans(actUser_url, actUser_type, actUser_sendData, '', true)
+        ];
+
+        Swal.fire({
+            title   : 'Data Sedang Diproses',
+        });
+        Swal.showLoading();
+
+        Promise.all(sendData)
+            .then((success)     => {
+                $("#"+idForm).modal({ backdrop : 'static', keyboard: false });
+                const actUser_getData   = success[0].data;
+                showTable('tableListAktivitasUser', actUser_getData);
+                Swal.close();
+            })
+            .catch((err)        => {
+                Swal.fire({
+                    icon    : 'warning',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Tidak Ada Data Yang Bisa Dimuat..',
+                }).then((results)   => {
+                    if(results.isConfirmed) {
+                        console.log(err);
+                    }
+                });
+            })
     }
 }
 
@@ -460,7 +494,7 @@ function showDataOperasional()
 
             if(getData['chart'].length > 0) {
                 for(var i = 0; i < getData['chart'].length; i++) {
-                    dataLabels.push(getData['chart'][i]['employee_name']);
+                    dataLabels.push('User : '+getData['chart'][i]['employee_name']);
                     data_DataSets.push(getData['chart'][i]['total_job']);
                 }
             }
@@ -474,7 +508,7 @@ function showDataOperasional()
                 data: {
                     labels: dataLabels,
                     datasets: [{
-                        label: 'Program Kerja Bulanan',
+                        label: 'Total Aktivitas',
                         data: data_DataSets,
                         backgroundColor: "#1AB394",
                         borderWidth: 1
@@ -489,19 +523,15 @@ function showDataOperasional()
                         }]
                     },
                     responsive  : true,
-                    maintainAspectRatio  : false
+                    maintainAspectRatio  : false,
+                    onClick     : (events, elements) => {
+                        const label_chart   = elements[0]._view.label;
+                        const user_name     = label_chart.split(' : ')[1];
+
+                        showModal('modalDetailAktivitas', user_name, '');
+                    }
                 }
             });
-
-            ctx.canvas.onclick = function(evt) {
-                var activePoints = myChart.getElementsAtEvent(evt);
-                if (activePoints.length > 0) {
-                    var clickedDatasetIndex = activePoints[0]._datasetIndex;
-                    var clickedElementindex = activePoints[0]._index;
-                    var label = myChart.data.labels[clickedElementindex];
-                    var value = myChart.data.datasets[clickedDatasetIndex].data[clickedElementindex];
-                }
-            }
 
             // SHOW TABLE
             $("#showLoading_table").hide();
@@ -669,9 +699,10 @@ function showTable(idTable, valueCari)
                 "emptyTable"    : "Tidak ada data yang bisa ditampilkan.."
             },
             columnDefs  : [
-                { targets: [0, 6], className: "text-center", width: "7%" },
-                { targets: [4, 5], className: "text-center", width: "16%" },
-                { targets: [2], className: "text-left", width: "18%" },
+                { targets: [0, 6], className: "text-center align-middle", width: "7%" },
+                { targets: [4, 5], className: "text-center align-middle", width: "16%" },
+                { targets: [2], className: "text-left align-middle", width: "18%" },
+                { targets : [1, 3], "className" : "text-left align-middle" },
             ],
             processing  : true,
             serverSide  : false,
@@ -778,6 +809,56 @@ function showTable(idTable, valueCari)
                 item.pkt_year,
                 "<button class='btn btn-sm btn-primary' title='Lihat Data' value='" + item.pkt_id + "' onclick='showModal(`modalRKAP`, this.value, `edit`)'><i class='fa fa-eye'></i></button>"
             ]).draw(false);
+        }
+    } else if(idTable == 'tableListAktivitasUser') {
+        $("#"+idTable).DataTable().clear().destroy();
+
+        $("#"+idTable).DataTable({
+            language     : {
+                "emptyTable"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat",
+                "zeroRecords"   : "Data yang dicari tidak ada",
+                "lengthMenu"    : "Tampilkan Data _MENU_",
+            },
+            // paging      : false,
+            pageLength  : 10,
+            lengthMenu  : [
+                [-1, 10, 25, 50, 100],
+                ['Semua', 10, 25, 50, 100]
+            ],
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" :  "5%"},
+                { "targets" : [1], "className" : "text-left align-middle", "width" : "17%" },
+                { "targets" : [3], "className" : "text-left align-middle", "width" : "20%" },
+                { "targets" : [4], "className" : "text-left align-middle", "width" : "10%" },
+            ],
+        });
+
+        $(".custom-select").select2({
+            theme   : 'bootstrap4',
+        });
+        $(".custom-select").prop('style', 'width: 100%');
+
+        if(valueCari.length > 0) {
+            let num     = 1;
+            for(const item of valueCari)
+            {
+                const actUser_tourCode  = item.jdw_tour_code == null ? '' : item.jdw_tour_code;
+                const actUser_title     = item.pkb_description;
+                const actUser_titleTrim = item.pkb_description.length > 55 ? item.pkb_description.slice(0, 55)+"..." : item.pkb_description;
+                const actUser_startDate = moment(item.pkb_start_date, 'YYYY-MM-DD');
+                const actUser_endDate   = moment(item.pkb_end_date, 'YYYY-MM-DD');
+                const actUser_date      = item.pkb_start_date != item.pkb_end_date ? actUser_startDate.format('DD-MMM-YYYY')+" s/d "+actUser_endDate.format('DD-MMM-YYYY') : actUser_startDate.format('DD-MMM-YYYY');
+                const actUser_dateDiff  = item.pkb_start_date != item.pkb_end_date ? actUser_endDate.diff(actUser_startDate, 'days')+' Hari' : '1 Hari';
+
+                $("#"+idTable).DataTable().row.add([
+                    "<label class='no-margins' style='font-weight: normal;'>" + (num++) + "</label>",
+                    "<label class='no-margins' style='font-weight: normal;'>" + actUser_tourCode + "</label>",
+                    "<label class='no-margins' style='font-weight: normal;' title='" + actUser_title.toUpperCase() + "'>" + actUser_titleTrim.toUpperCase() + "</label>",
+                    "<label class='no-margins' style='font-weight: normal;'>" + actUser_date + "</label>",
+                    "<label class='no-margins' style='font-weight: normal;'>" + actUser_dateDiff + "</label>",
+                ]).draw(false);
+            }
         }
     }
 }
@@ -1100,6 +1181,8 @@ function closeModal(idForm) {
             $("#btnTambahBarisRKAP").val(1);
         })
     } else if(idForm == 'modalRKAPTable') {
+        $("#"+idForm).modal('hide');
+    } else if(idForm == 'modalDetailAktivitas') {
         $("#"+idForm).modal('hide');
     }
 }

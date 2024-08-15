@@ -102,18 +102,6 @@
                             <div class="col-sm-6">
                                 <h4 class="my-2">Chart Pekerjaan Tahun {{ date('Y') }}</h4>
                             </div>
-                            {{-- <div class="col-sm-6 text-right">
-                                <div class="dropdown">
-                                    <a class="btn btn-success dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-                                        <i class='fa fa-filter'></i> Filter
-                                    </a>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="#FilterChartAll">Semua</a>
-                                        <a class="dropdown-item" href="#FilterBulanan">Bulanan</a>
-                                        <a class="dropdown-item" href="#FilterChartHarian">Harian</a>
-                                    </div>
-                                    </div>
-                            </div> --}}
                         </div>
                     </div>
                     <div class="card-body">
@@ -170,13 +158,13 @@
             <div class="col-sm-12">
                 <div class="card bg-white">
                     <div class="card-header">
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <h3 class="card-title pt-1"><i class='fa fa-cog'></i> Generate Program Kerja Bulanan</h3>
-                            </div>
-                            <div class="col-sm-6 text-right pt-1">
-                                <button type="button" class="btn btn-secondary" title='Filter Table' data-toggle='collapse' data-target='#filter'><i class='fa fa-filter'></i>&nbsp;Filter</button>
-                            </div>
+                        <div class="d-flex flex-row align-items-center justify-content-between w-100">
+                            <h4 class="card-title no-margins">
+                                <i class="fa fa-cog"></i> Generate Program Kerja Bulanan
+                            </h4>
+                            <button type="button" class="btn btn-secondary" title="Filter Tabel" data-toggle="collapse" data-target="#filter">
+                                <i class="fa fa-filter"></i> Filter
+                            </button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -203,13 +191,13 @@
                             <table class="table table-sm table-striped table-hover table-bordered" id="table_jadwal_umrah" style="width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th class="text-center">No</th>
+                                        <th class="text-center" style="width: 7%;">No</th>
                                         <th class="text-center">Tour Code</th>
-                                        <th class="text-center">Paket</th>
+                                        <th class="text-center" style="width: 18%;">Paket</th>
                                         <th class="text-center">Pembimbing</th>
-                                        <th class="text-center">Tgl. Keberangkatan</th>
-                                        <th class="text-center">Tgl. Kepulangan</th>
-                                        <th class="text-center">Aksi</th>
+                                        <th class="text-center" style="width: 16%;">Tgl. Keberangkatan</th>
+                                        <th class="text-center" style="width: 16%;">Tgl. Kepulangan</th>
+                                        <th class="text-center" style="width: 7%;">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -555,6 +543,33 @@
                         <button class="btn btn-secondary mr-2" id="btnBatalRKAP" onclick="closeModal('modalRKAP')">Batal</button>
                         <button class="btn btn-primary" id="btnSimpanRKAP" value="">Simpan</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDetailAktivitas">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-row align-items-center justify-content-between w-100">
+                        <h4 class="no-margins modal-title">Aktivitas User Detail</h4>
+                        <button class="close" onclick="closeModal('modalDetailAktivitas')">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm table-hover table-bordered" id="tableListAktivitasUser" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th class="text-center align-middle" style="width: 5%;">No</th>
+                                <th class="text-center align-middle" style="width: 17%;">Tour Code</th>
+                                <th class="text-left align-middle">Uraian</th>
+                                <th class="text-center align-middle" style="width: 20%;">Tgl. Aktivitas</th>
+                                <th class="text-center align-middle" style="width: 10%;">Lamanya</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
             </div>
         </div>

@@ -342,6 +342,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/getDataRulesJadwalDetail', [DivisiController::class, 'getDataRulesJadwalDetail']);
             Route::get('/getJobUser', [DivisiController::class, 'getDataJobUser']);
             Route::get('/getRKAP', [DivisiController::class, 'divisi_operasional_getRKAP']);
+            Route::get('/getListAktivitasUserChart', [DivisiController::class, 'operasional_dahsboard_actDetailUserChart']);
 
             Route::prefix('program')->group(function(){
                 Route::get('/', [DivisiController::class, 'indexProgram'])->name('index.operasional.program');
