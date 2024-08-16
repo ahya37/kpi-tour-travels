@@ -434,6 +434,7 @@ class DivisiService
                             0 as total_rule
                     FROM 	programs_jadwal
                     WHERE 	EXTRACT(YEAR FROM jdw_depature_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+                    AND     is_active = 't'
 
                     UNION
 
@@ -1362,7 +1363,7 @@ class DivisiService
             JOIN 	employees b ON a.created_by	= b.user_id
             JOIN 	job_employees c ON b.id = c.employee_id
             JOIN 	group_divisions d ON c.group_division_id = d.id
-            WHERE 	d.name LIKE '%finance%'
+            WHERE 	d.name LIKE '%$user_role%'
             AND 	a.pkb_is_active = 't'
             AND 	a.pkb_start_date BETWEEN '$start_date' AND '$end_date'
             ORDER BY a.pkb_start_date ASC
@@ -1385,6 +1386,7 @@ class DivisiService
                     a.jdw_arrival_date
             FROM    programs_jadwal a
             WHERE   a.is_active = 't'
+            AND     a.is_generated = 't'
             AND     a.jdw_uuid LIKE '$tour_code'
             "
         );
@@ -1959,5 +1961,197 @@ class DivisiService
         );
 
         return $query;
+    }
+
+    public static function getFinanceRKAPList($data)
+    {
+        $role       = $data['user_role'];
+        $pkt_id     = $data['rkap_id'];
+
+        $query      = DB::select(
+            "
+            SELECT 	a.uid as pkt_id,
+                    a.pkt_title,
+                    a.pkt_year,
+                    b.name as pkt_group_division,
+                    COUNT(c.pkt_id) as pkt_total_detail
+            FROM 	proker_tahunan a
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            JOIN 	proker_tahunan_detail c ON a.id = c.pkt_id
+            WHERE 	b.name LIKE '%$role%'
+            AND     a.uid LIKE '$pkt_id'
+            GROUP BY a.uid, a.pkt_title, a.pkt_year, b.name
+            ORDER BY a.pkt_year DESC
+            "
+        );
+
+        return $query;
+    }
+
+    public static function doSimpanRKAPFinance($data)
+    {
+        DB::beginTransaction();
+        $jenis      = $data['jenis'];
+        $user_id    = $data['user_id'];
+        $user_role  = $data['user_role'];
+        $user_ip    = $data['ip'];
+        
+        // HEADER
+        $rkap_id    = $data['data']['rkap_id'];
+        $rkap_title = $data['data']['rkap_title'];
+        $rkap_desc  = $data['data']['rkap_desc'];
+        $rkap_year  = $data['data']['rkap_year'];
+        $rkap_detail= $data['data']['rkap_detail'];
+
+        // HILANGKAN DETAIL JIKA ADA YANG KOSONG
+        $temp_detail    = [];
+        for($i = 0; $i < count($rkap_detail); $i++) {
+            if($rkap_detail[$i]['rkapd_title'] != "") {
+                array_push($temp_detail, $rkap_detail[$i]);
+            } 
+        }
+
+        // GET GROUP DIVISION ID
+        $group_division  = DB::select(
+            "
+                SELECT  id
+                FROM    group_divisions
+                WHERE   name LIKE '%finance%'
+            "
+        );
+        if($jenis == 'add')
+        {
+            // SIMPAN HEADER
+            $data_simpan_header     = [
+                "uid"               => Str::random(30),
+                "pkt_title"         => $rkap_title,
+                "pkt_description"   => $rkap_desc,
+                "pkt_year"          => $rkap_year,
+                "pkt_pic_job_employee_id"   => "",
+                "division_group_id" => $group_division[0]->id,
+                "created_by"        => $user_id,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('proker_tahunan')->insert($data_simpan_header);
+            
+            $rkap_id   = DB::getPdo()->lastInsertId();
+
+            // SIMPAN DETAIL
+            for($j = 0; $j < count($temp_detail); $j++)
+            {
+                $data_detail    = $temp_detail[$j];
+                
+                $data_simpan_detail     = [
+                    "pkt_id"        => $rkap_id,
+                    "pktd_seq"      => $data_detail['rkapd_seq'],
+                    "pktd_title"    => $data_detail['rkapd_title'],
+                    "pktd_target"   => 0,
+                ];
+
+                DB::table('proker_tahunan_detail')->insert($data_simpan_detail);
+            }
+        } else if($jenis == 'edit') {
+            // UPDATE HEADER
+            $data_where_header  = [
+                "uid"       => $rkap_id,
+            ];
+            
+            $data_update_header  = [
+                "pkt_title"         => $rkap_title,
+                "pkt_description"   => $rkap_desc,
+                "pkt_year"          => $rkap_year,
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+            DB::table('proker_tahunan')->where($data_where_header)->update($data_update_header);
+
+            // UPDATE DETAIL
+            // GET PKT ID
+            $rkap_id_header     = DB::table('proker_tahunan')->select('id')->where($data_where_header)->get()[0]->id;
+            // DELETE DATA BEFORE
+            DB::table('proker_tahunan_detail')->where(['pkt_id' => $rkap_id_header])->delete();
+            // INSERT NEW DATA
+            for($i = 0; $i < count($temp_detail); $i++) {
+                $data_detail    = $temp_detail[$i];
+
+                $data_update_detail     = [
+                    "pkt_id"        => $rkap_id_header,
+                    "pktd_seq"      => $data_detail['rkapd_seq'],
+                    "pktd_title"    => $data_detail['rkapd_title'],
+                    "pktd_target"   => 0,
+                ];
+                DB::table('proker_tahunan_detail')->insert($data_update_detail);
+            }   
+        }
+
+        try {
+            DB::commit();
+
+            if($jenis == 'add') {
+                LogHelper::create('add', 'Berhasil Menambahkan Data RKAP Baru : '.$data_simpan_header['uid'], $user_ip);
+            } else if($jenis == 'edit') {
+                LogHelper::create('edit', 'Berhasil Mengubah Data RKAP : '.$rkap_id, $user_ip);
+            }
+
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => "",
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+
+            LogHelper::create('error_system', $jenis == 'add' ? "Gagal Menambahkan Data RKAP Baru" : "Gagal Merubah Data RKAP", $user_ip);
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function doGetDataRKAP($data)
+    {
+        $pkt_uid    = $data['rkap_id'];
+
+        // GET HEADER
+        $header     = DB::select(
+            "
+            SELECT 	a.uid as pkt_id,
+                    a.pkt_title,
+                    a.pkt_description,
+                    a.pkt_year
+            FROM 	proker_tahunan a
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            WHERE 	a.uid = '$pkt_uid'
+            AND     b.name LIKE '%finance%'
+            "
+        );
+
+        $detail     = DB::select(
+            "
+            SELECT 	a.uid as pkt_id,
+                    c.pktd_seq,
+                    c.pktd_title
+            FROM 	proker_tahunan a
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            JOIN 	proker_tahunan_detail c ON a.id = c.pkt_id
+            WHERE 	a.uid = '$pkt_uid'
+            AND 	b.name LIKE '%finance%'
+            ORDER BY CAST(c.pktd_seq AS UNSIGNED) ASC
+            "
+        );
+
+        $output     = [
+            "header"    => !empty($header[0]) ? $header[0] : "",
+            "detail"    => !empty($detail) ? $detail : []
+        ];
+
+        return $output;
     }
 }

@@ -201,11 +201,251 @@ function showSelect(idSelect, data)
     }
 }
 
+function showTable(idTable, data)
+{
+    if(idTable == 'table_rkap_finance') {
+        $("#"+idTable+"_wrapper").prop('style', 'width: 100%;');
+        $("#"+idTable).DataTable().clear().destroy();
+
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat...",
+                "zeroRecords"   : "Tidak Ada Data Yang Dicari" 
+            },
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "7%" },
+                { "targets" : [1], "className" : "text-left align-middle" },
+                { "targets" : [2, 3], "className" : "text-center align-middle", "width" : "10%" },
+            ],
+        });
+
+        if(data.length > 0) {
+            let num = 1;
+            for(const item of data)
+            {
+                const rkap_id       = item.pkt_id;
+                const rkap_title    = item.pkt_title;
+                const rkap_year     = item.pkt_year;
+                const rkap_total    = item.pkt_total_detail;
+                const rkap_button   = "<button type='button' class='btn btn-sm btn-primary' id='Ubah Data' value='" + rkap_id + "' onclick='showModal(`modal_create_rkap`, this.value, `edit`)'><i class='fa fa-eye'></i></button>";
+                $("#"+idTable).DataTable().row.add([
+                    "<label class='no-margins' style='font-weight: normal;'>" + (num++) + "</label>",
+                    "<label class='no-margins' style='font-weight: normal;'>" + rkap_title + "</label>",
+                    "<label class='no-margins' style='font-weight: normal;'>" + rkap_year + "</label>",
+                    "<label class='no-margins' style='font-weight: normal;'>" + rkap_button + "</label>",
+                ]).draw(false);
+            }
+        } else {
+            $(".dataTables_empty").html("Tidak Ada Data Yang Bisa Dimuat");
+        }
+    } else if(idTable == 'table_create_rkap') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : "Tidak Ada Data Yang Bisa Dimuat",
+            },
+            bInfo       : false,
+            searching   : false,
+            paging      : false,
+            pageLength  : -1,
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
+                { "targets" : [1], "className" : "text-center", "width" : "15%" },
+            ],
+        })
+    }
+}
+
+function tambahBaris(idTable, data)
+{
+    if(idTable == 'table_create_rkap')
+    {
+        const seq           = parseInt($("#btnHapusBaris").val());
+        const input_no      = "<input type='text' class='form-control text-center' id='rkapd_seq"+seq+"' readonly>";
+        const input_btn     = "<button type='button' class='btn btn-sm btn-danger' value='" + seq + "' onclick='hapusBaris(`table_create_rkap`, "+seq+")'><i class='fa fa-trash'></i></button>";
+        const input_title   = "<input type='text' class='form-control text-left' id='rkapd_title"+seq+"' placeholder='Uraian'>";
+
+        $("#"+idTable).DataTable().row.add([
+            input_btn,
+            input_no,
+            input_title,
+        ]).draw(false);
+
+        if(data != '') {
+            const rkapd_seq     = data.pktd_seq;
+            const rkapd_title   = data.pktd_title;
+
+            $("#rkapd_seq"+seq).val(rkapd_seq);
+            $("#rkapd_title"+seq).val(rkapd_title);
+        } else {
+            $("#rkapd_seq"+seq).val(seq);
+            $("#rkapd_title"+seq).val('');
+
+            if(seq != 1) {
+                $("#rkapd_title"+seq).focus();
+            }
+        }
+
+        $("#rkapd_title"+seq).on('keyup', (e) => {
+            if(e.key === 'Enter') {
+                tambahBaris('table_create_rkap', '');
+            }
+        });
+
+        $("#btnHapusBaris").val(seq + 1);
+    }
+}
+
+function hapusBaris(idTable, seq)
+{
+    if(idTable == 'table_create_rkap') {
+        const current_seq   = parseInt($("#btnHapusBaris").val());
+        const hitung        = current_seq - seq;
+
+        if(seq == 1) {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Baris Pertama Tidak Bisa Dimuat',
+            });
+        } else {
+            if(hitung === 1) {
+                $("#"+idTable).DataTable().row(seq - 1).remove().draw(false);
+                $("#btnHapusBaris").val(current_seq - 1);
+                $("#rkapd_title"+(seq - 1)).focus();
+            } else {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Hanya Baris Terakhir Yang Bisa Dihapus', 
+                });
+            }
+        }
+    }
+}
+
 function showModal(idModal, value, jenis)
 {
     if(idModal == 'modal_rkap_finance') {
-        $("#"+idModal).modal('show');
-        $("#modal_rkap_title").html("RKAP Finance Tahun"+moment().format('YYYY'));
+        const rkapFin_url   = "/divisi/finance/rkap/listRKAP";
+        const rkapFin_data  = {
+            "rkap_id"    : "%",
+        };
+        const rkapFin_type  = "GET";
+
+        const sendData      = [
+            doTrans(rkapFin_url, rkapFin_type, rkapFin_data, '', true),
+        ];
+
+        // SHOW SWAL
+        Swal.fire({
+            title   : 'Data Sedang Dimuat',
+        });
+        Swal.showLoading();
+
+        Promise.all(sendData)
+            .then((success) => {
+                Swal.close();
+                const rkapFin_getData   = success[0].data;
+                // SHOW MODAL
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                // SHOW TABLE
+                showTable('table_rkap_finance', rkapFin_getData);
+                $("#modal_rkap_title").html("RKAP Finance Tahun"+moment().format('YYYY'));
+            })
+            .catch((err)    => {
+                Swal.fire({
+                    icon    : 'warning',
+                    title   : "Terjadi Kesalahan",
+                    text    : "Tidak Ada Data Yang Bisa Dimuat",
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        console.log(err);
+                        Swal.close();
+                        $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+                        showTable('table_rkap_finance', []);
+                        $("#modal_rkap_title").html("RKAP Finance Tahun"+moment().format('YYYY'));
+                    }
+                })
+            })
+    } else if(idModal == 'modal_create_rkap') {
+        closeModal('modal_rkap_finance');
+        
+        $("#rkap_year").yearpicker({
+            autoHide: true,
+            year    : parseInt(moment().format('YYYY')),
+        });
+
+        $("#btnSimpanRKAP").val(jenis);
+
+        if(jenis == 'add') {
+            // ADD TITLE
+            $("#modal_create_rkap_title").html("Tambah Data RKAP");
+
+            // FILL FORM
+            $("#rkap_year").val(moment().format('YYYY')).trigger('change');
+
+            // FOCUS
+            $("#"+idModal).on('shown.bs.modal', () => {
+                $("#rkap_title").focus();
+            });
+
+            // SHOW TABLE DETAIL
+            showTable('table_create_rkap', '');
+            tambahBaris('table_create_rkap', '');
+        } else if(jenis == 'edit') {
+            // GET DATA RKAP DETAIL
+            const rkap_url      = "/divisi/finance/rkap/getRKAPData";
+            const rkap_sendData = {
+                "rkap_id"   : value,
+            };
+            const rkap_type     = "GET";
+            const rkap_message  = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+            
+            doTrans(rkap_url, rkap_type, rkap_sendData, rkap_message, true)
+                .then((success) => {
+                    // GET DATA
+                    const header    = success.data.header;
+                    const detail    = success.data.detail;
+
+                    // FILL FORM HEADER
+                    $("#rkap_id").val(header.pkt_id);
+                    $("#rkap_title").val(header.pkt_title);
+                    $("#rkap_description").val(header.pkt_description);
+                    $("#rkap_year").val(header.pkt_year).trigger('change');
+
+                    // FILL TABLE
+                    showTable('table_create_rkap', '');
+                    for(const item of detail) {
+                        tambahBaris('table_create_rkap', item);
+                    }
+                    tambahBaris('table_create_rkap', '');
+                    // SHOW MODAL 
+                    $("#modal_create_rkap_title").html("Ubah Data RKAP");
+                    $("#"+idModal).modal({backdrop : 'static', keyboard: false});
+
+                     // FOCUS
+                    $("#"+idModal).on('shown.bs.modal', () => {
+                        $("#rkap_title").focus();
+                    });
+
+                    Swal.close();
+                    
+                })
+                .catch((err)    => {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : 'Data Yang Dipilih Tidak Ditemukan',
+                    }).then((results)  => {
+                        if(results.isConfirmed) {
+                            console.log(err);
+                        }
+                    });
+                })
+        }
     } else if(idModal == 'modal_daily_activity') {
         $("#"+idModal).modal({ backdrop : 'static', keyboard : false });
         $("#modal_daily_title").html("List Aktivitas");
@@ -370,6 +610,18 @@ function closeModal(idModal) {
             $("#v_aktivitas_operasional").addClass('d-none');
             $("#daily_trans_category").prop('disabled', false);
         })
+    } else if(idModal == 'modal_create_rkap') {
+        $("#"+idModal).modal('hide');
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#rkap_id").val(null);
+            $("#rkap_title").val(null);
+            $("#rkap_year").val(null);
+            $("#rkap_description").val(null);
+            $("#btnHapusBaris").val(1);
+        });
+
+        showModal('modal_rkap_finance','','');
     }
 }
 
@@ -577,6 +829,70 @@ function doSimpan(jenis)
                     })
             }
         })
+    }
+}
+
+function doSimpanRKAP(jenis)
+{
+    const rkap_ID       = $("#rkap_id");
+    const rkap_title    = $("#rkap_title");
+    const rkap_desc     = $("#rkap_description");
+    const rkap_year     = $("#rkap_year");
+    const rkap_detail   = [];
+    for(let i = 0; i < $("#table_create_rkap").DataTable().rows().count(); i++) {
+        const seq   = i + 1;
+        rkap_detail.push({
+            "rkapd_seq"     : $("#rkapd_seq"+seq).val(),
+            "rkapd_title"   : $("#rkapd_title"+seq).val(),
+        });
+    }
+
+    if(rkap_title.val() == '')
+    {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Uraian Harus Diisi',
+            didClose: () => {
+                rkap_title.focus();
+            }
+        })
+    } else {
+        const rkap_sendData = {
+            "rkap_id"       : rkap_ID.val(),
+            "rkap_title"    : rkap_title.val(),
+            "rkap_desc"     : rkap_desc.val(),
+            "rkap_year"     : rkap_year.val(),
+            "rkap_detail"   : rkap_detail,
+        };
+        const rkap_url      = "/divisi/finance/rkap/simpanRKAP/"+jenis;
+        const rkap_type     = "POST";
+        const rkap_message  = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+        
+        // SIMPAN MENGGUNAKAN FETCH
+        doTrans(rkap_url, rkap_type, rkap_sendData, rkap_message, true)
+            .then((success) => {
+                Swal.fire({
+                    icon    : success.alert.icon,
+                    title   : success.alert.message.title,
+                    text    : success.alert.message.text,
+                }).then((results)   => {
+                    if(results.isConfirmed) {
+                        closeModal('modal_create_rkap')
+                    }
+                });
+            })
+            .catch((err)    => {
+                Swal.fire({
+                    icon    : err.responseJSON.alert.icon,
+                    title   : err.responseJSON.alert.message.title,
+                    text    : err.responseJSON.alert.message.text,
+                }).then((results)   => {
+                    if(results.isConfirmed) {
+                        console.log(err.responseJSON.errMsg);
+                    }
+                })
+            })
     }
 }
 

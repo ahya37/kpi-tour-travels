@@ -365,6 +365,12 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/getTourCode/{tourcode}', [DivisiController::class, 'finance_programKerja_tourCode']);
             Route::get('/getEventsFinanceDetail/{id}', [DivisiController::class, 'finance_programKerja_eventsDetail']);
             Route::post('/simpanAktivitas/{jenis}', [DivisiController::class, 'finance_programKerja_simpanAktivitas']);
+            Route::prefix('rkap')->group(function(){
+                Route::get('/listRKAP', [DivisiController::class, 'finance_rkap_list']);
+                Route::post('/simpanRKAP/{jenis}', [DivisiController::class, 'finance_rkap_simpan']);
+                // GET RKAP DATA
+                Route::get('/getRKAPData', [DivisiController::class, 'finance_rkap_getData']);
+            });
         });
 
         Route::prefix('digital')->group(function(){

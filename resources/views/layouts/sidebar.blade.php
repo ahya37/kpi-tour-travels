@@ -115,12 +115,14 @@
                     <li><a href="#">Marketing</a></li>
                 </ul>
                 <ul class="nav nav-second-level">
-                    <li><a href="#">IT</a></li>
-                </ul>
-                <ul class="nav nav-second-level">
                     <li
                         class="{{ request()->is('divisi/operasional') || request()->is('divisi/operasional/*') ? 'active' : '' }}">
                         <a href="{{ route('index.operasional') }}">Operasional</a>
+                    </li>
+                </ul>
+                <ul class="nav nav-second-level">
+                    <li class="{{ request()->is('divisi/finance') || request()->is('divisi/finance/*') ? 'active' : '' }}">
+                        <a href="{{ route('index.finance') }}">Finance</a>
                     </li>
                 </ul>
             </li>

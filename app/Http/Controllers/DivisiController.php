@@ -614,7 +614,7 @@ class DivisiController extends Controller
     public function operasional_programKerja_listProkerAll(Request $request)
     {
         $data       = [
-            "current_role"  => Auth::user()->getRoleNames()[0],
+            "current_role"  => Auth::user()->getRoleNames()[0] == 'admin' ? 'operasional' : Auth::user()->getRoleNames()[0],
             "current_id"    => Auth::user()->id,
         ];
         $getData    = DivisiService::getListProkerAllOperasional($data);
@@ -641,7 +641,7 @@ class DivisiController extends Controller
     public function operasional_programKerja_listPIC()
     {
         $data       = [
-            "current_role"  => Auth::user()->getRoleNames()[0],
+            "current_role"  => Auth::user()->getRoleNames()[0] == 'admin' ? 'marketing' : Auth::user()->getRoleNames()[0],
             "current_id"    => Auth::user()->id,
         ];
 
@@ -924,8 +924,8 @@ class DivisiController extends Controller
     {
         $data   = [
             "sendData"  => $request->all()['sendData'],
-            "user_id"   => Auth::user()->id,
-            "user_role" => Auth::user()->getRoleNames()[0]
+            "user_id"   => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id,
+            "user_role" => Auth::user()->getRoleNames()[0] == 'admin' ? 'finance' : Auth::user()->getRoleNames()[0]
         ];
 
         $getData = DivisiService::getEventsFinance($data);
@@ -1197,7 +1197,7 @@ class DivisiController extends Controller
         $sendData   = [
             "pkt_id"        => $request->all()['sendData']['pkt_id'],
             "current_year"  => date('Y'),
-            "current_role"  => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0]
+            "current_role"  => Auth::user()->getRoleNames()[0] == 'admin' ? 'operasional' : Auth::user()->getRoleNames()[0]
         ];
 
         $getData    = DivisiService::doGetRKAPOperasional($sendData);
@@ -1247,6 +1247,103 @@ class DivisiController extends Controller
             "message"   => "Data Berhasil Dimuat",
             "data"      => $getData,
         ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 15 AGUSTUS 2024
+    // NOTE : LIST RKAP FINANCE
+    public function finance_rkap_list(Request $request)
+    {
+        $sendData   = [
+            "user_role"     => Auth::user()->getRoleNames()[0] == 'admin' ? 'finance' : Auth::user()->getRoleNames()[0],
+            "rkap_id"       => $request->all()['sendData']['rkap_id'],
+        ];
+
+        $getData    = DivisiService::getFinanceRKAPList($sendData);
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Memuat Data RKAP Finance",
+            "data"      => $getData,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 16 AGUSTUS 2024
+    // NOTE : SIMPAN RKAP FINANCE
+    public function finance_rkap_simpan($jenis, Request $request)
+    {
+        $sendData   = [
+            "data"      => $request->all()['sendData'],
+            "jenis"     => $jenis,
+            "user_id"   => Auth::user()->id,
+            "user_role" => Auth::user()->getRoleNames()[0] == 'admin' ? 'finance' : Auth::user()->getRoleNames()[0],
+            "ip"        => $request->ip(),
+        ];
+
+        $doSimpan   = DivisiService::doSimpanRKAPFinance($sendData);
+        
+        switch($doSimpan['status'])
+        {
+            case "berhasil" :
+                $output     = [
+                    "success"   => true,
+                    "status"    => 200,
+                    "alert"     => [
+                        "icon"      => "success",
+                        "message"   => [
+                            "title"     => "Berhasil",
+                            "text"      => $jenis == 'add' ? "Berhasil Menambahkan RKAP Baru" : "Berhasil Merubah Data RKAP",
+                        ],
+                    ],
+                    "errMsg"    => $doSimpan['errMsg'],
+                ];
+                break;
+            case "gagal" :
+                $output     = [
+                    "success"   => false,
+                    "status"    => 500,
+                    "alert"     => [
+                        "icon"      => "error",
+                        "message"   => [
+                            "title"     => "Terjadi Kesalahan",
+                            "text"      => $jenis == 'add' ? "Gagal Menambahkan RKAP Baru" : "Gagal Merubah Data RKAP",
+                        ],
+                    ],
+                    "errMsg"    => $doSimpan['errMsg'],
+                ];
+                break;
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function finance_rkap_getData(Request $request)
+    {
+        $sendData   = [
+            "rkap_id"   => $request->all()['sendData']['rkap_id'],
+        ];
+
+        $getData    = DivisiService::doGetDataRKAP($sendData);
+
+        if((!empty($getData['header'])) && (count($getData['detail']) > 0)) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Memuat Data",
+                "data"      => $getData,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Memuat Data : Data Tidak Ditemukan",
+                "data"      => [],
+            ];
+        }
 
         return Response::json($output, $output['status']);
     }
