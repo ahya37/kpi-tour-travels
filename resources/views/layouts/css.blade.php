@@ -17,3 +17,4 @@
 <link rel="stylesheet" href="{{ asset('css/customCSS/SweetAlert/sweetalert2.min.css') }}">
 {{-- YEARPICKER --}}
 <link href="{{ asset('assets/css/plugins/yearpicker/yearpicker.css') }}" rel="stylesheet">
+<link href="{{ asset('css/customCSS/yearpicker/percik_yearpicker.css') }}" rel="stylesheet">

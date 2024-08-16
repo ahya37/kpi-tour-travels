@@ -3,48 +3,90 @@ moment.locale('id');
 var today       = moment().format('YYYY-MM-DD');
 var isActive    = 0;
 $(document).ready(() => {
-    // console.log('test');
-    dataDashboard();
-});
+    // dataDashboard();
 
-function dataDashboard()
-{
-    let current_year    = moment().format('YYYY');
-    let start_date      = current_year+"-01-01";
-    let end_date        = current_year+"-12-31";
-
-    // GET DATA
-    const url           = "/divisi/finance/eventsFinance";
-    const type          = "GET";
-    const message       = "";
-    const data          = {
-        "start_date"    : start_date,
-        "end_date"      : end_date
+    const actUser_url   = "/divisi/finance/eventsFinance";
+    const actUser_data  = {
+        "start_date"    : moment(today, 'YYYY-MM-DD').startOf('year').format('YYYY-MM-DD'),
+        "end_date"      : moment(today, 'YYYY-MM-DD').endOf('year').format('YYYY-MM-DD'),
     };
-    $("#act_rkap_loading").removeClass('d-none');
-    $("#act_user_loading").removeClass('d-none');
-    $("#act_rkap_text").addClass('d-none');
-    $("#act_user_text").addClass('d-none');
-    doTrans(url, type, data, message, true)
-        .then((success) => {
-            $("#act_rkap_loading").addClass('d-none');
-            $("#act_user_loading").addClass('d-none');
 
-            $("#act_rkap_text").html(0);
-            $("#act_user_text").html(success.data.length);
-            $("#act_rkap_text").removeClass('d-none');
+    const financeRKAP_url   = "/divisi/finance/rkap/listRKAP";
+    const financeRKAP_data  = {
+        "rkap_id"   : '%',
+    };
+
+    const getDatadDashboard     = [
+        doTrans(actUser_url, 'GET', actUser_data, '', true),
+        doTrans(financeRKAP_url, 'GET', financeRKAP_data, '', true)
+    ];
+
+    Promise.all(getDatadDashboard)
+        .then((success) => {
+            const actUser_getData       = success[0].data;
+            const financeRKAP_getData   = success[1].data;
+            
+            // HIDE LOADING ACT USER
+            $("#act_user_loading").addClass('d-none');
             $("#act_user_text").removeClass('d-none');
+            $("#act_user_text").html(actUser_getData.length);
+
+            // HIDE LOADING RKAP
+            $("#act_rkap_loading").addClass('d-none');
+            $("#act_rkap_text").removeClass('d-none');
+            $("#act_rkap_text").html(financeRKAP_getData.length);
         })
         .catch((err)    => {
-            $("#act_rkap_loading").addClass('d-none');
+            // HIDE LOADING ACT USER
             $("#act_user_loading").addClass('d-none');
-
-            $("#act_rkap_text").html(0);
-            $("#act_user_text").html(0);
-            $("#act_rkap_text").removeClass('d-none');
             $("#act_user_text").removeClass('d-none');
+            $("#act_user_text").html(0);
+
+            // HIDE LOADING RKAP
+            $("#act_rkap_loading").addClass('d-none');
+            $("#act_rkap_text").removeClass('d-none');
+            $("#act_rkap_text").html(0);
         })
-}
+});
+
+// function dataDashboard()
+// {
+//     let current_year    = moment().format('YYYY');
+//     let start_date      = current_year+"-01-01";
+//     let end_date        = current_year+"-12-31";
+
+//     // GET DATA
+//     const url           = "/divisi/finance/eventsFinance";
+//     const type          = "GET";
+//     const message       = "";
+//     const data          = {
+//         "start_date"    : start_date,
+//         "end_date"      : end_date
+//     };
+//     $("#act_rkap_loading").removeClass('d-none');
+//     $("#act_user_loading").removeClass('d-none');
+//     $("#act_rkap_text").addClass('d-none');
+//     $("#act_user_text").addClass('d-none');
+//     doTrans(url, type, data, message, true)
+//         .then((success) => {
+//             $("#act_rkap_loading").addClass('d-none');
+//             $("#act_user_loading").addClass('d-none');
+
+//             $("#act_rkap_text").html(0);
+//             $("#act_user_text").html(success.data.length);
+//             $("#act_rkap_text").removeClass('d-none');
+//             $("#act_user_text").removeClass('d-none');
+//         })
+//         .catch((err)    => {
+//             $("#act_rkap_loading").addClass('d-none');
+//             $("#act_user_loading").addClass('d-none');
+
+//             $("#act_rkap_text").html(0);
+//             $("#act_user_text").html(0);
+//             $("#act_rkap_text").removeClass('d-none');
+//             $("#act_user_text").removeClass('d-none');
+//         })
+// }
 
 function showCalendar(today)
 {
@@ -263,9 +305,9 @@ function tambahBaris(idTable, data)
     if(idTable == 'table_create_rkap')
     {
         const seq           = parseInt($("#btnHapusBaris").val());
-        const input_no      = "<input type='text' class='form-control text-center' id='rkapd_seq"+seq+"' readonly>";
+        const input_no      = "<input type='text' class='form-control text-center' id='rkapd_seq"+seq+"' readonly autocomplete='off'>";
         const input_btn     = "<button type='button' class='btn btn-sm btn-danger' value='" + seq + "' onclick='hapusBaris(`table_create_rkap`, "+seq+")'><i class='fa fa-trash'></i></button>";
-        const input_title   = "<input type='text' class='form-control text-left' id='rkapd_title"+seq+"' placeholder='Uraian'>";
+        const input_title   = "<input type='text' class='form-control text-left' id='rkapd_title"+seq+"' placeholder='Uraian' autocomplete='off'>";
 
         $("#"+idTable).DataTable().row.add([
             input_btn,
@@ -452,6 +494,8 @@ function showModal(idModal, value, jenis)
         $("#modal_daily_calendar_title").html("Aktivitas Bulan "+moment().format('MMMM')+" Tahun "+moment().format('YYYY'));
         $("#"+idModal).on('shown.bs.modal', function(){
             if(isActive == 0) {
+                $("#calendar-loading").addClass('d-none');
+                $("#calendar-show").removeClass('d-none');
                 showCalendar(today);
             }
             isActive = 1;
@@ -585,6 +629,10 @@ function closeModal(idModal) {
             $(".fc-prevCustomButton-button").empty();
             $(".fc-nextCustomButton-button").empty();
             $(".fc-todayCustomButton-button").empty();
+
+            
+            $("#calendar-loading").removeClass('d-none');
+            $("#calendar-show").addClass('d-none');
         });
     } else if(idModal == 'modal_daily_trans') {
         $("#"+idModal).modal('hide');

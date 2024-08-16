@@ -14,10 +14,6 @@
         input[type=text] {
             height: 37.5px;
         }
-
-        .yearpicker-container {
-            position : fixed
-        }
     </style>
 @endpush
 
@@ -35,7 +31,7 @@
             <div class="col-sm-3">
                 <div class="card">
                     <div class="card-header bg-primary">
-                        <h4 style="margin: 0px;">RKAP Tahun @php echo date('Y'); @endphp</h4>
+                        <h4 style="margin: 0px;">RKAP</h4>
                     </div>
                     <div class="card-body text-right">
                         <h2 style="margin: 0px;">
@@ -83,7 +79,13 @@
                         </div>
                     </div>
                     <hr>
-                    <div class="row">
+                    <div id="calendar-loading">
+                        <div class="d-flex flex-column align-items-center justify-content-center" style="height: 653px;">
+                            <span class="spinner-border"></span><br>
+                            <label>Tampilan Sedang Dimuat..</label>
+                        </div>
+                    </div>
+                    <div class="row d-none" id="calendar-show">
                         <div class="col-sm-12">
                             <input type="hidden" name="current_date" id="current_date">
                             <div id="calendar" style="width: 100%;"></div>
@@ -274,7 +276,7 @@
                                 <div class="col-sm-12">
                                     <div class="form-group">
                                         <label>Uraian</label>
-                                        <input type="text" class="form-control" id="rkap_title" name="rkap_title" placeholder="Uraian">
+                                        <input type="text" class="form-control" id="rkap_title" name="rkap_title" placeholder="Uraian" autocomplete="off">
                                     </div>
                                 </div>
                             </div>

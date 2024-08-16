@@ -389,25 +389,37 @@ function showModal(idForm, valueCari, jenis)
 
         showTable('table_list_rkap', '');
     } else if(idForm == 'modalRKAP') {
-        showTable('table_detail_rkap', '')
-        
+        // CLOSE MODAL BEFORE
+        closeModal('modalRKAPTable');
+        // SHOW YEAR PICKER
+        $("#rkap_year").yearpicker({
+            autoHide: true,
+            year    : parseInt(moment().format('YYYY')),
+        });
+
         if(jenis == 'add') {
             $("#"+idForm).modal({backdrop: 'static', keyboard: false});
             $("#modalRKAP_title").append('Tambah Data');
 
+            // TAMBAH BARIS
+            showTable('table_detail_rkap', '')
             const barisAwal     = parseInt($("#btnTambahBarisRKAP").val());
             tambahBaris('table_detail_rkap', barisAwal, '');
+
+            // FILL FORM
+            $("#rkap_year").val(moment(today).format('YYYY')).trigger('change');
+            
         } else if(jenis == 'edit') {
             const rkap_data     = {
                 "pkt_id"    : valueCari,
             };
             const rkap_url  = "/divisi/operasional/getRKAP";
-            const rkap_msg  = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+            const rkap_msg  = Swal.fire({ title : 'Data Sedang Diproses', outsideClick : false }); Swal.showLoading();
             doTrans(rkap_url, 'GET', rkap_data, rkap_msg, true)
                 .then((success)     => {
-                    Swal.close();
+                    // SHOW MODAL
                     $("#"+idForm).modal({backdrop : 'static', keyboard: false});
-                    $("#modalRKAP_title").append('Ubah Data');
+                    $("#modalRKAP_title").html('Ubah Data RKAP Operasional');
 
                     const rkap_data_header  = success.data.header[0];
                     const rkap_data_detail  = success.data.detail;
@@ -417,12 +429,15 @@ function showModal(idForm, valueCari, jenis)
                     $("#rkap_description").val(rkap_data_header.pkt_description);
                     $("#rkap_year").val(rkap_data_header.pkt_year);
 
-                    // FIULL DETAIL
+                    // FILL DETAIL
+                    showTable('table_detail_rkap', '');
                     let barisAwal   = 1;
                     for(const item of rkap_data_detail) {
                         tambahBaris('table_detail_rkap', barisAwal++, item);
                     }
                     tambahBaris('table_detail_rkap', barisAwal, '');
+
+                    Swal.close();
                 })
                 .catch((err)        => {
                     Swal.close();
@@ -436,7 +451,6 @@ function showModal(idForm, valueCari, jenis)
         }
 
         $("#"+idForm).on('shown.bs.modal', () => {
-            $("#rkap_year").val(moment().format('YYYY'));
             $("#rkap_title").focus();
             $("#btnSimpanRKAP").val(jenis);
         })
@@ -474,6 +488,45 @@ function showModal(idForm, valueCari, jenis)
                     }
                 });
             })
+    }
+}
+
+function closeModal(idForm) {
+    if(idForm == 'modalForm') {
+        $("#"+idForm).modal('hide');
+        
+    } else if(idForm == 'modaGenerateRules') {
+        $("#selectAll").prop('checked', false);
+        
+        temp_rules  = [];
+    } else if(idForm == 'modalOperasionalDaily') {
+        $("#"+idForm).modal('hide');
+        $("#"+idForm).on('hidden.bs.modal', function(){
+            today   = moment().format('YYYY-MM-DD');
+            $("#filterOperasional").collapse('hide');
+        })
+    } else if(idForm == 'modalOperasionalTransaction') {
+        $("#"+idForm).modal('hide');
+
+        $("#"+idForm).on('hidden.bs.modal', function(){
+            $("#modalOperasionalTransaction_title").val(null);
+            $(".calendar").val(null);
+            $("#modalOperasionalTransaction_description").val(null);
+            $("#modalOperasionalTransaction_jpkID").val(null);
+        })
+    } else if(idForm == 'modalRKAP') {
+        $("#"+idForm).modal('hide');
+        showModal('modalRKAPTable', '', '');
+        $("#"+idForm).on('hidden.bs.modal', () => {
+            $("#rkap_title").val(null);
+            $("#rkap_description").val(null);
+            $("#rkap_year").val(null);
+            $("#btnTambahBarisRKAP").val(1);
+        });
+    } else if(idForm == 'modalRKAPTable') {
+        $("#"+idForm).modal('hide');
+    } else if(idForm == 'modalDetailAktivitas') {
+        $("#"+idForm).modal('hide');
     }
 }
 
@@ -1038,7 +1091,6 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
             $.each(valueCari, (i, item) => {
                 html    += "<option value='"+ item.pktd_seq +"'>"+ item.pktd_title +"</option>";
             });
-            html    += "<option value='more'>Lainnya</option>";
             $("#"+idSelect).html(html);
         } else {
             $("#"+idSelect).html(html);
@@ -1147,44 +1199,6 @@ function generateRules(element, id)
                 text    : 'Tidak ada Rules baru yang bisa digenerate',
             })
         })
-}
-
-function closeModal(idForm) {
-    if(idForm == 'modalForm') {
-        $("#"+idForm).modal('hide');
-        
-    } else if(idForm == 'modaGenerateRules') {
-        $("#selectAll").prop('checked', false);
-        
-        temp_rules  = [];
-    } else if(idForm == 'modalOperasionalDaily') {
-        $("#"+idForm).modal('hide');
-        $("#"+idForm).on('hidden.bs.modal', function(){
-            today   = moment().format('YYYY-MM-DD');
-            $("#filterOperasional").collapse('hide');
-        })
-    } else if(idForm == 'modalOperasionalTransaction') {
-        $("#"+idForm).modal('hide');
-
-        $("#"+idForm).on('hidden.bs.modal', function(){
-            $("#modalOperasionalTransaction_title").val(null);
-            $(".calendar").val(null);
-            $("#modalOperasionalTransaction_description").val(null);
-            $("#modalOperasionalTransaction_jpkID").val(null);
-        })
-    } else if(idForm == 'modalRKAP') {
-        $("#"+idForm).modal('hide');
-        $("#"+idForm).on('hidden.bs.modal', () => {
-            $("#rkap_title").val(null);
-            $("#rkap_description").val(null);
-            $("#rkap_year").val(null);
-            $("#btnTambahBarisRKAP").val(1);
-        })
-    } else if(idForm == 'modalRKAPTable') {
-        $("#"+idForm).modal('hide');
-    } else if(idForm == 'modalDetailAktivitas') {
-        $("#"+idForm).modal('hide');
-    }
 }
 
 function selectAllTable(idTable, idCheck)
