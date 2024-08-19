@@ -14,6 +14,7 @@ function getDataDashboard()
 {
     const getData   = [
         doTransaction('/accounts/userProfiles/getUserData', 'GET', '', '', true),
+        doTransaction('/accounts/userProfiles/getDataLastActUser', 'GET', '', '', true)
     ];
     
     Promise.all(getData)
@@ -59,6 +60,14 @@ function getDataDashboard()
                 localStorage.setItem('profile_pict', defaultPicturePath);
                 $("#profile_image").prop('src', defaultPicturePath);
             }
+
+            $("#table-loading").addClass('d-none');
+            $("#table-show").removeClass('d-none');
+            showTable('tableLastActUser', success[1].data.table_act_user);
+            
+            $("#chart-loading").addClass('d-none');
+            $("#chart-show").removeClass('d-none');
+            showChart('chartActUser', success[1].data.chart_act_user);
         })
         .catch((err)    => {
             $("#user_profiles_sub_division").empty();
@@ -72,6 +81,11 @@ function getDataDashboard()
     
             $("#total_act_last_month").empty();
             $("#total_act_last_month").html(0);
+
+            $("#table-loading").addClass('d-none');
+            $("#table-show").removeClass('d-none');
+            showTable('tableLastActUser', '');
+            showChart('chartActUser', '');
         })
 }
 
@@ -290,6 +304,88 @@ async function TransUploadImage()
             title   : error.responseJSON.alert.message.title,
             text    : error.responseJSON.alert.message.text
         });
+    }
+}
+
+function showTable(idTable, data)
+{
+    if(idTable == 'tableLastActUser') {
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : "Tidak Ada Data Yang Bisa Ditampilkan",
+                "zeroRecords"   : "Data Yang Dicari Tidak Ditemukan",
+            },
+            searching   : false,
+            paging      : true,
+            lengthMenu  : [
+                [-1, 5, 10, 25, 100],
+                ['Semua', 5, 10, 25, 100]
+            ],
+            pageLength  : 5,
+            bInfo       : true,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [1], "className" : "text-center align-middle", "width" : "30%" },
+            ],
+            responsive  : true,
+        });
+
+        if(data != '') {
+            let num     = 1;
+            for(const item of data)
+            {
+                const actUser_seq           = num++;
+                const actUser_tanggal       = item.log_date_time;
+                const actUser_description   = item.log_desc.length > 60 ? item.log_desc.substring(0, 60) + "..." : item.log_desc;
+
+                $("#"+idTable).DataTable().row.add([
+                    actUser_seq,
+                    actUser_tanggal,
+                    "<label style='font-weight: normal;' title='" + item.log_desc + "'>" + actUser_description + "</label>"
+                ]).draw(false);
+            }
+        } else {
+            console.log(data);
+        }
+    }
+}
+
+function showChart(idChart, data)
+{
+    if(idChart == 'chartActUser') {
+        const label_bulan   = [];
+        const label_data    = [];
+        const ctx   = document.getElementById('chartActUser').getContext('2d');
+        
+        for(const item of data) {
+            label_bulan.push(moment(item.bulan_ke, 'MM').format('MMMM'));
+            label_data.push(item.total_data);
+        }
+
+        console.log(label_bulan, label_data);
+
+        const myBarChart    = new Chart(ctx, {
+            type: 'bar', // Jenis grafik
+            data: {
+                labels: label_bulan, // Label sumbu X
+                datasets: [{
+                    label: 'Aktivitas Bulanan', // Label dataset
+                    data: label_data, // Data untuk grafik
+                    backgroundColor: 'rgba(26, 179, 148, 0.2)', // Warna latar belakang batang
+                    borderColor: 'rgba(26, 179, 148, 1)', // Warna batas batang
+                    borderWidth: 1 // Lebar batas batang
+                }]
+            },
+            options: {
+                responsive: true, // Menjadikan grafik responsif
+                maintainAspectRatio: false, // Mengizinkan perubahan rasio aspek
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        })
     }
 }
 

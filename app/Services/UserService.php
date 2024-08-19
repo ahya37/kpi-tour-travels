@@ -175,4 +175,39 @@ class UserService {
 
         return $query;
     }
+
+    public static function doGetDataLastActUser($data)
+    {
+        $user_id    = $data['user_id'];
+
+        $query      = DB::select(
+            "
+                SELECT 	*
+                FROM 	log_activity
+                WHERE 	log_user_id = '$user_id'
+                ORDER BY log_date_time DESC
+            "
+        );
+
+        return $query;
+    }
+
+    public static function doGetChartActYearly($data)
+    {
+        $user_id    = $data['user_id'];
+        $bulan_ke   = $data['bulan_ke'];
+
+        $query      = DB::select(
+            "
+            SELECT 	count(*) as total_act
+            FROM 	proker_bulanan
+            WHERE 	EXTRACT(YEAR FROM pkb_start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+            AND 	EXTRACT(MONTH FROM pkb_start_date) = '$bulan_ke'
+            AND     created_by = '$user_id'
+            AND 	pkb_is_active = 't'
+            "
+        );
+
+        return $query;
+    }
 }

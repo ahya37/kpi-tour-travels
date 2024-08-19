@@ -12,6 +12,7 @@ use Spatie\Permission\Models\Role;
 use Auth;
 use File;
 use Hash;
+use Illuminate\Notifications\Action;
 use Illuminate\Support\Facades\Response;
 use Storage;
 use Validator;
@@ -283,5 +284,45 @@ class UserController extends Controller
         $getData    = UserService::doGetDataUser($id);
 
         return Response::json($getData, 200);
+    }
+
+    public function getDataLastActUser()
+    {
+        $sendData   = [
+            "user_id"   => Auth::user()->id,
+        ];
+
+        $getData    = UserService::doGetDataLastActUser($sendData);
+        
+        $max_month  = 12;
+        $data_act   = [];
+        for($i = 0; $i < $max_month; $i++)
+        {
+            $sendData_act   = [
+                "user_id"   => Auth::user()->id,
+                "bulan_ke"  => strlen($i + 1) == 1 ? "0".$i+1 : $i+1,
+            ];
+
+            $getData_act    = UserService::doGetChartActYearly($sendData_act);
+
+            $data_act[]     = [
+                "bulan_ke"  => $sendData_act['bulan_ke'],
+                "total_data"=> $getData_act[0]->total_act,
+            ];
+            
+            // print("<pre>" .print_r($data_act, true). "</pre>");
+        }
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil",
+            "data"      => [
+                "table_act_user"    => $getData,
+                "chart_act_user"    => $data_act,
+            ],
+        ];
+
+        return $output;
     }
 }

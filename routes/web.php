@@ -183,6 +183,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/getUserData', 'getUserData');
                 Route::post('/updatePicture', 'updateProfilePicture')->name('accounts.changePicture');
                 Route::get('/getDataUser', 'getDataUser');
+                Route::get('/getDataLastActUser', 'getDataLastActUser');
             });
             // Route::get('/userProfiles/updateProfilePict', 'updateProfilePicture')->name('accounts.do.upload');
         });
