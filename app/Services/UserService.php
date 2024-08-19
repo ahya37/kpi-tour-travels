@@ -199,12 +199,36 @@ class UserService {
 
         $query      = DB::select(
             "
-            SELECT 	count(*) as total_act
-            FROM 	proker_bulanan
-            WHERE 	EXTRACT(YEAR FROM pkb_start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-            AND 	EXTRACT(MONTH FROM pkb_start_date) = '$bulan_ke'
-            AND     created_by = '$user_id'
-            AND 	pkb_is_active = 't'
+            SELECT 	act_user.total_act
+            FROM 	(
+                    SELECT 	COUNT(*) as total_act,
+                            EXTRACT(YEAR FROM pkh_date) as this_year,
+                            EXTRACT(MONTH FROM pkh_date) as this_month,
+                            created_by
+                    FROM 	proker_harian
+                    WHERE 	EXTRACT(YEAR FROM pkh_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+                    AND 	EXTRACT(MONTH FROM pkh_date) = '08'
+                    AND 	pkh_is_active = 't'
+                    GROUP BY this_year, this_month, created_by
+
+                    UNION ALL
+
+                    SELECT 	COUNT(*) as total_act,
+                            EXTRACT(YEAR FROM a.pkb_start_date) as this_year,
+                            EXTRACT(MONTH FROM a.pkb_start_date) as this_month,
+                            a.created_by
+                    FROM 	proker_bulanan a
+                    JOIN 	employees b ON a.created_by = b.user_id
+                    JOIN 	job_employees c ON b.id = c.employee_id
+                    JOIN 	group_divisions d ON c.group_division_id = d.id
+                    WHERE 	a.pkb_is_active = 't'
+                    AND 	d.name LIKE '%operasional%'
+                    GROUP BY this_year, this_month, a.created_by
+            ) AS act_user
+            WHERE 	act_user.this_year = EXTRACT(YEAR FROM CURRENT_DATE)
+            AND 	act_user.this_month = '$bulan_ke'
+            AND 	act_user.created_by = '$user_id'
+            ORDER BY act_user.created_by, act_user.this_year, act_user.this_month, act_user.total_act ASC
             "
         );
 

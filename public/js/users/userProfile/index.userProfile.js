@@ -380,8 +380,27 @@ function showChart(idChart, data)
                 responsive: true, // Menjadikan grafik responsif
                 maintainAspectRatio: false, // Mengizinkan perubahan rasio aspek
                 scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Months'
+                        }
+                    },
                     y: {
-                        beginAtZero: true
+                        title: {
+                            display: true,
+                            text: 'Values'
+                        },
+                        ticks: {
+                            stepSize: 5, // Langkah per 5 pada sumbu Y
+                            callback: function(value, index, values) {
+                                // Menyembunyikan nilai di bawah 0
+                                if (value < 0) return '';
+                                return value;
+                            }
+                        },
+                        beginAtZero: true, // Mulai sumbu Y dari nol
+                        min: 0 // Mengatur batas bawah sumbu Y untuk memulai dari 0
                     }
                 }
             }

@@ -307,10 +307,8 @@ class UserController extends Controller
 
             $data_act[]     = [
                 "bulan_ke"  => $sendData_act['bulan_ke'],
-                "total_data"=> $getData_act[0]->total_act,
+                "total_data"=> count($getData_act) > 0 ? $getData_act[0]->total_act : 0,
             ];
-            
-            // print("<pre>" .print_r($data_act, true). "</pre>");
         }
 
         $output     = [
