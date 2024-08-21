@@ -19,7 +19,7 @@ use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\NotificationController;
 use App\Services\ProgramKerjaService;
 use Illuminate\Support\Facades\Route;
-
+use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 Route::get('/test', function () {
     return 'test';
@@ -40,7 +40,12 @@ Route::post('/login', [LoginController::class, 'store'])->name('login.store')->m
 Route::group(['middleware' => ['auth']], function () {
 
     //route dashboard
-    Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
+    Route::prefix('dashboard')->group(function() {
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::post('/postPresence/{jenis}', [DashboardController::class, 'dashboard_presence']);
+        Route::get('/getDataPresenceToday', [DashboardController::class, 'dashboard_getPresenceToday']);
+    });
+    // Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class,'logout'])->name('logout.store');
     
     // NOTIFICATIONS
