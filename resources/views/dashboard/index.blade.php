@@ -97,7 +97,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
-                                <canvas id="getPhoto" style="width: 438px; height: 338.5px; border: 1px solid rgba(0, 0, 0, 0.2); padding: 9px;"></canvas>
+                                <canvas id="getPhoto" style="width: 100%; height: 100%; border: 1px solid rgba(0, 0, 0, 0.2); padding: 9px;"></canvas>
                             </div>
                         </div>
                     </div>

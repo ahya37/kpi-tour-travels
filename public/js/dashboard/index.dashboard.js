@@ -118,9 +118,7 @@ function showModal(idModal, jenis)
                     const ctx       = canvas.getContext('2d');
 
                     const img       = new Image();
-                    img.src         = "http://localhost:8000/"+prsDataIn;
-                    // canvas.width    = img.width;
-                    // canvas.height   = img.height;
+                    img.src         = window.location.origin+"/"+prsDataIn;
 
                     img.onload = () => {
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -256,6 +254,7 @@ function simpanData(jenis) {
                 }).then((res)   => {
                     if(res.isConfirmed) {
                         closeModal('modalShowCamera');
+                        getDataDashboard();
                     }
                 });
             })
