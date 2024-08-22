@@ -125,6 +125,11 @@
                         <a href="{{ route('index.finance') }}">Finance</a>
                     </li>
                 </ul>
+                <ul class="nav nav-second-level">
+                    <li class="#">
+                        <a href="#">HR</a>
+                    </li>
+                </ul>
             </li>
             @endif
             @if (Auth::user()->hasRole('marketing'))
@@ -328,6 +333,13 @@
                     </a>
                 </li>
             @endif
+
+            <li class="{{ request()->is('pengajuan/cuti') || request()->is('pengajuan/cuti/*') ? 'active' : '' }}">
+                <a href="{{ route('index.pengajuan.cuti') }}">
+                    <i class="fa fa-edit"></i>
+                    <span class="nav-label">Pengajuan Cuti</span>
+                </a>
+            </li>
         </ul>
     </div>
 </nav>

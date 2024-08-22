@@ -17,6 +17,7 @@ use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\NotificationController;
+use App\Models\Division;
 use App\Services\ProgramKerjaService;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
@@ -388,6 +389,10 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/listAktivitasHarian', [DivisiController::class, 'digital_programKerja_listAktivitasHarian']);
         });
 
+        Route::prefix('human_resource')->group(function(){
+            Route::get('/', [DivisiController::class, 'indexHR'])->name('index.human_resouce');
+        });
+
         Route::prefix('master')->group(function(){
             Route::get('/getDataProkerTahunan', [DivisiController::class, 'getDataProkerTahunan']);
             Route::get('/getDataSubDivision', [DivisiController::class, 'getDataSubDivision']);
@@ -411,5 +416,11 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::prefix('presensi')->group(function(){
         Route::get('report',[PresensiController::class,'report'])->name('presensi.report');
+    });
+
+    Route::prefix('pengajuan')->group(function(){
+        Route::get('/cuti', [DivisiController::class, 'pengajuan_cuti'])->name('index.pengajuan.cuti');
+        Route::get('/listCuti', [DivisiController::class, 'pengajuan_list_cuti']);
+        Route::post('/simpanCuti', [DivisiController::class, 'pengajuan_simpan_cuti']);
     });
 });

@@ -18,6 +18,7 @@ use function PHPSTORM_META\map;
 
 class DivisiController extends Controller
 {
+    var $title  = "ERP Percik Tours";
     // MARKETING
     // IT
     // OPERASIONAL
@@ -1345,6 +1346,92 @@ class DivisiController extends Controller
             ];
         }
 
+        return Response::json($output, $output['status']);
+    }
+
+    // 21 AGUSTUS 2024
+    // NOTE : PEMBUATAN MODUL HR
+    public function indexHR()
+    {
+        $data   = [
+            "user_id"   => Auth::user()->id,
+            "title"     => "HR - Dashboard",
+            "sub_title" => "Dashboard - Divisi Human Resource",
+        ];
+
+        return view("/divisi/human_resource/dashboard/index", $data);
+    }
+
+    // 22 AGUSTUS 2024
+    // NOTE : FORM PENGAJUAN CUTI
+    public function pengajuan_cuti()
+    {
+        $data   = [
+            "user_id"   => Auth::user()->id,
+            "user_name" => Auth::user()->name,
+            "user_role" => Auth::user()->getRoleNames()[0],
+            "title"     => $this->title." | Pengajuan",
+            "sub_title" => "Pengajuan Cuti / Izin / Tidak Masuk Kerja",
+        ];
+        
+        return view('activities.pengajuan.cuti.index', $data);
+    }
+
+    public function pengajuan_list_cuti()
+    {
+        $data   = [
+            "user_id"       => Auth::user()->id,
+            "current_year"  => date('Y'),
+        ];
+
+        $getData    = DivisiService::getListPengajuan($data);
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Data Berhasil Dimuat",
+            "data"      => $getData,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function pengajuan_simpan_cuti(Request $request)
+    {
+        $sendData   = [
+            "user_id"   => Auth::user()->id,
+            "data"      => $request->all(),
+            "ip"        => $request->ip()
+        ];
+
+        $doSimpan   = DivisiService::doSimpanPengajuanCuti($sendData);
+        
+        if($doSimpan['status'] == 'berhasil') {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Membuat Pengajuan ".$request->all()['pgj_type']
+                    ],
+                ],
+            ];
+        } else if($doSimpan['status'] == 'gagal') {
+            $output     = [
+                "status"    => 500,
+                "success"   => true,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Gagal Membuat Pengajuan ".$request->all()['pgj_type']
+                    ],
+                ],
+            ];
+        }
+        
         return Response::json($output, $output['status']);
     }
 }

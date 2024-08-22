@@ -1,6 +1,7 @@
 {{-- CUSTOM CSS --}}
 <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('assets/css/swal2.custom.css') }}">
+<link rel="stylesheet" href="{{ asset('css/customCSS/percik_fullcalendar.css') }}">
 {{-- DATATABLES --}}
 <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/customCSS/DataTables/datatables.min.css') }}">
