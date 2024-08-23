@@ -1355,7 +1355,7 @@ class DivisiController extends Controller
     {
         $data   = [
             "user_id"   => Auth::user()->id,
-            "title"     => "HR - Dashboard",
+            "title"     => $this->title." | Dashboard",
             "sub_title" => "Dashboard - Divisi Human Resource",
         ];
 
@@ -1380,7 +1380,7 @@ class DivisiController extends Controller
     public function pengajuan_list_cuti()
     {
         $data   = [
-            "user_id"       => Auth::user()->id,
+            "user_id"       => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id,
             "current_year"  => date('Y'),
         ];
 
@@ -1414,7 +1414,7 @@ class DivisiController extends Controller
                     "icon"      => "success",
                     "message"   => [
                         "title"     => "Berhasil",
-                        "text"      => "Berhasil Membuat Pengajuan ".$request->all()['pgj_type']
+                        "text"      => $request->all()['pgj_status'] == "3" ? "Berhasil Membuat Pengajuan ".$request->all()['pgj_type'] : "Berhasil Konfirmasi Pengajuan ".$request->all()['pgj_type']
                     ],
                 ],
             ];
@@ -1426,7 +1426,7 @@ class DivisiController extends Controller
                     "icon"      => "error",
                     "message"   => [
                         "title"     => "Terjadi Kesalahan",
-                        "text"      => "Gagal Membuat Pengajuan ".$request->all()['pgj_type']
+                        "text"      => $request->all()['pgj_status'] == "3" ? "Gagal Membuat Pengajuan ".$request->all()['pgj_type'] : "Gagal Konfirmasi Pengajuan ".$request->all()['pgj_type']
                     ],
                 ],
             ];

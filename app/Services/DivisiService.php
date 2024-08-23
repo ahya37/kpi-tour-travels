@@ -2174,7 +2174,7 @@ class DivisiService
             JOIN    employees b ON a.emp_act_user_id = b.user_id
             WHERE   a.emp_act_user_id LIKE '$user_id'
             AND     EXTRACT(YEAR FROM a.created_at) = '$current_year'
-            ORDER BY a.created_at DESC
+            ORDER BY a.emp_act_start_date DESC
             "
         );
     }
@@ -2185,46 +2185,81 @@ class DivisiService
 
         // DATA DATA
         $user_id        = $data['user_id'];
+        $pgj_id         = $data['data']['pgj_id'];
         $pgj_title      = $data['data']['pgj_title'];
         $pgj_start_date = $data['data']['pgj_date_start'];
         $pgj_end_date   = $data['data']['pgj_date_end'];
         $pgj_type       = $data['data']['pgj_type'];
+        $pgj_status     = $data['data']['pgj_status'];
         $ip             = $data['ip'];
         
-        $pgj_insert_data    = [
-            "emp_act_uuid"      => Str::uuid(),
-            "emp_act_user_id"   => $user_id,
-            "emp_act_title"     => $pgj_title,
-            "emp_act_start_date"=> $pgj_start_date,
-            "emp_act_end_date"  => $pgj_end_date,
-            "emp_act_type"      => $pgj_type,
-            "emp_act_status"    => "3", // PENDING
-            "created_by"        => $user_id,
-            "created_at"        => date('Y-m-d H:i:s'),
-            "updated_by"        => $user_id,
-            "updated_at"        => date('Y-m-d H:i:s'),
-        ];
-
-        DB::table('employees_activity')->insert($pgj_insert_data);
-
-        try {
-            DB::commit();
-            LogHelper::create('add', 'Berhasil Membuat Pengajuan '.$pgj_type.' : '.$pgj_insert_data['emp_act_uuid'], $ip);
-
-            $output     = [
-                "status"    => "berhasil",
-                "errMsg"    => "",
+        if($pgj_status == "3")
+        {
+            $pgj_insert_data    = [
+                "emp_act_uuid"      => Str::uuid(),
+                "emp_act_user_id"   => $user_id,
+                "emp_act_title"     => $pgj_title,
+                "emp_act_start_date"=> $pgj_start_date,
+                "emp_act_end_date"  => $pgj_end_date,
+                "emp_act_type"      => $pgj_type,
+                "emp_act_status"    => $pgj_status,
+                "created_by"        => $user_id,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+    
+            DB::table('employees_activity')->insert($pgj_insert_data);
+    
+            try {
+                DB::commit();
+                LogHelper::create('add', 'Berhasil Membuat Pengajuan '.$pgj_type.' : '.$pgj_insert_data['emp_act_uuid'], $ip);
+    
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => "",
+                ];
+    
+            } catch(\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', 'Gagal Membuat Pengajuan '.$pgj_type, $ip);
+    
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                ];
+            }
+        } else {
+            $pgj_where  = [
+                "emp_act_uuid"  => $pgj_id,
+            ];
+            $pgj_update = [
+                "emp_act_status"=> $pgj_status,
+                "updated_by"    => $user_id,
+                "updated_at"    => date('Y-m-d H:i:s'),
             ];
 
-        } catch(\Exception $e) {
-            DB::rollBack();
-            Log::channel('daily')->error($e->getMessage());
-            LogHelper::create('error_system', 'Gagal Membuat Pengajuan '.$pgj_type, $ip);
+            DB::table('employees_activity')->where($pgj_where)->update($pgj_update);
 
-            $output     = [
-                "status"    => "gagal",
-                "errMsg"    => $e->getMessage(),
-            ];
+            try {
+                DB::commit();
+                LogHelper::create('edit', 'Berhasil Konfirmasi Pengajuan '.$pgj_type.' dengan ID : '.$pgj_id, $ip);
+
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => "",
+                ];
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', 'Gagal Konfirmasi Pengajuan'.$pgj_type, $ip);
+
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                ];
+            }
         }
 
         return $output;

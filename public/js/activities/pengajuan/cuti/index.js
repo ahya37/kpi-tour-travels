@@ -211,10 +211,12 @@ function doSimpan(idForm, e)
         } else {
             // DO SIMPAN
             const pgj_sendData  = {
+                "pgj_id"            : "",
                 "pgj_title"         : pgj_title.val(),
                 "pgj_date_start"    : moment(pgj_date.val().split(' s/d ')[0], 'DD/MM/YYYY').format('YYYY-MM-DD'),
                 "pgj_date_end"      : moment(pgj_date.val().split(' s/d ')[1], 'DD/MM/YYYY').format('YYYY-MM-DD'),
-                "pgj_type"  : pgj_type.val(),
+                "pgj_type"          : pgj_type.val(),
+                "pgj_status"        : "3",
             }
 
             const pgj_url       = url + "/pengajuan/simpanCuti";
