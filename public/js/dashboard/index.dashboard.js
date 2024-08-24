@@ -1,6 +1,8 @@
 let stream      = null;
 var prsTempData = []; 
 var base_url    = window.location.port.length > 0 ? window.location.hostname+":"+window.location.port : window.location.hostname;
+var latitude;
+var longitude;
 
 $(document).ready(()    => {
     console.log('test');
@@ -15,6 +17,7 @@ $(document).ready(()    => {
     setInterval(updateTime, 1000);
 
     getDataDashboard();
+    getDataLocation();
 });
 
 async function showCamera(id, type)
@@ -95,6 +98,21 @@ function shutterCamera()
 
         Swal.close();
     }, 1000);
+}
+
+function getDataLocation()
+{
+    if(navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+        alert('Geolocation Not Support');
+    }
+}
+
+function showPosition(position)
+{
+    latitude    = position.coords.latitude;
+    longitude   = position.coords.longitude;
 }
 
 function showModal(idModal, jenis)
@@ -205,7 +223,9 @@ function simpanData(jenis) {
             "prs_start_time"    : start_time,
             "prs_user_id"       : user_id,
             "prs_status"        : jenis,
-            "prs_image"         : prs_img
+            "prs_image"         : prs_img,
+            "prs_lat"           : latitude,
+            "prs_long"          : longitude,
         };
         const prs_message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
 
@@ -242,6 +262,8 @@ function simpanData(jenis) {
             "prs_user_id"       : user_id,
             "prs_status"        : jenis,
             "prs_image"         : prs_img,
+            "prs_lat"           : latitude,
+            "prs_long"          : longitude,
         };
         const prs_message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
 
