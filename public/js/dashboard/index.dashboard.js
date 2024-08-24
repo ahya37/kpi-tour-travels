@@ -18,17 +18,29 @@ $(document).ready(()    => {
 
     getDataDashboard();
 
-    getDataLocation(
-        (coords) => {
-            alert('Latitude : '+coords.latitude+'; Longitude : '+coords.longitude);
+    const options = {
+        enableHighAccuracy: true, // Meminta data lokasi dengan akurasi tinggi
+        // timeout: 5000, // Waktu maksimum untuk menunggu lokasi (dalam milidetik)
+        maximumAge: 0 // Waktu maksimum cache lokasi yang diizinkan (dalam milidetik)
+    };
 
-            latitude    = coords.latitude;
-            longitude   = coords.longitude;
-        },
-        ()      => {
-            alert('error');
-        }
-    )
+    if("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(successCallback, errorCallback, options);
+    } else {
+        alert('Browser Anda Tidak Support Geo Location');
+    }
+
+    function successCallback(position)
+    {
+        latitude    = position.coords.latitude;
+        longitude   = position.coords.longitude;
+
+        alert('Latitude : '+latitude+ '; Longitude : '+longitude);
+    }
+
+    function errorCallback(error) {
+        alert(`Error : ${error.code} - ${error.message}`);
+    }
 });
 
 async function showCamera(id, type)
@@ -109,32 +121,6 @@ function shutterCamera()
 
         Swal.close();
     }, 1000);
-}
-
-function getDataLocation(successCallback, errorCallback)
-{
-    successCallback     = successCallback || function(){};
-    errorCallback       = errorCallback || function(){};
-
-    var geoLocation     = navigator.geolocation;
-
-    if(geoLocation)
-    {
-        try {
-            function handleSuccess(position) {
-                successCallback(position.coords);
-            }
-
-            geoLocation.watchPosition(handleSuccess, errorCallback, {
-                enableHighAccuracy: true,
-                maximumAge: 5000 // 5 sec.
-            });
-        } catch(err) {
-            errorCallback(err);
-        }
-    } else {
-        errorCallback(err);
-    }
 }
 
 function showModal(idModal, jenis)
