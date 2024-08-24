@@ -19,8 +19,6 @@
 
         </div>
     </div> --}}
-    <input type="text" id="location_1">
-    <input type="text" id="location_2">
     <div class="container-fluid">
         <div class="wrapper wrapper-content">
             <input type="hidden" id="prs_user_id" value="{{ $user_id }}">

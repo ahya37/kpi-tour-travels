@@ -17,7 +17,18 @@ $(document).ready(()    => {
     setInterval(updateTime, 1000);
 
     getDataDashboard();
-    getDataLocation();
+
+    getDataLocation(
+        (coords) => {
+            alert('Latitude : '+coords.latitude+'; Longitude : '+coords.longitude);
+
+            latitude    = coords.latitude;
+            longitude   = coords.longitude;
+        },
+        ()      => {
+            alert('error');
+        }
+    )
 });
 
 async function showCamera(id, type)
@@ -100,20 +111,30 @@ function shutterCamera()
     }, 1000);
 }
 
-function getDataLocation()
+function getDataLocation(successCallback, errorCallback)
 {
-    navigator.geolocation.getCurrentPosition(
-        position    => {
-            latitude    = position.coords.latitude;
-            longitude   = position.coords.longitude;
+    successCallback     = successCallback || function(){};
+    errorCallback       = errorCallback || function(){};
 
-            $("#location_1").val(latitude);
-            $("#location_2").val(longitude);
-        },
-        error       => {
-            alert(error.message)
-        },
-    )
+    var geoLocation     = navigator.geolocation;
+
+    if(geoLocation)
+    {
+        try {
+            function handleSuccess(position) {
+                successCallback(position.coords);
+            }
+
+            geoLocation.watchPosition(handleSuccess, errorCallback, {
+                enableHighAccuracy: true,
+                maximumAge: 5000 // 5 sec.
+            });
+        } catch(err) {
+            errorCallback(err);
+        }
+    } else {
+        errorCallback(err);
+    }
 }
 
 function showModal(idModal, jenis)
