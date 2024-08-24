@@ -113,6 +113,9 @@ function showPosition(position)
 {
     latitude    = position.coords.latitude;
     longitude   = position.coords.longitude;
+
+    $("#location_1").val(latitude);
+    $("#location_2").val(longitude);
 }
 
 function showModal(idModal, jenis)
