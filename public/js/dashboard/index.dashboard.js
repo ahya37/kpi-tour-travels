@@ -102,20 +102,18 @@ function shutterCamera()
 
 function getDataLocation()
 {
-    if(navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition);
-    } else {
-        alert('Geolocation Not Support');
-    }
-}
+    navigator.geolocation.getCurrentPosition(
+        position    => {
+            latitude    = position.coords.latitude;
+            longitude   = position.coords.longitude;
 
-function showPosition(position)
-{
-    latitude    = position.coords.latitude;
-    longitude   = position.coords.longitude;
-
-    $("#location_1").val(latitude);
-    $("#location_2").val(longitude);
+            $("#location_1").val(latitude);
+            $("#location_2").val(longitude);
+        },
+        error       => {
+            alert(error.message)
+        },
+    )
 }
 
 function showModal(idModal, jenis)
