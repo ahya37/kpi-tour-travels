@@ -61,8 +61,8 @@
                     </div>
                 </div>
             </div>
-            {{-- <button onclick="showLocation()">Show Location</button> --}}
-            {{-- <div id="location"></div> --}}
+            <button onclick="getLocation()">Show Location</button>
+            <div id="location"></div>
         </div>     
     </div>
 

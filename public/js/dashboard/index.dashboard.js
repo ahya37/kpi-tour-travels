@@ -208,29 +208,31 @@ function simpanData(jenis) {
             "prs_user_id"       : user_id,
             "prs_status"        : jenis,
             "prs_image"         : prs_img,
+            "prs_lat"           : latitude,
+            "prs_long"          : longitude,
         };
         const prs_message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
 
-        doTrans(prs_url, prs_type, prs_data, prs_message, true)
-            .then((success) => {
-                Swal.fire({
-                    icon    : success.alert.icon,
-                    title   : success.alert.message.title,
-                    text    : success.alert.message.text,
-                }).then((results)   => {
-                    if(results.isConfirmed) {
-                        closeModal('modalShowCamera');
-                        getDataDashboard();
-                    }
-                });
-            })
-            .catch((err)    => {
-                Swal.fire({
-                    icon    : err.responseJSON.alert.icon,
-                    title   : err.responseJSON.alert.message.title,
-                    text    : err.responseJSON.alert.message.text,
-                });
-            });
+        // doTrans(prs_url, prs_type, prs_data, prs_message, true)
+        //     .then((success) => {
+        //         Swal.fire({
+        //             icon    : success.alert.icon,
+        //             title   : success.alert.message.title,
+        //             text    : success.alert.message.text,
+        //         }).then((results)   => {
+        //             if(results.isConfirmed) {
+        //                 closeModal('modalShowCamera');
+        //                 getDataDashboard();
+        //             }
+        //         });
+        //     })
+        //     .catch((err)    => {
+        //         Swal.fire({
+        //             icon    : err.responseJSON.alert.icon,
+        //             title   : err.responseJSON.alert.message.title,
+        //             text    : err.responseJSON.alert.message.text,
+        //         });
+        //     });
     } else if(jenis == 'keluar') {
         const end_time  = moment().format('YYYY-MM-DD HH:mm:ss');
         const user_id   = $("#prs_user_id").val();
@@ -269,6 +271,43 @@ function simpanData(jenis) {
                     text    : err.responseJSON.alert.message.text,
                 });
             });
+    }
+}
+
+function getLocation()
+{
+    if(navigator.geolocation)
+    {
+        Swal.fire({
+            title   : 'Geolocation sedang dimuat',
+        });
+        Swal.showLoading();
+        navigator.geolocation.getCurrentPosition(
+            // TRUE
+            (pos)   => {
+                Swal.fire({
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : 'Latitude : '+pos.coords.latitude+'; Longitude : '+pos.coords.longitude
+                });
+            },
+            (fail)  => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : fail,
+                });
+            },
+            {
+                enableHighAccuracy  : false,
+                timeout             : 10000,
+                maximumAge          : 10000,
+            }
+        )
+    } else {
+        Swal.fire({
+            title   : 'Geolocation didnt support'
+        })
     }
 }
 
