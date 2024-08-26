@@ -22,11 +22,12 @@ class DashboardController extends Controller
             'user_id'       => Auth::user()->id
         ];
 
-        if(Auth::user()->getRoleNames()[0] == 'admin') {
-            return view('dashboard/index', $data);
-        } else {
-            return view('home', $data);
-        }
+        return view('dashboard/index', $data);
+        // if(Auth::user()->getRoleNames()[0] == 'admin') {
+        //     return view('dashboard/index', $data);
+        // } else {
+        //     return view('home', $data);
+        // }
     }
 
     public function dashboard_presence(Request $request, $jenis)

@@ -59,6 +59,7 @@
                             </div>
                         </div>
                     </div>
+                    <small class="text-danger">* Absensi Masih Dalam Tahap Pengembangan</small>
                 </div>
             </div>
             {{-- <button onclick="getLocation()">Show Location</button>
