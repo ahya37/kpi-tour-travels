@@ -141,7 +141,8 @@ class BaseService
                     "prs_user_id"       => $data['data']['prs_user_id'],
                     "prs_in_time"       => $data['data']['prs_start_time'],
                     "prs_in_file"       => $data['data_url'],
-                    "prs_in_location"   => $data['data']['prs_lat'].", ".$data['data']['prs_long'],
+                    // "prs_in_location"   => $data['data']['prs_lat'].", ".$data['data']['prs_long'],
+                    "prs_in_location"   => "",
                     "created_by"        => $data['data']['prs_user_id'],
                     "created_at"        => date('Y-m-d H:i:s'),
                     "updated_by"        => $data['data']['prs_user_id'],
@@ -177,11 +178,12 @@ class BaseService
                 ];
 
                 $data_update    = [
-                    "prs_out_time"  => $data['data']['prs_end_time'],
-                    "prs_out_file"  => $data['data_url'],
-                    "prs_out_location"  => $data['data']['prs_lat'].", ".$data['data']['prs_long'],
-                    "updated_by"    => $data['data']['prs_user_id'],
-                    "updated_at"    => date('Y-m-d H:i:s'),
+                    "prs_out_time"      => $data['data']['prs_end_time'],
+                    "prs_out_file"      => $data['data_url'],
+                    // "prs_out_location"  => $data['data']['prs_lat'].", ".$data['data']['prs_long'],
+                    "prs_out_location"  => "",
+                    "updated_by"        => $data['data']['prs_user_id'],
+                    "updated_at"        => date('Y-m-d H:i:s'),
                 ];
 
                 DB::table('tm_presence')

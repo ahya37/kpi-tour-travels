@@ -208,31 +208,29 @@ function simpanData(jenis) {
             "prs_user_id"       : user_id,
             "prs_status"        : jenis,
             "prs_image"         : prs_img,
-            "prs_lat"           : latitude,
-            "prs_long"          : longitude,
         };
         const prs_message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
 
-        // doTrans(prs_url, prs_type, prs_data, prs_message, true)
-        //     .then((success) => {
-        //         Swal.fire({
-        //             icon    : success.alert.icon,
-        //             title   : success.alert.message.title,
-        //             text    : success.alert.message.text,
-        //         }).then((results)   => {
-        //             if(results.isConfirmed) {
-        //                 closeModal('modalShowCamera');
-        //                 getDataDashboard();
-        //             }
-        //         });
-        //     })
-        //     .catch((err)    => {
-        //         Swal.fire({
-        //             icon    : err.responseJSON.alert.icon,
-        //             title   : err.responseJSON.alert.message.title,
-        //             text    : err.responseJSON.alert.message.text,
-        //         });
-        //     });
+        doTrans(prs_url, prs_type, prs_data, prs_message, true)
+            .then((success) => {
+                Swal.fire({
+                    icon    : success.alert.icon,
+                    title   : success.alert.message.title,
+                    text    : success.alert.message.text,
+                }).then((results)   => {
+                    if(results.isConfirmed) {
+                        closeModal('modalShowCamera');
+                        getDataDashboard();
+                    }
+                });
+            })
+            .catch((err)    => {
+                Swal.fire({
+                    icon    : err.responseJSON.alert.icon,
+                    title   : err.responseJSON.alert.message.title,
+                    text    : err.responseJSON.alert.message.text,
+                });
+            });
     } else if(jenis == 'keluar') {
         const end_time  = moment().format('YYYY-MM-DD HH:mm:ss');
         const user_id   = $("#prs_user_id").val();
@@ -271,23 +269,6 @@ function simpanData(jenis) {
                     text    : err.responseJSON.alert.message.text,
                 });
             });
-    }
-}
-
-function showLocation()
-{
-    if(navigator.geolocation)
-    {
-        navigator.geolocation.getCurrentPosition((position)=> {
-            $("#location").html(`
-                <ul>
-                    <li> Latitude`+ position.coords.latitude +`</li>
-                    <li> Longitude`+ position.coords.longitude +`</li>
-                </ul>    
-            `);
-        });
-    } else {
-        alert('Geo Location not support');
     }
 }
 
