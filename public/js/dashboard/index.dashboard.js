@@ -193,6 +193,51 @@ function batalSimpanData()
     $("#btn_cancelData").addClass('d-none');
 }
 
+function getLocation(jenis)
+{
+    if(navigator.geolocation)
+    {
+        Swal.fire({
+            title   : 'Lokasi sedang dimuat..',
+        });
+        Swal.showLoading();
+        navigator.geolocation.getCurrentPosition(
+            // TRUE
+            (pos)   => {
+                // Swal.fire({
+                //     icon    : 'success',
+                //     title   : 'Berhasil',
+                //     text    : 'Latitude : '+pos.coords.latitude+'; Longitude : '+pos.coords.longitude,
+                // });
+                latitude    = pos.coords.latitude;
+                longitude   = pos.coords.longitude;
+
+                simpanData(jenis);
+            },
+            (fail)  => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : fail,
+                });
+                latitude    = "";
+                longitude   = "";
+
+                simpanData(jenis);
+            },
+            {
+                enableHighAccuracy  : false,
+                timeout             : 10000,
+                maximumAge          : 10000,
+            }
+        )
+    } else {
+        Swal.fire({
+            title   : 'Geolocation didnt support'
+        })
+    }
+}
+
 function simpanData(jenis) {
     if(jenis == 'masuk')
     {
@@ -211,32 +256,33 @@ function simpanData(jenis) {
             "prs_lat"           : latitude,
             "prs_long"          : longitude,
         };
+
         const prs_message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
 
-        // doTrans(prs_url, prs_type, prs_data, prs_message, true)
-        //     .then((success) => {
-        //         Swal.fire({
-        //             icon    : success.alert.icon,
-        //             title   : success.alert.message.title,
-        //             text    : success.alert.message.text,
-        //         }).then((results)   => {
-        //             if(results.isConfirmed) {
-        //                 closeModal('modalShowCamera');
-        //                 getDataDashboard();
-        //             }
-        //         });
-        //     })
-        //     .catch((err)    => {
-        //         Swal.fire({
-        //             icon    : err.responseJSON.alert.icon,
-        //             title   : err.responseJSON.alert.message.title,
-        //             text    : err.responseJSON.alert.message.text,
-        //         });
-        //     });
+        doTrans(prs_url, prs_type, prs_data, prs_message, true)
+            .then((success) => {
+                Swal.fire({
+                    icon    : success.alert.icon,
+                    title   : success.alert.message.title,
+                    text    : success.alert.message.text,
+                }).then((results)   => {
+                    if(results.isConfirmed) {
+                        closeModal('modalShowCamera');
+                        getDataDashboard();
+                    }
+                });
+            })
+            .catch((err)    => {
+                Swal.fire({
+                    icon    : err.responseJSON.alert.icon,
+                    title   : err.responseJSON.alert.message.title,
+                    text    : err.responseJSON.alert.message.text,
+                });
+            });
     } else if(jenis == 'keluar') {
         const end_time  = moment().format('YYYY-MM-DD HH:mm:ss');
         const user_id   = $("#prs_user_id").val();
-        const prs_img       = document.getElementById('takePhoto').toDataURL('iamge/png');
+        const prs_img   = document.getElementById('takePhoto').toDataURL('iamge/png');
         
         const prs_url       = "/dashboard/postPresence/"+jenis;
         const prs_type      = "POST";
@@ -271,43 +317,6 @@ function simpanData(jenis) {
                     text    : err.responseJSON.alert.message.text,
                 });
             });
-    }
-}
-
-function getLocation()
-{
-    if(navigator.geolocation)
-    {
-        Swal.fire({
-            title   : 'Geolocation sedang dimuat',
-        });
-        Swal.showLoading();
-        navigator.geolocation.getCurrentPosition(
-            // TRUE
-            (pos)   => {
-                Swal.fire({
-                    icon    : 'success',
-                    title   : 'Berhasil',
-                    text    : 'Latitude : '+pos.coords.latitude+'; Longitude : '+pos.coords.longitude
-                });
-            },
-            (fail)  => {
-                Swal.fire({
-                    icon    : 'error',
-                    title   : 'Terjadi Kesalahan',
-                    text    : fail,
-                });
-            },
-            {
-                enableHighAccuracy  : false,
-                timeout             : 10000,
-                maximumAge          : 10000,
-            }
-        )
-    } else {
-        Swal.fire({
-            title   : 'Geolocation didnt support'
-        })
     }
 }
 

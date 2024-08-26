@@ -61,8 +61,8 @@
                     </div>
                 </div>
             </div>
-            <button onclick="getLocation()">Show Location</button>
-            <div id="location"></div>
+            {{-- <button onclick="getLocation()">Show Location</button>
+            <div id="location"></div> --}}
         </div>     
     </div>
 
@@ -89,7 +89,7 @@
                             <button class="btn btn-danger d-none" id="btn_cancelData" onclick="batalSimpanData()">
                                 <i class="fa fa-times"></i> Batal
                             </button>
-                            <button class="btn btn-primary d-none" id="btn_simpanData" value="" onclick="simpanData(this.value)">
+                            <button class="btn btn-primary d-none" id="btn_simpanData" value="" onclick="getLocation(this.value)">
                                 <i class="fa fa-save"></i> Simpan Data
                             </button>
                         </div>
