@@ -399,6 +399,23 @@ function showData(idData)
                     document.body.appendChild(link);
                     link.click();
                     Swal.close();
+                    
+                    // DELETE FILE
+                    setTimeout(()=> {
+                        const abs_del_data  = {
+                            "file_url"  : success.data.file_url+"/"+success.data.file_name,
+                        };
+                        const abs_del_type  = "POST";
+                        const abs_del_url   = "/divisi/human_resource/absensi/excelDelete";
+                        
+                        doTrans(abs_del_url, abs_del_type, abs_del_data, "", true)
+                            .then((sc)  => {
+                                console.log(sc);
+                            })
+                            .catch((err)    => {
+                                console.log(err);
+                            })
+                    }, 1000);
                 })
                 .catch((err)    => {
                     console.log(err);

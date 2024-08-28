@@ -394,6 +394,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::prefix('absensi')->group(function(){
                 Route::get('/list', [DivisiController::class, 'absensi_list']);
                 Route::get('/excelDownload', [DivisiController::class, 'absensi_download_excel']);
+                Route::post('/excelDelete', [DivisiController::class, 'absensi_delete_excel']);
             });
         });
 

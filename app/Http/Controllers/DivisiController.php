@@ -17,6 +17,7 @@ use DateTime;
 use File;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Style;
 
 use function PHPSTORM_META\map;
 
@@ -1546,14 +1547,22 @@ class DivisiController extends Controller
 
             $getDataDetail  = DivisiService::getListAbsensi($sendData);
 
+            // STYLING
+            $sheetStyle     = [
+                "font"  => [
+                    "bold"  => true
+                ],
+            ];
+
             if($curr_seq == 1) {
                 $sheet1     = $spreadsheet->getActiveSheet();
+                $sheet1->getStyle("A1:E1")->applyFromArray($sheetStyle);
                 $sheet1->setTitle($emp_name);
                 $sheet1->setCellValue('A1', 'TANGGAL');
                 $sheet1->setCellValue('B1', 'JAM DATANG');
                 $sheet1->setCellValue('C1', 'JAM PULANG');
-                $sheet1->setCellValue('D1', 'LEBIH JAM');
-                $sheet1->setCellValue('E1', 'KURANG JAM');
+                $sheet1->setCellValue('D1', 'KURANG JAM');
+                $sheet1->setCellValue('E1', 'LEBIH JAM');
                 
                 for($j = 0; $j < count($getDataDetail);$j++)
                 {
@@ -1568,16 +1577,16 @@ class DivisiController extends Controller
                     $sheet1->setCellValue('C'.($j + 2), $waktu_keluar);
                     $sheet1->setCellValue('D'.($j + 2), $kurang_jam);
                     $sheet1->setCellValue('E'.($j + 2), $lebih_jam);
-                    
                 }
             } else {
                 $sheetN     = $spreadsheet->createSheet();
+                $sheetN->getStyle("A1:E1")->applyFromArray($sheetStyle);
                 $sheetN->setTitle($emp_name);
                 $sheetN->setCellValue('A1', 'TANGGAL');
                 $sheetN->setCellValue('B1', 'JAM DATANG');
                 $sheetN->setCellValue('C1', 'JAM PULANG');
-                $sheetN->setCellValue('D1', 'LEBIH JAM');
-                $sheetN->setCellValue('E1', 'KURANG JAM');
+                $sheetN->setCellValue('D1', 'KURANG JAM');
+                $sheetN->setCellValue('E1', 'LEBIH JAM');
 
                 // ISI DETAIL
                 for($j = 0; $j < count($getDataDetail);$j++)
@@ -1593,9 +1602,10 @@ class DivisiController extends Controller
                     $sheetN->setCellValue('C'.($j + 2), $waktu_keluar);
                     $sheetN->setCellValue('D'.($j + 2), $kurang_jam);
                     $sheetN->setCellValue('E'.($j + 2), $lebih_jam);
-                    
                 }
             }
+            // MEMBUAT SHEET 1 MENJADI AWAL
+            $spreadsheet->setActiveSheetIndex(0);
             // GET DATA ABSEN
         }
 
@@ -1621,5 +1631,26 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
         
+    }
+
+    public function absensi_delete_excel(Request $request)
+    {
+        $file_url   = $request->all()['file_url'];
+        
+        if(file_exists($file_url))
+        {
+            unlink($file_url);
+            $output     = [
+                "status"    => 200,
+                "message"   => "Berhasil Hapus File"
+            ];
+        } else {
+            $output     = [
+                "status"    => 500,
+                "message"   => "Gagal Hapus File",
+            ];
+        }
+
+        return Response::json($output, $output['status']);
     }
 }
