@@ -4,6 +4,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\LogHelper;
+use DateTime;
 use Illuminate\Support\Facades\Log;
 use Route;
 use Str;
@@ -2263,5 +2264,85 @@ class DivisiService
         }
 
         return $output;
+    }
+
+    // 26 AGUSTUS 2024
+    // NOTE : AMBIL LIST ABSENSI
+    public static function getListAbsensi($data)
+    {
+        $tanggal_awal   = $data['data']['tanggal_awal'];
+        $tanggal_akhir  = $data['data']['tanggal_akhir'];
+        $user_cari      = $data['data']['user_id'];
+        $jml_hari       = $data['data']['jml_hari'];
+        
+
+        $abs_data       = [];
+
+        // GET DATA USER
+        $query_get_data_user    = DB::select(
+            "
+            SELECT  a.user_id,
+                    a.name as user_name
+            FROM    employees a 
+            WHERE   a.user_id LIKE '$user_cari'
+            AND     a.user_id NOT IN ('1')
+            ORDER BY a.user_id ASC
+            "
+        );
+
+        for($i = 0; $i < count($query_get_data_user); $i++)
+        {
+            $curr_user  = $query_get_data_user[$i]->user_id;
+            $curr_name  = $query_get_data_user[$i]->user_name;
+
+            $tgl_awal   = $tanggal_awal;
+            $tgl_akhir  = $tanggal_akhir;
+            for($j = 1; $j <= $jml_hari; $j++) {
+                if($tgl_awal != date('Y-m-d', strtotime($tgl_akhir . '+1 day'))) {
+                    $query_get_data_absen   = DB::select(
+                        "
+                        SELECT  *
+                        FROM    tm_presence
+                        WHERE   prs_user_id = '$curr_user'
+                        AND     prs_date = '$tgl_awal'
+                        "
+                    );
+                    if(count($query_get_data_absen) > 0) {
+                        $abs_data[]     = [
+                            "nama"              => $curr_name,
+                            "tanggal_absen"     => $query_get_data_absen[0]->prs_date,
+                            "jam_masuk"         => $query_get_data_absen[0]->prs_in_time == '' ? '00:00:00' : date('H:i:s', strtotime($query_get_data_absen[0]->prs_in_time)),
+                            "jam_keluar"        => $query_get_data_absen[0]->prs_out_time == '' ? '00:00:00' : date('H:i:s', strtotime($query_get_data_absen[0]->prs_out_time)),
+                        ];
+                    } else {
+                        $abs_data[]     = [
+                            "nama"              => $curr_name,
+                            "tanggal_absen"     => $tgl_awal,
+                            "jam_masuk"         => "00:00:00",
+                            "jam_keluar"        => "00:00:00"
+                        ];
+                    }
+                    $tgl_awal = date('Y-m-d', strtotime($tgl_awal . '+1 day'));
+                } else {
+                    $tgl_awal   = $tanggal_awal;
+                    $tgl_akhir  = $tanggal_akhir;
+                }
+            }
+        }
+
+        return $abs_data;
+    }
+
+    public static function getDataEmployee()
+    {
+        return DB::select(
+            "
+            SELECT  user_id as emp_id,
+                    name as emp_name
+            FROM    employees
+            WHERE   user_id NOT IN ('1')
+            ORDER BY user_id ASC
+            "
+        );
     }
 }

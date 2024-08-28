@@ -9,6 +9,8 @@ use File;
 use Illuminate\Support\Facades\Auth;
 use Response;
 use Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 // use Illuminate\Support\Facades\Session;
 
@@ -24,7 +26,7 @@ class DashboardController extends Controller
 
         return view('dashboard/index', $data);
         // if(Auth::user()->getRoleNames()[0] == 'admin') {
-        //     return view('dashboard/index', $data);
+        //     return view('dashboard/index', $dat);
         // } else {
         //     return view('home', $data);
         // }
@@ -124,5 +126,33 @@ class DashboardController extends Controller
         }
 
         return Response::json($output, $output['status']);
+    }
+
+    public function dashboard_excel()
+    {
+        $spreadsheet = new Spreadsheet();
+
+        // Akses sheet aktif (Sheet1 secara default)
+        $sheet1 = $spreadsheet->getActiveSheet();
+        $sheet1->setTitle('Sheet1'); // Ganti nama sheet
+        $sheet1->setCellValue('A1', 'Nama');
+        $sheet1->setCellValue('B1', 'Usia');
+        $sheet1->setCellValue('A2', 'Ahmad');
+        $sheet1->setCellValue('B2', '29');
+
+        // Tambahkan sheet baru (Sheet2)
+        $sheet2 = $spreadsheet->createSheet();
+        $sheet2->setTitle('Sheet2');
+        $sheet2->setCellValue('A1', 'Nama');
+        $sheet2->setCellValue('B1', 'Usia');
+        $sheet2->setCellValue('A2', 'Kuceng');
+        $sheet2->setCellValue('B2', '32');
+
+        // Simpan file Excel ke disk
+        $tempFilePath   = storage_path('app/public/test_multi_sheet.xlsx');
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($tempFilePath);
+
+        return response()->download($tempFilePath)->deleteFileAfterSend(true);
     }
 }

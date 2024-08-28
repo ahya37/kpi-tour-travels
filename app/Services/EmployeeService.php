@@ -197,4 +197,18 @@ class EmployeeService
             return $query;
         }
     }
+
+    // 27 AGUSTUS 2024
+    // NOTE : AMBIL DATA EMPLOYEE UNTUK KEBUTUHAN GLOBAL
+    public static function do_get_data_employee_global()
+    {
+        return DB::select(
+            "
+            SELECT  user_id as emp_id,
+                    name as emp_name
+            FROM    employees
+            ORDER BY user_id ASC
+            "
+        );
+    }
 }

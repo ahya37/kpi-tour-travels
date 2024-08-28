@@ -159,40 +159,61 @@ class BaseService
                 return $output;
             }
         } else if($jenis == 'keluar') {
-            // CHECK DATA
-            $do_check   = DB::select(
+            // CHECK APAKAH DIA SUDHA ABSEN MASUK ATAU BELUM
+            $do_check_in    = DB::select(
                 "
-                SELECT 	*
-                FROM 	tm_presence
-                WHERE 	prs_date = '$today'
-                AND 	prs_in_time IS NOT NULL
-                AND 	prs_out_time IS NULL
+                SELECT  *
+                FROM    tm_presence
+                WHERE   prs_date = '$today'
+                AND     prs_user_id = '$user_id'
                 "
             );
 
-            if(count($do_check) > 0) {
-                $data_where     = [
-                    "prs_date"      => $data['data']['prs_date'],
-                    "prs_user_id"   => $data['data']['prs_user_id'],
-                ];
+            if(count($do_check_in) > 0) {
+                // CHECK APAKAH SUDAH ADA ABSEN KELUAR?
+                $do_check_out   = DB::select(
+                    "
+                    SELECT  *
+                    FROM    tm_presence
+                    WHERE   prs_date = '$today'
+                    AND     prs_user_id = '$user_id'
+                    AND     prs_in_time IS NOT NULL
+                    AND     prs_out_time IS NULL
+                    "
+                );
 
-                $data_update    = [
-                    "prs_out_time"      => $data['data']['prs_end_time'],
-                    "prs_out_file"      => $data['data_url'],
-                    "prs_out_location"  => $data['data']['prs_lat'].", ".$data['data']['prs_long'],
-                    "updated_by"        => $data['data']['prs_user_id'],
-                    "updated_at"        => date('Y-m-d H:i:s'),
-                ];
+                if(count($do_check_out) > 0) {
+                    $data_where     = [
+                        "prs_date"      => $data['data']['prs_date'],
+                        "prs_user_id"   => $data['data']['prs_user_id'],
+                    ];
 
-                DB::table('tm_presence')
-                    ->where($data_where)
-                    ->whereNull('prs_out_time')
-                    ->update($data_update);
+                    $data_update    = [
+                        "prs_out_time"      => $data['data']['prs_end_time'],
+                        "prs_out_file"      => $data['data_url'],
+                        "prs_out_location"  => $data['data']['prs_lat'].", ".$data['data']['prs_long'],
+                        "updated_by"        => $data['data']['prs_user_id'],
+                        "updated_at"        => date('Y-m-d H:i:s'),
+                    ];
+
+                    DB::table('tm_presence')
+                        ->where($data_where)
+                        ->whereNull('prs_out_time')
+                        ->update($data_update);
+                } else {
+                    DB::rollBack();
+                    $output     = [
+                        "status"    => "duplikat",
+                        "errMsg"    => "Absen 2x dalam satu hari tidak diperbolehkan",
+                    ];
+
+                    return $output;
+                }
             } else {
                 DB::rollBack();
                 $output     = [
                     "status"    => "duplikat",
-                    "errMsg"    => "Absen 2x dalam satu hari tidak diperbolehkan",
+                    "errMsg"    => "Belum Absen Masuk",
                 ];
 
                 return $output;

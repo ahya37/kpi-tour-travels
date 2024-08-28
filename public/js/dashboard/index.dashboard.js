@@ -306,6 +306,7 @@ function simpanData(jenis) {
                 }).then((res)   => {
                     if(res.isConfirmed) {
                         closeModal('modalShowCamera');
+                        prsTempData = [];
                         getDataDashboard();
                     }
                 });

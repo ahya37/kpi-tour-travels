@@ -3,8 +3,8 @@
 
 @push('addon-style')
     @include('layouts.css')
-    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/customCSS/percik_fullcalendar.css') }}">
+    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
     <style>
     label {
@@ -83,7 +83,7 @@
                         </div>
                     </div>
                     <div class="ibox-footer" style="border: 1px solid #e7eaec;">
-                        <a href="#">Lihat Detail</a>
+                        <a href="#showAbsensi" onclick="showModal('modal_abs', '', '')">Lihat Detail</a>
                     </div>
                 </div>
             </div>
@@ -115,6 +115,75 @@
                             </thead>
                             <tbody></tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="modal_abs">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-row align-items-center justify-content-between w-100">
+                        <h4 class="no-margins modal-title">Table List Absensi</h4>
+                        <button class="close" onclick="closeModal('modal_abs')">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <label>Tanggal Cari</label>
+                        </div>
+                        <div class="col-sm-3">
+                            <label>User</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="abs_tgl_cari" name="abs_tgl_cari" placeholder="DD/MM/YYYY s/d DD/MM/YYYY" readonly style="background: white; cursor: pointer; height: 38px;">
+                        </div>
+                        <div class="col-sm-3">
+                            <select id="abs_user_cari" name="abs_user_cari" class="form-control" style="width: 100%;"></select>
+                        </div>
+                        <div class="col-sm-3">
+                            <button type="button" class="btn btn-primary" title="Cari Data" style="height: 38px;" onclick="showData('table_list_absensi')">Cari</button>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <button class="btn btn-sm btn-primary" onclick="showData('download_data_excel')">
+                                <i class="fa fa-file-excel-o"></i>&nbsp;Download File Excel
+                            </button>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table class="table table-bordered table-striped" style="width: 100%;" id="table_list_absensi">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center align-middle" style="width: 10%;">Tanggal</th>
+                                        <th class="text-left align-middle">Nama</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Jam Masuk</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Jam Keluar</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Telat Jam</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Lebih Jam</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="2" class="text-right">Total : </th>
+                                        <th id="table_list_absensi_total_jam_masuk"></th>
+                                        <th id="table_list_absensi_total_jam_keluar"></th>
+                                        <th id="table_list_absensi_total_jam_telat"></th>
+                                        <th id="table_list_absensi_total_jam_lebih"></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Auth;
 use LDAP\Result;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\ResponseFormatter;
+use DateTime;
+use File;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 use function PHPSTORM_META\map;
 
@@ -25,8 +29,7 @@ class DivisiController extends Controller
     public function indexOperasional() {
         if(Auth::user()->getRoleNames()[0] == 'operasional' || Auth::user()->getRoleNames()[0] == 'admin') {
             $data   = [
-                'title'     => 'Divisi Operasional',
-                'sub_title' => 'Dashboard - Divisi Operasional',
+                'title'     => 'Divisi Operasional','sub_title' => 'Dashboard - Divisi Operasional',
                 'is_active' => '1',
                 'sub_division'      => Auth::user()->getRoleNames()[0] != 'admin' ? DivisiService::getCurrentSubDivision()[0]->sub_division_name : 'pic',
                 'sub_division_id'   => Auth::user()->getRoleNames()[0] != 'admin' ? DivisiService::getCurrentSubDivision()[0]->sub_division_id : '%',
@@ -1433,5 +1436,190 @@ class DivisiController extends Controller
         }
         
         return Response::json($output, $output['status']);
+    }
+
+    // 26 AGUSTUS 2024
+    // NOTE : LIST ABSENSI
+    public function absensi_list(Request $request)
+    {
+        $sendData   = [
+            "data"  => $request->all(),
+        ];
+
+        $getData    = DivisiService::getListAbsensi($sendData);
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Memuat Data",
+            "data"      => $getData,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    private function getDiffTime($day, $time_in, $time_out)
+    {
+        switch(date('D', strtotime($day)))
+        {
+            case "Sat" :
+                $jam_masuk  = $day." 08:00:00";
+                $jam_keluar = $day." 13:30:00";
+
+                $jam_masuk_abs  = $day." ".$time_in;
+                $jam_keluar_abs = $day." ".$time_out;
+            break;
+            case "Sun" : 
+                $jam_masuk  = $day." 00:00:00";
+                $jam_keluar = $day." 00:00:00";
+                
+                $jam_masuk_abs  = $day." ".$time_in;
+                $jam_keluar_abs = $day." ".$time_out;
+            break;
+            default  : 
+                $jam_masuk  = $day." 08:00:00";
+                $jam_keluar = $day." 16:00:00";
+
+                $jam_masuk_abs  = $day." ".$time_in;
+                $jam_keluar_abs = $day." ".$time_out;
+        }
+
+        // GET PERBEDAAN WAKTU
+        // KETERLAMBATAN
+        $waktu_masuk_1  = new DateTime($jam_masuk);
+        $waktu_masuk_2  = new DateTime($jam_masuk_abs);
+
+        $interval_masuk     = $waktu_masuk_1->diff($waktu_masuk_2);
+        $total_jam_masuk    = $interval_masuk->h < 10 ? "0".$interval_masuk->h : $interval_masuk->h;
+        $total_min_masuk    = $interval_masuk->i < 10 ? "0".$interval_masuk->i : $interval_masuk->i;
+        $total_sec_masuk    = $interval_masuk->s < 10 ? "0".$interval_masuk->s : $interval_masuk->s;
+
+        $total_telat_masuk  = $total_jam_masuk.":".$total_min_masuk.":".$total_sec_masuk;
+        
+        // LEBIH JAM
+        $waktu_keluar_1 = new DateTime($jam_keluar);
+        $waktu_keluar_2 = new DateTime($jam_keluar_abs);
+
+        $interval_keluar        = $waktu_keluar_1->diff($waktu_keluar_2);
+        $total_jam_keluar       = $interval_keluar->h < 10 ? "0".$interval_keluar->h : $interval_keluar->h;
+        $total_min_keluar       = $interval_keluar->i < 10 ? "0".$interval_keluar->i : $interval_keluar->i;
+        $total_sec_keluar       = $interval_keluar->s < 10 ? "0".$interval_keluar->s : $interval_keluar->s;
+        
+        $total_lebih_waktu  = $total_jam_keluar.":".$total_min_keluar.":".$total_sec_keluar;
+
+        return $data    = [
+            "kurang_jam"    => $total_telat_masuk,
+            "lebih_jam"     => $total_lebih_waktu,
+        ];
+    }
+
+    public function absensi_download_excel(Request $request)
+    {
+        $tgl_awal   = $request->all()['tanggal_awal'];
+        $tgl_akhir  = $request->all()['tanggal_akhir'];
+        $jml_hari   = $request->all()['jml_hari'];
+        // $getData    = DivisiService::getListAbsensi($sendData);
+        
+        // AMBIL DATA USER
+        $getDataUser    = DivisiService::getDataEmployee();
+        
+        $spreadsheet    = new Spreadsheet;
+        for($i = 0; $i < count($getDataUser); $i++)
+        {
+            $emp_data   = $getDataUser[$i];
+            $emp_id     = $emp_data->emp_id;
+            $emp_name   = $emp_data->emp_name;
+            $curr_seq   = $i + 1;
+            
+            // CURRENT JAM MASUK
+            $jam_masuk  = "08:00:00";
+            $jam_pulang = "16:00:00";
+
+            $sendData   = [
+                "data"  => [
+                    "tanggal_awal"  => $tgl_awal,
+                    "tanggal_akhir" => $tgl_akhir,
+                    "user_id"       => $emp_id,
+                    "jml_hari"      => $jml_hari,
+                ],
+            ];
+
+            $getDataDetail  = DivisiService::getListAbsensi($sendData);
+
+            if($curr_seq == 1) {
+                $sheet1     = $spreadsheet->getActiveSheet();
+                $sheet1->setTitle($emp_name);
+                $sheet1->setCellValue('A1', 'TANGGAL');
+                $sheet1->setCellValue('B1', 'JAM DATANG');
+                $sheet1->setCellValue('C1', 'JAM PULANG');
+                $sheet1->setCellValue('D1', 'LEBIH JAM');
+                $sheet1->setCellValue('E1', 'KURANG JAM');
+                
+                for($j = 0; $j < count($getDataDetail);$j++)
+                {
+                    $tgl_absen      = $getDataDetail[$j]['tanggal_absen'];
+                    $waktu_masuk    = $getDataDetail[$j]['jam_masuk'];
+                    $waktu_keluar   = $getDataDetail[$j]['jam_keluar'];
+                    $lebih_jam      = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['lebih_jam'] : "00:00:00";
+                    $kurang_jam     = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['kurang_jam'] : "00:00:00";
+
+                    $sheet1->setCellValue('A'.($j + 2), $tgl_absen);
+                    $sheet1->setCellValue('B'.($j + 2), $waktu_masuk);
+                    $sheet1->setCellValue('C'.($j + 2), $waktu_keluar);
+                    $sheet1->setCellValue('D'.($j + 2), $kurang_jam);
+                    $sheet1->setCellValue('E'.($j + 2), $lebih_jam);
+                    
+                }
+            } else {
+                $sheetN     = $spreadsheet->createSheet();
+                $sheetN->setTitle($emp_name);
+                $sheetN->setCellValue('A1', 'TANGGAL');
+                $sheetN->setCellValue('B1', 'JAM DATANG');
+                $sheetN->setCellValue('C1', 'JAM PULANG');
+                $sheetN->setCellValue('D1', 'LEBIH JAM');
+                $sheetN->setCellValue('E1', 'KURANG JAM');
+
+                // ISI DETAIL
+                for($j = 0; $j < count($getDataDetail);$j++)
+                {
+                    $tgl_absen      = $getDataDetail[$j]['tanggal_absen'];
+                    $waktu_masuk    = $getDataDetail[$j]['jam_masuk'];
+                    $waktu_keluar   = $getDataDetail[$j]['jam_keluar'];
+                    $lebih_jam      = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['lebih_jam'] : "00:00:00";
+                    $kurang_jam     = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['kurang_jam'] : "00:00:00";
+
+                    $sheetN->setCellValue('A'.($j + 2), $tgl_absen);
+                    $sheetN->setCellValue('B'.($j + 2), $waktu_masuk);
+                    $sheetN->setCellValue('C'.($j + 2), $waktu_keluar);
+                    $sheetN->setCellValue('D'.($j + 2), $kurang_jam);
+                    $sheetN->setCellValue('E'.($j + 2), $lebih_jam);
+                    
+                }
+            }
+            // GET DATA ABSEN
+        }
+
+        // Simpan file Excel ke disk
+        $file_path      = public_path('storage/data-files/presensi_xls/');
+        $file_name      = time()."_Laporan_Presensi_".$tgl_awal."_sampai_".$tgl_akhir.".xlsx";
+
+        if(!File::exists($file_path)) {
+            File::makeDirectory($file_path, 0755, true);
+        }
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($file_path.$file_name);
+
+        $output     = [
+            "status"    => 200,
+            "success"   => true,
+            "data"      => [
+                "file_url"  => "storage/data-files/presensi_xls",
+                "file_name" => $file_name,
+            ],
+            "message"   => "Berhasil Memuat Data",
+        ];
+
+        return Response::json($output, $output['status']);
+        
     }
 }

@@ -391,11 +391,16 @@ Route::group(['middleware' => ['auth']], function () {
 
         Route::prefix('human_resource')->group(function(){
             Route::get('/', [DivisiController::class, 'indexHR'])->name('index.human_resouce');
+            Route::prefix('absensi')->group(function(){
+                Route::get('/list', [DivisiController::class, 'absensi_list']);
+                Route::get('/excelDownload', [DivisiController::class, 'absensi_download_excel']);
+            });
         });
 
         Route::prefix('master')->group(function(){
             Route::get('/getDataProkerTahunan', [DivisiController::class, 'getDataProkerTahunan']);
             Route::get('/getDataSubDivision', [DivisiController::class, 'getDataSubDivision']);
+            Route::get('/getDataEmployees', [EmployeesController::class, 'data_employee_global']);
         });
     });
 

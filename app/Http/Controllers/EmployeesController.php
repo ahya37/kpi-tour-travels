@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Services\EmployeeService;
@@ -212,6 +213,20 @@ class EmployeesController extends Controller
                 "data"          => [],
             );
         }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function data_employee_global()
+    {
+        $getData    = EmployeeService::do_get_data_employee_global();
+
+        $output     = [
+            "status"    => 200,
+            "success"   => true,
+            "message"   => "Berhasil Mengambil Data Employee",
+            "data"      => $getData,
+        ];
 
         return Response::json($output, $output['status']);
     }
