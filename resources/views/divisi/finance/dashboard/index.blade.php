@@ -62,6 +62,22 @@
                     </a>
                 </div>
             </div>
+            <div class="col-sm-3">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h4 class="no-margins">Absensi</h4>
+                    </div>
+                    <div class="card-body text-right">
+                        <h2 class="no-margins">
+                            <span id="abs_loading"><div class="spinner-border"></div></span>
+                            <span id="abs_text" class="d-none"></span>
+                        </h2>
+                    </div>
+                    <a href="#showAbsensi" class="card-footer" onclick="showModal(`modal_absensi`, '', '')">
+                        Lihat Detail
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -321,6 +337,36 @@
                         <button class="ml-2 btn btn-secondary" onclick="closeModal('modal_create_rkap')" title="Tutup Tampilan">Batal</button>
                         <button class="ml-2 btn btn-primary" title="Simpan Data" value="" onclick="doSimpanRKAP(this.value)" id="btnSimpanRKAP">Simpan</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_absensi">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-row align-items-center justify-content-center w-100">
+                        <h4 class="no-margins">Download Absensi</h4>
+                        <button class="close" onclick="closeModal('modal_absensi')">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <label>Pilih Tanggal</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <input type="text" class="form-control" style="height: 38px; background: white; cursor: pointer;" readonly placeholder="DD/MM/YYYY s/d DD/MM/YYYY" name="abs_tgl_cari" id="abs_tgl_cari">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" title="Download File Excel Absensi" id="btn_abs_download_excel" name="btn_abs_download_excel" onclick="downloadAbsen()">
+                        <i class="fa fa-file-excel-o"></i> Download 
+                    </button>
                 </div>
             </div>
         </div>

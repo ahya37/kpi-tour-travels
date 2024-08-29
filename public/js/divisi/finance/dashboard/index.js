@@ -2,6 +2,7 @@ moment.locale('id');
 
 var today       = moment().format('YYYY-MM-DD');
 var isActive    = 0;
+var base_url    = window.location.origin;
 $(document).ready(() => {
     // dataDashboard();
 
@@ -35,6 +36,11 @@ $(document).ready(() => {
             $("#act_rkap_loading").addClass('d-none');
             $("#act_rkap_text").removeClass('d-none');
             $("#act_rkap_text").html(financeRKAP_getData.length);
+
+            // HIDE ABS LOADING
+            $("#abs_loading").addClass('d-none');
+            $("#abs_text").removeClass('d-none');
+            $("#abs_text").html("<label class='no-margins font-weight-light'>"+moment().format('YYYY-MM-DD')+"</label>");
         })
         .catch((err)    => {
             // HIDE LOADING ACT USER
@@ -46,6 +52,11 @@ $(document).ready(() => {
             $("#act_rkap_loading").addClass('d-none');
             $("#act_rkap_text").removeClass('d-none');
             $("#act_rkap_text").html(0);
+
+            // HIDE ABS LOADING
+            $("#abs_loading").addClass('d-none');
+            $("#abs_text").removeClass('d-none');
+            $("#abs_text").html("<label class='no-margins font-weight-light'>"+moment().format('YYYY-MM-DD')+"</label>");
         })
 });
 
@@ -607,6 +618,22 @@ function showModal(idModal, value, jenis)
                 $("#daily_trans_opr_pkb_date").val(null);
             }
         });
+    } else if(idModal == 'modal_absensi') {
+        $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+
+        // SHOW DATERANGEPICKER
+        $("#abs_tgl_cari").daterangepicker({
+            minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
+            maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
+            autoApply   : false,
+            format      : 'DD/MM/YYYY',
+            setStartDate    : moment(today, 'YYYY-MM-DD'),
+            locale  : {
+                separator   : ' s/d ',
+                cancelLabel : 'Batal',
+                applyLabel  : 'Simpan',
+            },
+        })
     }
 }
 
@@ -670,6 +697,8 @@ function closeModal(idModal) {
         });
 
         showModal('modal_rkap_finance','','');
+    } else if(idModal == 'modal_absensi') {
+        $("#"+idModal).modal('hide');
     }
 }
 
@@ -944,6 +973,54 @@ function doSimpanRKAP(jenis)
     }
 }
 
+function downloadAbsen()
+{
+    const selected_tgl  = $("#abs_tgl_cari").val();
+    const tgl_awal      = selected_tgl.split(' s/d ')[0];
+    const tgl_akhir     = selected_tgl.split(' s/d ')[1];
+
+
+    const abs_url   = "/divisi/human_resource/absensi/excelDownload";
+    const abs_type  = "GET";
+    const abs_data  = {
+        "tanggal_awal"  : moment(tgl_awal, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+        "tanggal_akhir" : moment(tgl_akhir, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+        "user_id"       : "%",
+        "jml_hari"      : moment(tgl_akhir, 'DD/MM/YYYY').diff(moment(tgl_awal, 'DD/MM/YYYY'), 'days')+1,
+    };
+    const abs_msg   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+    
+    doTransV2(abs_url, abs_type, abs_data, abs_msg, true)
+        .then((success) => {
+            var link = document.createElement('a');
+            link.href = base_url+"/"+success.data.file_url+"/"+success.data.file_name;
+            document.body.appendChild(link);
+            link.click();
+            Swal.close();
+            
+            // DELETE FILE
+            setTimeout(()=> {
+                const abs_del_data  = {
+                    "file_url"  : success.data.file_url+"/"+success.data.file_name,
+                };
+                const abs_del_type  = "POST";
+                const abs_del_url   = "/divisi/human_resource/absensi/excelDelete";
+                
+                doTrans(abs_del_url, abs_del_type, abs_del_data, "", true)
+                    .then((sc)  => {
+                        console.log(sc);
+                    })
+                    .catch((err)    => {
+                        console.log(err);
+                    })
+            }, 1000);
+        })
+        .catch((err)    => {
+            console.log(err);
+            Swal.close();
+        })
+}
+
 function doTrans(url, type, data, message, isAsync)
 {
     return new Promise((resolve, reject)   => {
@@ -966,6 +1043,31 @@ function doTrans(url, type, data, message, isAsync)
             error       : (error)   => {
                 reject(error);
             },
+        })
+    })
+}
+
+function doTransV2(url, type, data, message, isAsync)
+{
+    return new Promise((resolve, reject)    => {
+        $.ajax({
+            url     : url,
+            dataType: 'json',
+            async   : isAsync,
+            type    : type,
+            headers : {
+                'X-CSRF-TOKEN'  : CSRF_TOKEN,
+            },
+            data    : data,
+            beforeSend  : () => {
+                message;
+            },
+            success     : (success) => {
+                resolve(success);
+            },
+            error       : (err)     => {
+                reject(err);
+            }
         })
     })
 }
