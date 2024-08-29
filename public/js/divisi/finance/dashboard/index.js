@@ -699,6 +699,12 @@ function closeModal(idModal) {
         showModal('modal_rkap_finance','','');
     } else if(idModal == 'modal_absensi') {
         $("#"+idModal).modal('hide');
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            clearUrl();
+            $("#abs_tgl_cari").data('daterangepicker').setStartDate(moment().format('DD/MM/YYYY'));
+            $("#abs_tgl_cari").data('daterangepicker').setEndDate(moment().format('DD/MM/YYYY'));
+        })
     }
 }
 
@@ -1070,4 +1076,11 @@ function doTransV2(url, type, data, message, isAsync)
             }
         })
     })
+}
+
+function clearUrl()
+{
+    var url     = window.location.href;
+    var cleanUrl= url.split('#')[0];
+    window.history.replaceState({}, document.title, cleanUrl);
 }
