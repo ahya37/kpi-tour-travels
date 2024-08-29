@@ -1012,7 +1012,7 @@ function downloadAbsen()
                 const abs_del_type  = "POST";
                 const abs_del_url   = "/divisi/human_resource/absensi/excelDelete";
                 
-                doTrans(abs_del_url, abs_del_type, abs_del_data, "", true)
+                doTransV2(abs_del_url, abs_del_type, abs_del_data, "", true)
                     .then((sc)  => {
                         console.log(sc);
                     })

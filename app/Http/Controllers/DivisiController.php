@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\LogHelper;
 use Illuminate\Http\Request;
 use App\Services\DivisiService;
 use App\Services\BaseService;
-use Arr;
 use Http;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
-use LDAP\Result;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\ResponseFormatter;
 use DateInterval;
@@ -18,10 +15,8 @@ use DateTime;
 use File;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Style\Style;
-use SebastianBergmann\Diff\Diff;
-
-use function PHPSTORM_META\map;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 class DivisiController extends Controller
 {
@@ -1527,6 +1522,27 @@ class DivisiController extends Controller
         $getDataUser    = DivisiService::getDataEmployee();
         
         $spreadsheet    = new Spreadsheet;
+
+        function autoSizeColumn(Worksheet $sheet, $column)
+        {
+            $maxLength = 0;
+            $columnIndex = Coordinate::columnIndexFromString($column); // Mendapatkan indeks kolom dari huruf kolom
+        
+            // Iterasi melalui semua baris dalam kolom
+            foreach ($sheet->getRowIterator() as $row) {
+                $cell = $sheet->getCell($column . $row->getRowIndex());
+                $value = $cell->getValue();
+                $length = strlen((string) $value); // Konversi nilai sel ke string
+        
+                // Periksa panjang sel untuk menentukan lebar kolom maksimum
+                if ($length > $maxLength) {
+                    $maxLength = $length;
+                }
+            }
+        
+            // Set lebar kolom
+            $sheet->getColumnDimension($column)->setWidth($maxLength + 2); // Menambahkan sedikit ruang ekstra
+        }
         for($i = 0; $i < count($getDataUser); $i++)
         {
             $emp_data   = $getDataUser[$i];
@@ -1603,6 +1619,12 @@ class DivisiController extends Controller
             $sheet1->setCellValue('D'.$total_data, $total_kurang_jam->format('H:i:s'));
             $sheet1->setCellValue('E'.$total_data, $total_lebih_jam->format('H:i:s'));
             $spreadsheet->setActiveSheetIndex(0);
+
+            autoSizeColumn($sheet1, 'A');
+            autoSizeColumn($sheet1, 'B');
+            autoSizeColumn($sheet1, 'C');
+            autoSizeColumn($sheet1, 'D');
+            autoSizeColumn($sheet1, 'E');
         }
 
         // Simpan file Excel ke disk
