@@ -13,11 +13,13 @@ use Illuminate\Support\Facades\Auth;
 use LDAP\Result;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\ResponseFormatter;
+use DateInterval;
 use DateTime;
 use File;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Style;
+use SebastianBergmann\Diff\Diff;
 
 use function PHPSTORM_META\map;
 
@@ -1531,10 +1533,6 @@ class DivisiController extends Controller
             $emp_id     = $emp_data->emp_id;
             $emp_name   = $emp_data->emp_name;
             $curr_seq   = $i + 1;
-            
-            // CURRENT JAM MASUK
-            $jam_masuk  = "08:00:00";
-            $jam_pulang = "16:00:00";
 
             $sendData   = [
                 "data"  => [
@@ -1554,59 +1552,57 @@ class DivisiController extends Controller
                 ],
             ];
 
+            // UNTUK PERHITUNGAN TOTAL JAM
+            $total_kurang_jam   = new DateTime("1970-01-01 00:00:00");
+            $total_lebih_jam    = new DateTime("1970-01-01 00:00:00");
+
+            // KETIKA SEQ 1 MAKA JADI ACTIVE SHEET JIKA TIDAK MAKA BUAT SHEET BARU
             if($curr_seq == 1) {
                 $sheet1     = $spreadsheet->getActiveSheet();
-                $sheet1->getStyle("A1:E1")->applyFromArray($sheetStyle);
-                $sheet1->setTitle($emp_name);
-                $sheet1->setCellValue('A1', 'TANGGAL');
-                $sheet1->setCellValue('B1', 'JAM DATANG');
-                $sheet1->setCellValue('C1', 'JAM PULANG');
-                $sheet1->setCellValue('D1', 'KURANG JAM');
-                $sheet1->setCellValue('E1', 'LEBIH JAM');
-                
-                for($j = 0; $j < count($getDataDetail);$j++)
-                {
-                    $tgl_absen      = $getDataDetail[$j]['tanggal_absen'];
-                    $waktu_masuk    = $getDataDetail[$j]['jam_masuk'];
-                    $waktu_keluar   = $getDataDetail[$j]['jam_keluar'];
-                    $lebih_jam      = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['lebih_jam'] : "00:00:00";
-                    $kurang_jam     = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['kurang_jam'] : "00:00:00";
-
-                    $sheet1->setCellValue('A'.($j + 2), $tgl_absen);
-                    $sheet1->setCellValue('B'.($j + 2), $waktu_masuk);
-                    $sheet1->setCellValue('C'.($j + 2), $waktu_keluar);
-                    $sheet1->setCellValue('D'.($j + 2), $kurang_jam);
-                    $sheet1->setCellValue('E'.($j + 2), $lebih_jam);
-                }
             } else {
-                $sheetN     = $spreadsheet->createSheet();
-                $sheetN->getStyle("A1:E1")->applyFromArray($sheetStyle);
-                $sheetN->setTitle($emp_name);
-                $sheetN->setCellValue('A1', 'TANGGAL');
-                $sheetN->setCellValue('B1', 'JAM DATANG');
-                $sheetN->setCellValue('C1', 'JAM PULANG');
-                $sheetN->setCellValue('D1', 'KURANG JAM');
-                $sheetN->setCellValue('E1', 'LEBIH JAM');
-
-                // ISI DETAIL
-                for($j = 0; $j < count($getDataDetail);$j++)
-                {
-                    $tgl_absen      = $getDataDetail[$j]['tanggal_absen'];
-                    $waktu_masuk    = $getDataDetail[$j]['jam_masuk'];
-                    $waktu_keluar   = $getDataDetail[$j]['jam_keluar'];
-                    $lebih_jam      = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['lebih_jam'] : "00:00:00";
-                    $kurang_jam     = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['kurang_jam'] : "00:00:00";
-
-                    $sheetN->setCellValue('A'.($j + 2), $tgl_absen);
-                    $sheetN->setCellValue('B'.($j + 2), $waktu_masuk);
-                    $sheetN->setCellValue('C'.($j + 2), $waktu_keluar);
-                    $sheetN->setCellValue('D'.($j + 2), $kurang_jam);
-                    $sheetN->setCellValue('E'.($j + 2), $lebih_jam);
-                }
+                $sheet1     = $spreadsheet->createSheet();
             }
-            // MEMBUAT SHEET 1 MENJADI AWAL
+
+            $sheet1->getStyle("A1:E1")->applyFromArray($sheetStyle);
+            $sheet1->setTitle($emp_name);
+            $sheet1->setCellValue('A1', 'TANGGAL');
+            $sheet1->setCellValue('B1', 'JAM DATANG');
+            $sheet1->setCellValue('C1', 'JAM PULANG');
+            $sheet1->setCellValue('D1', 'KURANG JAM');
+            $sheet1->setCellValue('E1', 'LEBIH JAM');
+            
+            for($j = 0; $j < count($getDataDetail);$j++)
+            {
+                $tgl_absen      = $getDataDetail[$j]['tanggal_absen'];
+                $waktu_masuk    = $getDataDetail[$j]['jam_masuk'];
+                $waktu_keluar   = $getDataDetail[$j]['jam_keluar'];
+                $lebih_jam      = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['lebih_jam'] : "00:00:00";
+                $kurang_jam     = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['kurang_jam'] : "00:00:00";
+
+                // HITUNG LEBIH KURANG JAM
+                $kurang_jam_jam     = explode(':', $kurang_jam)[0];
+                $kurang_jam_min     = explode(':', $kurang_jam)[1];
+                $kurang_jam_sec     = explode(':', $kurang_jam)[2];
+                $total_kurang_jam->add(new DateInterval('PT'.$kurang_jam_jam.'H'.$kurang_jam_min.'M'.$kurang_jam_sec.'S'));
+
+                $lebih_jam_jam      = explode(':', $lebih_jam)[0];
+                $lebih_jam_min      = explode(':', $lebih_jam)[1];
+                $lebih_jam_sec      = explode(':', $lebih_jam)[2];
+                $total_lebih_jam->add(new DateInterval('PT'.$lebih_jam_jam.'H'.$lebih_jam_min.'M'.$lebih_jam_sec.'S'));
+
+                $sheet1->setCellValue('A'.($j + 2), $tgl_absen);
+                $sheet1->setCellValue('B'.($j + 2), $waktu_masuk);
+                $sheet1->setCellValue('C'.($j + 2), $waktu_keluar);
+                $sheet1->setCellValue('D'.($j + 2), $kurang_jam);
+                $sheet1->setCellValue('E'.($j + 2), $lebih_jam);
+            }
+            // FOOTER
+            $total_data     = count($getDataDetail) + 2;
+            $sheet1->getStyle('A'.$total_data.":E".$total_data)->applyFromArray($sheetStyle);
+            $sheet1->setCellValue('A'.$total_data, 'JUMLAH');
+            $sheet1->setCellValue('D'.$total_data, $total_kurang_jam->format('H:i:s'));
+            $sheet1->setCellValue('E'.$total_data, $total_lebih_jam->format('H:i:s'));
             $spreadsheet->setActiveSheetIndex(0);
-            // GET DATA ABSEN
         }
 
         // Simpan file Excel ke disk
