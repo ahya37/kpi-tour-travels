@@ -45,6 +45,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::post('/postPresence/{jenis}', [DashboardController::class, 'dashboard_presence']);
         Route::get('/getDataPresenceToday', [DashboardController::class, 'dashboard_getPresenceToday']);
+        Route::get('/absensi_pulang', [DashboardController::class, 'index_pulang'])->name('absen.pulang');
     });
     // Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class,'logout'])->name('logout.store');

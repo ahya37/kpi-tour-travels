@@ -1458,11 +1458,19 @@ class DivisiController extends Controller
 
     private function getDiffTime($day, $time_in, $time_out)
     {
+        // ABSEN AWAL
+        $tanggal_1  = new DateTime("2024-07-15");
+        $tanggal_2  = new DateTime($day);
         switch(date('D', strtotime($day)))
         {
             case "Sat" :
-                $jam_masuk  = $day." 08:00:00";
-                $jam_keluar = $day." 13:30:00";
+                if($tanggal_1 < $tanggal_2) {
+                    $jam_masuk  = $day." 08:00:00";
+                    $jam_keluar = $day." 13:30:00";
+                } else {
+                    $jam_masuk  = $day." 08:30:00";
+                    $jam_keluar = $day." 12:00:00";
+                }
 
                 $jam_masuk_abs  = $day." ".$time_in;
                 $jam_keluar_abs = $day." ".$time_out;
@@ -1475,8 +1483,13 @@ class DivisiController extends Controller
                 $jam_keluar_abs = $day." ".$time_out;
             break;
             default  : 
+            if($tanggal_1 < $tanggal_2) {
                 $jam_masuk  = $day." 08:00:00";
                 $jam_keluar = $day." 16:00:00";
+            } else {
+                $jam_masuk  = $day." 08:30:00";
+                $jam_keluar = $day." 16:30:00";
+            }
 
                 $jam_masuk_abs  = $day." ".$time_in;
                 $jam_keluar_abs = $day." ".$time_out;

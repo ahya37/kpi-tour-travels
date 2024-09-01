@@ -2,7 +2,15 @@
 @section('title', $title ?? '')
 
 @push('addon-style')
+
+    {{-- DATATABLES --}}
+    <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/customCSS/DataTables/datatables.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/customCSS/DataTables/fixedHeader-3.2.0/fixedHeader.dataTables.min.css') }}">
+    {{-- DATERANGEPICKER --}}
+    <link rel="stylesheet" href="{{ asset('css/customCSS/daterangepicker/daterangepicker.css') }}">
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 @endpush
 
 @section('breadcrumb')
@@ -22,7 +30,56 @@
     <div class="container-fluid">
         <div class="wrapper wrapper-content">
             <input type="hidden" id="prs_user_id" value="{{ $user_id }}">
-            <div class="row">
+            {{-- TABLE ABSEN --}}
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex flex-row align-items-center justify-content-between w-100">
+                        <h4 class="no-margins">
+                            <label class="no-margins">Table List Absensi User</label>
+                        </h4>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <label class="font-weight-bold">Tanggal Cari</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <input type="text" name="prs_tgl_cari" id="prs_tgl_cari" class="form-control" style="height: 38px; background: white; cursor: pointer;" readonly placeholder="DD/MM/YYYY s/d DD/MM/YYYY" title="Masukkan Tanggal Awal dan Tanggal Akhir">
+                        </div>
+                        <div class="col-sm-2">
+                            <button class="btn btn-primary" id="btn_cari_data_absen" title="Cari Data Absen" style="height: 38px;">Cari</button>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table class="table table-striped table-hover table-bordered table-striped" style="width: 100%;" id="table_absensi">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center align-middle" title="Tanggal Absensi">Tanggal</th>
+                                        <th class="text-center align-middle" title="Jam Datang">Jam Masuk</th>
+                                        <th class="text-center align-middle" title="Jam Pulang">Jam Keluar</th>
+                                        <th class="text-center align-middle" title="Total Jam Keterlambatan">Kurang Jam</th>
+                                        <th class="text-center align-middle" title="Total Jam Overtime">Lebih Jam</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" class="text-right">Total Jam : </th>
+                                        <th id="table_absensi_total_kurang_jam">00:00:00</th>
+                                        <th id="table_absensi_total_lebih_jam">00:00:00</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{-- <div class="row">
                 <div class="col-sm-3">
                     <div class="card">
                         <div class="card-header">
@@ -61,62 +118,28 @@
                     </div>
                     <small class="text-danger">* Absensi Masih Dalam Tahap Pengembangan</small>
                 </div>
-            </div>
+            </div> --}}
             {{-- <button onclick="getLocation()">Show Location</button>
             <div id="location"></div> --}}
         </div>     
     </div>
-
-    <div class="modal fade" id="modalShowCamera">
-        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button class="close" onclick="closeModal('modalShowCamera')">&times;</button>
-                </div>
-                <div class="modal-body h-100" id="body_camera">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <video width="480" height="640" autoplay id="camera"></video>
-                            <canvas id="takePhoto" style="width: 100%; height: 100%; border: 1px solid rgba(0, 0, 0, 0.2); padding: 8px;" class="d-none"></canvas>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row text-center px-2">
-                        <div class="col-sm-12">
-                            <button class="btn btn-primary" onclick="shutterCamera()" id="btn_takePhoto">
-                                <i class="fa fa-camera"></i> Ambil Foto
-                            </button>
-                            {{-- BUTTON CANCEL AND SAVE --}}
-                            <button class="btn btn-danger d-none" id="btn_cancelData" onclick="batalSimpanData()">
-                                <i class="fa fa-times"></i> Batal
-                            </button>
-                            <button class="btn btn-primary d-none" id="btn_simpanData" value="" onclick="getLocation(this.value)">
-                                <i class="fa fa-save"></i> Simpan Data
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-body w-100 d-none" id="body_data">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <canvas id="getPhoto" style="width: 100%; height: 100%; border: 1px solid rgba(0, 0, 0, 0.2); padding: 9px;"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @push('addon-script')
-    <script src="{{ asset('js/csrf-token.js') }}"></script>
     {{-- MOMENT --}}
     <script src="{{ asset('js/customJS/moment/moment.min.js') }}"></script>
     <script src="{{ asset('js/customJS/moment/id.js') }}"></script>
     <script src="{{ asset('js/customJS/moment/moment-timezone-with-data.min.js') }}"></script>
+    {{-- DATATABLE --}}
+    <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
+    <script src="{{ asset('js/customJS/DataTables/buttons.dataTables.js') }}"></script>
+    <script src="{{ asset('js/customJS/DataTables/dataTables.buttons.js') }}"></script>
+    <script src="{{ asset('js/customJS/DataTables/fixedHeader-3.2.0/dataTables.fixedHeader.min.js') }}"></script>
     {{-- SWEETALERT2 --}}
     <script src="{{ asset('js/customJS/SweetAlert/sweetalert2.all.min.js') }}"></script>
+    {{-- DATERANGEPICKER --}}
+    <script src="{{ asset('js/customJS/daterangepicker/daterangepicker.min.js') }}"></script>
+
+    <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/dashboard/index.dashboard.js') }}"></script>
 @endpush

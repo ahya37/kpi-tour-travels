@@ -19,3 +19,5 @@
 {{-- YEARPICKER --}}
 <link href="{{ asset('assets/css/plugins/yearpicker/yearpicker.css') }}" rel="stylesheet">
 <link href="{{ asset('css/customCSS/yearpicker/percik_yearpicker.css') }}" rel="stylesheet">
+{{-- FONTAWESOME 5.8.2 --}}
+<link href="{{ asset('css/customCSS/fontawesome-5.8.2/fontawesome.min.css') }}" rel="stylesheet">

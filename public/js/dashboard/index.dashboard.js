@@ -1,324 +1,147 @@
-let stream      = null;
+moment.locale('id');
 var prsTempData = []; 
-var base_url    = window.location.port.length > 0 ? window.location.hostname+":"+window.location.port : window.location.hostname;
+var base_url    = window.location.origin;
 var latitude;
 var longitude;
+var today       = moment().format('YYYY-MM-DD');
 
 $(document).ready(()    => {
-    console.log('test');
+    showTable('table_absensi', '');
+    $("#prs_tgl_cari").daterangepicker({
+        minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
+        maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
+        autoApply   : false,
+        format      : 'DD/MM/YYYY',
+        setStartDate    : moment(today, 'YYYY-MM-DD'),
+        locale  : {
+            separator   : ' s/d ',
+            cancelLabel : 'Batal',
+            applyLabel  : 'Simpan',
+        },
+    });
 
-    function updateTime()
-    {
-        const now = moment().format('HH:mm:ss');
-        $("#prs_time").html(now);
-    }
-    
-    $("#prs_date").html("Absensi " + moment().format('dddd') + ", "+moment().format('DD MMMM YYYY'));
-    setInterval(updateTime, 1000);
+    $("#btn_cari_data_absen").on('click', () => {
+        const abs_user_id       = $("#prs_user_id").val();
+        const abs_tanggal_cari  = $("#prs_tgl_cari").val().split(' s/d ');
+        const abs_tanggal_awal  = moment(abs_tanggal_cari[0], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        const abs_tanggal_akhir = moment(abs_tanggal_cari[1], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        const abs_jml_hari      = moment(abs_tanggal_akhir, 'YYYY-MM-DD').diff(moment(abs_tanggal_awal, 'YYYY-MM-DD'), 'days') + 1;
 
-    getDataDashboard();
+        const abs_sendData      = {
+            "tanggal_awal"      : abs_tanggal_awal,
+            "tanggal_akhir"     : abs_tanggal_akhir,
+            "user_id"           : abs_user_id,
+            "jml_hari"          : abs_jml_hari,
+        };
+        showTable('table_absensi', abs_sendData);
+    })
 });
 
-async function showCamera(id, type)
+function showTable(idTable, data)
 {
-    const video     = document.getElementById(id);
-
-    try {
-        stream    = await navigator.mediaDevices.getUserMedia({
-            video   : true,
+    $("#"+idTable).DataTable().clear().destroy();
+    if(idTable == 'table_absensi')
+    {
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                "zeroRecords"   : "Data yang dicari tidak ditemukan..",
+            },
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [1, 2, 3, 4], "width" : "20%", "className" : "text-left align-middle" },
+            ],
+            order       : [
+                [0, 'desc'],
+            ],
         });
 
-        video.srcObject = stream;
-    } catch(error) {
-        console.log(error);
-    }
-}
+        if(data != '') {
+            $(".dataTables_empty").html("<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..");
 
-function getDataDashboard()
-{
-    const prs_url   = "/dashboard/getDataPresenceToday";
-    const prs_type  = "GET";
-    const prs_data  = "";
-    
-    const sendData  = [
-        doTrans(prs_url, prs_type, prs_data, "", true)
-    ];
+            // GET DATA
+            const abs_get_url   = "/divisi/human_resource/absensi/list";
+            const abs_get_data  = data;
+            const abs_get_type  = "GET";
 
-    Promise.all(sendData)
-        .then((success) => {
-            const prs_getData   = success[0].data;
-            prsTempData.push(prs_getData);
+            doTrans(abs_get_url, abs_get_type, abs_get_data, "", true)
+                .then((success)     => {
+                    var total_kurang_jam = moment.duration();
+                    var total_lebih_jam = moment.duration();
+                    var tanggal_awal    = moment("2024-07-15");
+                    for(const abs_item of success.data)
+                    {
+                        // CHECK
+                        const abs_date  = abs_item.tanggal_absen;
+                        const abs_in    = abs_item.jam_masuk;
+                        const abs_out   = abs_item.jam_keluar;
 
-            const prs_in        = prs_getData['prs_in_time'] == null ? '' : "<i>- Masuk : "+moment(prs_getData['prs_in_time'], 'YYY-MM-DD HH:mm:ss').format('HH:mm:ss')+"</i>";
-            const prs_out       = prs_getData['prs_out_time'] == null ? '' : "<i>- Keluar : "+moment(prs_getData['prs_out_time'], 'YYYY-MM-DD HH:mm:ss').format('HH:mm:ss')+"</i>";
+                        switch(moment(abs_date, 'YYYY-MM-DD').format('dddd'))
+                        {
+                            case 'Sabtu' :
+                                if(moment(abs_date).isBefore(tanggal_awal)) {
+                                    var jam_masuk   = moment(abs_date+" "+abs_in, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 08:30:00", 'YYYY-MM-DD HH:mm:ss'));
+                                    var jam_keluar  = moment(abs_date+" "+abs_out, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 12:00:00", 'YYYY-MM-DD HH:mm:ss'));
+                                } else {
+                                    var jam_masuk   = moment(abs_date+" "+abs_in, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 08:00:00", 'YYYY-MM-DD HH:mm:ss'));
+                                    var jam_keluar  = moment(abs_date+" "+abs_out, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 13:30:00", 'YYYY-MM-DD HH:mm:ss'));
+                                }
+                                var abs_date_1  = "<label class='no-margins' title='" + moment(abs_date, 'YYYY-MM-DD').format('dddd') + "'>" + abs_date + "</label>";
+                            break;
+                            case 'Minggu' :
+                                var jam_masuk   = moment(abs_date+" "+abs_in, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 00:00:00", 'YYYY-MM-DD HH:mm:ss'));
+                                var jam_keluar  = moment(abs_date+" "+abs_out, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 00:00:00", 'YYYY-MM-DD HH:mm:ss'));
+                                var abs_date_1  = "<label class='no-margins text-danger' title='" + moment(abs_date, 'YYYY-MM-DD').format('dddd') + "'>" + abs_date + "</label>";
+                            break;
+                            default :
+                                if(moment(abs_date).isBefore(tanggal_awal)) {
+                                    var jam_masuk   = moment(abs_date+" "+abs_in, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 08:30:00", 'YYYY-MM-DD HH:mm:ss'));
+                                    var jam_keluar  = moment(abs_date+" "+abs_out, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 16:30:00", 'YYYY-MM-DD HH:mm:ss'));
+                                } else {
+                                    var jam_masuk   = moment(abs_date+" "+abs_in, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 08:00:00", 'YYYY-MM-DD HH:mm:ss'));
+                                    var jam_keluar  = moment(abs_date+" "+abs_out, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 16:00:00", 'YYYY-MM-DD HH:mm:ss'));
+                                }
+                                var abs_date_1  = "<label class='no-margins' title='" + moment(abs_date, 'YYYY-MM-DD').format('dddd') + "'>" + abs_date + "</label>";
+                        }
+                        
+                        const jam_masuk_duration    = moment.duration(jam_masuk);
+                        const jam_diff_masuk        = jam_masuk > 0 ? moment.utc(jam_masuk_duration.asMilliseconds()).format('HH:mm:ss') : '00:00:00';
+                        const jam_keluar_duration   = moment.duration(jam_keluar);
+                        const jam_diff_keluar       = jam_keluar > 0 ? moment.utc(jam_keluar_duration.asMilliseconds()).format('HH:mm:ss') : '00:00:00';
 
-            $("#prs_text_masuk").html(prs_in);
-            $("#prs_text_keluar").html(prs_out);
-        })
-        .catch((err)    => {
-            console.log(err);
-        })
-}
+                        jam_masuk > 0 ? total_kurang_jam.add(jam_masuk_duration) : total_kurang_jam.add(0);
+                        jam_keluar > 0 ? total_lebih_jam.add(jam_keluar_duration) : total_kurang_jam.add(0);
 
-function hideCamera(id)
-{
-    if(stream) {
-        stream.getTracks().forEach(track => track.stop());
-
-        const videoElement  = document.getElementById(id);
-        videoElement.srcObject = null;
-
-        stream = null;
-    }
-}
-
-function shutterCamera()
-{
-    const video     = document.getElementById('camera');
-    const canvas    = document.getElementById('takePhoto');
-    const context   = canvas.getContext('2d');
-
-    canvas.width    = video.videoWidth;
-    canvas.height   = video.videoHeight;
-
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    Swal.fire({
-        title   : 'Data Sedang Diproses'
-    });
-    Swal.showLoading();
-    setTimeout(()=> {
-        $("#camera").addClass('d-none');
-        $("#takePhoto").removeClass('d-none');
-
-        $("#btn_simpanData").removeClass('d-none');
-        $("#btn_cancelData").removeClass('d-none');
-        $("#btn_takePhoto").addClass('d-none');
-
-        Swal.close();
-    }, 1000);
-}
-
-function showModal(idModal, jenis)
-{
-    if(idModal == 'modalShowCamera')
-    {
-        // GET DATA
-        const prsData   = prsTempData;
-        if(prsData.length > 0) {
-            const prsDataIn = prsData[0]['prs_in_file'];
-            const prsDataOut= prsData[0]['prs_out_file'];
-
-            $("#"+idModal).modal({backdrop: 'static', keyboard: false});
-            if(jenis == 'masuk') {
-                if(prsDataIn != null) {
-                    $("#body_camera").addClass('d-none');
-                    $("#body_data").removeClass('d-none');
-
-                    // SHOW IMAGE
-                    const canvas    = document.getElementById('getPhoto');
-                    const ctx       = canvas.getContext('2d');
-
-                    const img       = new Image();
-                    img.src         = window.location.origin+"/"+prsDataIn;
-
-                    img.onload = () => {
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        $("#"+idTable).DataTable().row.add([
+                            abs_date_1,
+                            abs_in,
+                            abs_out, 
+                            jam_diff_masuk,
+                            jam_diff_keluar
+                        ]).draw(false);
                     }
-                } else {
-                    // SHOW MODAL BODY CAMERA
-                    $("#body_camera").removeClass('d-none');
-                    $("#body_data").addClass('d-none');
-
-                    showCamera('camera', 'add');
-                    $("#btn_simpanData").val(jenis);
-                }
-            } else if(jenis == 'keluar') {
-                if(prsDataOut != null) {
-                    $("#body_camera").addClass('d-none');
-                    $("#body_data").removeClass('d-none');
-
-                    // SHOW IMAGE
-                    const canvas    = document.getElementById('getPhoto');
-                    const ctx       = canvas.getContext('2d');
-
-                    const img       = new Image();
-                    img.src         = window.location.origin+"/"+prsDataOut;
-                    // canvas.width    = img.width;
-                    // canvas.height   = img.height;
-
-                    img.onload = () => {
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    }
-                } else {
-                    // SHOW MODAL BODY CAMERA
-                    $("#body_camera").removeClass('d-none');
-                    $("#body_data").addClass('d-none');
-
-                    showCamera('camera', 'add');
-                    $("#btn_simpanData").val(jenis);
-                }
-            }
+                    $("#table_absensi_total_kurang_jam").html(moment.utc(total_kurang_jam.asMilliseconds()).format('HH:mm:ss'));
+                    $("#table_absensi_total_lebih_jam").html(moment.utc(total_lebih_jam.asMilliseconds()).format('HH:mm:ss'));
+                })
+                .catch((err)        => {
+                    // $(".dataTables_empty").html("Tidak ada data yang bisa dimuat");
+                })
         } else {
-            $("#"+idModal).modal({backdrop: 'static', keyboard: false});
-            showCamera('camera', 'add');
-            $("#btn_simpanData").val(jenis);
+            $(".dataTables_empty").html("Tidak ada data yang bisa dimuat");
         }
     }
 }
 
+function showModal(idModal, jenis)
+{
+}
+
 function closeModal(idModal)
 {
-    if(idModal == 'modalShowCamera')
-    {
-        $("#"+idModal).modal('hide');
-
-        $("#"+idModal).on('hidden.bs.modal', () => {
-            batalSimpanData();
-            hideCamera('camera');
-
-            $("#body_data").addClass('d-none');
-            $("#body_camera").removeClass('d-none');
-        })
-    }
 }
 
-function batalSimpanData()
+function simpanData(jenis) 
 {
-    $("#takePhoto").addClass('d-none');
-    $("#camera").removeClass('d-none');
-
-    $("#btn_takePhoto").removeClass('d-none');
-    $("#btn_simpanData").addClass('d-none');
-    $("#btn_cancelData").addClass('d-none');
-}
-
-function getLocation(jenis)
-{
-    if(navigator.geolocation)
-    {
-        Swal.fire({
-            title   : 'Lokasi sedang dimuat..',
-        });
-        Swal.showLoading();
-        navigator.geolocation.getCurrentPosition(
-            // TRUE
-            (pos)   => {
-                // Swal.fire({
-                //     icon    : 'success',
-                //     title   : 'Berhasil',
-                //     text    : 'Latitude : '+pos.coords.latitude+'; Longitude : '+pos.coords.longitude,
-                // });
-                latitude    = pos.coords.latitude;
-                longitude   = pos.coords.longitude;
-
-                simpanData(jenis);
-            },
-            (fail)  => {
-                Swal.fire({
-                    icon    : 'error',
-                    title   : 'Terjadi Kesalahan',
-                    text    : fail,
-                });
-                latitude    = "";
-                longitude   = "";
-
-                simpanData(jenis);
-            },
-            {
-                enableHighAccuracy  : false,
-                timeout             : 10000,
-                maximumAge          : 10000,
-            }
-        )
-    } else {
-        Swal.fire({
-            title   : 'Geolocation didnt support'
-        })
-    }
-}
-
-function simpanData(jenis) {
-    if(jenis == 'masuk')
-    {
-        const start_time    = moment().format('YYYY-MM-DD HH:mm:ss');
-        const user_id       = $("#prs_user_id").val();
-
-        const prs_url       = "/dashboard/postPresence/"+jenis;
-        const prs_type      = "POST";
-        const prs_img       = document.getElementById('takePhoto').toDataURL('iamge/png');
-        const prs_data      = {
-            "prs_date"          : moment().format('YYYY-MM-DD'),
-            "prs_start_time"    : start_time,
-            "prs_user_id"       : user_id,
-            "prs_status"        : jenis,
-            "prs_image"         : prs_img,
-            "prs_lat"           : latitude,
-            "prs_long"          : longitude,
-        };
-
-        const prs_message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
-
-        doTrans(prs_url, prs_type, prs_data, prs_message, true)
-            .then((success) => {
-                Swal.fire({
-                    icon    : success.alert.icon,
-                    title   : success.alert.message.title,
-                    text    : success.alert.message.text,
-                }).then((results)   => {
-                    if(results.isConfirmed) {
-                        closeModal('modalShowCamera');
-                        getDataDashboard();
-                    }
-                });
-            })
-            .catch((err)    => {
-                Swal.fire({
-                    icon    : err.responseJSON.alert.icon,
-                    title   : err.responseJSON.alert.message.title,
-                    text    : err.responseJSON.alert.message.text,
-                });
-            });
-    } else if(jenis == 'keluar') {
-        const end_time  = moment().format('YYYY-MM-DD HH:mm:ss');
-        const user_id   = $("#prs_user_id").val();
-        const prs_img   = document.getElementById('takePhoto').toDataURL('iamge/png');
-        
-        const prs_url       = "/dashboard/postPresence/"+jenis;
-        const prs_type      = "POST";
-        const prs_data      = {
-            "prs_date"          : moment().format('YYYY-MM-DD'),
-            "prs_end_time"      : end_time,
-            "prs_user_id"       : user_id,
-            "prs_status"        : jenis,
-            "prs_image"         : prs_img,
-            "prs_lat"           : latitude,
-            "prs_long"          : longitude,
-        };
-        const prs_message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
-
-        doTrans(prs_url, prs_type, prs_data, prs_message, true)
-            .then((success) => {
-                Swal.fire({
-                    icon    : success.alert.icon,
-                    title   : success.alert.message.title,
-                    text    : success.alert.message.text,
-                }).then((res)   => {
-                    if(res.isConfirmed) {
-                        closeModal('modalShowCamera');
-                        prsTempData = [];
-                        getDataDashboard();
-                    }
-                });
-            })
-            .catch((err)    => {
-                Swal.fire({
-                    icon    : err.responseJSON.alert.icon,
-                    title   : err.responseJSON.alert.message.title,
-                    text    : err.responseJSON.alert.message.text,
-                });
-            });
-    }
 }
 
 function doTrans(url, type, data, customMessage, isAsync)
@@ -329,10 +152,10 @@ function doTrans(url, type, data, customMessage, isAsync)
             type    : type,
             async   : isAsync,
             url     : url,
-            data    : {
-                _token  : CSRF_TOKEN,
-                sendData: data,
+            headers : {
+                'X-CSRF-TOKEN'  : CSRF_TOKEN,
             },
+            data    : data,
             beforeSend  : function() {
                 customMessage;
             },

@@ -297,6 +297,15 @@
                     <span class="nav-label">Pengajuan Cuti</span>
                 </a>
             </li>
+
+            @if(!Auth::user()->hasRole('admin'))
+                <li>
+                    <a href="{{ route('absen.pulang') }}">
+                        <i class="fa fa-sign-out"></i>
+                        <span class="nav-label">Absensi Pulang</span>
+                    </a>
+                </li>
+            @endif
         </ul>
     </div>
 </nav>

@@ -12,24 +12,68 @@ use Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
+use function Laravel\Prompts\alert;
+
 // use Illuminate\Support\Facades\Session;
 
 class DashboardController extends Controller
 {
+    protected $title    = "ERP Percik Tours";
     public function index()
     {
-        $data = [
-            'title'         => 'Home',
-            'sub_title'     => 'Selamat Datang '.Auth::user()->name,
-            'user_id'       => Auth::user()->id
-        ];
+        // CHECK APAKAH SUDAH ABSEN ATAU BELUM
+        if(Auth::user()->getRoleNames()[0] != 'admin') 
+        {
+            $absen  = BaseService::doGetPresenceToday();
+            if(count($absen) > 0) {
+                $data = [
+                    'title'         => $this->title . " | Dashboard",
+                    'sub_title'     => 'Selamat Datang '.Auth::user()->name,
+                    'user_id'       => Auth::user()->id,
+                ];
+        
+                return view('dashboard/index', $data);
+            } else {
+                $data   = [
+                    "title"         => $this->title." | Absen",
+                    "user_id"       => Auth::user()->id
+                ];
+                return view('dashboard/absen', $data);
+            }
+        } else {
+            $data = [
+                'title'         => 'Home',
+                'sub_title'     => 'Selamat Datang '.Auth::user()->name,
+                'user_id'       => '%',
+            ];
+    
+            return view('dashboard/index', $data);
+        }
+    }
 
-        return view('dashboard/index', $data);
-        // if(Auth::user()->getRoleNames()[0] == 'admin') {
-        //     return view('dashboard/index', $dat);
-        // } else {
-        //     return view('home', $data);
-        // }
+    public function index_pulang()
+    {
+        if(Auth::user()->getRoleNames()[0] != 'admin') {
+            $absen  = BaseService::doGetPresenceToday();
+            if(count($absen) > 0) {
+                // CHECK APAKAH SUDAH ADA ABSEN PULANG?
+                if(!empty($absen[0]->prs_out_time))
+                {
+                    echo 'Sudah Melakukan Absensi Pulang <br/>';
+                    echo "<a href='/dashboard'>Kembali</a>";
+                } else {
+                    $data   = [
+                        "title"     => $this->title . " | Absen",
+                        "user_id"   => Auth::user()->id,
+                    ];
+
+                    return view('dashboard/absen', $data);
+                }
+            } else {
+                echo 'Masa belum absen masuk udah mau pulang aja <br/>';
+                echo "<a href='/dashboard'>Kembali</a>";
+            }
+        }
     }
 
     public function dashboard_presence(Request $request, $jenis)
@@ -126,33 +170,5 @@ class DashboardController extends Controller
         }
 
         return Response::json($output, $output['status']);
-    }
-
-    public function dashboard_excel()
-    {
-        $spreadsheet = new Spreadsheet();
-
-        // Akses sheet aktif (Sheet1 secara default)
-        $sheet1 = $spreadsheet->getActiveSheet();
-        $sheet1->setTitle('Sheet1'); // Ganti nama sheet
-        $sheet1->setCellValue('A1', 'Nama');
-        $sheet1->setCellValue('B1', 'Usia');
-        $sheet1->setCellValue('A2', 'Ahmad');
-        $sheet1->setCellValue('B2', '29');
-
-        // Tambahkan sheet baru (Sheet2)
-        $sheet2 = $spreadsheet->createSheet();
-        $sheet2->setTitle('Sheet2');
-        $sheet2->setCellValue('A1', 'Nama');
-        $sheet2->setCellValue('B1', 'Usia');
-        $sheet2->setCellValue('A2', 'Kuceng');
-        $sheet2->setCellValue('B2', '32');
-
-        // Simpan file Excel ke disk
-        $tempFilePath   = storage_path('app/public/test_multi_sheet.xlsx');
-        $writer = new Xlsx($spreadsheet);
-        $writer->save($tempFilePath);
-
-        return response()->download($tempFilePath)->deleteFileAfterSend(true);
     }
 }
