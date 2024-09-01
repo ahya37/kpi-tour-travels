@@ -31,7 +31,7 @@
         <div style="width: 400px; height: 100%;">
             <div class="row mt-4 mb-4 text-center">
                 <div class="col-sm-12">
-                    <h2 class="no-margins"><label>Adhitya Dwi Cahyana</label></h2>
+                    <h2 class="no-margins"><label>{{ $user_name }}</label></h2>
                 </div>
             </div>
             <div class="card">
