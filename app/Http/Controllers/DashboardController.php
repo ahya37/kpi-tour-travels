@@ -66,6 +66,7 @@ class DashboardController extends Controller
                     $data   = [
                         "title"     => $this->title . " | Absen",
                         "user_id"   => Auth::user()->id,
+                        "user_name" => Auth::user()->name,
                     ];
 
                     return view('dashboard/absen', $data);
