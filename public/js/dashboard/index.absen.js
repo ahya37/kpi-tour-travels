@@ -142,27 +142,25 @@ function showModal(idModal, jenis, data)
         } else if(jenis == 'keluar') {
             $("#modal_open_cam_title").html("Absensi Kepulangan");
             if(prsTempData.length > 0) {
-                if(prsTempData[0]['prs_out_file'] != null) {
-                    $("#body_camera").addClass('d-none');
-                    $("#body_data").removeClass('d-none');
+                $("#body_camera").addClass('d-none');
+                $("#body_data").removeClass('d-none');
 
-                    var canvas  = document.getElementById('getPhoto');
-                    var ctx  = document.getElementById('getPhoto');
-                    if(ctx.getContext)
-                    {
-                        ctx     = ctx.getContext('2d');
+                var canvas  = document.getElementById('getPhoto');
+                var ctx  = document.getElementById('getPhoto');
+                if(ctx.getContext)
+                {
+                    ctx     = ctx.getContext('2d');
 
-                        var img     = new Image;
+                    var img     = new Image;
 
-                        img.onload  = () => {
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        }
-                        img.src     = base_url + "/" + prsTempData[0]['prs_in_file'];
+                    img.onload  = () => {
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     }
-                } else {
-                    $("#body_camera").removeClass('d-none');
-                    $("#body_data").addClass('d-none');
-                    showCamera('camera');
+                    if(prsTempData[0]['prs_out_file'] != null) {
+                        img.src     = base_url + "/" + prsTempData[0]['prs_out_file'];
+                    } else {
+                        img.src     = "";
+                    }
                 }
             } else {
                 showCamera('camera');
