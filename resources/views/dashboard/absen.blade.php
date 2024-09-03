@@ -231,17 +231,19 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-sm-12">
-                            <table class="table table-striped table-hover table-border" style="width: 100%;" id="table_list_pengajuan">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center align-middle" style="width: 5%;">No</th>
-                                        <th class="text-center align-middle" style="width: 20%;">Tanggal</th>
-                                        <th class="text-center align-middle">Keterangan</th>
-                                        <th class="text-center align-middle" style="width: 14%;">Jenis</th>
-                                        <th class="text-center align-middle" style="width: 15%;">Status</th>
-                                    </tr>
-                                </thead>
-                            </table>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover table-border" style="width: 100%;" id="table_list_pengajuan">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" style="width: 5%;">No</th>
+                                            <th class="text-center align-middle" style="width: 20%;">Tanggal</th>
+                                            <th class="text-center align-middle">Keterangan</th>
+                                            <th class="text-center align-middle" style="width: 14%;">Jenis</th>
+                                            <th class="text-center align-middle" style="width: 15%;">Status</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

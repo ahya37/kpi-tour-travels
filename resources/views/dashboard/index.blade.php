@@ -56,25 +56,27 @@
                     <hr>
                     <div class="row">
                         <div class="col-sm-12">
-                            <table class="table table-striped table-hover table-bordered table-striped" style="width: 100%;" id="table_absensi">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center align-middle" title="Tanggal Absensi">Tanggal</th>
-                                        <th class="text-center align-middle" title="Jam Datang">Jam Masuk</th>
-                                        <th class="text-center align-middle" title="Jam Pulang">Jam Keluar</th>
-                                        <th class="text-center align-middle" title="Total Jam Keterlambatan">Kurang Jam</th>
-                                        <th class="text-center align-middle" title="Total Jam Overtime">Lebih Jam</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                                <tfoot>
-                                    <tr>
-                                        <th colspan="3" class="text-right">Total Jam : </th>
-                                        <th id="table_absensi_total_kurang_jam">00:00:00</th>
-                                        <th id="table_absensi_total_lebih_jam">00:00:00</th>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover table-bordered table-striped" style="width: 100%;" id="table_absensi">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" title="Tanggal Absensi">Tanggal</th>
+                                            <th class="text-center align-middle" title="Jam Datang">Jam Masuk</th>
+                                            <th class="text-center align-middle" title="Jam Pulang">Jam Keluar</th>
+                                            <th class="text-center align-middle" title="Total Jam Keterlambatan">Kurang Jam</th>
+                                            <th class="text-center align-middle" title="Total Jam Overtime">Lebih Jam</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="3" class="text-right">Total Jam : </th>
+                                            <th id="table_absensi_total_kurang_jam">00:00:00</th>
+                                            <th id="table_absensi_total_lebih_jam">00:00:00</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

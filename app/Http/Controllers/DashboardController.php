@@ -55,26 +55,13 @@ class DashboardController extends Controller
     public function index_pulang()
     {
         if(Auth::user()->getRoleNames()[0] != 'admin') {
-            $absen  = BaseService::doGetPresenceToday();
-            if(count($absen) > 0) {
-                // CHECK APAKAH SUDAH ADA ABSEN PULANG?
-                if(!empty($absen[0]->prs_out_time))
-                {
-                    echo 'Sudah Melakukan Absensi Pulang <br/>';
-                    echo "<a href='/dashboard'>Kembali</a>";
-                } else {
-                    $data   = [
-                        "title"     => $this->title . " | Absen",
-                        "user_id"   => Auth::user()->id,
-                        "user_name" => Auth::user()->name,
-                    ];
+            $data   = [
+                "title"     => $this->title . " | Absen",
+                "user_id"   => Auth::user()->id,
+                "user_name" => Auth::user()->name,
+            ];
 
-                    return view('dashboard/absen', $data);
-                }
-            } else {
-                echo 'Masa belum absen masuk udah mau pulang aja <br/>';
-                echo "<a href='/dashboard'>Kembali</a>";
-            }
+            return view('dashboard/absen', $data);
         }
     }
 
