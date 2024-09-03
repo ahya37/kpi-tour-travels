@@ -113,11 +113,61 @@ function showModal(idModal, jenis, data)
         if(jenis == 'masuk')
         {
             $("#modal_open_cam_title").html("Absensi Kehadiran");
-            showCamera('camera');
+
+            if(prsTempData.length > 0) {
+                $("#body_camera").addClass('d-none');
+                $("#body_data").removeClass('d-none');
+
+                var canvas  = document.getElementById('getPhoto');
+                var ctx  = document.getElementById('getPhoto');
+                if(ctx.getContext)
+                {
+                    ctx     = ctx.getContext('2d');
+
+                    var img     = new Image;
+
+                    img.onload  = () => {
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    }
+                    img.src     = base_url + "/" + prsTempData[0]['prs_in_file'];
+                }
+            } else {
+                showCamera('camera');
+            }
+
         } else if(jenis == 'keluar') {
             $("#modal_open_cam_title").html("Absensi Kepulangan");
-            showCamera('camera');
+            if(prsTempData.length > 0) {
+                if(prsTempData[0]['prs_out_file'] != null) {
+                    $("#body_camera").addClass('d-none');
+                    $("#body_data").removeClass('d-none');
+
+                    var canvas  = document.getElementById('getPhoto');
+                    var ctx  = document.getElementById('getPhoto');
+                    if(ctx.getContext)
+                    {
+                        ctx     = ctx.getContext('2d');
+
+                        var img     = new Image;
+
+                        img.onload  = () => {
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        }
+                        img.src     = base_url + "/" + prsTempData[0]['prs_in_file'];
+                    }
+                } else {
+                    $("#body_camera").removeClass('d-none');
+                    $("#body_data").addClass('d-none');
+                    showCamera('camera');
+                }
+            } else {
+                showCamera('camera');
+            }
         }
+    } else if(idModal == 'modal_list_pengajuan') {
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+
+        showTable('table_list_pengajuan', '');
     }
 }
 
@@ -133,6 +183,10 @@ function closeModal(idModal)
 
             $("#body_data").addClass('d-none');
             $("#body_camera").removeClass('d-none');
+        })
+    } else if(idModal == 'modal_list_pengajuan') {
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            clearUrl();
         })
     }
 }
@@ -158,11 +212,6 @@ function getLocation(jenis)
         navigator.geolocation.getCurrentPosition(
             // TRUE
             (pos)   => {
-                // Swal.fire({
-                //     icon    : 'success',
-                //     title   : 'Berhasil',
-                //     text    : 'Latitude : '+pos.coords.latitude+'; Longitude : '+pos.coords.longitude,
-                // });
                 latitude    = pos.coords.latitude;
                 longitude   = pos.coords.longitude;
 
@@ -275,6 +324,208 @@ function simpanData(jenis) {
     }
 }
 
+// PENGAJUAN CUTI
+function showView(idView, jenis)
+{
+    if(idView == 'pengajuan_cuti')
+    {
+        // RESET FORM
+        $("#pgj_title").val(null);
+        $("#pgj_duration").val(null);
+        
+        $("#pgj_date").daterangepicker({
+            minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
+            maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
+            autoApply   : false,
+            format      : 'DD/MM/YYYY',
+            setStartDate    : moment(today, 'YYYY-MM-DD'),
+            locale  : {
+                separator   : ' s/d ',
+                cancelLabel : 'Batal',
+                applyLabel  : 'Simpan',
+            },
+        });
+        $("#pgj_date").on('apply.daterangepicker', (ev, picker) => {
+            const pgj_date          = $("#pgj_date").val().split(' s/d ');
+            const pgj_date_start    = moment(pgj_date[0], 'DD/MM/YYYY').format('YYYY-MM-DD');
+            const pgj_date_end      = moment(pgj_date[1], 'DD/MM/YYYY').format('YYYY-MM-DD');
+            const pgj_date_diff     = moment(pgj_date_end, 'YYYY-MM-DD').diff(moment(pgj_date_start, 'YYYY-MM-DD'), 'days') + 1;
+
+            $("#pgj_duration").val(pgj_date_diff+" Hari");
+        })
+
+        $("#pgj_date").data('daterangepicker').setStartDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+        $("#pgj_date").data('daterangepicker').setEndDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+        
+        $("#pgj_title").on('keyup', () => {
+            const pgj_title_val     = $("#pgj_title").val();
+            $("#pgj_title").val(pgj_title_val.toUpperCase());
+        })
+
+        const pgj_type_data     = [
+            { "id" : "Cuti", "name" : "Cuti" },
+            { "id" : "Izin", "name" : "Izin" },
+            { "id" : "Sakit", "name" : "Sakit" },
+            { "id" : "Lainnya", "name" : "Lainnya" },
+        ];
+        showSelect('pgj_type', pgj_type_data);
+        
+        $("#"+idView).removeClass('d-none');
+        $("#"+idView).addClass('animated fadeInRight');
+
+        $("#absen_view").addClass('d-none');
+        $("#btn_simpan_pgj").val(jenis);
+
+    } else if(idView == 'absen_view')
+    {
+        $("#"+idView).removeClass('d-none');
+        $("#"+idView).addClass('animated fadeInRight');
+
+        $("#pengajuan_cuti").addClass('d-none');
+    } else if(idView == 'modal_list_pengajuan') {
+        $("#"+idView).modal({backdrop: 'static', keyboard: false});
+    }
+}
+
+function showSelect(idSelect, data)
+{
+    $("#"+idSelect).select2({
+        theme   : 'bootstrap4'
+    });
+
+    if(idSelect == 'pgj_type')
+    {
+        var html    = "<option selected disabled>Pilih Jenis Pengajuan</option>";
+
+        $.each(data, (i, item)  => {
+            html    += "<option value='" + item.id + "'>" + item.name + "</option>";
+        });
+
+        $("#"+idSelect).html(html);
+    }
+}
+
+function simpanDataPengajuan(jenis)
+{
+    const pgj_title     = $("#pgj_title");
+    const pgj_type      = $("#pgj_type");
+    const pgj_date      = $("#pgj_date");
+    const pgj_status    = "3" // Pending
+
+    if(pgj_title.val() == "") {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Uraian Pengajuan Harus Diisi',
+            didClose    : () => {
+                pgj_title.focus();
+            }
+        })
+    } else if(pgj_type.val() == null) {
+        Swal.fire({
+            icon    : 'error',
+            title   : 'Terjadi Kesalahan',
+            text    : 'Jenis Pengajuan Harus Dipilih',
+            didClose    : () => {
+                pgj_type.select2('open');
+                pgj_type.focus()
+            }
+        })
+    } else {
+        // SIMPAN DATA
+        const pgj_sendData  = {
+            "pgj_id"            : "",
+            "pgj_title"         : pgj_title.val(),
+            "pgj_date_start"    : moment(pgj_date.val().split(' s/d ')[0], 'DD/MM/YYYY').format('YYYY-MM-DD'),
+            "pgj_date_end"      : moment(pgj_date.val().split(' s/d ')[1], 'DD/MM/YYYY').format('YYYY-MM-DD'),
+            "pgj_type"          : pgj_type.val(),
+            "pgj_status"        : pgj_status,
+        };
+
+        const pgj_url       = "/pengajuan/simpanCuti";
+        const pgj_msg       = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+        doTransV2(pgj_url, "POST", pgj_sendData, pgj_msg, true)
+            .then((success) => {
+                Swal.fire({
+                    icon    : success.alert.icon,
+                    title   : success.alert.message.title,
+                    text    : success.alert.message.text,
+                }).then((results)   => {
+                    if(results.isConfirmed) {
+                        showView('absen_view', '');
+                    }
+                })
+            })
+            .catch((err)    => {
+                Swal.fire({
+                    icon    : err.responseJSON.alert.icon,
+                    title   : err.responseJSON.alert.title,
+                    text    : err.responseJSON.alert.message.text,
+                });
+            })
+    }
+}
+
+function showTable(idTable, data)
+{
+    if(idTable == 'table_list_pengajuan')
+    {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                zeroRecords: "Data Yang Dicari Tidak Ditemukan",
+            },
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
+                { "targets" : [1], "className" : "text-left align-middle", "width" : "20%" },
+                { "targets" : [2], "className" : "text-left align-middle"},
+                { "targets" : [3], "className" : "text-center align-middle", "width" : "14%" },
+                { "targets" : [4], "className" : "text-center align-middle", "width" : "15%" },
+            ],
+        });
+
+        // GET DATA
+        const pgj_list_url  = "/pengajuan/listCuti";
+        const pgj_list_type = "GET";
+        const pgj_list_data = "";
+        
+        doTransV2(pgj_list_url, pgj_list_type, pgj_list_data, "", true)
+            .then((success) => {
+                const pgj_list_getData  = success.data;
+                $.each(pgj_list_getData, (i, item)  => {
+
+                    const pgj_list_date         = item.emp_act_start_date != item.emp_act_end_date ? moment(item.emp_act_start_date, 'YYYY-MM-DD').format('DD-MMM-YYYY') + " s/d " + moment(item.emp_act_end_date, 'YYYY-MM-DD').format('DD-MMM-YYYY') : moment(item.emp_act_start_date, "YYYY-MM-DD").format('DD-MMM-YYYY');
+                    const pgj_list_keterangan   = item.emp_act_title;
+                    const pgj_list_type         = item.emp_act_type;
+                    var pgj_list_status;
+                    switch(item.emp_act_status)
+                    {
+                        case '1' :
+                            pgj_list_status     = "<span class='badge badge-primary'><label class='font-weight-bold no-margins'>Diterima</label></span>";
+                            break;
+                        case '2' :
+                            pgj_list_status     = "<span class='badge badge-danger'><label class='font-weight-bold no-margins'>Ditolak</label></span>";
+                            break;
+                        case '3' :
+                            pgj_list_status     = "<span class='badge badge-warning'><label class='font-weight-bold no-margins text-dark'>Menunggu Konfirmasi</label></span>";
+                            break;
+                    }
+                    $("#"+idTable).DataTable().row.add([
+                        i + 1,
+                        pgj_list_date,
+                        pgj_list_keterangan,
+                        pgj_list_type,
+                        pgj_list_status,
+                    ]).draw(false);
+                })
+            })
+            .catch((err)    => {
+                console.log(err);
+            })
+    }
+}
+
 function doTrans(url, type, data, customMessage, isAsync)
 {
     return new Promise(function(resolve, reject){
@@ -298,4 +549,36 @@ function doTrans(url, type, data, customMessage, isAsync)
             }
         })
     });
+}
+
+function doTransV2(url, type, data, customMessage, isAsync)
+{
+    return new Promise((resolve, reject)    => {
+        $.ajax({
+            headers : {
+                'X-CSRF-TOKEN'  : CSRF_TOKEN,
+            },
+            cache   : false,
+            type    : type,
+            async   : isAsync,
+            url     : url,
+            data    : data,
+            beforeSend  : () => {
+                customMessage;
+            },
+            success     : (success) => {
+                resolve(success);
+            },
+            error       : (err)     => {
+                reject(err);
+            }
+        })
+    });
+}
+
+function clearUrl()
+{
+    var url     = window.location.href;
+    var cleanUrl= url.split('#')[0];
+    window.history.replaceState({}, document.title, cleanUrl);
 }

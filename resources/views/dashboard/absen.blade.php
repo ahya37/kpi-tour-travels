@@ -13,6 +13,16 @@
     {{-- FONTAWESOME BARU --}}
     <link href="{{ asset('css/customCSS/fontawesome-5.8.2/fontawesome.min.css') }}" rel="stylesheet">
     <link href="{{asset('assets/css/animate.css')}}" rel="stylesheet">
+    {{-- SELECT2 --}}
+    <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
+    {{-- DATERANGEPICKER --}}
+    <link rel="stylesheet" href="{{ asset('css/customCSS/daterangepicker/daterangepicker.css') }}">
+    {{-- DATATABLES --}}
+    <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/customCSS/DataTables/datatables.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/customCSS/DataTables/fixedHeader-3.2.0/fixedHeader.dataTables.min.css') }}">
+
     <link href="{{asset('assets/css/style.css')}}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/swal2.custom.css') }}">
 
@@ -20,7 +30,13 @@
         video {
             width: 100%;
             height: 100%;
-        }        
+        }
+        .form-group > label {
+            font-weight: bold;
+        }
+        .form-group > input.form-control {
+            height: 38px;
+        }
     </style>
 </head>
 
@@ -28,7 +44,7 @@
 
     <div class="d-flex flex-column align-items-center justify-content-center w-100">
         <input type="hidden" id="prs_user_id" value="{{ $user_id }}">
-        <div style="width: 400px; height: 100%;">
+        <div style="width: 400px; height: 100%;" id="absen_view">
             <div class="row mt-4 mb-4 text-center">
                 <div class="col-sm-12">
                     <h2 class="no-margins"><label>{{ $user_name }}</label></h2>
@@ -77,6 +93,11 @@
                             </form>
                         </div>
                     </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-12">
+                            <button class="btn btn-primary w-100" onclick="showView('pengajuan_cuti', 'add')"><i class="fa fa-edit"></i>&nbsp;Pengajuan Cuti</button>
+                        </div>
+                    </div>
                     <div class="row mb-2 d-none" id="back_button">
                         <div class="col-sm-12">
                             <a href="/dashboard" class="btn btn-success w-100">
@@ -88,6 +109,68 @@
             <div class="row mt-2 text-left">
                 <div class="col-sm-12">
                     <p class="text-danger">* Fitur Absen untuk masuk ke aplikasi</p>
+                </div>
+            </div>
+        </div>
+        <div style="width: 400px; height: 100%;" id="pengajuan_cuti" class="d-none">
+            <div class="row mt-4 mb-4 text-center">
+                <div class="col-sm-12">
+                    <h2 class="no-margins"><label>{{ $user_name }}</label></h2>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header align-items-center text-left">
+                    <h4 class="no-margins">Pengajuan Cuti</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Uraian</label>
+                                <input type="text" class="form-control" id="pgj_title" name="pgj_title" placeholder="Tulis Uraian" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Tanggal Pengajuan</label>
+                                <input type="text" class="form-control" style="background: white; cursor: pointer;" id="pgj_date" name="pgj_date" placeholder="DD/MM/YYYY s/d DD/MM/YYYY" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Banyaknya Hari</label>
+                                <input type="text" class="form-control" readonly placeholder="-- Hari" id="pgj_duration" name="pgj_duration">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label>Jenis Pengajuan</label>
+                                <select name="pgj_type" id="pgj_type" class="form-control" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#" onclick="showModal('modal_list_pengajuan', '', '')">Lihat Pengajuan Saya</a>
+                    <hr>
+                    <div class="row mb-2">
+                        <div class="col-sm-12">
+                            <button class="btn btn-primary w-100" id="btn_simpan_pgj" title="Simpan Pengajuan" onclick="simpanDataPengajuan(this.value)">
+                                <i class="fa fa-save"></i>&nbsp; Simpan
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row" id="back_to_index">
+                        <div class="col-sm-12">
+                            <button class="btn btn-secondary w-100" onclick="showView('absen_view')" title="Kembali ke Halaman Sebelumnya">
+                                <i class="fa fa-chevron-left"></i>&nbsp; Kembali
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -136,6 +219,36 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modal_list_pengajuan">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-row w-100 align-items-center justify-content-between">
+                        <h4 class="no-margins"></h4>
+                        <button class="close" onclick="closeModal('modal_list_pengajuan')">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <table class="table table-striped table-hover table-border" style="width: 100%;" id="table_list_pengajuan">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center align-middle" style="width: 5%;">No</th>
+                                        <th class="text-center align-middle" style="width: 20%;">Tanggal</th>
+                                        <th class="text-center align-middle">Keterangan</th>
+                                        <th class="text-center align-middle" style="width: 14%;">Jenis</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Status</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Mainly scripts -->
     <script src="{{asset('assets/js/jquery-3.1.1.min.js')}}"></script>
     <script src="{{asset('assets/js/bootstrap.js')}}"></script>
@@ -147,7 +260,15 @@
     <script src="{{ asset('js/customJS/moment/moment-timezone-with-data.min.js') }}"></script>
     {{-- FONTAWESOME --}}
     <script src="{{ asset('js/customJS/fontawesome-5.8.2/fontawesome.min.js') }}"></script>
-    
+    {{-- SELECT2 --}}
+    <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
+    {{-- DATERANGEPICKER --}}
+    <script src="{{ asset('js/customJS/daterangepicker/daterangepicker.min.js') }}"></script>
+    {{-- DATATABLE --}}
+    <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
+    <script src="{{ asset('js/customJS/DataTables/buttons.dataTables.js') }}"></script>
+    <script src="{{ asset('js/customJS/DataTables/dataTables.buttons.js') }}"></script>
+    <script src="{{ asset('js/customJS/DataTables/fixedHeader-3.2.0/dataTables.fixedHeader.min.js') }}"></script>
     <script src="{{ asset('js/dashboard/index.absen.js') }}"></script>
 
 </body>
