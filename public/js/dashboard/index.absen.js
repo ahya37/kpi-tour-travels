@@ -129,7 +129,11 @@ function showModal(idModal, jenis, data)
                     img.onload  = () => {
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     }
-                    img.src     = base_url + "/" + prsTempData[0]['prs_in_file'];
+                    if(prsTempData[0]['prs_in_file'] != null) {
+                        img.src     = base_url + "/" + prsTempData[0]['prs_in_file'];
+                    } else {
+                        img.src     = "";
+                    }
                 }
             } else {
                 showCamera('camera');
