@@ -3,11 +3,6 @@ var today   = moment().format('YYYY-MM-DD');
 var url     = window.location.origin;
 
 $(document).ready(() => {
-    Swal.fire({
-        icon    : 'info',
-        title   : 'Perhatian',
-        text    : 'Halaman ini sedang dalam tahap pengembangan'
-    });
 
     showTable('table_list_pengajuan');
 });
