@@ -3,7 +3,7 @@
 moment().locale('id');
 var today   = moment().format('YYYY-MM-DD');
 var abs_data_global     = [];
-const base_url          = window.location.origin;
+var base_url          = window.location.origin;
 
 $(document).ready(() => {
     // GET DATA PENGAJUAN
@@ -109,6 +109,10 @@ function showModal(idModal, jenis, data)
                 applyLabel  : 'Simpan',
             },
         });
+    } else if(idModal == 'modal_emp') {
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+
+        showTable('table_emp', '');
     }
 }
 
@@ -127,6 +131,10 @@ function closeModal(idModal)
 
             $("#abs_tgl_cari").data('daterangepicker').setStartDate(moment().format('DD/MM/YYYY'));
             $("#abs_tgl_cari").data('daterangepicker').setEndDate(moment().format('DD/MM/YYYY'));
+        });
+    } else if(idModal == 'modal_emp') {
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            clearUrl();
         });
     }
 }
@@ -298,6 +306,47 @@ function showTable(idTable, data)
             $(".dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
         }
 
+    } else if(idTable == 'table_emp') {
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                zeroRecords : "Data Yang Dicari Tidak Ditemukan"
+            },
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
+                { "targets" : [1], "className" : "text-left align-middle" },
+                { "targets" : [2], "className" : "text-left align-middle", "width" : "25%" },
+                { "targets" : [3], "className" : "text-left align-middle", "width" : "20%" },
+            ],
+            autoWidth   : false,
+        });
+
+        // GET DATA
+        const emp_url   = base_url + "/master/employees/trans/get/dataTableEmployee";
+        const emp_type  = "GET";
+        const emp_data  = {
+            "cari"  : '%',
+        };
+
+        doTrans(emp_url, emp_type, emp_data, "", true)
+            .then((success)     => {
+                const emp_getData   = success.data;
+                $.each(emp_getData, (i, item)   => {
+                    const emp_data_name     = item[1];
+                    const emp_data_division = item[2].split(' (')[0];
+                    const emp_data_role     = (item[2].split(' (')[1]).split(')')[0];
+
+                    $("#"+idTable).DataTable().row.add([
+                        i + 1,
+                        emp_data_name,
+                        emp_data_division,
+                        emp_data_role
+                    ]).draw(false)
+                })
+            })
+            .catch((err)        => {
+                console.log(err);
+            })
     }
 }
 
