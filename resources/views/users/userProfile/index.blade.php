@@ -102,8 +102,8 @@
                 </div>
             </div>
         </div>
-        <div class="d-flex flex-row w-100 justify-content-between mb-4">
-            <div class="w-50 mx-2">
+        <div class="row mb-2">
+            <div class="col-sm-6 mb-4">
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h4 class="no-margins">
@@ -111,40 +111,42 @@
                         </h4>
                     </div>
                     <div class="card-body">
-                        <div id="table-loading" style="width: 755.5px; height: 330.94px;">
+                        <div id="table-loading" style="height: 364px;">
                             <div class="d-flex flex-column align-items-center w-100 h-100 justify-content-center">
                                 <span class="spinner-border"></span><br>
                                 <label>Table Sedang Dimuat</label>
                             </div>
                         </div>
                         <div id="table-show" class="d-none">
-                            <table class="table table-sm table-bordered table-striped table-hover" style="width: 100%;" id="tableLastActUser">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center align-middle" style="width: 8%;">No</th>
-                                        <th class="text-center align-middle" style="width: 30%;">Tanggal</th>
-                                        <th class="text-left align-middle">Uraian Aktivitas</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered table-striped table-hover" style="width: 100%; height: 100%;" id="tableLastActUser">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" style="width: 5%;">No</th>
+                                            <th class="text-center align-middle" style="width: 30%;">Tanggal</th>
+                                            <th class="text-left align-middle">Uraian Aktivitas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="w-50 mx-2">
+            <div class="col-sm-6 mb-4">
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h4 class="no-margins"><i class='fa fa-bar-chart'></i> Chart Aktivitas Tahunan</h4>
                     </div>
                     <div class="card-body">
-                        <div id="chart-loading" style="width: 755.5px; height: 330.94px;">
+                        <div id="chart-loading" style="height: 364px;">
                             <div class="d-flex flex-column align-items-center w-100 h-100 justify-content-center">
                                 <span class="spinner-border"></span><br>
                                 <label>Chart Sedang Dimuat</label>
                             </div>
                         </div>
-                        <div id="chart-show" class="d-none" style="height: 329px;">
+                        <div id="chart-show" class="d-none" style="height: 364px;">
                             <canvas id="chartActUser" style="width: 100%; height: auto;"></canvas>
                         </div>
                     </div>
