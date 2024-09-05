@@ -76,6 +76,15 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="form-group">
+                                    <label class="font-weight-bold">Jenis Pengajuan</label>
+                                    <select class="form-control" id="pgj_type" name="pgj_type" style="width: 100%;" data-placeholder="Pilih Jenis Pengajuan"></select>
+                                    {{-- <a href="#show_aturan" title="Lihat Aturan Jenis Pengajuan" onclick="showModal('modal_aturan_jenis_pengajuan','')">Lihat Aturan Pengajuan</a> --}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
                                     <label class="font-weight-bold">Tanggal Pengajuan</label>
                                     <input type="text" class="form-control" id="pgj_date" name="pgj_date" placeholder="DD/MM/YYYY s/d DD/MM/YYYY" readonly style="background: white; cursor: pointer;">
                                 </div>
@@ -89,20 +98,55 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label class="font-weight-bold">Jenis Pengajuan</label>
-                                    <select class="form-control" id="pgj_type" name="pgj_type" style="width: 100%;" data-placeholder="Pilih Jenis Pengajuan"></select>
-                                </div>
-                            </div>
-                        </div>
                         <hr>
                         <div class="d-flex flex-row justify-content-end w-100 mb-2">
+                            <button type="button" id="pgj_btn_aturan" class="btn btn-success" onclick="showModal('modal_aturan_jenis_pengajuan')">Lihat Aturan Pengajuan</button>
                             <button type="button" id="pgj_btn_tutup" class="btn btn-secondary mx-2" onclick="closeModal('modal_pengajuan')">Batal</button>
                             <button type="submit" value="" id="pgj_btn_simpan" class="btn btn-primary">Simpan</button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modal_aturan_jenis_pengajuan">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-row w-100 align-items-center justify-content-between">
+                        <h4 class="no-margins">Aturan Pengajuan</h4>
+                        <button class="close" onclick="closeModal('modal_aturan_jenis_pengajuan')">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Jenis</th>
+                                    <th>Lamanya</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Cuti, Izin, Sakit</td>
+                                    <td>3 Hari (Max)</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Cuti Hamil</td>
+                                    <td>3 Bulan (Max)</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Keterlambatan</td>
+                                    <td>Hari yang sama</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

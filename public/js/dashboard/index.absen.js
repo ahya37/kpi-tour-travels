@@ -341,6 +341,30 @@ function showView(idView, jenis)
         $("#pgj_title").val(null);
         $("#pgj_duration").val(null);
         
+        // FILL FORM
+        $("#pgj_duration").val('1 Hari');
+        
+        $("#pgj_title").on('keyup', () => {
+            const pgj_title_val     = $("#pgj_title").val();
+            $("#pgj_title").val(pgj_title_val.toUpperCase());
+        })
+
+        const pgj_type_data     = [
+            { "id" : "Cuti", "name" : "Cuti" },
+            { "id" : "Izin", "name" : "Izin" },
+            { "id" : "Sakit", "name" : "Sakit" },
+            { "id" : "Cuti Melahirkan", "name" : "Cuti Melahirkan" },
+            { "id" : "Keterlambatan", "name" : "Keterlambatan" },
+        ];
+        showSelect('pgj_type', pgj_type_data);
+
+        $("#pgj_type").on('change', () => {
+            $("#pgj_date").data('daterangepicker').setStartDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            $("#pgj_date").data('daterangepicker').setEndDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            $("#pgj_duration").val('1 Hari');
+        })
+
+        // DATERANGEPICKER
         $("#pgj_date").daterangepicker({
             minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
             maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
@@ -365,18 +389,76 @@ function showView(idView, jenis)
         $("#pgj_date").data('daterangepicker').setStartDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
         $("#pgj_date").data('daterangepicker').setEndDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
         
-        $("#pgj_title").on('keyup', () => {
-            const pgj_title_val     = $("#pgj_title").val();
-            $("#pgj_title").val(pgj_title_val.toUpperCase());
+        $("#pgj_date").daterangepicker({
+            minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
+            maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
+            autoApply   : false,
+            format      : 'DD/MM/YYYY',
+            setStartDate    : moment(today, 'YYYY-MM-DD'),
+            locale  : {
+                separator   : ' s/d ',
+                cancelLabel : 'Batal',
+                applyLabel  : 'Simpan',
+            },
+        });
+        $("#pgj_date").on('apply.daterangepicker', (ev, picker) => {
+            const pgj_date          = $("#pgj_date").val().split(' s/d ');
+            const pgj_date_start    = moment(pgj_date[0], 'DD/MM/YYYY').format('YYYY-MM-DD');
+            const pgj_date_end      = moment(pgj_date[1], 'DD/MM/YYYY').format('YYYY-MM-DD');
+            const pgj_date_diff     = moment(pgj_date_end, 'YYYY-MM-DD').diff(moment(pgj_date_start, 'YYYY-MM-DD'), 'days') + 1;
+
+            $("#pgj_duration").val(pgj_date_diff+" Hari");
+
+            // CHECK
+            // CHECK APAKAH PGJ TYPE IS NULL?
+            if($("#pgj_type").val() == null) {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Pilih Jenis Pengajuan Terlebih Dahulu..',
+                }).then((results)   => {
+                    if(results.isConfirmed) {
+                        $("#pgj_type").select2('open');
+                    }
+                });
+                $("#pgj_date").data('daterangepicker').setStartDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                $("#pgj_date").data('daterangepicker').setEndDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                $("#pgj_duration").val('1 Hari');
+            } else {
+                // CHECK VAL
+                // RULES :
+                // IZIN, CUTI, LAINNYA  = 3 HARI
+                // CUTI MELAHIRKAN      = 3 BULAN (90 HARI)
+                // KETERLAMBATAN        = HARI H
+                const pgjType  = $("#pgj_type").val();
+                let rule;
+                let msg;
+                if(pgjType  == "Cuti Melahirkan") {
+                    rule    = 90;
+                } else if(pgjType == 'Keterlambatan') {
+                    rule    = 1;
+                } else {
+                    rule    = 3;
+                }
+
+                if(pgj_date_diff > rule) {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : 'Untuk Jenis '+pgjType+' Hanya Boleh '+rule+' Hari',
+                        didClose    : () => {
+                            $("#pgj_date").click();
+                        }
+                    });
+                } else {
+
+                }
+                $("#pgj_duration").val(pgj_date_diff+" Hari");
+            }
         })
 
-        const pgj_type_data     = [
-            { "id" : "Cuti", "name" : "Cuti" },
-            { "id" : "Izin", "name" : "Izin" },
-            { "id" : "Sakit", "name" : "Sakit" },
-            { "id" : "Lainnya", "name" : "Lainnya" },
-        ];
-        showSelect('pgj_type', pgj_type_data);
+        $("#pgj_date").data('daterangepicker').setStartDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+        $("#pgj_date").data('daterangepicker').setEndDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
         
         $("#"+idView).removeClass('d-none');
         $("#"+idView).addClass('animated fadeInRight');

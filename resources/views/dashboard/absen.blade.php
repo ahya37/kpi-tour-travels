@@ -134,6 +134,14 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group">
+                                <label>Jenis Pengajuan</label>
+                                <select name="pgj_type" id="pgj_type" class="form-control" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
                                 <label>Tanggal Pengajuan</label>
                                 <input type="text" class="form-control" style="background: white; cursor: pointer;" id="pgj_date" name="pgj_date" placeholder="DD/MM/YYYY s/d DD/MM/YYYY" readonly>
                             </div>
@@ -144,14 +152,6 @@
                             <div class="form-group">
                                 <label>Banyaknya Hari</label>
                                 <input type="text" class="form-control" readonly placeholder="-- Hari" id="pgj_duration" name="pgj_duration">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label>Jenis Pengajuan</label>
-                                <select name="pgj_type" id="pgj_type" class="form-control" style="width: 100%;"></select>
                             </div>
                         </div>
                     </div>
