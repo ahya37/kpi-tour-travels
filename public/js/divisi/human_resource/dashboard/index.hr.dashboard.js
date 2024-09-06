@@ -315,14 +315,15 @@ function showTable(idTable, data)
             columnDefs  : [
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
                 { "targets" : [1], "className" : "text-left align-middle" },
-                { "targets" : [2], "className" : "text-left align-middle", "width" : "25%" },
+                { "targets" : [2], "className" : "text-left align-middle", "width" : "35%" },
                 { "targets" : [3], "className" : "text-left align-middle", "width" : "20%" },
+                { "targets" : [4], "className" : "text-center align-middle", "width" : "10%" },
             ],
             autoWidth   : false,
         });
 
         // GET DATA
-        const emp_url   = base_url + "/master/employees/trans/get/dataTableEmployee";
+        const emp_url   = base_url + "/divisi/human_resource/employee/list";
         const emp_type  = "GET";
         const emp_data  = {
             "cari"  : '%',
@@ -331,18 +332,17 @@ function showTable(idTable, data)
         doTrans(emp_url, emp_type, emp_data, "", true)
             .then((success)     => {
                 const emp_getData   = success.data;
-                $.each(emp_getData, (i, item)   => {
-                    const emp_data_name     = item[1];
-                    const emp_data_division = item[2].split(' (')[0];
-                    const emp_data_role     = (item[2].split(' (')[1]).split(')')[0];
-
+                let seq = 0;
+                for(emp of emp_getData)
+                {
                     $("#"+idTable).DataTable().row.add([
-                        i + 1,
-                        emp_data_name,
-                        emp_data_division,
-                        emp_data_role
-                    ]).draw(false)
-                })
+                        seq++,
+                        emp.emp_name,
+                        emp.emp_division,
+                        emp.emp_role,
+                        emp.emp_is_active == '1' ? "<button class='btn btn-sm btn-primary' value='" + emp.emp_id + "' onclick='doSimpan(`aktivasi`, `active`, this.value)'>Aktif</button>" : "<button class='btn btn-sm btn-danger' value='" + emp.emp_id + "' onclick='doSimpan(`aktivasi`, `deactive`, this.value)'>Tidak Aktif</button>",
+                    ]).draw(false);
+                };
             })
             .catch((err)        => {
                 console.log(err);
@@ -571,6 +571,35 @@ function doSimpan(type, jenis, data)
                     })
                 break; 
             }
+        break;
+        case "aktivasi" :
+            const emp_url   = base_url + "/divisi/human_resource/employee/ubahStatus";
+            const emp_data  = {
+                "emp_id"    : data,
+                "emp_status": jenis,
+            };
+            const emp_type  = "POST";
+            const emp_msg   = Swal.fire({ title : 'Permintaan Sedang Diproses' });Swal.showLoading();
+            
+            doTrans(emp_url, emp_type, emp_data, emp_msg, true)
+                .then((success) => {
+                    Swal.fire({
+                        icon    : success.alert.icon,
+                        title   : success.alert.message.title,
+                        text    : success.alert.message.text,
+                    }).then((results)   => {
+                        if(results.isConfirmed) {
+                            showTable('table_emp', '');
+                        }
+                    })
+                })
+                .catch((err)    => {
+                    Swal.fire({
+                        icon    : err.responseJSON.alert.icon,
+                        title   : err.responseJSON.alert.message.title,
+                        text    : err.responseJSON.alert.message.text,
+                    })
+                });
         break;
     }
 }

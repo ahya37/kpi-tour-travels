@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\DivisiService;
 use App\Services\BaseService;
+use App\Services\EmployeeService;
 use Http;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
@@ -1684,4 +1685,78 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
     }
+    
+    public function hr_list_employee(Request $request)
+    {
+        // GET DATA
+        $emp_send_data  = $request->all()['cari'];
+        $emp_get_data   = EmployeeService::getDataEmployee($emp_send_data);
+        $emp_data       = [];
+
+        if(count($emp_get_data) > 0) {
+            foreach($emp_get_data as $emp)
+            {
+                $emp_data[]     = [
+                    "emp_id"        => $emp->employee_id,
+                    "emp_name"      => $emp->employee_name,
+                    "emp_role"      => $emp->role_name,
+                    "emp_division"  => $emp->group_division_name." (".$emp->sub_division_name.")",
+                    "emp_is_active" => $emp->user_active
+                ];
+            }
+        } else {
+            $emp_data   = [];
+        }
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Mengambil Data Karyawan",
+            "data"      => $emp_data,
+            "total_data"=> count($emp_data)
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function hr_ubah_status_employee(Request $request)
+    {
+        $sendData   = [
+            "emp_id"        => $request->all()['emp_id'],
+            "emp_status"    => $request->all()['emp_status'] == 'active' ? '0' : '1',
+            "ip"            => $request->ip(),
+        ];
+
+        $doSimpan   = EmployeeService::do_ubah_status_employee($sendData);
+
+        if($doSimpan['status'] == 'berhasil') {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "alert"     => [
+                    "icon"  => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Mengubah Status User",
+                    ],
+                ],
+                "errMsg"    => $doSimpan['errMsg'],
+            ];
+        } else {
+            $output     = [
+                "status"    => 400,
+                "success"   => false,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Sistem Sedang Gangguan, Silahkan Coba Lagi..",
+                    ],
+                ],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
 }

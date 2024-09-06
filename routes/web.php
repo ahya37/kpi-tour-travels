@@ -394,6 +394,10 @@ Route::group(['middleware' => ['auth']], function () {
 
         Route::prefix('human_resource')->group(function(){
             Route::get('/', [DivisiController::class, 'indexHR'])->name('index.human_resouce');
+            Route::prefix('/employee')->group(function(){
+                Route::get('/list', [DivisiController::class, 'hr_list_employee']);
+                Route::post('/ubahStatus', [DivisiController::class, 'hr_ubah_status_employee']);
+            });
             Route::prefix('absensi')->group(function(){
                 Route::get('/list', [DivisiController::class, 'absensi_list']);
                 Route::get('/excelDownload', [DivisiController::class, 'absensi_download_excel']);

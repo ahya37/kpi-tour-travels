@@ -29,7 +29,8 @@ class EmployeeService
                     d.name as sub_division_name,
                     e.email as employee_email,
                     f.role_id,
-				    g.name as role_name
+				    g.name as role_name,
+                    e.is_active as user_active
             FROM 	job_employees a
             INNER JOIN employees b ON a.employee_id = b.id
             INNER JOIN group_divisions c ON a.group_division_id = c.id
@@ -38,7 +39,7 @@ class EmployeeService
             INNER JOIN model_has_roles f ON b.user_id = f.model_id
             INNER JOIN roles g ON f.role_id = g.id
             WHERE 	(a.id LIKE '%$cari%' OR b.id LIKE '%$cari%' OR c.id LIKE '%$cari%' OR d.id LIKE '%$cari%')
-            ORDER BY a.created_at DESC
+            ORDER BY b.name ASC
             "
         );
         return $rawQuery;
@@ -210,5 +211,53 @@ class EmployeeService
             ORDER BY user_id ASC
             "
         );
+    }
+
+    // 06 SEPTEMBER 2024
+    // NOTE : MELAKUKAN PERUBAHAN STATUS EMPLOYEE DARI ACTIVE => NON ACTIVE ATAU SEBALIKNYA
+    public static function do_ubah_status_employee($data)
+    {
+        $emp_id     = $data['emp_id'];
+        $emp_status = $data['emp_status'];
+        $ip         = $data['ip'];
+
+        DB::beginTransaction();
+
+        // DAPETIN ID USER
+        $query_get_id_user  = DB::table('employees')->select('user_id')->where(['id' => $emp_id])->get();
+        $id_selected_user   = $query_get_id_user[0]->user_id;
+
+        // UPDATE TABLE USERS
+        $data_where_update_user     = [
+            "id"        => $id_selected_user,
+        ];
+        
+        $data_for_update_user       = [
+            "is_active" => $emp_status,
+            "updated_at"=> date('Y-m-d H:i:s'),
+        ];
+        
+        DB::table('users')->where($data_where_update_user)->update($data_for_update_user);
+
+        try {
+            DB::commit();
+            LogHelper::create('edit', 'Berhasil Mengubah Status User : '.$id_selected_user, $ip);
+
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => "",
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Mengubah Status User', $ip);
+
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
     }
 }

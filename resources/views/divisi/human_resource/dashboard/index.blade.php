@@ -4,6 +4,7 @@
 @push('addon-style')
     @include('layouts.css')
     <link rel="stylesheet" href="{{ asset('css/customCSS/percik_fullcalendar.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/plugins/switchery/switchery.css') }}">
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 
     <style>
@@ -210,6 +211,7 @@
                                             <th class="text-center align-middle">Nama</th>
                                             <th class="text-center align-middle" style="width: 25%;">Divisi</th>
                                             <th class="text-center align-middle" style="wdith: 20%;">Role</th>
+                                            <th class="text-center align-middle" style="width: 10%;">Status</th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -225,6 +227,7 @@
 
 @push('addon-script')
     @include('layouts.js')
+    <script src="{{ asset('assets/js/plugins/switchery/switchery.js') }}"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/divisi/human_resource/dashboard/index.hr.dashboard.js') }}"></script>
 @endpush
