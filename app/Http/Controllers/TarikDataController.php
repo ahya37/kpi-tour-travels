@@ -18,6 +18,7 @@ class TarikDataController extends Controller
 
         // GET DATA
         $getData    = TarikDataService::get_tarik_data_presensi($today);
+        var_dump($getData);die();
 
         $output     = [
             "success"   => true,
