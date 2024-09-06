@@ -17,6 +17,7 @@ use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\TarikDataController;
 use App\Models\Division;
 use App\Services\ProgramKerjaService;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +47,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/postPresence/{jenis}', [DashboardController::class, 'dashboard_presence']);
         Route::get('/getDataPresenceToday', [DashboardController::class, 'dashboard_getPresenceToday']);
         Route::get('/absensi_pulang', [DashboardController::class, 'index_pulang'])->name('absen.pulang');
+        Route::get('/tarik_data', [DashboardController::class, 'index_tarik_data_presensi']);
     });
     // Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class,'logout'])->name('logout.store');
@@ -429,5 +431,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/cuti', [DivisiController::class, 'pengajuan_cuti'])->name('index.pengajuan.cuti');
         Route::get('/listCuti', [DivisiController::class, 'pengajuan_list_cuti']);
         Route::post('/simpanCuti', [DivisiController::class, 'pengajuan_simpan_cuti']);
+    });
+
+    Route::prefix('tarik_data')->group(function() {
+        Route::get('/absensi', [TarikDataController::class, 'tarik_data_absensi']);
     });
 });

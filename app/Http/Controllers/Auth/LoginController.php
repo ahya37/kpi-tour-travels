@@ -52,23 +52,43 @@ class LoginController extends Controller
             'password'  => 'required',
         ]);
 
-         //get email and password from request
-         $credentials = $request->only('email', 'password');
+        $sendData   = [
+            "email"         => $request->all()['email'],
+            "password"      => $request->all()['password'],
+        ];
+
+        //get email and password from request
+        //  $credentials = $request->only('email', 'password');
+        $credentials    = $sendData;
 
          //attempt to login
          if (auth()->attempt($credentials)) {
  
-             //regenerate session
-             $request->session()->regenerate();
- 
-             //redirect route dashboard
-             return redirect()->route('dashboard');
+            // CHECK USER IS ACTIVE OR NOT?
+            $data_user_is_active    = [
+                "email"     => $sendData['email'],
+                "password"  => $sendData['password'],
+                "is_active" => "1",
+            ];
+
+            if(auth()->attempt($data_user_is_active) === true) {
+                //regenerate session
+                $request->session()->regenerate();
+    
+                //redirect route dashboard
+                return redirect()->route('dashboard');                   
+            } else {
+                // REMOVE CURRENT SESSION
+                $request->session()->invalidate();
+                return back()->with([
+                    'error' => 'Akun Sudah Tidak Aktif',
+                ]);
+            }
+         } else {
+            return back()->with([
+                'error' => 'Email / Password Salah',
+            ]);
          }
- 
-         //if login fails
-         return back()->with([
-             'error' => 'Email atau password salah',
-         ]);
     }
 
     public function logout(Request $request)

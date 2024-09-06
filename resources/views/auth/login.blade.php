@@ -34,12 +34,14 @@
         <div class="row align-items-center justify-content-center">
           <div class="col-md-7">
             <div class="mb-4 text-center">
-              <h2>ERP Percik Tours Login</h2>
+              <h2>
+                <label>ERP Percik Tours Login</label>
+              </h2>
             </div>
             <form  method="POST" action="{{ route('login.store') }}">
                 @csrf
               <div class="form-group first">
-                <label for="username">Email / Username</label>
+                <label for="username">Email</label>
                 <input type="email" name="email"  class="form-control" id="email" autofocus autocomplete="off" style="background-color: #faf9f6;">
 
               </div>
@@ -49,6 +51,13 @@
               </div>
               <button type="submit" value="Log In" class="btn btn-block btn-sm btn-primary">Sign In</button>
             </form>
+            <div class="row align-items-center justify-content-center mt-2">
+              <div class="col-sm-12">
+                <label class="font-weight-bold text-danger">
+                  {{ session('error') }}
+                </label>
+              </div>
+            </div>
           </div>
         </div>
       </div>
