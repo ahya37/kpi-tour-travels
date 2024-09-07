@@ -40,15 +40,20 @@
             </div>
             <form  method="POST" action="{{ route('login.store') }}">
                 @csrf
-              <div class="form-group first">
-                <label for="username">Email</label>
-                <input type="email" name="email"  class="form-control" id="email" autofocus autocomplete="off" style="background-color: #faf9f6;">
+                <div class="form-group first">
+                    <label for="username">Email</label>
+                    <input type="email" name="email"  class="form-control" id="email" autocomplete="off" style="background-color: #faf9f6;">
+                </div>
+                <div class="form-group last mb-3">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" name="password" id="password" style="background-color: #faf9f6;">
+                </div>
 
-              </div>
-              <div class="form-group last mb-3">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" name="password" id="password" style="background-color: #faf9f6;">
-              </div>
+                <div class="d-flex flex-row align-items-center justify-content-start w-100" style="margin-bottom: 16px;">
+                    <input type="checkbox" style="width: 16px; height: 16px; margin-right: 8px;" id="remember_me" onclick="doIngatSaya();">
+                    <label class="no-margins font-weight-bold">Ingat Saya</label>
+                </div>
+
               <button type="submit" value="Log In" class="btn btn-block btn-sm btn-primary">Sign In</button>
             </form>
             <div class="row align-items-center justify-content-center mt-2">
@@ -74,7 +79,6 @@
     <script src="{{asset('/assets/login/js/main.js')}}"></script>
 
     <script type="text/javascript">
-      localStorage.clear();
     </script>
   </body>
 </html>

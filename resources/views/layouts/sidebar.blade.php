@@ -268,7 +268,7 @@
     $(document).ready(()    => {
         var base_url    = window.location.origin;
         var default_picture     = base_url+"/assets/img/9187604.png";
-        if(localStorage.length > 0) {
+        if(localStorage.getItem('profile_pict') != '') {
             const profile_pict  = localStorage.getItem('profile_pict');
             $("#profile_image").prop('src', '');
             $("#profile_image").prop('src', profile_pict);
