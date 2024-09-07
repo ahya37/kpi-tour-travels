@@ -9,6 +9,8 @@ var base_url                = window.location.origin;
 var checkPasswordIsTrue     = false;
 var isConfirmPasswordSame   = false;
 var defaultPicturePath      = base_url + '/assets/img/9187604.png';
+var tempLocalStorage        = [];
+var dataLocalStorage        = JSON.parse(localStorage.getItem('items'))[0];
 
 function getDataDashboard()
 {
@@ -51,13 +53,24 @@ function getDataDashboard()
                 $("#img_found").removeClass('d-none');
                 $("#img_found_image").append("<img src='" + base_url + "/" + dataUser_image + "' style='width: 80px; height: 80px;' class='rounded-circle m-b-md' alt='profile'>");
                 $("#img_not_found").addClass('d-none');
-                localStorage.setItem('profile_pict', base_url + "/" + dataUser_image);
+                const senData   = {
+                    "email"         : dataLocalStorage['email'],
+                    "profile_pict"  : base_url + "/" + dataUser_image,
+                };
+                tempLocalStorage.push(sendData);
+                localStorage.setItem('items', JSON.stringify(tempLocalStorage));
                 $("#profile_image").prop('src', base_url + "/" + dataUser_image);
             } else {
                 $("#img_found_image").append("<img src='"+defaultPicturePath+"' style='width: 80px; height: 80px;' class='rounded-circle m-b-md' alt='profile'>");
                 $("#img_not_found").removeClass('d-none');
                 $("#img_found").addClass('d-none');
-                localStorage.setItem('profile_pict', defaultPicturePath);
+                const sendData  = {
+                    "email"             : dataLocalStorage['email'],
+                    "profile_pict"      : defaultPicturePath,
+                };
+                tempLocalStorage.push(sendData);
+                localStorage.setItem('items', JSON.stringify(tempLocalStorage));
+
                 $("#profile_image").prop('src', defaultPicturePath);
             }
 
@@ -345,7 +358,7 @@ function showTable(idTable, data)
                 ]).draw(false);
             }
         } else {
-            console.log(data);
+            // console.log(data);
         }
     }
 }
@@ -362,7 +375,7 @@ function showChart(idChart, data)
             label_data.push(item.total_data);
         }
 
-        console.log(label_bulan, label_data);
+        // console.log(label_bulan, label_data);
 
         const myBarChart    = new Chart(ctx, {
             type: 'bar', // Jenis grafik

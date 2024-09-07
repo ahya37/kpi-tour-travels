@@ -1,3 +1,4 @@
+var local_data 	= [];
 $(function() {
 	// 'use strict';
 
@@ -46,9 +47,7 @@ $(function() {
 	});
 
 	$("#password").on('keyup', () => {
-		if($("#password").val() == '') {
-			$(".last").addClass('field--not-empty');
-		}
+		$(".last").addClass('field--not-empty');
 	})
 
 	$("#password").on('blur', () => {
@@ -59,28 +58,54 @@ $(function() {
 });
 
 // localStorage.clear()
-localStorage.setItem('profile_pict', '');
+// localStorage.setItem('profile_pict', '');
 
-if(localStorage.getItem('email') != '') {
+// BUAT HASIL JSON PARSE MENJADI ARRAY
+var dataStorage 	= JSON.parse(localStorage.getItem('items'))[0];
+console.log(JSON.parse(localStorage.getItem('items')));
+
+if(dataStorage['email'] != '') {
 	$("#remember_me").prop('checked', true);
-	$("#email").val(localStorage.getItem('email'));
+	$("#email").val(dataStorage['email']);
+	$("#password").focus();
 } else {
 	$("#remember_me").prop('checked', false);
 	$("#email").val('');
 }
+
+// if() {
+// 	$("#remember_me").prop('checked', true);
+// 	$("#email").val(localStorage.getItem('email'));
+// } else {
+// 	$("#remember_me").prop('checked', false);
+// 	$("#email").val('');
+// }
 
 function doIngatSaya() {
 	// GET DATA USERNAME
 	if($("#remember_me").is(':checked') === true) {
 		var username  = $("#email").val();
 		if(username != '') {
-			localStorage.setItem('email', username);
+			const sendData 	= {
+				"email"			: username,
+				"profile_pict"	: "",
+			};
+			local_data.push(sendData);
+			localStorage.setItem('items', JSON.stringify(local_data));
 		} else {
-			localStorage.setItem('email', '');
+			const sendData	 = {
+				"email"			: "",
+				"profile_pict"	: "",	
+			};
+			local_data.push(sendData);
+			localStorage.setItem('items', JSON.stringify(local_data));
 		}
 	} else {
-		localStorage.setItem('email', '');
+		const sendData 	= {
+			"email"			: "",
+			"profile_pict"	: "",
+		};
+		local_data.push(sendData);
+		localStorage.setItem('items', JSON.stringify(local_data));
 	}
 }
-
-console.log(localStorage);

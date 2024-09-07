@@ -241,9 +241,6 @@
 @push('addon-script')
     {{-- SWEETALERT2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
-    {{-- CUSTOM JS --}}
-    <script src="{{ asset('js/csrf-token.js') }}"></script>
-    <script src="{{ asset('js/users/userProfile/index.userProfile.js') }}"></script>
     {{-- DATATABLE --}}
     <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
     {{-- CHART JS --}}
@@ -252,4 +249,7 @@
     <script src="{{ asset('js/customJS/moment/moment.min.js') }}"></script>
     <script src="{{ asset('js/customJS/moment/id.js') }}"></script>
     <script src="{{ asset('js/customJS/moment/moment-timezone-with-data.min.js') }}"></script>
+    {{-- CUSTOM JS --}}
+    <script src="{{ asset('js/csrf-token.js') }}"></script>
+    <script src="{{ asset('js/users/userProfile/index.userProfile.js') }}"></script>
 @endpush

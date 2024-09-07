@@ -265,13 +265,16 @@
 <script src="{{ asset('assets/js/jquery-3.1.1.min.js') }}"></script>
 
 <script type="text/javascript">
+    var base_url    = window.location.origin;
+    var local_data  = [];
     $(document).ready(()    => {
-        var base_url    = window.location.origin;
-        var default_picture     = base_url+"/assets/img/9187604.png";
-        if(localStorage.getItem('profile_pict') != '') {
-            const profile_pict  = localStorage.getItem('profile_pict');
+        var storageExtract  = JSON.parse(localStorage.getItem('items'))[0];
+        var pictDefault     = base_url + "/assets/img/9187604.png";
+
+        if(storageExtract['profile_pict'] != '') {
+            const profilePict   = storageExtract['profile_pict'];
             $("#profile_image").prop('src', '');
-            $("#profile_image").prop('src', profile_pict);
+            $("#profile_image").prop('src', profilePict);
         } else {
             $.ajax({
                 cache   : false,
@@ -279,12 +282,20 @@
                 url     : '/accounts/userProfiles/getDataUser',
                 success : (success) => {
                     if(success.length > 0) {
-                        localStorage.clear();
-                        localStorage.setItem('profile_pict', success[0].pict_dir == null ? base_url + '/assets/img/9187604.png' : base_url + '/'+ success[0].pict_dir);
+                        const sendData   = {
+                            "email"         : storageExtract['email'],
+                            "profile_pict"  : success[0].pict_dir == null ? base_url + '/assets/img/9187604.png' : base_url + '/'+ success[0].pict_dir,
+                        };
+                        local_data.push(sendData);
+                        localStorage.setItem('items', JSON.stringify(local_data));
                         $("#profile_image").prop('src', success[0].pict_dir == null ? base_url + '/assets/img/9187604.png' : base_url + '/'+ success[0].pict_dir);
                     } else {
-                        localStorage.clear();
-                        localStorage.setItem('profile_pict', default_picture);
+                        const sendData  = {
+                            "email"         : storageExtract['email'],
+                            "profile_pict"  : default_picture,
+                        };
+                        local_data.push(sendData);
+                        localStorage.setItem('items', JSON.stringify(local_data));
                         $("#profile_image").prop('src', default_picture);
                     }
                 },
