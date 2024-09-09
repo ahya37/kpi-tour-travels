@@ -11,6 +11,20 @@ date_default_timezone_set('Asia/Jakarta');
 
 class TarikDataService {
     
+    public static function get_data_absensi($data)
+    {
+        $tgl_cari   = $data['tgl_cari'];
+
+        $query      = DB::connection('presensi_percik')
+                        ->table('time_attendance as a')
+                        ->join('user as b', 'a.nik', '=', 'b.nik')
+                        ->select('a.*', 'b.nik', 'b.name', 'b.erp_id')
+                        ->where('a.attendance_date', '=', $tgl_cari)
+                        ->get();
+
+        return $query;
+    }
+
     public static function get_tarik_data_presensi($today)
     {
         DB::beginTransaction();
@@ -30,7 +44,7 @@ class TarikDataService {
         $jml_sukses             = 0;
         $jml_gagal              = 0;
 
-        if(count($query))
+        if(count($query) > 0)
         {
             for($i = 0; $i < count($query); $i++)
             {

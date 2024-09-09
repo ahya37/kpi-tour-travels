@@ -381,6 +381,9 @@ Route::group(['middleware' => ['auth']], function () {
                 // GET RKAP DATA
                 Route::get('/getRKAPData', [DivisiController::class, 'finance_rkap_getData']);
             });
+            Route::prefix('master')->group(function(){
+                Route::get('/gaji_pokok_employee', [DivisiController::class, 'finance_master_employees_fee']);
+            });
         });
 
         Route::prefix('digital')->group(function(){
@@ -438,6 +441,8 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
     Route::prefix('tarik_data')->group(function() {
-        Route::get('/absensi', [TarikDataController::class, 'tarik_data_absensi']);
+        Route::get('/', [TarikDataController::class, 'tarik_data_index']);
+        Route::get('/get_list_absensi', [TarikDataController::class, 'tarik_data_get_absensi']);
+        Route::post('/absensi', [TarikDataController::class, 'tarik_data_absensi']);
     });
 });
