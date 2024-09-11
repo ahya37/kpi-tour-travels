@@ -17,15 +17,20 @@ $(document).ready(() => {
         "rkap_id"   : '%',
     };
 
+    const gpkEmployee_url   = base_url + "/divisi/finance/master/gaji_pokok_employee";
+    const gpkEmployee_data  = "";
+
     const getDatadDashboard     = [
         doTrans(actUser_url, 'GET', actUser_data, '', true),
-        doTrans(financeRKAP_url, 'GET', financeRKAP_data, '', true)
+        doTrans(financeRKAP_url, 'GET', financeRKAP_data, '', true),
+        doTransV2(gpkEmployee_url, 'GET', gpkEmployee_data, '', true)
     ];
 
     Promise.all(getDatadDashboard)
         .then((success) => {
             const actUser_getData       = success[0].data;
             const financeRKAP_getData   = success[1].data;
+            const gpkEmployee_getData   = success[2].total_data;
             
             // HIDE LOADING ACT USER
             $("#act_user_loading").addClass('d-none');
@@ -41,6 +46,8 @@ $(document).ready(() => {
             $("#abs_loading").addClass('d-none');
             $("#abs_text").removeClass('d-none');
             $("#abs_text").html("<label class='no-margins font-weight-light'>"+moment().format('YYYY-MM-DD')+"</label>");
+            
+            $("#kar_text").html("<label class='no-margins font-weight-light'>" + gpkEmployee_getData + "</label>");
         })
         .catch((err)    => {
             // HIDE LOADING ACT USER
@@ -308,6 +315,52 @@ function showTable(idTable, data)
                 { "targets" : [1], "className" : "text-center", "width" : "15%" },
             ],
         })
+    } else if(idTable == 'table_update_gapok_karyawan') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                "zeroRecords"   : "Data Yang Dicari Tidak Ditemukan..",
+            },
+            pageLength  : -1,
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "width" : "8%", "className" : "text-center align-middle" },
+                { "targets" : [1], "className" : "text-left align-middle" },
+                { "targets" : [2], "width" : "25%", "className" : "text-left align-middle" },
+                { "targets" : [3], "width" : "25%", "className" : "text-center align-middle" },
+                { "targets" : [4], "width" : "8%", "className" : "text-center align-middle" },
+            ],
+        });
+
+        // GET DATA
+        const gpk_url   = base_url + "/divisi/finance/master/gaji_pokok_employee";
+        const gpk_data  = "";
+        const gpk_type  = "GET";
+        const gpk_msg   = "";
+
+        doTransV2(gpk_url, gpk_type, gpk_data, gpk_msg, true)
+            .then((success)     => {
+                const gpk_getData   = success.data;
+                let i = 1;
+                for(const gpk_item of gpk_getData)
+                {
+                    const gpk_item_seq  = i++;
+                    const gpk_item_id   = gpk_item['emp_id'];
+                    const gpk_item_btn  = "<button class='btn btn-sm btn-primary' title='ubah data' value='" + gpk_item_id + "' onclick='doUpdate(`gapok_karyawan`, this.value, `"+ gpk_item_seq +"`)'><i class='fa fa-edit'></i></button>";
+                    $("#"+idTable).DataTable().row.add([
+                        gpk_item_seq,
+                        gpk_item['emp_name'],
+                        gpk_item['emp_division'],
+                        "<input type='text' class='form-control form-control-sm text-right' id='gpk_value"+gpk_item_seq+"' name='gpk_value" + gpk_item_seq + "' value='" + gpk_item['emp_fee'] + "' onclick='this.select();'>",
+                        gpk_item_btn,
+                    ]).draw(false)
+                }
+            })
+            .catch((err)        => {
+                console.log(err);
+                $(".dataTables_empty").html("Tidak Ada Data Yang Bisa Dimuat");
+            })
     }
 }
 
@@ -634,6 +687,10 @@ function showModal(idModal, value, jenis)
                 applyLabel  : 'Simpan',
             },
         })
+    } else if(idModal == 'modal_update_gapok_karyawan') {
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        
+        showTable('table_update_gapok_karyawan', '');
     }
 }
 
@@ -705,6 +762,10 @@ function closeModal(idModal) {
             $("#abs_tgl_cari").data('daterangepicker').setStartDate(moment().format('DD/MM/YYYY'));
             $("#abs_tgl_cari").data('daterangepicker').setEndDate(moment().format('DD/MM/YYYY'));
         })
+    } else if(idModal == 'modal_update_gapok_karyawan') {
+        $("#"+idModal).modal('hide');
+
+        clearUrl();
     }
 }
 
@@ -975,6 +1036,40 @@ function doSimpanRKAP(jenis)
                         console.log(err.responseJSON.errMsg);
                     }
                 })
+            })
+    }
+}
+
+// UNTUK KEBUTUHAN UPDATE GAPOK KARYAWAN
+function doUpdate(idForm, data, seq)
+{
+    if(idForm == 'gapok_karyawan')
+    {
+        const gpk_sendData  = {
+            "emp_fee"   : $("#gpk_value"+seq).val(),
+        };
+        const gpk_url       = base_url + "/divisi/finance/master/gaji_pokok_employee/"+data;
+        const gpk_type      = "PUT";
+        const gpk_msg       = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+
+        doTransV2(gpk_url, gpk_type, gpk_sendData, gpk_msg, true)
+            .then((success)     => {
+                Swal.fire({
+                    icon    : success.alert.icon,
+                    title   : success.alert.message.title,
+                    text    : success.alert.message.text,
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        showTable('table_update_gapok_karyawan');
+                    }
+                })
+            })
+            .catch((err)        => {
+                Swal.fire({
+                    icon    : err.responseJSON.alert.icon,
+                    title   : err.responseJSON.alert.message.title,
+                    text    : err.responseJSON.alert.message.text,
+                });
             })
     }
 }

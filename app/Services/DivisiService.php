@@ -2345,4 +2345,82 @@ class DivisiService
             "
         );
     }
+
+    public static function get_master_employees_fee()
+    {
+        $query  = DB::table('employees_fee as a')
+                    ->select('a.employee_id as emp_id', 'e.name as emp_name', 'd.name as emp_division', 'a.employee_fee as emp_fee')
+                    ->join('employees as b', 'a.employee_id', '=', 'b.id')
+                    ->join('job_employees as c', 'b.id', '=', 'c.employee_id')
+                    ->join('group_divisions as d', 'c.group_division_id', '=', 'd.id')
+                    ->join('users as e', 'b.user_id', '=', 'e.id')
+                    ->where('e.is_active', '=', '1')
+                    ->orderBy('e.name', 'ASC')
+                    ->get();
+        return $query;
+    }
+
+    public static function do_update_employees_fee($data)
+    {
+        $emp_id     = $data['emp_id'];
+        $emp_fee    = $data['emp_fee'];
+        $ip_address = $data['ip'];
+        $user_id    = $data['user_id'];
+
+        DB::beginTransaction();
+
+        // UPDATE EMP_FEE
+
+        // CHECK DULU
+        $emp_fee_check_data     = DB::table('employees_fee')->where(['employee_id' => $emp_id])->get();
+
+        $emp_fee_where  = [
+            "employee_id"   => $emp_id,
+        ];
+        $emp_fee_update = [
+            "employee_fee"  => $emp_fee,
+            "updated_by"    => $user_id,
+            "updated_at"    => date('Y-m-d H:i:s'),
+        ];
+        
+        /*
+        KONDISI : 
+        - KETIKA EMP_FEE_CHECK_DATA -> EMPLOYEE_FEE LEBIH BESAR DARI 0 MAKA INSERT KE HISTORY DAN UPDATE EMPLOYEES FEE
+        - KETIKA EMP_FEE_CHECK_DATA -> EMPLOYEE_FEE KURANG DARI SAMA DENGAN 0 MAKA UPDATE EMPLOYEES FEE SAJA
+        */
+        if($emp_fee_check_data[0]->employee_fee > 0) {
+            $emp_fee_insert_data    = [
+                "employee_id"   => $emp_id,
+                "employee_fee"  => $emp_fee_check_data[0]->employee_fee, 
+                "created_by"    => $user_id,
+                "created_at"    => date('Y-m-d', strtotime($emp_fee_check_data[0]->created_at)),
+                "expired_at"    => date('Y-m-d'),
+            ];
+            DB::table('employees_fee_history')->insert($emp_fee_insert_data);
+            DB::table('employees_fee')->where($emp_fee_where)->update($emp_fee_update);
+        } else {
+            DB::table('employees_fee')->where($emp_fee_where)->update($emp_fee_update);
+        }
+
+        try {
+            DB::commit();
+            LogHelper::create('edit', 'Berhasil Merubah Data Gaji Pokok Karyawan '.$emp_id, $ip_address);
+
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => ""
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+            LogHelper::create('error_system', 'Gagal Merubah Data Gaji Pokok Karyawan', $ip_address);
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
 }

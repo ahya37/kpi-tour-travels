@@ -79,6 +79,24 @@
                 </div>
             </div>
         </div>
+        <div class="row mt-2">
+            <div class="col-sm-3">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h4 class="no-margins">Update Gaji Pokok Karyawan</h4>
+                    </div>
+                    <div class="card-body text-right">
+                        <h2 class="no-margins">
+                            <span id="kar_text">0</span>
+                        </h2>
+                        <small>Total Karyawan</small>
+                    </div>
+                    <a href="#UpdateGajiPokokKaryawan" class="card-footer" onclick="showModal('modal_update_gapok_karyawan', '', '')">
+                        Lihat Detail
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="modal fade" id="modal_daily_activity">
@@ -367,6 +385,43 @@
                     <button type="button" class="btn btn-primary" title="Download File Excel Absensi" id="btn_abs_download_excel" name="btn_abs_download_excel" onclick="downloadAbsen()">
                         <i class="fa fa-file-excel-o"></i> Download 
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_update_gapok_karyawan">
+        <div class="modal-dialog scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="no-margins">Update Gaji Pokok Karyawan</h4>
+                    <button class="close" onclick="closeModal('modal_update_gapok_karyawan')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    {{-- FOR BUTTON PURPOSE --}}
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <button class="btn btn-primary">Tarik Data</button>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped table-bordered table-hover" style="width: 100%;" id="table_update_gapok_karyawan">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" style="width: 8%;">No</th>
+                                            <th class="text-center align-middle">Nama</th>
+                                            <th class="text-center align-middle" style="width: 25%;">Divisi</th>
+                                            <th class="text-center align-middle" style="width: 25%;">Gaji Pokok</th>
+                                            <th class="text-center align-middle" style="width: 8%;">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -33,7 +33,7 @@ class DivisiController extends Controller
                 'sub_division'      => Auth::user()->getRoleNames()[0] != 'admin' ? DivisiService::getCurrentSubDivision()[0]->sub_division_name : 'pic',
                 'sub_division_id'   => Auth::user()->getRoleNames()[0] != 'admin' ? DivisiService::getCurrentSubDivision()[0]->sub_division_id : '%',
             ];
-            return view('divisi/operasional/index', $data);
+            return view('divisi//index', $data);
         } else {
             // abort(404);
             $data = [
@@ -1759,4 +1759,73 @@ class DivisiController extends Controller
         return Response::json($output, $output['status']);
     }
 
+
+    // 11-09-2024
+    // NOTE : AMBIL DATA GAJI POKO
+    public function finance_master_employees_fee()
+    {
+        $get_data   = DivisiService::get_master_employees_fee();
+
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Memuat Data",
+                "total_data"=> count($get_data),
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data Gagal Dimuat",
+                "total_data"=> 0,
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function finance_master_employees_fee_update($emp_id, Request $request)
+    {
+        $send_data  = [
+            "emp_id"    => $emp_id,
+            "emp_fee"   => $request->all()['emp_fee'],
+            "user_id"   => Auth::user()->id,
+            "ip"        => $request->ip(),
+        ];
+
+        $do_update  = DivisiService::do_update_employees_fee($send_data);
+
+        if($do_update['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Mengubah Data Gaji Pokok Karyawan"
+                    ],
+                ],
+                "error_message" => $do_update['errMsg'],
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Gagal Mengubah Data Gaji Pokok Karyawan"
+                    ],
+                ],
+                "error_message" => $do_update['errMsg']
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }
