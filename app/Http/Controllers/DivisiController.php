@@ -33,7 +33,7 @@ class DivisiController extends Controller
                 'sub_division'      => Auth::user()->getRoleNames()[0] != 'admin' ? DivisiService::getCurrentSubDivision()[0]->sub_division_name : 'pic',
                 'sub_division_id'   => Auth::user()->getRoleNames()[0] != 'admin' ? DivisiService::getCurrentSubDivision()[0]->sub_division_id : '%',
             ];
-            return view('divisi//index', $data);
+            return view('divisi/operasional/index', $data);
         } else {
             // abort(404);
             $data = [
@@ -1827,5 +1827,15 @@ class DivisiController extends Controller
         }
 
         return Response::json($output, $output['status']);
+    }
+
+    public function index_simulasi_perhitungan_lembur()
+    {
+        $data       = [
+            "title"     => $this->title . " | Simulasi",
+            "sub_title" => "Pengajuan Perhitungan Lemburan"
+        ];
+
+        return view('simulasi.perhitungan.lembur.index', $data);
     }
 }
