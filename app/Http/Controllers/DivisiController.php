@@ -1643,6 +1643,9 @@ class DivisiController extends Controller
                     ];
                     $sheet1->getStyle('B'.($j + 2))->applyFromArray($telat_style);
                     $sheet1->getComment('B'.($j + 2))->getText()->createTextRun('Telat');
+                } else if($waktu_masuk == '00:00:00') {
+                    // NOTICE SAJA
+                    $sheet1->getComment('b'.($j + 2))->getText()->createTextRun('Tidak ada Absen');
                 }
 
                 $sheet1->setCellValue('A'.($j + 2), $tgl_absen);
