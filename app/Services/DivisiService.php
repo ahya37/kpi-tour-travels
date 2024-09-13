@@ -2340,7 +2340,8 @@ class DivisiService
             SELECT  user_id as emp_id,
                     name as emp_name
             FROM    employees
-            WHERE   user_id NOT IN ('1')
+            WHERE   user_id NOT IN ('1','38','41','25')
+            AND     is_active = '1'
             ORDER BY user_id ASC
             "
         );
