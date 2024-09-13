@@ -2337,11 +2337,12 @@ class DivisiService
     {
         return DB::select(
             "
-            SELECT  user_id as emp_id,
-                    name as emp_name
-            FROM    employees
+            SELECT  a.user_id as emp_id,
+                    a.name as emp_name
+            FROM    employees a
+            JOIN 	users b ON b.id = a.user_id
             WHERE   user_id NOT IN ('1','38','41','25')
-            AND     is_active = '1'
+            AND 	b.is_active = '1'
             ORDER BY user_id ASC
             "
         );
