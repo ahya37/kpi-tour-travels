@@ -1582,6 +1582,9 @@ class DivisiController extends Controller
                 ],
             ];
 
+            // WAKTU TELAT
+            $batas_jam_telat    = new DateTime('08:10:59');
+
             // UNTUK PERHITUNGAN TOTAL JAM
             $total_kurang_jam   = new DateTime("1970-01-01 00:00:00");
             $total_lebih_jam    = new DateTime("1970-01-01 00:00:00");
@@ -1593,13 +1596,14 @@ class DivisiController extends Controller
                 $sheet1     = $spreadsheet->createSheet();
             }
 
-            $sheet1->getStyle("A1:E1")->applyFromArray($sheetStyle);
+            $sheet1->getStyle("A1:F1")->applyFromArray($sheetStyle);
             $sheet1->setTitle($emp_name);
             $sheet1->setCellValue('A1', 'TANGGAL');
             $sheet1->setCellValue('B1', 'JAM DATANG');
             $sheet1->setCellValue('C1', 'JAM PULANG');
             $sheet1->setCellValue('D1', 'KURANG JAM');
             $sheet1->setCellValue('E1', 'LEBIH JAM');
+            $sheet1->setCellValue('F1', 'TOTAL JAM');
             
             for($j = 0; $j < count($getDataDetail);$j++)
             {
@@ -1620,15 +1624,37 @@ class DivisiController extends Controller
                 $lebih_jam_sec      = explode(':', $lebih_jam)[2];
                 $total_lebih_jam->add(new DateInterval('PT'.$lebih_jam_jam.'H'.$lebih_jam_min.'M'.$lebih_jam_sec.'S'));
 
+                // TOTAL JAM
+                $jam_kerja_masuk    = new DateTime($waktu_masuk);
+                $jam_kerja_keluar   = new DateTime($waktu_keluar);
+                $interval_jam_masuk_jam_keluar  = $jam_kerja_masuk->diff($jam_kerja_keluar);
+                $total_diff_jam     = $interval_jam_masuk_jam_keluar->h;
+                $total_diff_menit   = $interval_jam_masuk_jam_keluar->i;
+                $total_difF_detik   = $interval_jam_masuk_jam_keluar->s;
+                $total_jam_kerja    = sprintf('%02d:%02d:%02d', $total_diff_jam, $total_diff_menit, $total_difF_detik);
+
+                if(new DateTime($waktu_masuk) > $batas_jam_telat) {
+                    $telat_style    = [
+                        'font'  => [
+                            'color' => [
+                                'argb'  => 'FFFF0000',
+                            ]
+                        ],
+                    ];
+                    $sheet1->getStyle('B'.($j + 2))->applyFromArray($telat_style);
+                    $sheet1->getComment('B'.($j + 2))->getText()->createTextRun('Telat');
+                }
+
                 $sheet1->setCellValue('A'.($j + 2), $tgl_absen);
                 $sheet1->setCellValue('B'.($j + 2), $waktu_masuk);
                 $sheet1->setCellValue('C'.($j + 2), $waktu_keluar);
                 $sheet1->setCellValue('D'.($j + 2), $kurang_jam);
                 $sheet1->setCellValue('E'.($j + 2), $lebih_jam);
+                $sheet1->setCellValue('F'.($j + 2), $total_jam_kerja);
             }
             // FOOTER
             $total_data     = count($getDataDetail) + 2;
-            $sheet1->getStyle('A'.$total_data.":E".$total_data)->applyFromArray($sheetStyle);
+            $sheet1->getStyle('A'.$total_data.":F".$total_data)->applyFromArray($sheetStyle);
             $sheet1->setCellValue('A'.$total_data, 'JUMLAH');
             $sheet1->setCellValue('D'.$total_data, $total_kurang_jam->format('H:i:s'));
             $sheet1->setCellValue('E'.$total_data, $total_lebih_jam->format('H:i:s'));
@@ -1639,6 +1665,7 @@ class DivisiController extends Controller
             autoSizeColumn($sheet1, 'C');
             autoSizeColumn($sheet1, 'D');
             autoSizeColumn($sheet1, 'E');
+            autoSizeColumn($sheet1, 'F');
         }
 
         // Simpan file Excel ke disk
