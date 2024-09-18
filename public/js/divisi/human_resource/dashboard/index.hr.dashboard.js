@@ -28,10 +28,15 @@ $(document).ready(() => {
         "jml_hari"      : 1
     };
 
+    const pgj_lmb_url   = base_url + "/pengajuan/lembur/list_lembur";
+    const pgj_lmb_type  = "GET";
+    
+
     const sendData  = [
         doTrans(pgj_url, pgj_type, pgj_data, "", true),
         doTrans(emp_url, emp_type, emp_data, "", true),
-        doTrans(abs_url, abs_type, abs_data, "", true)
+        doTrans(abs_url, abs_type, abs_data, "", true),
+        doTrans(pgj_lmb_url, pgj_lmb_type, "", "", true)
     ];
 
     Promise.all(sendData)
@@ -77,7 +82,20 @@ $(document).ready(() => {
             }
             
             $("#abs_total").html(abs_total);
-            
+
+            // PENGAJUAN LEMBUR
+            const pgj_lmb_getData   = success[3].data;
+            let pgj_lmb_pending     = 0;
+
+            for(const pgj_lmb_item of pgj_lmb_getData) {
+                if(pgj_lmb_item['emp_trans_status'] == '3') {
+                    pgj_lmb_pending++;
+                }
+            }
+
+            $("#pgj_lmb_total").html(pgj_lmb_getData.length);
+            $("#pgj_lmb_confirmation_text").html("<i class='fa fa-exclamation-triangle'></i> <label class='no-margins'>" + pgj_lmb_pending+" Butuh Konfirmasi</label>");
+
         })
         .catch((err)        => {
             console.log(err);
@@ -113,6 +131,56 @@ function showModal(idModal, jenis, data)
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
         showTable('table_emp', '');
+    } else if(idModal == 'modal_pgj_lmb') {
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        
+        showTable('table_pgj_lmb', '');
+    } else if(idModal == 'modal_pgj_lmb_preview') {
+
+        // GET DATA PENGAJUAN LEMBUR DETAIL
+        const pgj_lmb_prev_url  = base_url + "/pengajuan/lembur/get_data";
+        const pgj_lmb_prev_type = "GET";
+        const pgj_lmb_prev_data = {
+            "lmb_id"    : data,
+        };
+        const pgj_lmb_prev_msg  = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+
+        doTrans(pgj_lmb_prev_url, pgj_lmb_prev_type, pgj_lmb_prev_data, pgj_lmb_prev_msg, true)
+            .then((success)     => {
+                Swal.close();
+                // SHOW MODAL
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                // CLOSE MODAL BEFORE
+                closeModal('modal_pgj_lmb');
+                // SHOW ALL DATA
+                const pgj_lmb_getData_header    = success.data['header'][0];
+                const pgj_lmb_getData_detail    = success.data['detail'];
+                // FILL DATA HEADER INTO FORM HEADER
+                $("#pgj_lmb_act_id").val(pgj_lmb_getData_header['emp_act_id']);
+                $("#pgj_lmb_user_name").val(pgj_lmb_getData_header['emp_user_name']);
+                $("#pgj_lmb_user_division").val(pgj_lmb_getData_header['emp_group_division']);
+                $("#pgj_lmb_act_desc").val(pgj_lmb_getData_header['emp_act_description']);
+                // SHOW TABLE
+                showTable('tbl_pgj_lmb_preview', pgj_lmb_getData_detail);
+
+
+                if(pgj_lmb_getData_header['emp_act_status'] != '3') {
+                    $("#pgj_lmb_btn_terima").prop('disabled', true);
+                    $("#pgj_lmb_btn_tolak").prop('disabled', true);
+                } else {
+                    $("#pgj_lmb_btn_terima").prop('disabled', false);
+                    $("#pgj_lmb_btn_tolak").prop('disabled', false);
+                }
+            })
+            .catch((err)        => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Data yang dicari tidak ditemukan'
+                })
+            })
+
+        // showTable('tbl_pgj_lmb_preview', data);
     }
 }
 
@@ -136,6 +204,10 @@ function closeModal(idModal)
         $("#"+idModal).on('hidden.bs.modal', () => {
             clearUrl();
         });
+    } else if(idModal == 'modal_pgj_lmb') {
+        clearUrl();
+    } else if(idModal == 'modal_pgj_lmb_preview') {
+        showModal('modal_pgj_lmb', '', ''); 
     }
 }
 
@@ -347,6 +419,94 @@ function showTable(idTable, data)
             .catch((err)        => {
                 console.log(err);
             })
+    } else if(idTable == 'table_pgj_lmb') {
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat...",
+            },
+            columnDefs  : [
+                { "targets" : [0, 4], "className" : "text-center align-middle", "width" : '5%' },
+                { "targets" : [1], "className" : "text-left align-middle" },
+                { "targets" : [2], "className" : "text-left align-middle", "width" : "15%" },
+                { "targets" : [3], "className" : "text-center align-middle", "width" : "15%" },
+            ],
+            autoWidth   : false
+        });
+
+        // GET DATA
+        const pgj_lmb_url   = base_url + "/pengajuan/lembur/list_lembur";
+        const pgj_lmb_type  = "GET";
+        const pgj_lmb_data  = "";
+
+        doTrans(pgj_lmb_url, pgj_lmb_type, pgj_lmb_data, '', true)
+            .then((success)     => {
+                const pgj_lmb_getData   = success.data;
+                if(pgj_lmb_getData.length > 0) {
+                    $(".dataTables_empty").html("Data Berhasil Dimuat");
+                    for(let i = 0;  i < pgj_lmb_getData.length; i++) {
+                        const pgj_lmb_id            = pgj_lmb_getData[i]['emp_act_id'];
+                        const pgj_lmb_btn_preview   = "<button class='btn btn-sm btn-primary' value='"+pgj_lmb_id+"' type='button' title='Lihat Detail' onclick='showModal(`modal_pgj_lmb_preview`, ``, this.value)'><i class='fa fa-eye'></i></button>";
+                        const pgj_lmb_user_name     = pgj_lmb_getData[i]['emp_user_name'];
+                        const pgj_lmb_user_act_date = moment(pgj_lmb_getData[i]['emp_act_date'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
+                        switch(pgj_lmb_getData[i]['emp_trans_status'])
+                        {
+                            case '1' :
+                                var pgj_lmb_status  = "<span class='badge badge-sm badge-pills badge-primary pt-1'><label class='no-margins'>Diterima</label></span>";
+                            break;
+                            case '2' :
+                                var pgj_lmb_status  = "<span class='badge badge-sm badge-pills badge-danger pt-1'><label class='no-margins'>Ditolak</label></span>";    
+                            break;
+                            case '3' :
+                                var pgj_lmb_status  = "<span class='badge badge-sm badge-pills badge-warning pt-1'><label class='no-margins text-dark'>Menunggu Konfirmasi</label></span>";
+                            break;
+                        }
+                        $("#"+idTable).DataTable().row.add([
+                            i + 1,
+                            pgj_lmb_user_name,
+                            pgj_lmb_user_act_date,
+                            pgj_lmb_status,
+                            pgj_lmb_btn_preview
+                        ]).draw(false);
+                    }
+
+                } else {
+                    $(".dataTables_empty").html("Tidak Ada Data Yang Bisa Dimuat..");
+                }
+            })
+            .catch((err)        => {
+                console.log(err);
+            })
+    } else if(idTable == 'tbl_pgj_lmb_preview') {
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+            },
+            pageLength  : -1,
+            autoWidth   : false,
+            ordering    : false,
+            bInfo       : false,
+            searching   : false,
+            paging      : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
+                { "targets" : [1, 3, 4], "className" : "text-center align-middle", "width" : "10%" },
+            ],
+        });
+
+        if(data != '') {
+            $(".dataTables_empty").html("Data Ditemukan");
+            for(const pgj_lmb_item of data) {
+                $("#"+idTable).DataTable().row.add([
+                    pgj_lmb_item['empd_seq'],
+                    moment(pgj_lmb_item['empd_date'], 'YYYY-MM-DD').format('DD-MMM-YYYY'),
+                    pgj_lmb_item['empd_description'],
+                    moment(pgj_lmb_item['empd_start_time'], 'YYYY-MM-DD HH:mm:ss').format('HH:mm'),
+                    moment(pgj_lmb_item['empd_end_time'], 'YYYY-MM-DD HH:mm:ss').format('HH:mm'),
+                ]).draw(false);
+            }
+        } else {
+            $(".dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
+        }
     }
 }
 
@@ -600,6 +760,92 @@ function doSimpan(type, jenis, data)
                         text    : err.responseJSON.alert.message.text,
                     })
                 });
+        break;
+        case "pengajuan_lembur" :
+            switch(jenis) {
+                case "terima" :
+                    Swal.fire({
+                        icon    : 'question',
+                        title   : 'Konfirmasi Pengajuan?',
+                        showConfirmButton   : true,
+                        showCancelButton    : true,
+                        confirmButtonText   : 'Ya, Terima',
+                        cancelButtonText    : 'Batal',
+                        confirmButtonColor  : '#1ab394',
+                    }).then((results)   => {
+                        if(results.isConfirmed) {
+                            const pgj_lmb_url   = base_url + "/pengajuan/lembur/konfirmasi";
+                            const pgj_lmb_data  = {
+                                "emp_act_id"    : $("#pgj_lmb_act_id").val(),
+                                "emp_act_status": "1",
+                            };
+                            const pgj_lmb_type  = "PUT";
+                            const pgj_lmb_msg   = Swal.fire({ title : 'Data Sedang Diproses', allowOutsideClick: false }); Swal.showLoading();
+
+                            doTrans(pgj_lmb_url, pgj_lmb_type, pgj_lmb_data, pgj_lmb_msg, true)
+                                .then((success)     => {
+                                    Swal.fire({
+                                        icon    : success.alert.icon,
+                                        title   : success.alert.message.title,
+                                        text    : success.alert.message.text,
+                                    }).then((res)   => {
+                                        if(res.isConfirmed) {
+                                            closeModal('modal_pgj_lmb_preview');
+                                        }
+                                    })
+                                })
+                                .catch((err)        => {
+                                    Swal.fire({
+                                        icon    : err.responseJSON.alert.icon,
+                                        title   : err.responseJSON.alert.message.title,
+                                        text    : err.responseJSON.alert.message.text,
+                                    })
+                                })
+                        }
+                    });
+                break;
+                case "tolak" :
+                    Swal.fire({
+                        icon    : 'question',
+                        title   : 'Konfirmasi Pengajuan?',
+                        showConfirmButton   : true,
+                        showCancelButton    : true,
+                        confirmButtonText   : 'Ya, Tolak',
+                        cancelButtonText    : 'Batal',
+                        confirmButtonColor  : '#ED5565',
+                    }).then((results)   => {
+                        if(results.isConfirmed) {
+                            const pgj_lmb_url   = base_url + "/pengajuan/lembur/konfirmasi";
+                            const pgj_lmb_data  = {
+                                "emp_act_id"    : $("#pgj_lmb_act_id").val(),
+                                "emp_act_status": "2",
+                            };
+                            const pgj_lmb_type  = "PUT";
+                            const pgj_lmb_msg   = Swal.fire({ title : 'Data Sedang Diproses', allowOutsideClick: false }); Swal.showLoading();
+
+                            doTrans(pgj_lmb_url, pgj_lmb_type, pgj_lmb_data, pgj_lmb_msg, true)
+                                .then((success)     => {
+                                    Swal.fire({
+                                        icon    : success.alert.icon,
+                                        title   : success.alert.message.title,
+                                        text    : success.alert.message.text,
+                                    }).then((res)   => {
+                                        if(res.isConfirmed) {
+                                            closeModal('modal_pgj_lmb_preview');
+                                        }
+                                    })
+                                })
+                                .catch((err)        => {
+                                    Swal.fire({
+                                        icon    : err.responseJSON.alert.icon,
+                                        title   : err.responseJSON.alert.message.title,
+                                        text    : err.responseJSON.alert.message.text,
+                                    })
+                                })
+                        }
+                    });
+                break;
+            }
         break;
     }
 }

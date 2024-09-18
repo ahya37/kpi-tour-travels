@@ -436,14 +436,29 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
     Route::prefix('pengajuan')->group(function(){
-        Route::get('/cuti', [DivisiController::class, 'pengajuan_cuti'])->name('index.pengajuan.cuti');
+        Route::prefix('cuti')->group(function(){
+            Route::get('/', [DivisiController::class, 'pengajuan_cuti'])->name('index.pengajuan.cuti');
+        });
         Route::get('/listCuti', [DivisiController::class, 'pengajuan_list_cuti']);
         Route::post('/simpanCuti', [DivisiController::class, 'pengajuan_simpan_cuti']);
+        Route::prefix('lembur')->group(function(){
+            Route::get('/', [DivisiController::class, 'pengajuan_lembur'])->name('index.pengajuan.lembur');
+            Route::get('/list_lembur', [DivisiController::class, 'list_lembur']);
+            Route::post('/simpan/{jenis}', [DivisiController::class, 'simpan_pengajuan_lembur']);
+            Route::get('/get_data', [DivisiController::class, 'get_data_lembur']);
+            Route::put('/konfirmasi', [DivisiController::class, 'konfirmasi_data_lembur']);
+        });
     });
 
     Route::prefix('tarik_data')->group(function() {
-        Route::get('/', [TarikDataController::class, 'tarik_data_index']);
-        Route::get('/get_list_absensi', [TarikDataController::class, 'tarik_data_get_absensi']);
+        Route::get('/absensi', [TarikDataController::class, 'tarik_data_index'])->name('index.tarik_data.absensi');
         Route::post('/absensi', [TarikDataController::class, 'tarik_data_absensi']);
+        Route::get('/get_list_absensi', [TarikDataController::class, 'tarik_data_get_absensi']);
+    });
+
+    Route::prefix('simulasi')->group(function(){
+        Route::prefix('perhitungan_lembur')->group(function(){
+            Route::get('/', [DivisiController::class, 'index_simulasi_perhitungan_lembur']);
+        });
     });
 });

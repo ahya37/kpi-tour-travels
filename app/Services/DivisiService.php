@@ -2175,6 +2175,7 @@ class DivisiService
             JOIN    employees b ON a.emp_act_user_id = b.user_id
             WHERE   a.emp_act_user_id LIKE '$user_id'
             AND     EXTRACT(YEAR FROM a.created_at) = '$current_year'
+            AND     a.emp_act_type <> 'Lembur'
             ORDER BY a.emp_act_start_date DESC
             "
         );
@@ -2338,9 +2339,12 @@ class DivisiService
         return DB::select(
             "
             SELECT  a.user_id as emp_id,
-                    a.name as emp_name
+                    b.name as emp_name,
+                    d.name as emp_divisi
             FROM    employees a
             JOIN 	users b ON b.id = a.user_id
+            JOIN 	job_employees c ON a.id = c.employee_id
+            JOIN 	group_divisions d ON c.group_division_id = d.id
             WHERE   user_id NOT IN ('1','38','41','25')
             AND 	b.is_active = '1'
             ORDER BY user_id ASC
@@ -2420,6 +2424,201 @@ class DivisiService
             $output     = [
                 "status"    => "gagal",
                 "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function get_list_lembur()
+    {
+        $user_id    = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id;
+        $query  = DB::table('employees_activity')
+                    ->join('users as b', 'emp_act_user_id', '=', 'b.id')
+                    ->select('emp_act_uuid as emp_act_id', 'emp_act_user_id as emp_user_id', 'b.name as emp_user_name', 'emp_act_start_date as emp_act_date', 'emp_act_title as emp_description', 'emp_act_type as emp_trans_type', 'emp_act_status as emp_trans_status')
+                    ->where('emp_act_type', '=', 'Lembur')
+                    ->where('emp_act_user_id', 'LIKE', '%'.$user_id.'%')
+                    ->get();
+        return $query;
+    }
+
+    public static function do_simpan_pengajuan_lembur($data)
+    {
+        DB::beginTransaction();
+        $jenis      = $data['jenis'];
+        $ip         = $data['ip'];
+
+        $user_id    = $data['user_id'];
+        $user_name  = $data['user_name'];
+
+        $header     = $data['data']['header'];
+        $detail     = $data['data']['detail'];
+
+        if($jenis == 'add')
+        {
+            // INSERT HEADER
+            $data_header    = [
+                "emp_act_uuid"      => Str::uuid(),
+                "emp_act_user_id"   => $user_id,
+                "emp_act_title"     => $header['lmb_description'],
+                "emp_act_start_date"=> date('Y-m-d'),
+                "emp_act_end_date"  => date('Y-m-d'),
+                "emp_act_type"      => "Lembur",
+                "emp_act_status"    => 3,
+                "created_by"        => $user_id,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('employees_activity')->insert($data_header);
+            $emp_act_id     = DB::getPdo()->lastInsertId();
+
+            // INSERT DETAIL
+            for($i = 0; $i < count($detail); $i++) {
+                $data_detail    = [
+                    "emp_act_id"        => $emp_act_id,
+                    "empd_seq"          => $detail[$i]['lmbd_seq'],
+                    "empd_description"  => $detail[$i]['lmbd_desc'],
+                    "empd_date"         => $detail[$i]['lmbd_date'],
+                    "empd_start_time"   => $detail[$i]['lmbd_start_time'],
+                    "empd_end_time"     => $detail[$i]['lmbd_end_time'],
+                    "empd_status"       => 0, 
+                ];
+
+                DB::table('employees_activity_detail')->insert($data_detail);
+            }
+        } else if($jenis == 'edit') {
+            // GET ID
+            $emp_act_id     = DB::table('employees_activity')->select('id')->where('emp_act_uuid', '=', $data['data']['header']['lmb_id'])->get()[0]->id;
+            // UPDATE HEADER
+            $data_where_header  = [
+                "emp_act_uuid"      => $data['data']['header']['lmb_id']
+            ];
+            $data_update_header = [
+                "updated_by"        => Auth::user()->id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+            DB::table('employees_activity')->where($data_where_header)->update($data_update_header);
+
+            // UPDATE DETAIL
+            $emp_act_detail = $data['data']['detail'];
+            
+            // DELETE EMPLOYEES ACTIVITY USERS
+            DB::table('employees_activity_detail')->where('emp_act_id', '=', $emp_act_id)->delete();
+
+            // INSERT NEW DATA
+            for($i = 0; $i < count($emp_act_detail); $i++) {
+                if($emp_act_detail[$i]['lmbd_desc'] != '') {
+                    $data_detail    = [
+                        "emp_act_id"        => $emp_act_id,
+                        "empd_seq"          => $emp_act_detail[$i]['lmbd_seq'],
+                        "empd_description"  => $emp_act_detail[$i]['lmbd_desc'],
+                        "empd_date"         => $emp_act_detail[$i]['lmbd_date'],
+                        "empd_start_time"   => $emp_act_detail[$i]['lmbd_start_time'],
+                        "empd_end_time"     => $emp_act_detail[$i]['lmbd_end_time'],
+                        "empd_status"       => 0, 
+                    ];
+    
+                    DB::table('employees_activity_detail')->insert($data_detail);
+                }
+            }
+        }
+
+        try {
+            DB::commit();
+            if($jenis == 'add') {
+                LogHelper::create('add', 'Berhasil Membuat Pengajuan Lembur ID : '.$data_header['emp_act_uuid'], $ip);
+            } else {
+                LogHelper::create('edit', 'Berhasil Merubah Pengajuan Lembur ID : ', $ip);
+            }
+
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => "",
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Melakukan Pengajuan Lembur', $ip);
+
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function do_get_data_lembur($id)
+    {
+        $emp_act_id     = $id;
+
+        $get_data_header    = DB::table('employees_activity as a')
+                                    ->join('employees as b', 'a.emp_act_user_id', '=', 'b.user_id')
+                                    ->join('job_employees as c', 'c.employee_id', '=', 'b.id')
+                                    ->join('group_divisions as d', 'c.group_division_id', '=', 'd.id')
+                                    ->join('users as e', 'b.user_id', '=', 'e.id')
+                                    ->select('a.emp_act_uuid as emp_act_id', 'a.emp_act_user_id as emp_user_id','e.name as emp_user_name', 'a.emp_act_title as emp_act_description', 'd.name as emp_group_division', 'a.emp_act_status')
+                                    ->where('a.emp_act_type', '=', 'Lembur')
+                                    ->where('a.emp_act_uuid', '=', $emp_act_id)
+                                    ->get();
+        
+        $get_data_detail    = DB::table('employees_activity as a')
+                                ->join('employees_activity_detail as b', 'a.id', '=', 'b.emp_act_id')
+                                ->select('a.emp_act_uuid as emp_act_id', 'b.empd_seq', 'b.empd_description', 'b.empd_date', 'b.empd_start_time', 'b.empd_end_time')
+                                ->where('a.emp_act_type', '=', 'Lembur')
+                                ->where('a.emp_act_uuid', '=', $emp_act_id)
+                                ->get();
+
+        $output         = [
+            "header"    => $get_data_header,
+            "detail"    => $get_data_detail,
+        ];
+
+        return $output;
+    }
+
+    public static function do_simpan_konfirmasi_data_lembur($data)
+    {
+        DB::beginTransaction();
+
+        $emp_user_id    = $data['emp_user_id'];
+        $emp_act_id     = $data['emp_act_id'];
+        $emp_act_status = $data['emp_act_status'];
+
+        $ip             = $data['ip'];
+
+        $data_where     = [
+            "emp_act_uuid"  => $emp_act_id,
+        ];
+        
+        $data_update    = [
+            "emp_act_status"=> $emp_act_status,
+            "updated_by"    => $emp_user_id,
+            "updated_at"    => date('Y-m-d H:i:s'),
+        ];
+
+        DB::table('employees_activity')->where($data_where)->update($data_update);
+
+        try {
+            DB::commit();
+            LogHelper::create('edit', 'Berhasil Konfirmasi Pengajuan Lembur ID : '.$emp_act_id, $ip);
+
+            $output     = [
+                "status"    => "berhasil",
+                "err_msg"   => "",
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Konfirmasi Transaksi Pengajuan Lembur', $ip);
+            
+            $output     = [
+                "status"    => "gagal",
+                "err_msg"   => $e->getMessage(),
             ];
         }
 

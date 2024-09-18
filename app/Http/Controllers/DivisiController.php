@@ -1868,4 +1868,159 @@ class DivisiController extends Controller
 
         return view('simulasi.perhitungan.lembur.index', $data);
     }
+
+    public function pengajuan_lembur()
+    {
+        // DATA EMPLOYEES
+        $emp_id                 = Auth::user()->id;
+        $get_data_employees     = DivisiService::getDataEmployee();
+        $data_emp               = [];
+        for($i = 0; $i < count($get_data_employees); $i++) {
+            if($get_data_employees[$i]->emp_id == $emp_id)
+            {
+                $data_emp   = [
+                    "emp_id"    => $emp_id,
+                    "emp_name"  => $get_data_employees[$i]->emp_name,
+                    "emp_divisi"=> $get_data_employees[$i]->emp_divisi,
+                ];
+                break;
+            } else {
+                $data_emp   = [
+                    "emp_id"    => $emp_id,
+                    "emp_name"  => Auth::user()->name,
+                    "emp_divisi"=> "%",
+                ];
+            }
+        }
+        $data       = [
+            "title"     => $this->title . " | Pengajuan Lembur",
+            "sub_title" => "List Pengajuan Lembur",
+            "data_emp"  => $data_emp,  
+        ];
+
+        return view('activities.pengajuan.lembur.index', $data);
+    }
+
+    public function list_lembur()
+    {
+        $get_data   = DivisiService::get_list_lembur();
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Mengambil Data Lemburan",
+            "data"      => $get_data,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function simpan_pengajuan_lembur($jenis, Request $request)
+    {
+        $data   = [
+            "user_id"   => Auth::user()->id, 
+            "user_name" => Auth::user()->name,
+            "data"      => [
+                "header"    => $request->all()['header'],
+                "detail"    => $request->all()['detail'],
+            ],
+            "jenis"     => $jenis,
+            "ip"        => $request->ip(),
+        ];
+
+        $doSimpan   = DivisiService::do_simpan_pengajuan_lembur($data);
+
+        if($doSimpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => $jenis == 'add' ? "Berhasil Menambahkan Pengajuan Lembur" : "Berhasil Mengubah Pengajuan Lembur",
+                    ],
+                ],
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 401,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => $jenis == 'add' ? "Gagal Menambahkan Pengajuan Lembur" : "Gagal Mengubah Pengajuan Lembur",
+                    ],
+                ],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function get_data_lembur(Request $request)
+    {
+        $user_act_id    = $request->all()['lmb_id'];
+
+        $get_data       = DivisiService::do_get_data_lembur($user_act_id);
+
+        if(count($get_data['header']) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Lemburan",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data Tidak Ditemukan",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function konfirmasi_data_lembur(Request $request)
+    {
+        $data   = [
+            "emp_act_id"    => $request->all()['emp_act_id'],
+            "emp_act_status"=> $request->all()['emp_act_status'],
+            "emp_user_id"   => Auth::user()->id,
+            "ip"            => $request->ip(),
+        ];
+        
+        $do_simpan  = DivisiService::do_simpan_konfirmasi_data_lembur($data);
+
+        if($do_simpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Konfirmasi Pengajuan Lembur"
+                    ],
+                ],
+            ];
+        } else if($do_simpan['status'] == 'gagal') {
+            $output     = [
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Gagal Konfirmasi Pengajuan Lembur"
+                    ],
+                ],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

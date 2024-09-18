@@ -95,6 +95,18 @@
                     <li class="{{ request()->is('divisi/human_resource') ? 'active' : '' }}"><a href="{{ route('index.human_resouce') }}">HR</a></li>
                 </ul>
             </li>
+
+            <li class="{{ request()->is('tarik_data/*') ? 'active' : '' }}">
+                <a href="#">
+                    <i class='fa fa-wrench'></i>
+                    <span class="nav-label">Tarik Data</span>
+                    <span class="fa arrow"></span>
+                </a>
+                <ul class="nav nav-second-level collapse">
+                    <li class="{{ request()->is('tarik_data/absensi') || request()->is('tarik_data/absensi/*') ? 'active' : '' }}"><a href="{{ route('index.tarik_data.absensi') }}">Absensi</a></li>
+                </ul>
+            </li>
+
             @endif
             {{-- U/ USER MARKETING --}}
             @if (Auth::user()->hasRole('marketing'))
@@ -245,11 +257,16 @@
 
             {{-- HALAMAN YANG TIDAK PERLU ADMIN AKSES --}}
             @if(!Auth::user()->hasRole('admin'))
-                <li class="{{ request()->is('pengajuan/cuti') || request()->is('pengajuan/cuti/*') ? 'active' : '' }}">
-                    <a href="{{ route('index.pengajuan.cuti') }}">
-                        <i class="fa fa-edit"></i>
-                        <span class="nav-label">Pengajuan Cuti</span>
+                <li class="{{ request()->is('pengajuan/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class='fa fa-edit'></i>
+                        <span class="nav-label">Pengajuan</span>
+                        <span class="fa arrow"></span>
                     </a>
+                    <ul class="nav nav-second-level collapse">
+                        <li class="{{ request()->is('pengajuan/cuti') || request()->is('pengajuan/cuti/*') ? 'active' : '' }}"><a href="{{ route('index.pengajuan.cuti') }}">Cuti</a></li>
+                        <li class="{{ request()->is('pengajuan/lembur') || request()->is('pengajuan/lembur/*') ? 'active' : '' }}"><a href="{{ route('index.pengajuan.lembur') }}">Lembur</a></li>
+                    </ul>
                 </li>
                 <li>
                     <a href="{{ route('absen.pulang') }}">
