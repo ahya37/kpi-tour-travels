@@ -94,7 +94,9 @@ $(document).ready(() => {
             }
 
             $("#pgj_lmb_total").html(pgj_lmb_getData.length);
-            $("#pgj_lmb_confirmation_text").html("<i class='fa fa-exclamation-triangle'></i> <label class='no-margins'>" + pgj_lmb_pending+" Butuh Konfirmasi</label>");
+            if(pgj_lmb_pending > 0) {
+                $("#pgj_lmb_confirmation_text").html("<i class='fa fa-exclamation-triangle'></i> <label class='no-margins'>" + pgj_lmb_pending+" Butuh Konfirmasi</label>");
+            }
 
         })
         .catch((err)        => {
