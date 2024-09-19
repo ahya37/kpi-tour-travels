@@ -62,7 +62,14 @@ $(function() {
 
 // BUAT HASIL JSON PARSE MENJADI ARRAY
 var dataStorage 	= JSON.parse(localStorage.getItem('items'))[0];
-console.log(JSON.parse(localStorage.getItem('items')));
+
+// HAPUS PROFILE PICT DARI LOCAL STORAGE
+const sendData 	= {
+	'email'			: dataStorage['email'],
+	'profile_pict'	: ''
+};
+local_data.push(sendData);
+localStorage.setItem('items', JSON.stringify(local_data));
 
 if(dataStorage['email'] != '') {
 	$("#remember_me").prop('checked', true);
@@ -72,14 +79,6 @@ if(dataStorage['email'] != '') {
 	$("#remember_me").prop('checked', false);
 	$("#email").val('');
 }
-
-// if() {
-// 	$("#remember_me").prop('checked', true);
-// 	$("#email").val(localStorage.getItem('email'));
-// } else {
-// 	$("#remember_me").prop('checked', false);
-// 	$("#email").val('');
-// }
 
 function doIngatSaya() {
 	// GET DATA USERNAME

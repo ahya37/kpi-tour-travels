@@ -187,7 +187,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/userLog', 'userLog')->name('accounts.user.log');
             Route::prefix('userProfiles')->group(function(){
                 Route::get('/', 'userProfiles')->name('accounts.user.profile');
-                Route::get('/ChangePasswwordUser', 'ChangePasswordUser');
+                Route::get('/ChangePasswordUser', 'ChangePasswordUser');
                 Route::get('/CheckPasswordCurrentUser', 'CheckPasswordCurrentUser');
                 Route::get('/getUserData', 'getUserData');
                 Route::post('/updatePicture', 'updateProfilePicture')->name('accounts.changePicture');

@@ -212,7 +212,7 @@ async function checkCurrentPassword(password) {
 }
 
 async function TransUbahPassword() {
-    const url       = site_url + "/ChangePasswordUser";
+    const url       = base_url + "/accounts/userProfiles/ChangePasswordUser";
     const data      = {
         "userId"            : $("#passwordAccount").val(),
         "userOldPassword"   : $("#passwordLama").val(),

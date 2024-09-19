@@ -933,21 +933,12 @@ class DivisiController extends Controller
 
         $getData = DivisiService::getEventsFinance($data);
         
-        if(count($getData) > 0) {
-            $output     = array(
-                "success"   => true,
-                "status"    => 200,
-                "message"   => "Berhasil Ambil Data Jenis Pekerjaan Finance",
-                "data"      => $getData,
-            );
-        } else {
-            $output     = array(
-                "success"   => false,
-                "status"    => 404,
-                "message"   => "Gagal Ambil Data Jenis Pekerjaan Finance",
-                "data"      => [],
-            );
-        }
+        $output     = array(
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Ambil Data Jenis Pekerjaan Finance",
+            "data"      => $getData,
+        );
 
         return Response::json($output, $output['status']);
     }
