@@ -258,16 +258,7 @@ class BaseService
         
         $today      = date('Y-m-d');
         $user_id    = Auth::user()->id;
-
-        if(date('D', strtotime($today)) == 'Sun') {
-            $data   = [
-                "prs_date"      => $today,
-            ];
-        } else {
-            $data   = DB::table('tm_presence')
-                        ->where(['prs_date' => $today, 'prs_user_id' => $user_id])
-                        ->get();
-        }
-        return $data;
+        
+        return DB::table('tm_presence')->where(['prs_date' => $today, 'prs_user_id' => $user_id])->get();
     }
 }
