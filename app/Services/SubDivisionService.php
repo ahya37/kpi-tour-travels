@@ -65,7 +65,7 @@ class SubDivisionService
                 "status"    => "berhasil",
                 "errMsg"    => null,
             ];
-        } catch(\Exection $e) {
+        } catch(\Exception $e) {
             DB::rollback();
             $output     = [
                 "status"    => "gagal",
@@ -94,7 +94,7 @@ class SubDivisionService
             SubDivision::create($data_simpan);
             DB::commit();
             return 'berhasil';
-        } catch(\Exection $e) {
+        } catch(\Exception $e) {
             DB::rollback();
             return 'gagal';
         }

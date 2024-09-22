@@ -9,11 +9,14 @@ var base_url                = window.location.origin;
 var checkPasswordIsTrue     = false;
 var isConfirmPasswordSame   = false;
 var defaultPicturePath      = base_url + '/assets/img/9187604.png';
+var tempLocalStorage        = [];
+var dataLocalStorage        = JSON.parse(localStorage.getItem('items'))[0];
 
 function getDataDashboard()
 {
     const getData   = [
         doTransaction('/accounts/userProfiles/getUserData', 'GET', '', '', true),
+        doTransaction('/accounts/userProfiles/getDataLastActUser', 'GET', '', '', true)
     ];
     
     Promise.all(getData)
@@ -50,15 +53,34 @@ function getDataDashboard()
                 $("#img_found").removeClass('d-none');
                 $("#img_found_image").append("<img src='" + base_url + "/" + dataUser_image + "' style='width: 80px; height: 80px;' class='rounded-circle m-b-md' alt='profile'>");
                 $("#img_not_found").addClass('d-none');
-                localStorage.setItem('profile_pict', base_url + "/" + dataUser_image);
+                const senData   = {
+                    "email"         : dataLocalStorage['email'],
+                    "profile_pict"  : base_url + "/" + dataUser_image,
+                };
+                tempLocalStorage.push(sendData);
+                localStorage.setItem('items', JSON.stringify(tempLocalStorage));
                 $("#profile_image").prop('src', base_url + "/" + dataUser_image);
             } else {
                 $("#img_found_image").append("<img src='"+defaultPicturePath+"' style='width: 80px; height: 80px;' class='rounded-circle m-b-md' alt='profile'>");
                 $("#img_not_found").removeClass('d-none');
                 $("#img_found").addClass('d-none');
-                localStorage.setItem('profile_pict', defaultPicturePath);
+                const sendData  = {
+                    "email"             : dataLocalStorage['email'],
+                    "profile_pict"      : defaultPicturePath,
+                };
+                tempLocalStorage.push(sendData);
+                localStorage.setItem('items', JSON.stringify(tempLocalStorage));
+
                 $("#profile_image").prop('src', defaultPicturePath);
             }
+
+            $("#table-loading").addClass('d-none');
+            $("#table-show").removeClass('d-none');
+            showTable('tableLastActUser', success[1].data.table_act_user);
+            
+            $("#chart-loading").addClass('d-none');
+            $("#chart-show").removeClass('d-none');
+            showChart('chartActUser', success[1].data.chart_act_user);
         })
         .catch((err)    => {
             $("#user_profiles_sub_division").empty();
@@ -72,6 +94,11 @@ function getDataDashboard()
     
             $("#total_act_last_month").empty();
             $("#total_act_last_month").html(0);
+
+            $("#table-loading").addClass('d-none');
+            $("#table-show").removeClass('d-none');
+            showTable('tableLastActUser', '');
+            showChart('chartActUser', '');
         })
 }
 
@@ -185,7 +212,7 @@ async function checkCurrentPassword(password) {
 }
 
 async function TransUbahPassword() {
-    const url       = site_url + "/ChangePasswordUser";
+    const url       = base_url + "/accounts/userProfiles/ChangePasswordUser";
     const data      = {
         "userId"            : $("#passwordAccount").val(),
         "userOldPassword"   : $("#passwordLama").val(),
@@ -290,6 +317,107 @@ async function TransUploadImage()
             title   : error.responseJSON.alert.message.title,
             text    : error.responseJSON.alert.message.text
         });
+    }
+}
+
+function showTable(idTable, data)
+{
+    if(idTable == 'tableLastActUser') {
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : "Tidak Ada Data Yang Bisa Ditampilkan",
+                "zeroRecords"   : "Data Yang Dicari Tidak Ditemukan",
+            },
+            searching   : false,
+            paging      : true,
+            lengthMenu  : [
+                [-1, 5, 10, 25, 100],
+                ['Semua', 5, 10, 25, 100]
+            ],
+            pageLength  : 5,
+            bInfo       : true,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [1], "className" : "text-center align-middle", "width" : "30%" },
+            ],
+            responsive  : true,
+        });
+
+        if(data != '') {
+            let num     = 1;
+            for(const item of data)
+            {
+                const actUser_seq           = num++;
+                const actUser_tanggal       = item.log_date_time;
+                const actUser_description   = item.log_desc.length > 60 ? item.log_desc.substring(0, 60) + "..." : item.log_desc;
+
+                $("#"+idTable).DataTable().row.add([
+                    actUser_seq,
+                    actUser_tanggal,
+                    "<label style='font-weight: normal;' title='" + item.log_desc + "'>" + actUser_description + "</label>"
+                ]).draw(false);
+            }
+        } else {
+            // console.log(data);
+        }
+    }
+}
+
+function showChart(idChart, data)
+{
+    if(idChart == 'chartActUser') {
+        const label_bulan   = [];
+        const label_data    = [];
+        const ctx   = document.getElementById('chartActUser').getContext('2d');
+        
+        for(const item of data) {
+            label_bulan.push(moment(item.bulan_ke, 'MM').format('MMMM'));
+            label_data.push(item.total_data);
+        }
+
+        // console.log(label_bulan, label_data);
+
+        const myBarChart    = new Chart(ctx, {
+            type: 'bar', // Jenis grafik
+            data: {
+                labels: label_bulan, // Label sumbu X
+                datasets: [{
+                    label: 'Aktivitas Bulanan', // Label dataset
+                    data: label_data, // Data untuk grafik
+                    backgroundColor: 'rgba(26, 179, 148, 0.2)', // Warna latar belakang batang
+                    borderColor: 'rgba(26, 179, 148, 1)', // Warna batas batang
+                    borderWidth: 1 // Lebar batas batang
+                }]
+            },
+            options: {
+                responsive: true, // Menjadikan grafik responsif
+                maintainAspectRatio: false, // Mengizinkan perubahan rasio aspek
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Months'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Values'
+                        },
+                        ticks: {
+                            stepSize: 5, // Langkah per 5 pada sumbu Y
+                            callback: function(value, index, values) {
+                                // Menyembunyikan nilai di bawah 0
+                                if (value < 0) return '';
+                                return value;
+                            }
+                        },
+                        beginAtZero: true, // Mulai sumbu Y dari nol
+                        min: 0 // Mengatur batas bawah sumbu Y untuk memulai dari 0
+                    }
+                }
+            }
+        })
     }
 }
 

@@ -3,6 +3,8 @@
 namespace App\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Helpers\LogHelper;
+use Log;
 
 class BaseService 
 {
@@ -110,5 +112,153 @@ class BaseService
             ORDER BY id ASC
             "
         );
+    }
+
+    public static function doAbsen($data)
+    {
+        date_default_timezone_set('Asia/Jakarta');
+        DB::beginTransaction();
+
+        $today      = date('Y-m-d');
+        $user_id    = $data['data']['prs_user_id'];
+        $jenis      = $data['data']['prs_status'];
+        $ip         = $data['ip'];
+        
+        if($jenis == 'masuk')
+        {
+            $do_check       = DB::select(
+                "
+                SELECT  *
+                FROM    tm_presence
+                WHERE   prs_date = '$today'
+                AND     prs_user_id  = '$user_id'
+                "
+            );
+            if(count($do_check) < 1) {
+                 // INSERT TO TABLE
+                $data_insert    = [
+                    "prs_date"          => $data['data']['prs_date'],
+                    "prs_user_id"       => $data['data']['prs_user_id'],
+                    "prs_in_time"       => $data['data']['prs_start_time'],
+                    "prs_in_file"       => $data['data_url'],
+                    "prs_in_location"   => $data['data']['prs_lat'].", ".$data['data']['prs_long'],
+                    "created_by"        => $data['data']['prs_user_id'],
+                    "created_at"        => date('Y-m-d H:i:s'),
+                    "updated_by"        => $data['data']['prs_user_id'],
+                    "updated_at"        => date('Y-m-d H:i:s'),
+                ];
+
+                DB::table('tm_presence')->insert($data_insert);
+            } else {
+                DB::rollBack();
+                $output     = [
+                    "status"    => "duplikat",
+                    "errMsg"    => "Absen 2x dalam satu hari tidak diperbolehkan",
+                ];
+
+                return $output;
+            }
+        } else if($jenis == 'keluar') {
+            // CHECK APAKAH DIA SUDHA ABSEN MASUK ATAU BELUM
+            $do_check_in    = DB::select(
+                "
+                SELECT  *
+                FROM    tm_presence
+                WHERE   prs_date = '$today'
+                AND     prs_user_id = '$user_id'
+                "
+            );
+
+            if(count($do_check_in) > 0) {
+                // CHECK APAKAH SUDAH ADA ABSEN KELUAR?
+                $do_check_out   = DB::select(
+                    "
+                    SELECT  *
+                    FROM    tm_presence
+                    WHERE   prs_date = '$today'
+                    AND     prs_user_id = '$user_id'
+                    AND     prs_in_time IS NOT NULL
+                    AND     prs_out_time IS NULL
+                    "
+                );
+
+                if(count($do_check_out) > 0) {
+                    $data_where     = [
+                        "prs_date"      => $data['data']['prs_date'],
+                        "prs_user_id"   => $data['data']['prs_user_id'],
+                    ];
+
+                    $data_update    = [
+                        "prs_out_time"      => $data['data']['prs_end_time'],
+                        "prs_out_file"      => $data['data_url'],
+                        "prs_out_location"  => $data['data']['prs_lat'].", ".$data['data']['prs_long'],
+                        "updated_by"        => $data['data']['prs_user_id'],
+                        "updated_at"        => date('Y-m-d H:i:s'),
+                    ];
+
+                    DB::table('tm_presence')
+                        ->where($data_where)
+                        ->whereNull('prs_out_time')
+                        ->update($data_update);
+                } else {
+                    DB::rollBack();
+                    $output     = [
+                        "status"    => "duplikat",
+                        "errMsg"    => "Absen 2x dalam satu hari tidak diperbolehkan",
+                    ];
+
+                    return $output;
+                }
+            } else {
+                DB::rollBack();
+                $output     = [
+                    "status"    => "duplikat",
+                    "errMsg"    => "Belum Absen Masuk",
+                ];
+
+                return $output;
+            }
+        }
+
+        try {
+            DB::commit();
+            if($jenis == 'masuk') {
+                LogHelper::create('add', 'Berhasil Absen Masuk', $ip);
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => ""
+                ];
+            } else if($jenis == 'keluar') {
+                LogHelper::create('add', 'Berhasil Absen Keluar', $ip);
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => "",
+                ];
+            }
+        } catch(\Exception $e) {
+            DB::rollBack();
+            if($jenis == 'masuk') {
+                LogHelper::create('error_system', 'Gagal Absen Masuk', $ip);
+            } else if($jenis == 'keluar') {
+                LogHelper::create('error_system', 'Gagal Absen Keluar', $ip);
+            }
+            Log::channel('daily')->error($e->getMessage());
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function doGetPresenceToday()
+    {
+        date_default_timezone_set('Asia/Jakarta');
+        
+        $today      = date('Y-m-d');
+        $user_id    = Auth::user()->id;
+        
+        return DB::table('tm_presence')->where(['prs_date' => $today, 'prs_user_id' => $user_id])->get();
     }
 }

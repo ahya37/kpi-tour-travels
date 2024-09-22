@@ -727,70 +727,157 @@ class MarketingService
                 DB::table('proker_bulanan_detail')->insert($data_simpan_bulanan_detail);
             }
         } else if($jenis == 'edit') {
-            // GET ID
+            // GET ID BULANAN
             $pkb_id     = DB::table('proker_bulanan')->select('id')->where(['uuid'  => $sendData['program_ID']])->get()[0]->id;
-            // UPDATE PROKER_BULANAN TABLE
-            $data_where = array(
+            
+            // UPDATE PROKER BULANAN HEADER
+            $data_where_header  = [
                 "id"    => $pkb_id,
                 "uuid"  => $sendData['program_ID'],
-            );
+            ];
 
-            // CHECK APAKAH SUDAH MASUK HARIAN / BELUM
-            $uuid_pkb     = $data_where['uuid'];
-            $check_first    = DB::select(
-                "
-                SELECT 	*
-                FROM 	proker_harian a
-                WHERE 	SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = '$uuid_pkb' 
-                AND 	a.pkh_is_active = 't'
-                LIMIT 1
-                "
-            );
-            if(!empty($check_first)) {
-                DB::rollBack();
-                $output     = array(
-                    "status"    => "transaction",
-                    "errMsg"    => [],
-                );
-                return $output;
-            } else {
-                $data_update = array(
-                    "pkb_title"     => $data['sendData']['program_uraian'],
-                    "pkb_pkt_id"    => $data['sendData']['program_sasaranID']." | ".$sendData['program_detailSasaranID'],
-                    "updated_by"    => $user_id,
-                    "updated_at"    => date('Y-m-d H:i:s'),
-                    "master_program_id" => $data['sendData']['program_masterID'],
-                );
-    
-                DB::table('proker_bulanan')->where($data_where)->update($data_update);
-    
-                // CHECK APAKAH DETAIL ADA KOSONG / TIDAK
-                $temp_detail    = [];
-                for($i = 0; $i < count($sendData['program_detail']); $i++) {
-                    if($sendData['program_detail'][$i]['detail_title'] != '') {
-                        array_push($temp_detail, $sendData['program_detail'][$i]);
-                    }
-                }
-                
-                // DELETE DATA LAMA DI PROKER BULANAN
-                DB::table('proker_bulanan_detail')->where(['pkb_id' => $pkb_id])->delete();
-    
-                // INSERT DATA BARU
-                for($j = 0; $j < count($temp_detail); $j++) {
-                    $data_insert_detail     = array(
-                        "pkb_id"            => $pkb_id,
-                        "pkbd_type"         => $temp_detail[$j]['detail_title'],
-                        "pkbd_num_target"   => $temp_detail[$j]['detail_target'],
-                        "pkbd_num_result"   => 0,
-                        "pkbd_pic"          => $temp_detail[$j]['detail_pic'],
-                        "created_by"        => $user_id,
-                        "created_at"        => date('Y-m-d H:i:s'),
-                        "updated_by"        => $user_id,
-                        "updated_at"        => date('Y-m-d H:i:s'),
-                    );
-                    DB::table('proker_bulanan_detail')->insert($data_insert_detail);
+            $data_update_header  = [
+                "updated_by"    => $user_id,
+                "updated_at"    => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('proker_bulanan')->where($data_where_header)->update($data_update_header);
+
+            // UPDATE PROKER BULANAN DETAIL
+
+
+            // CHECK APAKAH DETAIL ADA KOSONG / TIDAK
+            $temp_detail    = [];
+            for($i = 0; $i < count($sendData['program_detail']); $i++) {
+                if($sendData['program_detail'][$i]['detail_title'] != '') {
+                    array_push($temp_detail, $sendData['program_detail'][$i]);
                 }
             }
+           
+            if(count($temp_detail) > 0) {
+                $jml_data_detail    = count($temp_detail);
+                for($i = 0; $i < $jml_data_detail; $i++) {
+                    $pkbd_id        = $temp_detail[$i]['detail_id'];
+                    $pkbd_title     = $temp_detail[$i]['detail_title'];
+                    $pkbd_target    = $temp_detail[$i]['detail_target'];
+                    $pkbd_pic       = $temp_detail[$i]['detail_pic'];
+
+                    // CHECK APAKAH ADA DI DETAIL
+                    if(!empty($pkbd_id)) {
+                        $data_detail_db     = DB::table('proker_bulanan_detail')->select('id')->where(['id' => $pkbd_id, 'pkb_id' => $pkb_id])->get();
+                        if(count($data_detail_db) > 0) {
+                            $data_where_detail     = [
+                                "id"    => $pkbd_id,
+                                "pkb_id"=> $pkb_id,
+                            ];
+                            $data_update_detail     = [
+                                "pkbd_type"         => $pkbd_title,
+                                "pkbd_num_target"   => $pkbd_target,
+                                "pkbd_pic"          => $pkbd_pic,
+                                "updated_by"        => $user_id,
+                                "updated_at"        => date('Y-m-d H:i:s'),
+                            ];
+                            DB::table('proker_bulanan_detail')->where($data_where_detail)->update($data_update_detail);
+                        }
+                    } else {
+                        // INSERT KE DATA BARU
+                        $data_insert_detail  = [
+                            "pkb_id"            => $pkb_id,
+                            "pkbd_type"         => $pkbd_title,
+                            "pkbd_num_target"   => $pkbd_target,
+                            "pkbd_num_result"   => 0,
+                            "pkbd_pic"          => $pkbd_pic,
+                            "created_by"        => $user_id,
+                            "created_at"        => date('Y-m-d H:i:s'),
+                            "updated_by"        => $user_id,
+                            "updated_at"        => date('Y-m-d H:i:s'),
+                        ];
+                        DB::table('proker_bulanan_detail')->insert($data_insert_detail);
+                    }
+                }
+            } else {
+                DB::rollBack();
+                $output     = [
+                    "status"    => "empty_table",
+                    "errMsg"    => [],
+                ];
+                return $output;
+            }
+            // // UPDATE PROKER_BULANAN TABLE
+            // $data_where = array(
+            //     "id"    => $pkb_id,
+            //     "uuid"  => $sendData['program_ID'],
+            // );
+
+            // // CHECK APAKAH SUDAH MASUK HARIAN / BELUM
+            // $uuid_pkb     = $data_where['uuid'];
+            // $check_first    = DB::select(
+            //     "
+            //     SELECT 	id
+            //     FROM 	proker_harian a
+            //     WHERE 	SUBSTRING_INDEX(a.pkh_pkb_id, ' | ', 1) = '$uuid_pkb' 
+            //     AND 	a.pkh_is_active = 't'
+            //     LIMIT 1
+            //     "
+            // );
+            // if(!empty($check_first)) {
+            //     DB::rollBack();
+            //     $output     = array(
+            //         "status"    => "transaction",
+            //         "errMsg"    => [],
+            //     );
+            //     return $output;
+            // } else {
+            //     $data_update = array(
+            //         "pkb_title"     => $data['sendData']['program_uraian'],
+            //         "pkb_pkt_id"    => $data['sendData']['program_sasaranID']." | ".$sendData['program_detailSasaranID'],
+            //         "updated_by"    => $user_id,
+            //         "updated_at"    => date('Y-m-d H:i:s'),
+            //         "master_program_id" => $data['sendData']['program_masterID'],
+            //     );
+    
+            //     DB::table('proker_bulanan')->where($data_where)->update($data_update);
+    
+            //     // CHECK APAKAH DETAIL ADA KOSONG / TIDAK
+            //     $temp_detail    = [];
+            //     for($i = 0; $i < count($sendData['program_detail']); $i++) {
+            //         if($sendData['program_detail'][$i]['detail_title'] != '') {
+            //             array_push($temp_detail, $sendData['program_detail'][$i]);
+            //         }
+            //     }
+
+            //     // CHECK DATA LAMA BERDASARKAN PKB ID
+            //     // COUNT HASIL DARI CHECK DATA
+            //     // JIKA COUNT HASIL <> HASIL FILTER
+            //     // KONDISI
+                
+
+            //     // CHECK BULANAN DETAIL BY ID
+            //     // JIKA TEMP DETAIL ID = NULL INSERT BARU
+            //     // JIKA TEMP DETAIL ID != NULL UPDATE ATAS DETAIL ID
+            //         // CHECK DETAIL ID DI PROKER HARIAN 
+            //             // JIKA > 0 MAKA KASIH WARNING : JENIS A TIDAK BISA DIHAPUS KARENA MEMILIKI AKTIVITAS
+            //             // ELSE BISA DIHAPUS
+                
+            //     // DELETE DATA LAMA DI PROKER BULANAN
+            //     DB::table('proker_bulanan_detail')->where(['pkb_id' => $pkb_id])->delete();
+    
+            //     // INSERT DATA BARU
+            //     for($j = 0; $j < count($temp_detail); $j++) {
+            //         $data_insert_detail     = array(
+            //             "pkb_id"            => $pkb_id,
+            //             "pkbd_type"         => $temp_detail[$j]['detail_title'],
+            //             "pkbd_num_target"   => $temp_detail[$j]['detail_target'],
+            //             "pkbd_num_result"   => 0,
+            //             "pkbd_pic"          => $temp_detail[$j]['detail_pic'],
+            //             "created_by"        => $user_id,
+            //             "created_at"        => date('Y-m-d H:i:s'),
+            //             "updated_by"        => $user_id,
+            //             "updated_at"        => date('Y-m-d H:i:s'),
+            //         );
+            //         DB::table('proker_bulanan_detail')->insert($data_insert_detail);
+            //     }
+            // }
         }
 
         try {
@@ -848,7 +935,8 @@ class MarketingService
         
         $query_detail   = DB::select(
             "
-            SELECT 	b.pkb_id,
+            SELECT 	b.id as pkbd_id,
+                    b.pkb_id,
                     b.pkbd_type as pkbd_title,
                     CASE
                         WHEN b.pkbd_num_target IS NULL THEN 0

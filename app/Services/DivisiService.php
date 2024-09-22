@@ -4,6 +4,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\LogHelper;
+use DateTime;
 use Illuminate\Support\Facades\Log;
 use Route;
 use Str;
@@ -434,6 +435,7 @@ class DivisiService
                             0 as total_rule
                     FROM 	programs_jadwal
                     WHERE 	EXTRACT(YEAR FROM jdw_depature_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+                    AND     is_active = 't'
 
                     UNION
 
@@ -1362,7 +1364,7 @@ class DivisiService
             JOIN 	employees b ON a.created_by	= b.user_id
             JOIN 	job_employees c ON b.id = c.employee_id
             JOIN 	group_divisions d ON c.group_division_id = d.id
-            WHERE 	d.name LIKE '%finance%'
+            WHERE 	d.name LIKE '%$user_role%'
             AND 	a.pkb_is_active = 't'
             AND 	a.pkb_start_date BETWEEN '$start_date' AND '$end_date'
             ORDER BY a.pkb_start_date ASC
@@ -1385,6 +1387,7 @@ class DivisiService
                     a.jdw_arrival_date
             FROM    programs_jadwal a
             WHERE   a.is_active = 't'
+            AND     a.is_generated = 't'
             AND     a.jdw_uuid LIKE '$tour_code'
             "
         );
@@ -1888,6 +1891,766 @@ class DivisiService
         $output     = [
             "header"    => !empty($header) ? $header : [],
             "detail"    => !empty($detail) ? $detail : [],
+        ];
+
+        return $output;
+    }
+
+    public static function getListAktivitasHarian($data)
+    {
+        $user_id    = $data['user_id'];
+        $curr_date  = $data['selected_month'];
+
+        $query      = DB::select(
+            "
+            SELECT 	a.uuid as pkb_id,
+                    a.pkb_title,
+                    b.pkbd_type,
+                    b.pkbd_num_result,
+                    b.pkbd_num_target,
+                    b.pkbd_pic
+            FROM 	proker_bulanan a
+            JOIN 	proker_bulanan_detail b ON a.id = b.pkb_id
+            WHERE 	a.pkb_start_date = '$curr_date'
+            AND 	(b.pkbd_pic LIKE '$user_id' AND b.pkbd_pic IN ('0', '$user_id'))
+            AND 	a.pkb_is_active = 't'
+            "
+        );
+
+        return $query;
+    }
+
+    public static function doGetDataActUserChart($data)
+    {
+        $user_name  = $data['user_name'];
+
+        $user_id    = DB::table('users')->where(['name' => $user_name])->get()[0]->id;
+
+        $query      = DB::select(
+            "
+            SELECT 	*
+            FROM 	(
+                    SELECT 	a.id,
+                            a.uuid as pkb_id,
+                            a.pkb_start_date, 
+                            a.pkb_end_date,
+                            a.pkb_description,
+                            c.jdw_tour_code,
+                            a.created_at
+                    FROM 	proker_bulanan a
+                    JOIN 	tr_prog_jdw b ON a.uuid = b.prog_pkb_id
+                    JOIN 	programs_jadwal c ON b.prog_jdw_id = c.jdw_uuid
+                    WHERE 	a.pkb_is_active = 't'
+                    AND 	a.created_by = '$user_id'
+
+                    UNION ALL
+
+                    SELECT 	a.id,
+                            a.uuid as pkb_id,
+                            a.pkb_start_date,
+                            a.pkb_end_date,
+                            a.pkb_title,
+                            null as jdw_tour_code,
+                            a.created_at
+                    FROM 	proker_bulanan a
+                    WHERE 	a.created_by = '$user_id'
+                    AND 	a.pkb_is_active = 't'
+                    AND 	a.pkb_title NOT LIKE '%[%]%'
+            ) AS pkb_chart
+            ORDER BY pkb_chart.created_at DESC
+            "
+        );
+
+        return $query;
+    }
+
+    public static function getFinanceRKAPList($data)
+    {
+        $role       = $data['user_role'];
+        $pkt_id     = $data['rkap_id'];
+
+        $query      = DB::select(
+            "
+            SELECT 	a.uid as pkt_id,
+                    a.pkt_title,
+                    a.pkt_year,
+                    b.name as pkt_group_division,
+                    COUNT(c.pkt_id) as pkt_total_detail
+            FROM 	proker_tahunan a
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            JOIN 	proker_tahunan_detail c ON a.id = c.pkt_id
+            WHERE 	b.name LIKE '%$role%'
+            AND     a.uid LIKE '$pkt_id'
+            GROUP BY a.uid, a.pkt_title, a.pkt_year, b.name
+            ORDER BY a.pkt_year DESC
+            "
+        );
+
+        return $query;
+    }
+
+    public static function doSimpanRKAPFinance($data)
+    {
+        DB::beginTransaction();
+        $jenis      = $data['jenis'];
+        $user_id    = $data['user_id'];
+        $user_role  = $data['user_role'];
+        $user_ip    = $data['ip'];
+        
+        // HEADER
+        $rkap_id    = $data['data']['rkap_id'];
+        $rkap_title = $data['data']['rkap_title'];
+        $rkap_desc  = $data['data']['rkap_desc'];
+        $rkap_year  = $data['data']['rkap_year'];
+        $rkap_detail= $data['data']['rkap_detail'];
+
+        // HILANGKAN DETAIL JIKA ADA YANG KOSONG
+        $temp_detail    = [];
+        for($i = 0; $i < count($rkap_detail); $i++) {
+            if($rkap_detail[$i]['rkapd_title'] != "") {
+                array_push($temp_detail, $rkap_detail[$i]);
+            } 
+        }
+
+        // GET GROUP DIVISION ID
+        $group_division  = DB::select(
+            "
+                SELECT  id
+                FROM    group_divisions
+                WHERE   name LIKE '%finance%'
+            "
+        );
+        if($jenis == 'add')
+        {
+            // SIMPAN HEADER
+            $data_simpan_header     = [
+                "uid"               => Str::random(30),
+                "pkt_title"         => $rkap_title,
+                "pkt_description"   => $rkap_desc,
+                "pkt_year"          => $rkap_year,
+                "pkt_pic_job_employee_id"   => "",
+                "division_group_id" => $group_division[0]->id,
+                "created_by"        => $user_id,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('proker_tahunan')->insert($data_simpan_header);
+            
+            $rkap_id   = DB::getPdo()->lastInsertId();
+
+            // SIMPAN DETAIL
+            for($j = 0; $j < count($temp_detail); $j++)
+            {
+                $data_detail    = $temp_detail[$j];
+                
+                $data_simpan_detail     = [
+                    "pkt_id"        => $rkap_id,
+                    "pktd_seq"      => $data_detail['rkapd_seq'],
+                    "pktd_title"    => $data_detail['rkapd_title'],
+                    "pktd_target"   => 0,
+                ];
+
+                DB::table('proker_tahunan_detail')->insert($data_simpan_detail);
+            }
+        } else if($jenis == 'edit') {
+            // UPDATE HEADER
+            $data_where_header  = [
+                "uid"       => $rkap_id,
+            ];
+            
+            $data_update_header  = [
+                "pkt_title"         => $rkap_title,
+                "pkt_description"   => $rkap_desc,
+                "pkt_year"          => $rkap_year,
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+            DB::table('proker_tahunan')->where($data_where_header)->update($data_update_header);
+
+            // UPDATE DETAIL
+            // GET PKT ID
+            $rkap_id_header     = DB::table('proker_tahunan')->select('id')->where($data_where_header)->get()[0]->id;
+            // DELETE DATA BEFORE
+            DB::table('proker_tahunan_detail')->where(['pkt_id' => $rkap_id_header])->delete();
+            // INSERT NEW DATA
+            for($i = 0; $i < count($temp_detail); $i++) {
+                $data_detail    = $temp_detail[$i];
+
+                $data_update_detail     = [
+                    "pkt_id"        => $rkap_id_header,
+                    "pktd_seq"      => $data_detail['rkapd_seq'],
+                    "pktd_title"    => $data_detail['rkapd_title'],
+                    "pktd_target"   => 0,
+                ];
+                DB::table('proker_tahunan_detail')->insert($data_update_detail);
+            }   
+        }
+
+        try {
+            DB::commit();
+
+            if($jenis == 'add') {
+                LogHelper::create('add', 'Berhasil Menambahkan Data RKAP Baru : '.$data_simpan_header['uid'], $user_ip);
+            } else if($jenis == 'edit') {
+                LogHelper::create('edit', 'Berhasil Mengubah Data RKAP : '.$rkap_id, $user_ip);
+            }
+
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => "",
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+
+            LogHelper::create('error_system', $jenis == 'add' ? "Gagal Menambahkan Data RKAP Baru" : "Gagal Merubah Data RKAP", $user_ip);
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function doGetDataRKAP($data)
+    {
+        $pkt_uid    = $data['rkap_id'];
+
+        // GET HEADER
+        $header     = DB::select(
+            "
+            SELECT 	a.uid as pkt_id,
+                    a.pkt_title,
+                    a.pkt_description,
+                    a.pkt_year
+            FROM 	proker_tahunan a
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            WHERE 	a.uid = '$pkt_uid'
+            AND     b.name LIKE '%finance%'
+            "
+        );
+
+        $detail     = DB::select(
+            "
+            SELECT 	a.uid as pkt_id,
+                    c.pktd_seq,
+                    c.pktd_title
+            FROM 	proker_tahunan a
+            JOIN 	group_divisions b ON a.division_group_id = b.id
+            JOIN 	proker_tahunan_detail c ON a.id = c.pkt_id
+            WHERE 	a.uid = '$pkt_uid'
+            AND 	b.name LIKE '%finance%'
+            ORDER BY CAST(c.pktd_seq AS UNSIGNED) ASC
+            "
+        );
+
+        $output     = [
+            "header"    => !empty($header[0]) ? $header[0] : "",
+            "detail"    => !empty($detail) ? $detail : []
+        ];
+
+        return $output;
+    }
+
+    public static function getListPengajuan($data)
+    {
+        $user_id        = $data['user_id'];
+        $current_year   = $data['current_year'];
+
+        return DB::select(
+            "
+            SELECT  a.emp_act_uuid as emp_act_id,
+                    a.emp_act_user_id,
+                    b.name as emp_act_user_name,
+                    a.emp_act_title,
+                    a.emp_act_start_date,
+                    a.emp_act_end_date,
+                    a.emp_act_type,
+                    a.emp_act_status
+            FROM    employees_activity a
+            JOIN    employees b ON a.emp_act_user_id = b.user_id
+            WHERE   a.emp_act_user_id LIKE '$user_id'
+            AND     EXTRACT(YEAR FROM a.created_at) = '$current_year'
+            AND     a.emp_act_type <> 'Lembur'
+            ORDER BY a.emp_act_start_date DESC
+            "
+        );
+    }
+
+    public static function doSimpanPengajuanCuti($data)
+    {
+        DB::beginTransaction();
+
+        // DATA DATA
+        $user_id        = $data['user_id'];
+        $pgj_id         = $data['data']['pgj_id'];
+        $pgj_title      = $data['data']['pgj_title'];
+        $pgj_start_date = $data['data']['pgj_date_start'];
+        $pgj_end_date   = $data['data']['pgj_date_end'];
+        $pgj_type       = $data['data']['pgj_type'];
+        $pgj_status     = $data['data']['pgj_status'];
+        $ip             = $data['ip'];
+        
+        if($pgj_status == "3")
+        {
+            $pgj_insert_data    = [
+                "emp_act_uuid"      => Str::uuid(),
+                "emp_act_user_id"   => $user_id,
+                "emp_act_title"     => $pgj_title,
+                "emp_act_start_date"=> $pgj_start_date,
+                "emp_act_end_date"  => $pgj_end_date,
+                "emp_act_type"      => $pgj_type,
+                "emp_act_status"    => $pgj_status,
+                "created_by"        => $user_id,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+    
+            DB::table('employees_activity')->insert($pgj_insert_data);
+    
+            try {
+                DB::commit();
+                LogHelper::create('add', 'Berhasil Membuat Pengajuan '.$pgj_type.' : '.$pgj_insert_data['emp_act_uuid'], $ip);
+    
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => "",
+                ];
+    
+            } catch(\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', 'Gagal Membuat Pengajuan '.$pgj_type, $ip);
+    
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                ];
+            }
+        } else {
+            $pgj_where  = [
+                "emp_act_uuid"  => $pgj_id,
+            ];
+            $pgj_update = [
+                "emp_act_status"=> $pgj_status,
+                "updated_by"    => $user_id,
+                "updated_at"    => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('employees_activity')->where($pgj_where)->update($pgj_update);
+
+            try {
+                DB::commit();
+                LogHelper::create('edit', 'Berhasil Konfirmasi Pengajuan '.$pgj_type.' dengan ID : '.$pgj_id, $ip);
+
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => "",
+                ];
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', 'Gagal Konfirmasi Pengajuan'.$pgj_type, $ip);
+
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                ];
+            }
+        }
+
+        return $output;
+    }
+
+    // 26 AGUSTUS 2024
+    // NOTE : AMBIL LIST ABSENSI
+    public static function getListAbsensi($data)
+    {
+        $tanggal_awal   = $data['data']['tanggal_awal'];
+        $tanggal_akhir  = $data['data']['tanggal_akhir'];
+        $user_cari      = $data['data']['user_id'];
+        $jml_hari       = $data['data']['jml_hari'];
+        
+
+        $abs_data       = [];
+
+        // GET DATA USER
+        $query_get_data_user    = DB::select(
+            "
+            SELECT  a.user_id,
+                    a.name as user_name
+            FROM    employees a 
+            WHERE   a.user_id LIKE '$user_cari'
+            AND     a.user_id NOT IN ('1')
+            ORDER BY a.user_id ASC
+            "
+        );
+
+        for($i = 0; $i < count($query_get_data_user); $i++)
+        {
+            $curr_user  = $query_get_data_user[$i]->user_id;
+            $curr_name  = $query_get_data_user[$i]->user_name;
+
+            $tgl_awal   = $tanggal_awal;
+            $tgl_akhir  = $tanggal_akhir;
+            for($j = 1; $j <= $jml_hari; $j++) {
+                if($tgl_awal != date('Y-m-d', strtotime($tgl_akhir . '+1 day'))) {
+                    $query_get_data_absen   = DB::select(
+                        "
+                        SELECT  *
+                        FROM    tm_presence
+                        WHERE   prs_user_id = '$curr_user'
+                        AND     prs_date = '$tgl_awal'
+                        "
+                    );
+                    if(count($query_get_data_absen) > 0) {
+                        $abs_data[]     = [
+                            "nama"              => $curr_name,
+                            "tanggal_absen"     => $query_get_data_absen[0]->prs_date,
+                            "jam_masuk"         => $query_get_data_absen[0]->prs_in_time == '' ? '00:00:00' : date('H:i:s', strtotime($query_get_data_absen[0]->prs_in_time)),
+                            "jam_keluar"        => $query_get_data_absen[0]->prs_out_time == '' ? '00:00:00' : date('H:i:s', strtotime($query_get_data_absen[0]->prs_out_time)),
+                        ];
+                    } else {
+                        $abs_data[]     = [
+                            "nama"              => $curr_name,
+                            "tanggal_absen"     => $tgl_awal,
+                            "jam_masuk"         => "00:00:00",
+                            "jam_keluar"        => "00:00:00"
+                        ];
+                    }
+                    $tgl_awal = date('Y-m-d', strtotime($tgl_awal . '+1 day'));
+                } else {
+                    $tgl_awal   = $tanggal_awal;
+                    $tgl_akhir  = $tanggal_akhir;
+                }
+            }
+        }
+
+        return $abs_data;
+    }
+
+    public static function getDataEmployee()
+    {
+        return DB::select(
+            "
+            SELECT  a.user_id as emp_id,
+                    b.name as emp_name,
+                    d.name as emp_divisi
+            FROM    employees a
+            JOIN 	users b ON b.id = a.user_id
+            JOIN 	job_employees c ON a.id = c.employee_id
+            JOIN 	group_divisions d ON c.group_division_id = d.id
+            WHERE   user_id NOT IN ('1','38','41','25')
+            AND 	b.is_active = '1'
+            ORDER BY user_id ASC
+            "
+        );
+    }
+
+    public static function get_master_employees_fee()
+    {
+        $query  = DB::table('employees_fee as a')
+                    ->select('a.employee_id as emp_id', 'e.name as emp_name', 'd.name as emp_division', 'a.employee_fee as emp_fee')
+                    ->join('employees as b', 'a.employee_id', '=', 'b.id')
+                    ->join('job_employees as c', 'b.id', '=', 'c.employee_id')
+                    ->join('group_divisions as d', 'c.group_division_id', '=', 'd.id')
+                    ->join('users as e', 'b.user_id', '=', 'e.id')
+                    ->where('e.is_active', '=', '1')
+                    ->orderBy('e.name', 'ASC')
+                    ->get();
+        return $query;
+    }
+
+    public static function do_update_employees_fee($data)
+    {
+        $emp_id     = $data['emp_id'];
+        $emp_fee    = $data['emp_fee'];
+        $ip_address = $data['ip'];
+        $user_id    = $data['user_id'];
+
+        DB::beginTransaction();
+
+        // UPDATE EMP_FEE
+
+        // CHECK DULU
+        $emp_fee_check_data     = DB::table('employees_fee')->where(['employee_id' => $emp_id])->get();
+
+        $emp_fee_where  = [
+            "employee_id"   => $emp_id,
+        ];
+        $emp_fee_update = [
+            "employee_fee"  => $emp_fee,
+            "updated_by"    => $user_id,
+            "updated_at"    => date('Y-m-d H:i:s'),
+        ];
+        
+        /*
+        KONDISI : 
+        - KETIKA EMP_FEE_CHECK_DATA -> EMPLOYEE_FEE LEBIH BESAR DARI 0 MAKA INSERT KE HISTORY DAN UPDATE EMPLOYEES FEE
+        - KETIKA EMP_FEE_CHECK_DATA -> EMPLOYEE_FEE KURANG DARI SAMA DENGAN 0 MAKA UPDATE EMPLOYEES FEE SAJA
+        */
+        if($emp_fee_check_data[0]->employee_fee > 0) {
+            $emp_fee_insert_data    = [
+                "employee_id"   => $emp_id,
+                "employee_fee"  => $emp_fee_check_data[0]->employee_fee, 
+                "created_by"    => $user_id,
+                "created_at"    => date('Y-m-d', strtotime($emp_fee_check_data[0]->created_at)),
+                "expired_at"    => date('Y-m-d'),
+            ];
+            DB::table('employees_fee_history')->insert($emp_fee_insert_data);
+            DB::table('employees_fee')->where($emp_fee_where)->update($emp_fee_update);
+        } else {
+            DB::table('employees_fee')->where($emp_fee_where)->update($emp_fee_update);
+        }
+
+        try {
+            DB::commit();
+            LogHelper::create('edit', 'Berhasil Merubah Data Gaji Pokok Karyawan '.$emp_id, $ip_address);
+
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => ""
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+            LogHelper::create('error_system', 'Gagal Merubah Data Gaji Pokok Karyawan', $ip_address);
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function get_list_lembur()
+    {
+        $user_id    = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id;
+        $query  = DB::table('employees_activity')
+                    ->join('users as b', 'emp_act_user_id', '=', 'b.id')
+                    ->select('emp_act_uuid as emp_act_id', 'emp_act_user_id as emp_user_id', 'b.name as emp_user_name', 'emp_act_start_date as emp_act_date', 'emp_act_title as emp_description', 'emp_act_type as emp_trans_type', 'emp_act_status as emp_trans_status')
+                    ->where('emp_act_type', '=', 'Lembur')
+                    ->where('emp_act_user_id', 'LIKE', '%'.$user_id.'%')
+                    ->get();
+        return $query;
+    }
+
+    public static function do_simpan_pengajuan_lembur($data)
+    {
+        DB::beginTransaction();
+        $jenis      = $data['jenis'];
+        $ip         = $data['ip'];
+
+        $user_id    = $data['user_id'];
+        $user_name  = $data['user_name'];
+
+        $header     = $data['data']['header'];
+        $detail     = $data['data']['detail'];
+
+        if($jenis == 'add')
+        {
+            // INSERT HEADER
+            $data_header    = [
+                "emp_act_uuid"      => Str::uuid(),
+                "emp_act_user_id"   => $user_id,
+                "emp_act_title"     => $header['lmb_description'],
+                "emp_act_start_date"=> date('Y-m-d'),
+                "emp_act_end_date"  => date('Y-m-d'),
+                "emp_act_type"      => "Lembur",
+                "emp_act_status"    => 3,
+                "created_by"        => $user_id,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_by"        => $user_id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('employees_activity')->insert($data_header);
+            $emp_act_id     = DB::getPdo()->lastInsertId();
+
+            // INSERT DETAIL
+            for($i = 0; $i < count($detail); $i++) {
+                $data_detail    = [
+                    "emp_act_id"        => $emp_act_id,
+                    "empd_seq"          => $detail[$i]['lmbd_seq'],
+                    "empd_description"  => $detail[$i]['lmbd_desc'],
+                    "empd_date"         => $detail[$i]['lmbd_date'],
+                    "empd_start_time"   => $detail[$i]['lmbd_start_time'],
+                    "empd_end_time"     => $detail[$i]['lmbd_end_time'],
+                    "empd_status"       => 0, 
+                ];
+
+                DB::table('employees_activity_detail')->insert($data_detail);
+            }
+        } else if($jenis == 'edit') {
+            // GET ID
+            $emp_act_id     = DB::table('employees_activity')->select('id')->where('emp_act_uuid', '=', $data['data']['header']['lmb_id'])->get()[0]->id;
+            // UPDATE HEADER
+            $data_where_header  = [
+                "emp_act_uuid"      => $data['data']['header']['lmb_id']
+            ];
+            $data_update_header = [
+                "updated_by"        => Auth::user()->id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+            DB::table('employees_activity')->where($data_where_header)->update($data_update_header);
+
+            // UPDATE DETAIL
+            $emp_act_detail = $data['data']['detail'];
+            
+            // DELETE EMPLOYEES ACTIVITY USERS
+            DB::table('employees_activity_detail')->where('emp_act_id', '=', $emp_act_id)->delete();
+
+            // INSERT NEW DATA
+            for($i = 0; $i < count($emp_act_detail); $i++) {
+                if($emp_act_detail[$i]['lmbd_desc'] != '') {
+                    $data_detail    = [
+                        "emp_act_id"        => $emp_act_id,
+                        "empd_seq"          => $emp_act_detail[$i]['lmbd_seq'],
+                        "empd_description"  => $emp_act_detail[$i]['lmbd_desc'],
+                        "empd_date"         => $emp_act_detail[$i]['lmbd_date'],
+                        "empd_start_time"   => $emp_act_detail[$i]['lmbd_start_time'],
+                        "empd_end_time"     => $emp_act_detail[$i]['lmbd_end_time'],
+                        "empd_status"       => 0, 
+                    ];
+    
+                    DB::table('employees_activity_detail')->insert($data_detail);
+                }
+            }
+        }
+
+        try {
+            DB::commit();
+            if($jenis == 'add') {
+                LogHelper::create('add', 'Berhasil Membuat Pengajuan Lembur ID : '.$data_header['emp_act_uuid'], $ip);
+            } else {
+                LogHelper::create('edit', 'Berhasil Merubah Pengajuan Lembur ID : ', $ip);
+            }
+
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => "",
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Melakukan Pengajuan Lembur', $ip);
+
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function do_get_data_lembur($id)
+    {
+        $emp_act_id     = $id;
+
+        $get_data_header    = DB::table('employees_activity as a')
+                                    ->join('employees as b', 'a.emp_act_user_id', '=', 'b.user_id')
+                                    ->join('job_employees as c', 'c.employee_id', '=', 'b.id')
+                                    ->join('group_divisions as d', 'c.group_division_id', '=', 'd.id')
+                                    ->join('users as e', 'b.user_id', '=', 'e.id')
+                                    ->select('a.emp_act_uuid as emp_act_id', 'a.emp_act_user_id as emp_user_id','e.name as emp_user_name', 'a.emp_act_title as emp_act_description', 'd.name as emp_group_division', 'a.emp_act_status')
+                                    ->where('a.emp_act_type', '=', 'Lembur')
+                                    ->where('a.emp_act_uuid', '=', $emp_act_id)
+                                    ->get();
+        
+        $get_data_detail    = DB::table('employees_activity as a')
+                                ->join('employees_activity_detail as b', 'a.id', '=', 'b.emp_act_id')
+                                ->select('a.emp_act_uuid as emp_act_id', 'b.empd_seq', 'b.empd_description', 'b.empd_date', 'b.empd_start_time', 'b.empd_end_time')
+                                ->where('a.emp_act_type', '=', 'Lembur')
+                                ->where('a.emp_act_uuid', '=', $emp_act_id)
+                                ->get();
+
+        $output         = [
+            "header"    => $get_data_header,
+            "detail"    => $get_data_detail,
+        ];
+
+        return $output;
+    }
+
+    public static function do_simpan_konfirmasi_data_lembur($data)
+    {
+        DB::beginTransaction();
+
+        $emp_user_id    = $data['emp_user_id'];
+        $emp_act_id     = $data['emp_act_id'];
+        $emp_act_status = $data['emp_act_status'];
+
+        $ip             = $data['ip'];
+
+        $data_where     = [
+            "emp_act_uuid"  => $emp_act_id,
+        ];
+        
+        $data_update    = [
+            "emp_act_status"=> $emp_act_status,
+            "updated_by"    => $emp_user_id,
+            "updated_at"    => date('Y-m-d H:i:s'),
+        ];
+
+        DB::table('employees_activity')->where($data_where)->update($data_update);
+
+        try {
+            DB::commit();
+            LogHelper::create('edit', 'Berhasil Konfirmasi Pengajuan Lembur ID : '.$emp_act_id, $ip);
+
+            $output     = [
+                "status"    => "berhasil",
+                "err_msg"   => "",
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Konfirmasi Transaksi Pengajuan Lembur', $ip);
+            
+            $output     = [
+                "status"    => "gagal",
+                "err_msg"   => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function get_data_finance_sim_employees_fee($data)
+    {
+        $emp_id     = $data['emp_id'];
+        $date_start = $data['date_start'];
+        $date_end   = $data['date_end'];
+
+        // GET HEADER
+        $emp_header     = DB::table('employees_fee as a')
+                                ->join('job_employees as b', 'b.employee_id', '=', 'a.employee_id')
+                                ->join('group_divisions as c', 'b.group_division_id', '=', 'c.id')
+                                ->select('a.employee_id as emp_id', 'a.employee_name as emp_name', 'a.employee_fee as emp_fee', 'c.name as emp_division')
+                                ->where('a.employee_id', '=', $emp_id)
+                                ->get();
+
+        $emp_detail     = DB::table('tm_presence as a')
+                            ->join('employees as b', 'a.prs_user_id', '=', 'b.user_id')
+                            ->join('users as c', 'b.user_id', '=', 'c.id')
+                            ->select('b.id as emp_id', 'c.name as emp_name', 'a.prs_date as emp_prs_date', 'a.prs_in_time as emp_prs_in_time', 'a.prs_out_time as emp_prs_out_time')
+                            ->where('b.id', '=', $emp_id)
+                            ->whereBetween('a.prs_date', [$date_start, $date_end])
+                            ->orderBy('a.prs_date', 'ASC')
+                            ->get();
+        
+        $output         = [
+            "header"        => $emp_header,
+            "detail"        => $emp_detail,
         ];
 
         return $output;

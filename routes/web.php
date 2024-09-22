@@ -17,9 +17,11 @@ use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\TarikDataController;
+use App\Models\Division;
 use App\Services\ProgramKerjaService;
 use Illuminate\Support\Facades\Route;
-
+use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 Route::get('/test', function () {
     return 'test';
@@ -40,7 +42,14 @@ Route::post('/login', [LoginController::class, 'store'])->name('login.store')->m
 Route::group(['middleware' => ['auth']], function () {
 
     //route dashboard
-    Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
+    Route::prefix('dashboard')->group(function() {
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::post('/postPresence/{jenis}', [DashboardController::class, 'dashboard_presence']);
+        Route::get('/getDataPresenceToday', [DashboardController::class, 'dashboard_getPresenceToday']);
+        Route::get('/absensi_pulang', [DashboardController::class, 'index_pulang'])->name('absen.pulang');
+        Route::get('/tarik_data', [DashboardController::class, 'index_tarik_data_presensi']);
+    });
+    // Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class,'logout'])->name('logout.store');
     
     // NOTIFICATIONS
@@ -178,11 +187,12 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/userLog', 'userLog')->name('accounts.user.log');
             Route::prefix('userProfiles')->group(function(){
                 Route::get('/', 'userProfiles')->name('accounts.user.profile');
-                Route::get('/ChangePasswwordUser', 'ChangePasswordUser');
+                Route::get('/ChangePasswordUser', 'ChangePasswordUser');
                 Route::get('/CheckPasswordCurrentUser', 'CheckPasswordCurrentUser');
                 Route::get('/getUserData', 'getUserData');
                 Route::post('/updatePicture', 'updateProfilePicture')->name('accounts.changePicture');
                 Route::get('/getDataUser', 'getDataUser');
+                Route::get('/getDataLastActUser', 'getDataLastActUser');
             });
             // Route::get('/userProfiles/updateProfilePict', 'updateProfilePicture')->name('accounts.do.upload');
         });
@@ -342,6 +352,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/getDataRulesJadwalDetail', [DivisiController::class, 'getDataRulesJadwalDetail']);
             Route::get('/getJobUser', [DivisiController::class, 'getDataJobUser']);
             Route::get('/getRKAP', [DivisiController::class, 'divisi_operasional_getRKAP']);
+            Route::get('/getListAktivitasUserChart', [DivisiController::class, 'operasional_dahsboard_actDetailUserChart']);
 
             Route::prefix('program')->group(function(){
                 Route::get('/', [DivisiController::class, 'indexProgram'])->name('index.operasional.program');
@@ -364,6 +375,19 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/getTourCode/{tourcode}', [DivisiController::class, 'finance_programKerja_tourCode']);
             Route::get('/getEventsFinanceDetail/{id}', [DivisiController::class, 'finance_programKerja_eventsDetail']);
             Route::post('/simpanAktivitas/{jenis}', [DivisiController::class, 'finance_programKerja_simpanAktivitas']);
+            Route::prefix('rkap')->group(function(){
+                Route::get('/listRKAP', [DivisiController::class, 'finance_rkap_list']);
+                Route::post('/simpanRKAP/{jenis}', [DivisiController::class, 'finance_rkap_simpan']);
+                // GET RKAP DATA
+                Route::get('/getRKAPData', [DivisiController::class, 'finance_rkap_getData']);
+            });
+            Route::prefix('master')->group(function(){
+                Route::get('/gaji_pokok_employee', [DivisiController::class, 'finance_master_employees_fee']);
+                Route::put('/gaji_pokok_employee/{emp_id}', [DivisiController::class, 'finance_master_employees_fee_update']);
+            });
+            Route::prefix('simulasi')->group(function(){
+                Route::get('/employees_fee', [DivisiController::class, 'finance_sim_employees_fee']);
+            });
         });
 
         Route::prefix('digital')->group(function(){
@@ -372,11 +396,26 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/listEventsCalendarDigitalDetail', [DivisiController::class, 'digital_programKerja_listEventDetail']);
             Route::get('/getDataProgramDigital', [DivisiController::class, 'digital_programKerja_listProgram']);
             Route::post('/simpanAktivitasHarian/{jenis}', [DivisiController::class, 'digital_programKerja_simpanAktivitasHarian']);
+            Route::get('/listAktivitasHarian', [DivisiController::class, 'digital_programKerja_listAktivitasHarian']);
+        });
+
+        Route::prefix('human_resource')->group(function(){
+            Route::get('/', [DivisiController::class, 'indexHR'])->name('index.human_resouce');
+            Route::prefix('/employee')->group(function(){
+                Route::get('/list', [DivisiController::class, 'hr_list_employee']);
+                Route::post('/ubahStatus', [DivisiController::class, 'hr_ubah_status_employee']);
+            });
+            Route::prefix('absensi')->group(function(){
+                Route::get('/list', [DivisiController::class, 'absensi_list']);
+                Route::get('/excelDownload', [DivisiController::class, 'absensi_download_excel']);
+                Route::post('/excelDelete', [DivisiController::class, 'absensi_delete_excel']);
+            });
         });
 
         Route::prefix('master')->group(function(){
             Route::get('/getDataProkerTahunan', [DivisiController::class, 'getDataProkerTahunan']);
             Route::get('/getDataSubDivision', [DivisiController::class, 'getDataSubDivision']);
+            Route::get('/getDataEmployees', [EmployeesController::class, 'data_employee_global']);
         });
     });
 
@@ -397,5 +436,32 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::prefix('presensi')->group(function(){
         Route::get('report',[PresensiController::class,'report'])->name('presensi.report');
+    });
+
+    Route::prefix('pengajuan')->group(function(){
+        Route::prefix('cuti')->group(function(){
+            Route::get('/', [DivisiController::class, 'pengajuan_cuti'])->name('index.pengajuan.cuti');
+        });
+        Route::get('/listCuti', [DivisiController::class, 'pengajuan_list_cuti']);
+        Route::post('/simpanCuti', [DivisiController::class, 'pengajuan_simpan_cuti']);
+        Route::prefix('lembur')->group(function(){
+            Route::get('/', [DivisiController::class, 'pengajuan_lembur'])->name('index.pengajuan.lembur');
+            Route::get('/list_lembur', [DivisiController::class, 'list_lembur']);
+            Route::post('/simpan/{jenis}', [DivisiController::class, 'simpan_pengajuan_lembur']);
+            Route::get('/get_data', [DivisiController::class, 'get_data_lembur']);
+            Route::put('/konfirmasi', [DivisiController::class, 'konfirmasi_data_lembur']);
+        });
+    });
+
+    Route::prefix('tarik_data')->group(function() {
+        Route::get('/absensi', [TarikDataController::class, 'tarik_data_index'])->name('index.tarik_data.absensi');
+        Route::post('/absensi', [TarikDataController::class, 'tarik_data_absensi']);
+        Route::get('/get_list_absensi', [TarikDataController::class, 'tarik_data_get_absensi']);
+    });
+
+    Route::prefix('simulasi')->group(function(){
+        Route::prefix('perhitungan_lembur')->group(function(){
+            Route::get('/', [DivisiController::class, 'index_simulasi_perhitungan_lembur']);
+        });
     });
 });

@@ -2,6 +2,7 @@
 @section('title', $title ?? '')
 
 @push('addon-style')
+    @include('layouts.css')
     {{-- SWEETALERT --}}
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.min.css" rel="stylesheet">
     {{-- CUSTOM CSS --}}
@@ -91,12 +92,63 @@
                 </table>
             </div>
         </div>
-        <div class="row">
+        <div class="row mb-4">
             <div class="col-sm-12">
                 <div class="card card-body">
                     <div class="d-flex flex-row align-items-center">
                         <button class="btn btn-primary mr-3" onclick="showModal('modal_change_pict', '{{ Auth::user()->getRoleNames()[0] }}')">Ubah Foto</button>
                         <button class="btn btn-primary" onclick="showModal('modalChangePassword', '{{ Auth::user()->getRoleNames()[0] }}')">Ubah Password</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h4 class="no-margins">
+                            <i class="fa fa-info-circle"></i> Aktivitas Terakhir
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="table-loading" style="height: 364px;">
+                            <div class="d-flex flex-column align-items-center w-100 h-100 justify-content-center">
+                                <span class="spinner-border"></span><br>
+                                <label>Table Sedang Dimuat</label>
+                            </div>
+                        </div>
+                        <div id="table-show" class="d-none">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered table-striped table-hover" style="width: 100%; height: 100%;" id="tableLastActUser">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" style="width: 5%;">No</th>
+                                            <th class="text-center align-middle" style="width: 30%;">Tanggal</th>
+                                            <th class="text-left align-middle">Uraian Aktivitas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h4 class="no-margins"><i class='fa fa-bar-chart'></i> Chart Aktivitas Tahunan</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="chart-loading" style="height: 364px;">
+                            <div class="d-flex flex-column align-items-center w-100 h-100 justify-content-center">
+                                <span class="spinner-border"></span><br>
+                                <label>Chart Sedang Dimuat</label>
+                            </div>
+                        </div>
+                        <div id="chart-show" class="d-none" style="height: 364px;">
+                            <canvas id="chartActUser" style="width: 100%; height: auto;"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -189,6 +241,14 @@
 @push('addon-script')
     {{-- SWEETALERT2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
+    {{-- DATATABLE --}}
+    <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
+    {{-- CHART JS --}}
+    <script src="{{ asset('assets/js/plugins/chartJs/Chart.min.js') }}"></script>
+    {{-- MOMENT --}}
+    <script src="{{ asset('js/customJS/moment/moment.min.js') }}"></script>
+    <script src="{{ asset('js/customJS/moment/id.js') }}"></script>
+    <script src="{{ asset('js/customJS/moment/moment-timezone-with-data.min.js') }}"></script>
     {{-- CUSTOM JS --}}
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/users/userProfile/index.userProfile.js') }}"></script>

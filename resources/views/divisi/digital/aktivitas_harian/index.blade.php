@@ -27,7 +27,13 @@
             <div class="col-sm-12">
                 <div class="card shadow mb-4">
                     <div class="card-header">
-                        <h4 style="margin:0px;" id="card_title">List Aktivitas Harian <span id="kalender_bulan"></span></h4>
+                        <div class="d-flex flex-row align-items-center justify-content-between w-100">
+                            <h4 class="no-margins" id="card_title">List Aktivitas Harian <span id="kalender_bulan"></span></h4>
+                            <button class="btn btn-sm btn-primary" onclick="showModal('modal_act_user', '', '')">
+                                <span class="badge badge-white" id="total_act_user"><i class='fa fa-spinner fa-spin'></i></span>
+                                Lihat Aktivitas
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
                         <input type="hidden" id="today">
@@ -111,6 +117,42 @@
                     <button class="btn ml-2 btn-danger d-none" id="btnHapus" onclick="simpanData('hapus')" title="Hapus Data">Hapus</button>
                     <button class="btn ml-2 btn-secondary" id="btnCancel" onclick="closeModal('modal_form')" title="Tutup Tampilan">Tutup</button>
                     <button class="btn ml-2 btn-primary" id="btnSimpan" value="" onclick="simpanData(this.value)" title="Simpan Data">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modal_act_user">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-row align-items-center justify-content-between w-100">
+                        <h4 class="no-margins">List Aktivitas ( <span id="modal_act_usert_month"></span> )</h4>
+                        <button class="close" onclick="closeModal('modal_act_user')">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm table-hover" id="table_list_act_user" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th class="text-center align-middle" style="width: 8%;">No</th>
+                                <th class="text-center align-middle" style="width: 30%;">Program</th>
+                                <th class="text-center align-middle">Uraian</th>
+                                <th class="text-center align-middle" style="width: 15%;">Target</th>
+                                <th class="text-center align-middle" style="width: 10%;">Persentase</th>
+                                <th class="text-center align-middle" style="width: 15%;">Type</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="2">&nbsp;</th>
+                                <th class="text-right align-middle"> Total : </th>
+                                <th class="text-left align-middle" id="table_list_act_user_total_target"></th>
+                                <th class="text-left align-middle" id="table_list_act_user_total_persentase"></th>
+                                <th>&nbsp;</th>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>

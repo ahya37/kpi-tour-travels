@@ -1,6 +1,7 @@
 {{-- CUSTOM CSS --}}
 <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('assets/css/swal2.custom.css') }}">
+<link rel="stylesheet" href="{{ asset('css/customCSS/percik_fullcalendar.css') }}">
 {{-- DATATABLES --}}
 <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('css/customCSS/DataTables/datatables.min.css') }}">
@@ -17,3 +18,6 @@
 <link rel="stylesheet" href="{{ asset('css/customCSS/SweetAlert/sweetalert2.min.css') }}">
 {{-- YEARPICKER --}}
 <link href="{{ asset('assets/css/plugins/yearpicker/yearpicker.css') }}" rel="stylesheet">
+<link href="{{ asset('css/customCSS/yearpicker/percik_yearpicker.css') }}" rel="stylesheet">
+{{-- FONTAWESOME 5.8.2 --}}
+<link href="{{ asset('css/customCSS/fontawesome-5.8.2/fontawesome.min.css') }}" rel="stylesheet">

@@ -389,25 +389,37 @@ function showModal(idForm, valueCari, jenis)
 
         showTable('table_list_rkap', '');
     } else if(idForm == 'modalRKAP') {
-        showTable('table_detail_rkap', '')
-        
+        // CLOSE MODAL BEFORE
+        closeModal('modalRKAPTable');
+        // SHOW YEAR PICKER
+        $("#rkap_year").yearpicker({
+            autoHide: true,
+            year    : parseInt(moment().format('YYYY')),
+        });
+
         if(jenis == 'add') {
             $("#"+idForm).modal({backdrop: 'static', keyboard: false});
             $("#modalRKAP_title").append('Tambah Data');
 
+            // TAMBAH BARIS
+            showTable('table_detail_rkap', '')
             const barisAwal     = parseInt($("#btnTambahBarisRKAP").val());
             tambahBaris('table_detail_rkap', barisAwal, '');
+
+            // FILL FORM
+            $("#rkap_year").val(moment(today).format('YYYY')).trigger('change');
+            
         } else if(jenis == 'edit') {
             const rkap_data     = {
                 "pkt_id"    : valueCari,
             };
             const rkap_url  = "/divisi/operasional/getRKAP";
-            const rkap_msg  = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+            const rkap_msg  = Swal.fire({ title : 'Data Sedang Diproses', outsideClick : false }); Swal.showLoading();
             doTrans(rkap_url, 'GET', rkap_data, rkap_msg, true)
                 .then((success)     => {
-                    Swal.close();
+                    // SHOW MODAL
                     $("#"+idForm).modal({backdrop : 'static', keyboard: false});
-                    $("#modalRKAP_title").append('Ubah Data');
+                    $("#modalRKAP_title").html('Ubah Data RKAP Operasional');
 
                     const rkap_data_header  = success.data.header[0];
                     const rkap_data_detail  = success.data.detail;
@@ -417,12 +429,15 @@ function showModal(idForm, valueCari, jenis)
                     $("#rkap_description").val(rkap_data_header.pkt_description);
                     $("#rkap_year").val(rkap_data_header.pkt_year);
 
-                    // FIULL DETAIL
+                    // FILL DETAIL
+                    showTable('table_detail_rkap', '');
                     let barisAwal   = 1;
                     for(const item of rkap_data_detail) {
                         tambahBaris('table_detail_rkap', barisAwal++, item);
                     }
                     tambahBaris('table_detail_rkap', barisAwal, '');
+
+                    Swal.close();
                 })
                 .catch((err)        => {
                     Swal.close();
@@ -436,10 +451,82 @@ function showModal(idForm, valueCari, jenis)
         }
 
         $("#"+idForm).on('shown.bs.modal', () => {
-            $("#rkap_year").val(moment().format('YYYY'));
             $("#rkap_title").focus();
             $("#btnSimpanRKAP").val(jenis);
         })
+    } else if(idForm == 'modalDetailAktivitas') {
+        const actUser_url       = "/divisi/operasional/getListAktivitasUserChart";
+        const actUser_sendData  = {
+            "user_name" : valueCari,
+        };
+        const actUser_type      = "GET";
+
+        const sendData  = [
+            doTrans(actUser_url, actUser_type, actUser_sendData, '', true)
+        ];
+
+        Swal.fire({
+            title   : 'Data Sedang Diproses',
+        });
+        Swal.showLoading();
+
+        Promise.all(sendData)
+            .then((success)     => {
+                $("#"+idForm).modal({ backdrop : 'static', keyboard: false });
+                const actUser_getData   = success[0].data;
+                showTable('tableListAktivitasUser', actUser_getData);
+                Swal.close();
+            })
+            .catch((err)        => {
+                Swal.fire({
+                    icon    : 'warning',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Tidak Ada Data Yang Bisa Dimuat..',
+                }).then((results)   => {
+                    if(results.isConfirmed) {
+                        console.log(err);
+                    }
+                });
+            })
+    }
+}
+
+function closeModal(idForm) {
+    if(idForm == 'modalForm') {
+        $("#"+idForm).modal('hide');
+        
+    } else if(idForm == 'modaGenerateRules') {
+        $("#selectAll").prop('checked', false);
+        
+        temp_rules  = [];
+    } else if(idForm == 'modalOperasionalDaily') {
+        $("#"+idForm).modal('hide');
+        $("#"+idForm).on('hidden.bs.modal', function(){
+            today   = moment().format('YYYY-MM-DD');
+            $("#filterOperasional").collapse('hide');
+        })
+    } else if(idForm == 'modalOperasionalTransaction') {
+        $("#"+idForm).modal('hide');
+
+        $("#"+idForm).on('hidden.bs.modal', function(){
+            $("#modalOperasionalTransaction_title").val(null);
+            $(".calendar").val(null);
+            $("#modalOperasionalTransaction_description").val(null);
+            $("#modalOperasionalTransaction_jpkID").val(null);
+        })
+    } else if(idForm == 'modalRKAP') {
+        $("#"+idForm).modal('hide');
+        showModal('modalRKAPTable', '', '');
+        $("#"+idForm).on('hidden.bs.modal', () => {
+            $("#rkap_title").val(null);
+            $("#rkap_description").val(null);
+            $("#rkap_year").val(null);
+            $("#btnTambahBarisRKAP").val(1);
+        });
+    } else if(idForm == 'modalRKAPTable') {
+        $("#"+idForm).modal('hide');
+    } else if(idForm == 'modalDetailAktivitas') {
+        $("#"+idForm).modal('hide');
     }
 }
 
@@ -460,7 +547,7 @@ function showDataOperasional()
 
             if(getData['chart'].length > 0) {
                 for(var i = 0; i < getData['chart'].length; i++) {
-                    dataLabels.push(getData['chart'][i]['employee_name']);
+                    dataLabels.push('User : '+getData['chart'][i]['employee_name']);
                     data_DataSets.push(getData['chart'][i]['total_job']);
                 }
             }
@@ -474,7 +561,7 @@ function showDataOperasional()
                 data: {
                     labels: dataLabels,
                     datasets: [{
-                        label: 'Program Kerja Bulanan',
+                        label: 'Total Aktivitas',
                         data: data_DataSets,
                         backgroundColor: "#1AB394",
                         borderWidth: 1
@@ -489,19 +576,15 @@ function showDataOperasional()
                         }]
                     },
                     responsive  : true,
-                    maintainAspectRatio  : false
+                    maintainAspectRatio  : false,
+                    onClick     : (events, elements) => {
+                        const label_chart   = elements[0]._view.label;
+                        const user_name     = label_chart.split(' : ')[1];
+
+                        showModal('modalDetailAktivitas', user_name, '');
+                    }
                 }
             });
-
-            ctx.canvas.onclick = function(evt) {
-                var activePoints = myChart.getElementsAtEvent(evt);
-                if (activePoints.length > 0) {
-                    var clickedDatasetIndex = activePoints[0]._datasetIndex;
-                    var clickedElementindex = activePoints[0]._index;
-                    var label = myChart.data.labels[clickedElementindex];
-                    var value = myChart.data.datasets[clickedDatasetIndex].data[clickedElementindex];
-                }
-            }
 
             // SHOW TABLE
             $("#showLoading_table").hide();
@@ -669,9 +752,10 @@ function showTable(idTable, valueCari)
                 "emptyTable"    : "Tidak ada data yang bisa ditampilkan.."
             },
             columnDefs  : [
-                { targets: [0, 6], className: "text-center", width: "7%" },
-                { targets: [4, 5], className: "text-center", width: "16%" },
-                { targets: [2], className: "text-left", width: "18%" },
+                { targets: [0, 6], className: "text-center align-middle", width: "7%" },
+                { targets: [4, 5], className: "text-center align-middle", width: "16%" },
+                { targets: [2], className: "text-left align-middle", width: "18%" },
+                { targets : [1, 3], "className" : "text-left align-middle" },
             ],
             processing  : true,
             serverSide  : false,
@@ -778,6 +862,56 @@ function showTable(idTable, valueCari)
                 item.pkt_year,
                 "<button class='btn btn-sm btn-primary' title='Lihat Data' value='" + item.pkt_id + "' onclick='showModal(`modalRKAP`, this.value, `edit`)'><i class='fa fa-eye'></i></button>"
             ]).draw(false);
+        }
+    } else if(idTable == 'tableListAktivitasUser') {
+        $("#"+idTable).DataTable().clear().destroy();
+
+        $("#"+idTable).DataTable({
+            language     : {
+                "emptyTable"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat",
+                "zeroRecords"   : "Data yang dicari tidak ada",
+                "lengthMenu"    : "Tampilkan Data _MENU_",
+            },
+            // paging      : false,
+            pageLength  : 10,
+            lengthMenu  : [
+                [-1, 10, 25, 50, 100],
+                ['Semua', 10, 25, 50, 100]
+            ],
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" :  "5%"},
+                { "targets" : [1], "className" : "text-left align-middle", "width" : "17%" },
+                { "targets" : [3], "className" : "text-left align-middle", "width" : "20%" },
+                { "targets" : [4], "className" : "text-left align-middle", "width" : "10%" },
+            ],
+        });
+
+        $(".custom-select").select2({
+            theme   : 'bootstrap4',
+        });
+        $(".custom-select").prop('style', 'width: 100%');
+
+        if(valueCari.length > 0) {
+            let num     = 1;
+            for(const item of valueCari)
+            {
+                const actUser_tourCode  = item.jdw_tour_code == null ? '' : item.jdw_tour_code;
+                const actUser_title     = item.pkb_description;
+                const actUser_titleTrim = item.pkb_description.length > 55 ? item.pkb_description.slice(0, 55)+"..." : item.pkb_description;
+                const actUser_startDate = moment(item.pkb_start_date, 'YYYY-MM-DD');
+                const actUser_endDate   = moment(item.pkb_end_date, 'YYYY-MM-DD');
+                const actUser_date      = item.pkb_start_date != item.pkb_end_date ? actUser_startDate.format('DD-MMM-YYYY')+" s/d "+actUser_endDate.format('DD-MMM-YYYY') : actUser_startDate.format('DD-MMM-YYYY');
+                const actUser_dateDiff  = item.pkb_start_date != item.pkb_end_date ? actUser_endDate.diff(actUser_startDate, 'days')+' Hari' : '1 Hari';
+
+                $("#"+idTable).DataTable().row.add([
+                    "<label class='no-margins' style='font-weight: normal;'>" + (num++) + "</label>",
+                    "<label class='no-margins' style='font-weight: normal;'>" + actUser_tourCode + "</label>",
+                    "<label class='no-margins' style='font-weight: normal;' title='" + actUser_title.toUpperCase() + "'>" + actUser_titleTrim.toUpperCase() + "</label>",
+                    "<label class='no-margins' style='font-weight: normal;'>" + actUser_date + "</label>",
+                    "<label class='no-margins' style='font-weight: normal;'>" + actUser_dateDiff + "</label>",
+                ]).draw(false);
+            }
         }
     }
 }
@@ -957,7 +1091,6 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
             $.each(valueCari, (i, item) => {
                 html    += "<option value='"+ item.pktd_seq +"'>"+ item.pktd_title +"</option>";
             });
-            html    += "<option value='more'>Lainnya</option>";
             $("#"+idSelect).html(html);
         } else {
             $("#"+idSelect).html(html);
@@ -1066,42 +1199,6 @@ function generateRules(element, id)
                 text    : 'Tidak ada Rules baru yang bisa digenerate',
             })
         })
-}
-
-function closeModal(idForm) {
-    if(idForm == 'modalForm') {
-        $("#"+idForm).modal('hide');
-        
-    } else if(idForm == 'modaGenerateRules') {
-        $("#selectAll").prop('checked', false);
-        
-        temp_rules  = [];
-    } else if(idForm == 'modalOperasionalDaily') {
-        $("#"+idForm).modal('hide');
-        $("#"+idForm).on('hidden.bs.modal', function(){
-            today   = moment().format('YYYY-MM-DD');
-            $("#filterOperasional").collapse('hide');
-        })
-    } else if(idForm == 'modalOperasionalTransaction') {
-        $("#"+idForm).modal('hide');
-
-        $("#"+idForm).on('hidden.bs.modal', function(){
-            $("#modalOperasionalTransaction_title").val(null);
-            $(".calendar").val(null);
-            $("#modalOperasionalTransaction_description").val(null);
-            $("#modalOperasionalTransaction_jpkID").val(null);
-        })
-    } else if(idForm == 'modalRKAP') {
-        $("#"+idForm).modal('hide');
-        $("#"+idForm).on('hidden.bs.modal', () => {
-            $("#rkap_title").val(null);
-            $("#rkap_description").val(null);
-            $("#rkap_year").val(null);
-            $("#btnTambahBarisRKAP").val(1);
-        })
-    } else if(idForm == 'modalRKAPTable') {
-        $("#"+idForm).modal('hide');
-    }
 }
 
 function selectAllTable(idTable, idCheck)

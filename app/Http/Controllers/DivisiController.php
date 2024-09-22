@@ -2,33 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\LogHelper;
 use Illuminate\Http\Request;
 use App\Services\DivisiService;
 use App\Services\BaseService;
-use Arr;
+use App\Services\EmployeeService;
 use Http;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
-use LDAP\Result;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\ResponseFormatter;
-
-use function PHPSTORM_META\map;
+use DateInterval;
+use DateTime;
+use File;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 class DivisiController extends Controller
 {
+    var $title  = "ERP Percik Tours";
     // MARKETING
     // IT
     // OPERASIONAL
     public function indexOperasional() {
-        if(Auth::user()->getRoleNames()[0] == 'operasional') {
+        if(Auth::user()->getRoleNames()[0] == 'operasional' || Auth::user()->getRoleNames()[0] == 'admin') {
             $data   = [
-                'title'     => 'Divisi Operasional',
-                'sub_title' => 'Dashboard - Divisi Operasional',
+                'title'     => 'Divisi Operasional','sub_title' => 'Dashboard - Divisi Operasional',
                 'is_active' => '1',
-                'sub_division'      => DivisiService::getCurrentSubDivision()[0]->sub_division_name,
-                'sub_division_id'   => DivisiService::getCurrentSubDivision()[0]->sub_division_id,
+                'sub_division'      => Auth::user()->getRoleNames()[0] != 'admin' ? DivisiService::getCurrentSubDivision()[0]->sub_division_name : 'pic',
+                'sub_division_id'   => Auth::user()->getRoleNames()[0] != 'admin' ? DivisiService::getCurrentSubDivision()[0]->sub_division_id : '%',
             ];
             return view('divisi/operasional/index', $data);
         } else {
@@ -614,7 +617,7 @@ class DivisiController extends Controller
     public function operasional_programKerja_listProkerAll(Request $request)
     {
         $data       = [
-            "current_role"  => Auth::user()->getRoleNames()[0],
+            "current_role"  => Auth::user()->getRoleNames()[0] == 'admin' ? 'operasional' : Auth::user()->getRoleNames()[0],
             "current_id"    => Auth::user()->id,
         ];
         $getData    = DivisiService::getListProkerAllOperasional($data);
@@ -641,7 +644,7 @@ class DivisiController extends Controller
     public function operasional_programKerja_listPIC()
     {
         $data       = [
-            "current_role"  => Auth::user()->getRoleNames()[0],
+            "current_role"  => Auth::user()->getRoleNames()[0] == 'admin' ? 'marketing' : Auth::user()->getRoleNames()[0],
             "current_id"    => Auth::user()->id,
         ];
 
@@ -913,7 +916,7 @@ class DivisiController extends Controller
     public function indexFinance()
     {
         $data   = [
-            'title'         => 'Keuangan - Dashboard',
+            'title'         => $this->title." | Dashboard Keuangan",
             'sub_title'     => "Dashboard - Divisi Keuangan"
         ];
 
@@ -924,27 +927,18 @@ class DivisiController extends Controller
     {
         $data   = [
             "sendData"  => $request->all()['sendData'],
-            "user_id"   => Auth::user()->id,
-            "user_role" => Auth::user()->getRoleNames()[0]
+            "user_id"   => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id,
+            "user_role" => Auth::user()->getRoleNames()[0] == 'admin' ? 'finance' : Auth::user()->getRoleNames()[0]
         ];
 
         $getData = DivisiService::getEventsFinance($data);
         
-        if(count($getData) > 0) {
-            $output     = array(
-                "success"   => true,
-                "status"    => 200,
-                "message"   => "Berhasil Ambil Data Jenis Pekerjaan Finance",
-                "data"      => $getData,
-            );
-        } else {
-            $output     = array(
-                "success"   => false,
-                "status"    => 404,
-                "message"   => "Gagal Ambil Data Jenis Pekerjaan Finance",
-                "data"      => [],
-            );
-        }
+        $output     = array(
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Ambil Data Jenis Pekerjaan Finance",
+            "data"      => $getData,
+        );
 
         return Response::json($output, $output['status']);
     }
@@ -1197,7 +1191,7 @@ class DivisiController extends Controller
         $sendData   = [
             "pkt_id"        => $request->all()['sendData']['pkt_id'],
             "current_year"  => date('Y'),
-            "current_role"  => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->getRoleNames()[0]
+            "current_role"  => Auth::user()->getRoleNames()[0] == 'admin' ? 'operasional' : Auth::user()->getRoleNames()[0]
         ];
 
         $getData    = DivisiService::doGetRKAPOperasional($sendData);
@@ -1208,6 +1202,838 @@ class DivisiController extends Controller
             "message"   => "Berhasil Ambil Data",
             "data"      => $getData,
         ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 13 AGUSTUS 2024
+    // NOTE : AMBIL DATA LIST AKTIVITAS USER DIVISI DIGITAL
+    public function digital_programKerja_listAktivitasHarian(Request $request)
+    {
+        $sendData   = [
+            "user_id"           => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id,
+            "selected_month"    => $request->all()['today'],
+        ];
+        
+        $getData    = DivisiService::getListAktivitasHarian($sendData);
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Mengambil Data",
+            "data"      => $getData,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function operasional_dahsboard_actDetailUserChart(Request $request)
+    {
+        $sendData   = [
+            "user_name" => $request->all()['sendData']['user_name'],
+        ];
+
+        $getData    = DivisiService::doGetDataActUserChart($sendData);
+        
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Data Berhasil Dimuat",
+            "data"      => $getData,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 15 AGUSTUS 2024
+    // NOTE : LIST RKAP FINANCE
+    public function finance_rkap_list(Request $request)
+    {
+        $sendData   = [
+            "user_role"     => Auth::user()->getRoleNames()[0] == 'admin' ? 'finance' : Auth::user()->getRoleNames()[0],
+            "rkap_id"       => $request->all()['sendData']['rkap_id'],
+        ];
+
+        $getData    = DivisiService::getFinanceRKAPList($sendData);
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Memuat Data RKAP Finance",
+            "data"      => $getData,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 16 AGUSTUS 2024
+    // NOTE : SIMPAN RKAP FINANCE
+    public function finance_rkap_simpan($jenis, Request $request)
+    {
+        $sendData   = [
+            "data"      => $request->all()['sendData'],
+            "jenis"     => $jenis,
+            "user_id"   => Auth::user()->id,
+            "user_role" => Auth::user()->getRoleNames()[0] == 'admin' ? 'finance' : Auth::user()->getRoleNames()[0],
+            "ip"        => $request->ip(),
+        ];
+
+        $doSimpan   = DivisiService::doSimpanRKAPFinance($sendData);
+        
+        switch($doSimpan['status'])
+        {
+            case "berhasil" :
+                $output     = [
+                    "success"   => true,
+                    "status"    => 200,
+                    "alert"     => [
+                        "icon"      => "success",
+                        "message"   => [
+                            "title"     => "Berhasil",
+                            "text"      => $jenis == 'add' ? "Berhasil Menambahkan RKAP Baru" : "Berhasil Merubah Data RKAP",
+                        ],
+                    ],
+                    "errMsg"    => $doSimpan['errMsg'],
+                ];
+                break;
+            case "gagal" :
+                $output     = [
+                    "success"   => false,
+                    "status"    => 500,
+                    "alert"     => [
+                        "icon"      => "error",
+                        "message"   => [
+                            "title"     => "Terjadi Kesalahan",
+                            "text"      => $jenis == 'add' ? "Gagal Menambahkan RKAP Baru" : "Gagal Merubah Data RKAP",
+                        ],
+                    ],
+                    "errMsg"    => $doSimpan['errMsg'],
+                ];
+                break;
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function finance_rkap_getData(Request $request)
+    {
+        $sendData   = [
+            "rkap_id"   => $request->all()['sendData']['rkap_id'],
+        ];
+
+        $getData    = DivisiService::doGetDataRKAP($sendData);
+
+        if((!empty($getData['header'])) && (count($getData['detail']) > 0)) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Memuat Data",
+                "data"      => $getData,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Memuat Data : Data Tidak Ditemukan",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 21 AGUSTUS 2024
+    // NOTE : PEMBUATAN MODUL HR
+    public function indexHR()
+    {
+        $data   = [
+            "user_id"   => Auth::user()->id,
+            "title"     => $this->title." | Dashboard",
+            "sub_title" => "Dashboard - Divisi Human Resource",
+        ];
+
+        return view("/divisi/human_resource/dashboard/index", $data);
+    }
+
+    // 22 AGUSTUS 2024
+    // NOTE : FORM PENGAJUAN CUTI
+    public function pengajuan_cuti()
+    {
+        $data   = [
+            "user_id"   => Auth::user()->id,
+            "user_name" => Auth::user()->name,
+            "user_role" => Auth::user()->getRoleNames()[0],
+            "title"     => $this->title." | Pengajuan",
+            "sub_title" => "Pengajuan Cuti / Izin / Tidak Masuk Kerja",
+        ];
+        
+        return view('activities.pengajuan.cuti.index', $data);
+    }
+
+    public function pengajuan_list_cuti()
+    {
+        $data   = [
+            "user_id"       => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id,
+            "current_year"  => date('Y'),
+        ];
+
+        $getData    = DivisiService::getListPengajuan($data);
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Data Berhasil Dimuat",
+            "data"      => $getData,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function pengajuan_simpan_cuti(Request $request)
+    {
+        $sendData   = [
+            "user_id"   => Auth::user()->id,
+            "data"      => $request->all(),
+            "ip"        => $request->ip()
+        ];
+
+        $doSimpan   = DivisiService::doSimpanPengajuanCuti($sendData);
+        
+        if($doSimpan['status'] == 'berhasil') {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => $request->all()['pgj_status'] == "3" ? "Berhasil Membuat Pengajuan ".$request->all()['pgj_type'] : "Berhasil Konfirmasi Pengajuan ".$request->all()['pgj_type']
+                    ],
+                ],
+            ];
+        } else if($doSimpan['status'] == 'gagal') {
+            $output     = [
+                "status"    => 500,
+                "success"   => true,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => $request->all()['pgj_status'] == "3" ? "Gagal Membuat Pengajuan ".$request->all()['pgj_type'] : "Gagal Konfirmasi Pengajuan ".$request->all()['pgj_type']
+                    ],
+                ],
+            ];
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+
+    // 26 AGUSTUS 2024
+    // NOTE : LIST ABSENSI
+    public function absensi_list(Request $request)
+    {
+        $sendData   = [
+            "data"  => $request->all(),
+        ];
+
+        $getData    = DivisiService::getListAbsensi($sendData);
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Memuat Data",
+            "data"      => $getData,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    private function getDiffTime($day, $time_in, $time_out)
+    {
+        // ABSEN AWAL
+        $tanggal_1  = new DateTime("2024-07-15");
+        $tanggal_2  = new DateTime($day);
+        switch(date('D', strtotime($day)))
+        {
+            case "Sat" :
+                if($tanggal_1 < $tanggal_2) {
+                    $jam_masuk  = $day." 08:00:00";
+                    $jam_keluar = $day." 13:30:00";
+                } else {
+                    $jam_masuk  = $day." 08:30:00";
+                    $jam_keluar = $day." 12:00:00";
+                }
+
+                $jam_masuk_abs  = $day." ".$time_in;
+                $jam_keluar_abs = $day." ".$time_out;
+            break;
+            case "Sun" : 
+                $jam_masuk  = $day." 00:00:00";
+                $jam_keluar = $day." 00:00:00";
+                
+                $jam_masuk_abs  = $day." ".$time_in;
+                $jam_keluar_abs = $day." ".$time_out;
+            break;
+            default  : 
+            if($tanggal_1 < $tanggal_2) {
+                $jam_masuk  = $day." 08:00:00";
+                $jam_keluar = $day." 16:00:00";
+            } else {
+                $jam_masuk  = $day." 08:30:00";
+                $jam_keluar = $day." 16:30:00";
+            }
+
+                $jam_masuk_abs  = $day." ".$time_in;
+                $jam_keluar_abs = $day." ".$time_out;
+        }
+
+        // GET PERBEDAAN WAKTU
+        // KETERLAMBATAN
+        $waktu_masuk_1  = new DateTime($jam_masuk);
+        $waktu_masuk_2  = new DateTime($jam_masuk_abs);
+
+        $interval_masuk     = $waktu_masuk_1->diff($waktu_masuk_2);
+        $total_jam_masuk    = $interval_masuk->h < 10 ? "0".$interval_masuk->h : $interval_masuk->h;
+        $total_min_masuk    = $interval_masuk->i < 10 ? "0".$interval_masuk->i : $interval_masuk->i;
+        $total_sec_masuk    = $interval_masuk->s < 10 ? "0".$interval_masuk->s : $interval_masuk->s;
+
+        $total_telat_masuk  = $total_jam_masuk.":".$total_min_masuk.":".$total_sec_masuk;
+        
+        // LEBIH JAM
+        $waktu_keluar_1 = new DateTime($jam_keluar);
+        $waktu_keluar_2 = new DateTime($jam_keluar_abs);
+
+        $interval_keluar        = $waktu_keluar_1->diff($waktu_keluar_2);
+        $total_jam_keluar       = $interval_keluar->h < 10 ? "0".$interval_keluar->h : $interval_keluar->h;
+        $total_min_keluar       = $interval_keluar->i < 10 ? "0".$interval_keluar->i : $interval_keluar->i;
+        $total_sec_keluar       = $interval_keluar->s < 10 ? "0".$interval_keluar->s : $interval_keluar->s;
+        
+        $total_lebih_waktu  = $total_jam_keluar.":".$total_min_keluar.":".$total_sec_keluar;
+
+        return $data    = [
+            "kurang_jam"    => $total_telat_masuk,
+            "lebih_jam"     => $total_lebih_waktu,
+        ];
+    }
+
+    public function absensi_download_excel(Request $request)
+    {
+        $tgl_awal   = $request->all()['tanggal_awal'];
+        $tgl_akhir  = $request->all()['tanggal_akhir'];
+        $jml_hari   = $request->all()['jml_hari'];
+        // $getData    = DivisiService::getListAbsensi($sendData);
+        
+        // AMBIL DATA USER
+        $getDataUser    = DivisiService::getDataEmployee();
+        
+        $spreadsheet    = new Spreadsheet;
+
+        function autoSizeColumn(Worksheet $sheet, $column)
+        {
+            $maxLength = 0;
+            $columnIndex = Coordinate::columnIndexFromString($column); // Mendapatkan indeks kolom dari huruf kolom
+        
+            // Iterasi melalui semua baris dalam kolom
+            foreach ($sheet->getRowIterator() as $row) {
+                $cell = $sheet->getCell($column . $row->getRowIndex());
+                $value = $cell->getValue();
+                $length = strlen((string) $value); // Konversi nilai sel ke string
+        
+                // Periksa panjang sel untuk menentukan lebar kolom maksimum
+                if ($length > $maxLength) {
+                    $maxLength = $length;
+                }
+            }
+        
+            // Set lebar kolom
+            $sheet->getColumnDimension($column)->setWidth($maxLength + 2); // Menambahkan sedikit ruang ekstra
+        }
+        for($i = 0; $i < count($getDataUser); $i++)
+        {
+            $emp_data   = $getDataUser[$i];
+            $emp_id     = $emp_data->emp_id;
+            $emp_name   = $emp_data->emp_name;
+            $curr_seq   = $i + 1;
+
+            $sendData   = [
+                "data"  => [
+                    "tanggal_awal"  => $tgl_awal,
+                    "tanggal_akhir" => $tgl_akhir,
+                    "user_id"       => $emp_id,
+                    "jml_hari"      => $jml_hari,
+                ],
+            ];
+
+            $getDataDetail  = DivisiService::getListAbsensi($sendData);
+
+            // STYLING
+            $sheetStyle     = [
+                "font"  => [
+                    "bold"  => true
+                ],
+            ];
+
+            // WAKTU TELAT
+            $batas_jam_telat    = new DateTime('08:10:59');
+
+            // UNTUK PERHITUNGAN TOTAL JAM
+            $total_kurang_jam   = new DateTime("1970-01-01 00:00:00");
+            $total_lebih_jam    = new DateTime("1970-01-01 00:00:00");
+
+            // KETIKA SEQ 1 MAKA JADI ACTIVE SHEET JIKA TIDAK MAKA BUAT SHEET BARU
+            if($curr_seq == 1) {
+                $sheet1     = $spreadsheet->getActiveSheet();
+            } else {
+                $sheet1     = $spreadsheet->createSheet();
+            }
+
+            $sheet1->getStyle("A1:F1")->applyFromArray($sheetStyle);
+            $sheet1->setTitle($emp_name);
+            $sheet1->setCellValue('A1', 'TANGGAL');
+            $sheet1->setCellValue('B1', 'JAM DATANG');
+            $sheet1->setCellValue('C1', 'JAM PULANG');
+            $sheet1->setCellValue('D1', 'KURANG JAM');
+            $sheet1->setCellValue('E1', 'LEBIH JAM');
+            $sheet1->setCellValue('F1', 'TOTAL JAM');
+            
+            for($j = 0; $j < count($getDataDetail);$j++)
+            {
+                $tgl_absen      = $getDataDetail[$j]['tanggal_absen'];
+                $waktu_masuk    = $getDataDetail[$j]['jam_masuk'];
+                $waktu_keluar   = $getDataDetail[$j]['jam_keluar'];
+                $lebih_jam      = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['lebih_jam'] : "00:00:00";
+                $kurang_jam     = $waktu_masuk != '00:00:00' ? $this->getDiffTime($tgl_absen, $waktu_masuk, $waktu_keluar)['kurang_jam'] : "00:00:00";
+
+                // HITUNG LEBIH KURANG JAM
+                $kurang_jam_jam     = explode(':', $kurang_jam)[0];
+                $kurang_jam_min     = explode(':', $kurang_jam)[1];
+                $kurang_jam_sec     = explode(':', $kurang_jam)[2];
+                $total_kurang_jam->add(new DateInterval('PT'.$kurang_jam_jam.'H'.$kurang_jam_min.'M'.$kurang_jam_sec.'S'));
+
+                $lebih_jam_jam      = explode(':', $lebih_jam)[0];
+                $lebih_jam_min      = explode(':', $lebih_jam)[1];
+                $lebih_jam_sec      = explode(':', $lebih_jam)[2];
+                $total_lebih_jam->add(new DateInterval('PT'.$lebih_jam_jam.'H'.$lebih_jam_min.'M'.$lebih_jam_sec.'S'));
+
+                // TOTAL JAM
+                $jam_kerja_masuk    = new DateTime($waktu_masuk);
+                $jam_kerja_keluar   = new DateTime($waktu_keluar);
+                $interval_jam_masuk_jam_keluar  = $jam_kerja_masuk->diff($jam_kerja_keluar);
+                $total_diff_jam     = $interval_jam_masuk_jam_keluar->h;
+                $total_diff_menit   = $interval_jam_masuk_jam_keluar->i;
+                $total_difF_detik   = $interval_jam_masuk_jam_keluar->s;
+                $total_jam_kerja    = sprintf('%02d:%02d:%02d', $total_diff_jam, $total_diff_menit, $total_difF_detik);
+
+                if(new DateTime($waktu_masuk) > $batas_jam_telat) {
+                    $telat_style    = [
+                        'font'  => [
+                            'color' => [
+                                'argb'  => 'FFFF0000',
+                            ]
+                        ],
+                    ];
+                    $sheet1->getStyle('B'.($j + 2))->applyFromArray($telat_style);
+                    $sheet1->getComment('B'.($j + 2))->getText()->createTextRun('Telat');
+                } else if($waktu_masuk == '00:00:00') {
+                    // NOTICE SAJA
+                    $sheet1->getComment('b'.($j + 2))->getText()->createTextRun('Tidak ada Absen');
+                }
+
+                $sheet1->setCellValue('A'.($j + 2), $tgl_absen);
+                $sheet1->setCellValue('B'.($j + 2), $waktu_masuk);
+                $sheet1->setCellValue('C'.($j + 2), $waktu_keluar);
+                $sheet1->setCellValue('D'.($j + 2), $kurang_jam);
+                $sheet1->setCellValue('E'.($j + 2), $lebih_jam);
+                $sheet1->setCellValue('F'.($j + 2), $total_jam_kerja);
+            }
+            // FOOTER
+            $total_data     = count($getDataDetail) + 2;
+            $sheet1->getStyle('A'.$total_data.":F".$total_data)->applyFromArray($sheetStyle);
+            $sheet1->setCellValue('A'.$total_data, 'JUMLAH');
+            $sheet1->setCellValue('D'.$total_data, $total_kurang_jam->format('H:i:s'));
+            $sheet1->setCellValue('E'.$total_data, $total_lebih_jam->format('H:i:s'));
+            $spreadsheet->setActiveSheetIndex(0);
+
+            autoSizeColumn($sheet1, 'A');
+            autoSizeColumn($sheet1, 'B');
+            autoSizeColumn($sheet1, 'C');
+            autoSizeColumn($sheet1, 'D');
+            autoSizeColumn($sheet1, 'E');
+            autoSizeColumn($sheet1, 'F');
+        }
+
+        // Simpan file Excel ke disk
+        $file_path      = public_path('storage/data-files/presensi_xls/');
+        $file_name      = time()."_Laporan_Presensi_".$tgl_awal."_sampai_".$tgl_akhir.".xlsx";
+
+        if(!File::exists($file_path)) {
+            File::makeDirectory($file_path, 0755, true);
+        }
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($file_path.$file_name);
+
+        $output     = [
+            "status"    => 200,
+            "success"   => true,
+            "data"      => [
+                "file_url"  => "storage/data-files/presensi_xls",
+                "file_name" => $file_name,
+            ],
+            "message"   => "Berhasil Memuat Data",
+        ];
+
+        return Response::json($output, $output['status']);
+        
+    }
+
+    public function absensi_delete_excel(Request $request)
+    {
+        $file_url   = $request->all()['file_url'];
+        
+        if(file_exists($file_url))
+        {
+            unlink($file_url);
+            $output     = [
+                "status"    => 200,
+                "message"   => "Berhasil Hapus File"
+            ];
+        } else {
+            $output     = [
+                "status"    => 500,
+                "message"   => "Gagal Hapus File",
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+    
+    public function hr_list_employee(Request $request)
+    {
+        // GET DATA
+        $emp_send_data  = $request->all()['cari'];
+        $emp_get_data   = EmployeeService::getDataEmployee($emp_send_data);
+        $emp_data       = [];
+
+        if(count($emp_get_data) > 0) {
+            foreach($emp_get_data as $emp)
+            {
+                $emp_data[]     = [
+                    "emp_id"        => $emp->employee_id,
+                    "emp_name"      => $emp->employee_name,
+                    "emp_role"      => $emp->role_name,
+                    "emp_division"  => $emp->group_division_name." (".$emp->sub_division_name.")",
+                    "emp_is_active" => $emp->user_active
+                ];
+            }
+        } else {
+            $emp_data   = [];
+        }
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Mengambil Data Karyawan",
+            "data"      => $emp_data,
+            "total_data"=> count($emp_data)
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function hr_ubah_status_employee(Request $request)
+    {
+        $sendData   = [
+            "emp_id"        => $request->all()['emp_id'],
+            "emp_status"    => $request->all()['emp_status'] == 'active' ? '0' : '1',
+            "ip"            => $request->ip(),
+        ];
+
+        $doSimpan   = EmployeeService::do_ubah_status_employee($sendData);
+
+        if($doSimpan['status'] == 'berhasil') {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "alert"     => [
+                    "icon"  => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Mengubah Status User",
+                    ],
+                ],
+                "errMsg"    => $doSimpan['errMsg'],
+            ];
+        } else {
+            $output     = [
+                "status"    => 400,
+                "success"   => false,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Sistem Sedang Gangguan, Silahkan Coba Lagi..",
+                    ],
+                ],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+
+    // 11-09-2024
+    // NOTE : AMBIL DATA GAJI POKO
+    public function finance_master_employees_fee()
+    {
+        $get_data   = DivisiService::get_master_employees_fee();
+
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Memuat Data",
+                "total_data"=> count($get_data),
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data Gagal Dimuat",
+                "total_data"=> 0,
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function finance_master_employees_fee_update($emp_id, Request $request)
+    {
+        $send_data  = [
+            "emp_id"    => $emp_id,
+            "emp_fee"   => $request->all()['emp_fee'],
+            "user_id"   => Auth::user()->id,
+            "ip"        => $request->ip(),
+        ];
+
+        $do_update  = DivisiService::do_update_employees_fee($send_data);
+
+        if($do_update['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Mengubah Data Gaji Pokok Karyawan"
+                    ],
+                ],
+                "error_message" => $do_update['errMsg'],
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Gagal Mengubah Data Gaji Pokok Karyawan"
+                    ],
+                ],
+                "error_message" => $do_update['errMsg']
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function index_simulasi_perhitungan_lembur()
+    {
+        $data       = [
+            "title"     => $this->title . " | Simulasi",
+            "sub_title" => "Pengajuan Perhitungan Lemburan"
+        ];
+
+        return view('simulasi.perhitungan.lembur.index', $data);
+    }
+
+    public function pengajuan_lembur()
+    {
+        // DATA EMPLOYEES
+        $emp_id                 = Auth::user()->id;
+        $get_data_employees     = DivisiService::getDataEmployee();
+        $data_emp               = [];
+        for($i = 0; $i < count($get_data_employees); $i++) {
+            if($get_data_employees[$i]->emp_id == $emp_id)
+            {
+                $data_emp   = [
+                    "emp_id"    => $emp_id,
+                    "emp_name"  => $get_data_employees[$i]->emp_name,
+                    "emp_divisi"=> $get_data_employees[$i]->emp_divisi,
+                ];
+                break;
+            } else {
+                $data_emp   = [
+                    "emp_id"    => $emp_id,
+                    "emp_name"  => Auth::user()->name,
+                    "emp_divisi"=> "%",
+                ];
+            }
+        }
+        $data       = [
+            "title"     => $this->title . " | Pengajuan Lembur",
+            "sub_title" => "List Pengajuan Lembur",
+            "data_emp"  => $data_emp,  
+        ];
+
+        return view('activities.pengajuan.lembur.index', $data);
+    }
+
+    public function list_lembur()
+    {
+        $get_data   = DivisiService::get_list_lembur();
+
+        $output     = [
+            "success"   => true,
+            "status"    => 200,
+            "message"   => "Berhasil Mengambil Data Lemburan",
+            "data"      => $get_data,
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function simpan_pengajuan_lembur($jenis, Request $request)
+    {
+        $data   = [
+            "user_id"   => Auth::user()->id, 
+            "user_name" => Auth::user()->name,
+            "data"      => [
+                "header"    => $request->all()['header'],
+                "detail"    => $request->all()['detail'],
+            ],
+            "jenis"     => $jenis,
+            "ip"        => $request->ip(),
+        ];
+
+        $doSimpan   = DivisiService::do_simpan_pengajuan_lembur($data);
+
+        if($doSimpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => $jenis == 'add' ? "Berhasil Menambahkan Pengajuan Lembur" : "Berhasil Mengubah Pengajuan Lembur",
+                    ],
+                ],
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 401,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => $jenis == 'add' ? "Gagal Menambahkan Pengajuan Lembur" : "Gagal Mengubah Pengajuan Lembur",
+                    ],
+                ],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function get_data_lembur(Request $request)
+    {
+        $user_act_id    = $request->all()['lmb_id'];
+
+        $get_data       = DivisiService::do_get_data_lembur($user_act_id);
+
+        if(count($get_data['header']) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Lemburan",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data Tidak Ditemukan",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function konfirmasi_data_lembur(Request $request)
+    {
+        $data   = [
+            "emp_act_id"    => $request->all()['emp_act_id'],
+            "emp_act_status"=> $request->all()['emp_act_status'],
+            "emp_user_id"   => Auth::user()->id,
+            "ip"            => $request->ip(),
+        ];
+        
+        $do_simpan  = DivisiService::do_simpan_konfirmasi_data_lembur($data);
+
+        if($do_simpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Konfirmasi Pengajuan Lembur"
+                    ],
+                ],
+            ];
+        } else if($do_simpan['status'] == 'gagal') {
+            $output     = [
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Gagal Konfirmasi Pengajuan Lembur"
+                    ],
+                ],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function finance_sim_employees_fee(Request $request)
+    {
+        $get_data   = DivisiService::get_data_finance_sim_employees_fee($request->all());
+        
+        if(count($get_data['header']) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data Tidak Ditemukan",
+                "data"      => [],
+            ];
+        }
 
         return Response::json($output, $output['status']);
     }
