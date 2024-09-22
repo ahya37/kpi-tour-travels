@@ -916,7 +916,7 @@ class DivisiController extends Controller
     public function indexFinance()
     {
         $data   = [
-            'title'         => 'Keuangan - Dashboard',
+            'title'         => $this->title." | Dashboard Keuangan",
             'sub_title'     => "Dashboard - Divisi Keuangan"
         ];
 
@@ -2009,6 +2009,29 @@ class DivisiController extends Controller
                         "text"      => "Gagal Konfirmasi Pengajuan Lembur"
                     ],
                 ],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function finance_sim_employees_fee(Request $request)
+    {
+        $get_data   = DivisiService::get_data_finance_sim_employees_fee($request->all());
+        
+        if(count($get_data['header']) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data Tidak Ditemukan",
+                "data"      => [],
             ];
         }
 

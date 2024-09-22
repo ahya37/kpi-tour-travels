@@ -258,6 +258,17 @@ function showSelect(idSelect, data)
         } else {
             $("#"+idSelect).html(html);
         }
+    } else if(idSelect == 'sml_emp_id') {
+        var html    = "<option selected disabled>Pilih Karyawan</option>";
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += "<option value='" + item.emp_id + "'>" + item.emp_name + "</option>";
+            });
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
     }
 }
 
@@ -361,6 +372,57 @@ function showTable(idTable, data)
                 console.log(err);
                 $(".dataTables_empty").html("Tidak Ada Data Yang Bisa Dimuat");
             })
+    } else if(idTable == 'table_emp_ovt') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : "Pilih Karyawan dan Tanggal Lalu Klik 'Cari' untuk menampilkan data..",
+                zeroRecords : "Tidak ada data yang bisa ditampilkan"
+            },
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
+                { "targets" : [1], "className" : 'text-left align-middle', "width" : "15%" },
+                { "targets" : [2, 3, 4], "className" : "text-center align-middle", "width" : "20%"},
+                { "targets" : [5], "className" : "text-center align-middle", "width" : "8%" }
+            ],
+        });
+        
+        console.table(data);
+        if(data != '') {
+            let seq                 = 1;
+            let overtimeOne         = 0;
+            let overtimeTwo         = 0;
+            let overtimeThree       = 0;
+            let totalOvertimeOne    = 0;
+            let totalOvertimeTwo    = 0;
+            let totalOvertimeThree  = 0;
+
+            for(const item of data)
+            {
+                var prs_date    = item.emp_prs_date;
+                var prs_in      = item.emp_prs_in_time;
+                var prs_out     = item.emp_prs_out_time;
+
+                // SHOW TIME ONLY
+                var prs_in_time = moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
+                var prs_out_time= moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
+                                
+                // FORMATED TANGGAL
+                var prs_date_formatted  = prs_out != null ? moment(prs_date, 'YYYY-MM-DD').format('DD/MM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+" - "+moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")" : moment(prs_date, 'YYYY-MM-DD').format('DD/MM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")";
+
+                if(prs_out != null && prs_out_time > "16:00") {
+                    $("#"+idTable).DataTable().row.add([
+                        seq++,
+                        prs_date_formatted,
+                        0,
+                        0,
+                        0,
+                        "<i class='fa fa-times'></fa>"
+                    ]).draw(false);
+                }
+            }
+        }
     }
 }
 
@@ -691,6 +753,42 @@ function showModal(idModal, value, jenis)
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
         
         showTable('table_update_gapok_karyawan', '');
+    } else if(idModal == 'modal_simulasi_lemburan') {
+
+        // GET DATA EMPLOYEES
+        const sml_emp_url   = base_url + "/divisi/human_resource/employee/list";
+        const sml_emp_type  = "GET";
+        const sml_emp_data  = { "cari" : '%' };
+        const sml_emp_msg   = Swal.fire({ title : 'Data Sedang Diambil' }); Swal.showLoading();
+        
+        doTransV2(sml_emp_url, sml_emp_type, sml_emp_data, sml_emp_msg, true)
+            .then((success)     => {
+                Swal.close();
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                const sml_emp_getData   = success.data;
+                // SHOW SELECT
+                showSelect('sml_emp_id', sml_emp_getData);
+                // SHOW DATERANGEPICKER
+                $("#sml_emp_date").daterangepicker({
+                    locale  : {
+                        separator   : ' s/d ',
+                        format      : 'DD/MM/YYYY'
+                    },
+                    minYear     : moment().subtract(10, 'years'),
+                    maxYear     : moment().add(10, 'years'),
+                    autoApply    : true,
+                    showDropdowns: true,
+                });
+                // SHOW TABLE
+                showTable('table_emp_ovt', '');
+            })
+            .catch((err)        => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Data Tidak Ditemukan'
+                })
+            })
     }
 }
 
@@ -764,6 +862,24 @@ function closeModal(idModal) {
         })
     } else if(idModal == 'modal_update_gapok_karyawan') {
         $("#"+idModal).modal('hide');
+
+        clearUrl();
+    } else if(idModal == 'modal_simulasi_lemburan') {
+        $("#"+idModal).modal('hide');
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#sml_emp_name").val(null);
+            $("#sml_emp_division").val(null);
+
+            $("#sml_emp_fee").html("Rp. 0.00");
+            $("#sml_emp_fee_ovt").html("Rp. 0.00");
+            $("#sml_emp_ot1").html("0");
+            $("#sml_emp_ot2").html("0");
+            $("#sml_emp_ot3").html("0");
+
+            $("#sml_emp_date").data('daterangepicker').setStartDate(moment().format('DD/MM/YYYY'));
+            $("#sml_emp_date").data('daterangepicker').setEndDate(moment().format('DD/MM/YYYY'));
+        })
 
         clearUrl();
     }
@@ -1071,6 +1187,47 @@ function doUpdate(idForm, data, seq)
                     text    : err.responseJSON.alert.message.text,
                 });
             })
+    }
+}
+
+function doCari(jenis)
+{
+    if(jenis == 'modal_simulasi_lemburan') {
+        const sml_lmb_emp_id    = $("#sml_emp_id").val();
+        const sml_lmb_date      = $("#sml_emp_date").val();
+        const sml_lmb_date_start= moment(sml_lmb_date.split(' s/d ')[0], 'DD/MM/YYYY').format('YYYY-MM-DD');
+        const sml_lmb_date_end  = moment(sml_lmb_date.split(' s/d ')[1], 'DD/MM/YYYY').format('YYYY-MM-DD');
+
+        if(sml_lmb_emp_id == null) {
+            $("#sml_emp_id").select2('focus');
+        } else {
+            // GET DATA 
+            const sml_lmb_url   = base_url + "/divisi/finance/simulasi/employees_fee";
+            const sml_lmb_type  = "GET";
+            const sml_lmb_data  = {
+                "emp_id"    : sml_lmb_emp_id,
+                "date_start": sml_lmb_date_start,
+                "date_end"  : sml_lmb_date_end,
+            };
+            const sml_lmb_msg   = Swal.fire({ title : "Data Sedang Dicari" }); Swal.showLoading();
+
+            doTransV2(sml_lmb_url, sml_lmb_type, sml_lmb_data, sml_lmb_msg, true)
+                .then((success)     => {
+                    setTimeout(Swal.close(), 1000);
+                    // HEADER
+                    const header    = success.data.header[0];
+                    $("#sml_emp_name").val(header['emp_name']);
+                    $("#sml_emp_division").val(header['emp_division']);
+                    $("#sml_emp_fee").html(new Intl.NumberFormat('id-ID', { style: 'currency', currency:'IDR' }).format(header['emp_fee']));
+
+                    // DETAIL
+                    const detail    = success.data.detail;
+                    showTable('table_emp_ovt', detail);
+                })
+                .catch((err)       => {
+                    console.log(err);
+                })
+        }
     }
 }
 

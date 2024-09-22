@@ -2624,4 +2624,35 @@ class DivisiService
 
         return $output;
     }
+
+    public static function get_data_finance_sim_employees_fee($data)
+    {
+        $emp_id     = $data['emp_id'];
+        $date_start = $data['date_start'];
+        $date_end   = $data['date_end'];
+
+        // GET HEADER
+        $emp_header     = DB::table('employees_fee as a')
+                                ->join('job_employees as b', 'b.employee_id', '=', 'a.employee_id')
+                                ->join('group_divisions as c', 'b.group_division_id', '=', 'c.id')
+                                ->select('a.employee_id as emp_id', 'a.employee_name as emp_name', 'a.employee_fee as emp_fee', 'c.name as emp_division')
+                                ->where('a.employee_id', '=', $emp_id)
+                                ->get();
+
+        $emp_detail     = DB::table('tm_presence as a')
+                            ->join('employees as b', 'a.prs_user_id', '=', 'b.user_id')
+                            ->join('users as c', 'b.user_id', '=', 'c.id')
+                            ->select('b.id as emp_id', 'c.name as emp_name', 'a.prs_date as emp_prs_date', 'a.prs_in_time as emp_prs_in_time', 'a.prs_out_time as emp_prs_out_time')
+                            ->where('b.id', '=', $emp_id)
+                            ->whereBetween('a.prs_date', [$date_start, $date_end])
+                            ->orderBy('a.prs_date', 'ASC')
+                            ->get();
+        
+        $output         = [
+            "header"        => $emp_header,
+            "detail"        => $emp_detail,
+        ];
+
+        return $output;
+    }
 }

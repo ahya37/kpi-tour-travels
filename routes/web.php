@@ -385,6 +385,9 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/gaji_pokok_employee', [DivisiController::class, 'finance_master_employees_fee']);
                 Route::put('/gaji_pokok_employee/{emp_id}', [DivisiController::class, 'finance_master_employees_fee_update']);
             });
+            Route::prefix('simulasi')->group(function(){
+                Route::get('/employees_fee', [DivisiController::class, 'finance_sim_employees_fee']);
+            });
         });
 
         Route::prefix('digital')->group(function(){
