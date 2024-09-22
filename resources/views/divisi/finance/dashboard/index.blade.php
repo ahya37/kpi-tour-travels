@@ -496,13 +496,13 @@
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label class="no-margins font-weight-bold">Gaji Pokok</label>
-                                        <h2 class="no-margins" name="sml_emp_fee" id="sml_emp_fee">Rp. 0.00</h2>
+                                        <h2 class="no-margins" name="sml_emp_fee" id="sml_emp_fee">Rp. 0,00</h2>
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label class="no-margins font-weight-bold">Pendapatan Per Jam <i class='fa fa-info-circle' style="color: blue; cursor: pointer;" title="Gaji Pokok / 173"></i></label>
-                                        <h2 class="no-margins" name="sml_emp_fee_hourly" id="sml_emp_fee_hourly">Rp. 0.00</h2>
+                                        <h2 class="no-margins" name="sml_emp_fee_hourly" id="sml_emp_fee_hourly">Rp. 0,00</h2>
                                     </div>
                                 </div>
                             </div>
@@ -510,7 +510,7 @@
                                 <div class="col-sm-6">
                                     <div class="form-group">
                                         <label class="no-margins font-weight-bold">Total Pendapatan Lembur</label>
-                                        <h2 class="no-margins" name="sml_emp_fee_ovt" id="sml_emp_fee_ovt">Rp. 0.00</h2>
+                                        <h2 class="no-margins" name="sml_emp_fee_ovt" id="sml_emp_fee_ovt">Rp. 0,00</h2>
                                         <input type="hidden" id="sml_emp_fee_ovt_input">
                                     </div>
                                 </div>

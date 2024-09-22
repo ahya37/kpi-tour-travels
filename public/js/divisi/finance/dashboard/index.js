@@ -904,8 +904,8 @@ function closeModal(idModal) {
             $("#sml_emp_name").val(null);
             $("#sml_emp_division").val(null);
 
-            $("#sml_emp_fee").html("Rp. 0.00");
-            $("#sml_emp_fee_ovt").html("Rp. 0.00");
+            $("#sml_emp_fee").html("Rp. 0,00");
+            $("#sml_emp_fee_ovt").html("Rp. 0,00");
             $("#sml_emp_ot1").html("0");
             $("#sml_emp_ot2").html("0");
             $("#sml_emp_ot3").html("0");
