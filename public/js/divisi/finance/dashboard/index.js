@@ -387,8 +387,7 @@ function showTable(idTable, data)
                 { "targets" : [5], "className" : "text-center align-middle", "width" : "8%" }
             ],
         });
-        
-        console.table(data);
+
         if(data != '') {
             let seq                 = 1;
             let overtimeOne         = 0;
@@ -397,6 +396,12 @@ function showTable(idTable, data)
             let totalOvertimeOne    = 0;
             let totalOvertimeTwo    = 0;
             let totalOvertimeThree  = 0;
+
+            let amountOverTime      = parseFloat($("#sml_emp_fee_ovt_input").val());
+            let amountOverTimeOne   = 0;
+            let amountOverTimeTwo   = 0;
+            let amountOverTimeThree = 0;
+            let amountTotalOverTime = 0;
 
             for(const item of data)
             {
@@ -411,17 +416,45 @@ function showTable(idTable, data)
                 // FORMATED TANGGAL
                 var prs_date_formatted  = prs_out != null ? moment(prs_date, 'YYYY-MM-DD').format('DD/MM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+" - "+moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")" : moment(prs_date, 'YYYY-MM-DD').format('DD/MM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")";
 
-                if(prs_out != null && prs_out_time > "16:00") {
+                if(prs_out != null && prs_out_time > "16:59") {
+                    prs_out_time >= "17:00" ? overtimeOne = 1: "";
+                    prs_out_time >= "17:59" ? overtimeTwo = 1: "";
+                    prs_out_time >= "18:59" && prs_out_time <= "23:59" ? overtimeThree = 1 : "";
+                    
+                    // FOR TOTAL
+                    prs_out_time >= "17:00" ? totalOvertimeOne++: "";
+                    prs_out_time >= "17:59" ? totalOvertimeTwo++: "";
+                    prs_out_time >= "18:59" && prs_out_time <= "23:59" ? totalOvertimeThree++ : "";
+                    
                     $("#"+idTable).DataTable().row.add([
                         seq++,
                         prs_date_formatted,
-                        0,
-                        0,
-                        0,
+                        overtimeOne,
+                        overtimeTwo,
+                        overtimeThree,
                         "<i class='fa fa-times'></fa>"
                     ]).draw(false);
                 }
+
+                overtimeOne = 0;
+                overtimeTwo = 0;
+                overtimeThree = 0;
             }
+
+            $("#table_emp_ovt_total_ot1").html(totalOvertimeOne);
+            $("#table_emp_ovt_total_ot2").html(totalOvertimeTwo);
+            $("#table_emp_ovt_total_ot3").html(totalOvertimeThree);
+
+            amountOverTimeOne   = amountOverTime * totalOvertimeOne;
+            amountOverTimeTwo   = amountOverTime * totalOvertimeTwo;
+            amountOverTimeThree = amountOverTime * totalOvertimeThree;
+
+            amountTotalOverTime = amountOverTimeOne + amountOverTimeTwo + amountOverTimeThree;
+            $("#sml_emp_fee_ovt").html(new Intl.NumberFormat('id-ID', {style : 'currency', currency: 'IDR'}).format(amountTotalOverTime));
+
+            $("#sml_emp_ot1").html(totalOvertimeOne);
+            $("#sml_emp_ot2").html(totalOvertimeTwo);
+            $("#sml_emp_ot3").html(totalOvertimeThree);
         }
     }
 }
@@ -1216,9 +1249,12 @@ function doCari(jenis)
                     setTimeout(Swal.close(), 1000);
                     // HEADER
                     const header    = success.data.header[0];
+                    let pendapataPerJam     = header['emp_fee'] / 173;
                     $("#sml_emp_name").val(header['emp_name']);
                     $("#sml_emp_division").val(header['emp_division']);
                     $("#sml_emp_fee").html(new Intl.NumberFormat('id-ID', { style: 'currency', currency:'IDR' }).format(header['emp_fee']));
+                    $("#sml_emp_fee_hourly").html(new Intl.NumberFormat('id-ID', { style : 'currency', currency: 'IDR' }).format(pendapataPerJam));
+                    $("#sml_emp_fee_ovt_input").val(parseFloat(pendapataPerJam).toFixed(2));
 
                     // DETAIL
                     const detail    = success.data.detail;
