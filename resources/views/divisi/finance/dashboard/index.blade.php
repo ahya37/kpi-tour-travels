@@ -552,8 +552,8 @@
                                             <th class="text-center align-middle" style="width: 5%">No</th>
                                             <th class="text-center align-middle" style="width: 25%">Tanggal Lembur</th>
                                             <th class="text-center align-middle" style="width: 10%">OT 1 <i class="fa fa-info-circle" title="Senin s/d Jumat : 16:00 - 17:00 | Sabtu : 13:30 - 14:30" style="color: #1ab394; cursor: pointer;"></i></th>
-                                            <th class="text-center align-middle" style="width: 10%">OT 2 <i class="fa fa-info-circle" title="Senin s/d Jumat : 17:00 - 18:00 | Sabtu : 14:30 - 15:30" style="color: #1ab394; cursor: pointer;"></i></th>
-                                            <th class="text-center align-middle" style="width: 10%">OT 3 <i class="fa fa-info-circle" title="Senin s/d Jumat : 18:00 - 01:00 | Sabtu : 15:30 - 23:30" style="color: #1ab394; cursor: pointer;"></i></th>
+                                            <th class="text-center align-middle" style="width: 10%">OT 2 <i class="fa fa-info-circle" title="Senin s/d Jumat : 17:00 - 18:00 | Sabtu : 14:30 - 23:59" style="color: #1ab394; cursor: pointer;"></i></th>
+                                            <th class="text-center align-middle" style="width: 10%">OT 3 <i class="fa fa-info-circle" title="Senin s/d Jumat : 23:59 Ke Atas | Sabtu : 23:59 Ke Atas" style="color: #1ab394; cursor: pointer;"></i></th>
                                             <th class="text-center align-middle" style="width: 8%">Pengajuan</th>
                                         </tr>
                                     </thead>
@@ -573,7 +573,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-primary" title="Download File">
+                    <button class="btn btn-primary" title="Download File" onclick="downloadLemburan()">
                         <i class="fa fa-download"></i> Download File
                     </button>
                 </div>
