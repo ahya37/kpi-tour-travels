@@ -390,6 +390,10 @@ function showTable(idTable, data)
                 zeroRecords : "Tidak ada data yang bisa ditampilkan"
             },
             autoWidth   : false,
+            lengthMenu  : [
+                [ 10, 20, 50, 100, -1 ],
+                [ 10, 20, 50, 100, "Semua"],
+            ],
             columnDefs  : [
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
                 { "targets" : [1], "className" : 'text-left align-middle', "width" : "25%" },

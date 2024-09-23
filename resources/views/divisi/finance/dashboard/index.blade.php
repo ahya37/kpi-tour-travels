@@ -82,6 +82,21 @@
                     </a>
                 </div>
             </div>
+            <div class="col-sm-3">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h4 class="no-margins">Perhitungan Lemburan</h4>
+                    </div>
+                    <div class="card-body">
+                        <h2 class="no-margins">
+                            Lakukan Simulasi
+                        </h2>
+                    </div>
+                    <a href="#SimulasiLemburanKaryawan" class="card-footer" onclick="showModal('modal_simulasi_lemburan', '', '')">
+                        Lihat Detail
+                    </a>
+                </div>
+            </div>
         </div>
         <div class="row mt-2">
             <div class="col-sm-3">
@@ -96,22 +111,6 @@
                         <small>Total Karyawan</small>
                     </div>
                     <a href="#UpdateGajiPokokKaryawan" class="card-footer" onclick="showModal('modal_update_gapok_karyawan', '', '')">
-                        Lihat Detail
-                    </a>
-                </div>
-            </div>
-            <div class="col-sm-3">
-                <div class="card">
-                    <div class="card-header bg-primary">
-                        <h4 class="no-margins">Perhitungan Lemburan</h4>
-                    </div>
-                    <div class="card-body">
-                        <h2 class="no-margins">
-                            Lakukan Simulasi
-                        </h2>
-                        <small class="text-white"><label class="no-margins">test</label></small>
-                    </div>
-                    <a href="#SimulasiLemburanKaryawan" class="card-footer" onclick="showModal('modal_simulasi_lemburan', '', '')">
                         Lihat Detail
                     </a>
                 </div>
