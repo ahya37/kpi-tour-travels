@@ -14,6 +14,10 @@
         input[type=text] {
             height: 37.5px;
         }
+
+        .text-primary {
+            color: #1ab394;
+        }
     </style>
 @endpush
 
@@ -501,7 +505,7 @@
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-group">
-                                        <label class="no-margins font-weight-bold">Pendapatan Per Jam <i class='fa fa-info-circle' style="color: blue; cursor: pointer;" title="Gaji Pokok / 173"></i></label>
+                                        <label class="no-margins font-weight-bold">Pendapatan Per Jam <i class='fa fa-info-circle' style="color: #1ab394; cursor: pointer;" title="Gaji Pokok / 173"></i></label>
                                         <h2 class="no-margins" name="sml_emp_fee_hourly" id="sml_emp_fee_hourly">Rp. 0,00</h2>
                                     </div>
                                 </div>
@@ -518,19 +522,19 @@
                             <div class="row">
                                 <div class="col-sm-4">
                                     <div class="form-group">
-                                        <label class="no-margins font-weight-bold">Total OT1</label>
+                                        <label class="no-margins font-weight-bold">Total OT1 <i class="fa fa-info-circle" title="(Pendapatan Per Jam * 1.5) * Total OT1" style="color: #1ab394; cursor: pointer;"></i></label>
                                         <h3 class="no-margins" name="sml_emp_ot1" id="sml_emp_ot1">0</h3>
                                     </div>
                                 </div>
                                 <div class="col-sm-4">
                                     <div class="form-group">
-                                        <label class="no-margins font-weight-bold">Total OT2</label>
+                                        <label class="no-margins font-weight-bold">Total OT2 <i class="fa fa-info-circle" title="(Pendapatan Per Jam * 2) * Total OT2" style="color: #1ab394; cursor: pointer;"></i></label>
                                         <h3 class="no-margins" name="sml_emp_ot2" id="sml_emp_ot2">0</h3>
                                     </div>
                                 </div>
                                 <div class="col-sm-4">
                                     <div class="form-group">
-                                        <label class="no-margins font-weight-bold">Total OT3</label>
+                                        <label class="no-margins font-weight-bold">Total OT3 <i class="fa fa-info-circle" title="Pendapatan Per Jam * 3" style="color: #1ab394; cursor: pointer;"></i></label>
                                         <h3 class="no-margins" name="sml_emp_ot3" id="sml_emp_ot3">0</h3>
                                     </div>
                                 </div>
@@ -546,10 +550,10 @@
                                     <thead>
                                         <tr>
                                             <th class="text-center align-middle" style="width: 5%">No</th>
-                                            <th class="text-center align-middle" style="width: 15%">Tanggal Lembur</th>
-                                            <th class="text-center align-middle" style="width: 20%">OT 1 (16.00 s/d 17.00)</th>
-                                            <th class="text-center align-middle" style="width: 20%">OT 2 (17.00 s/d 18.00)</th>
-                                            <th class="text-center align-middle" style="width: 20%">OT 3 (18.00 s/d 01.00)</th>
+                                            <th class="text-center align-middle" style="width: 25%">Tanggal Lembur</th>
+                                            <th class="text-center align-middle" style="width: 10%">OT 1 <i class="fa fa-info-circle" title="Senin s/d Jumat : 16:00 - 17:00 | Sabtu : 13:30 - 14:30" style="color: #1ab394; cursor: pointer;"></i></th>
+                                            <th class="text-center align-middle" style="width: 10%">OT 2 <i class="fa fa-info-circle" title="Senin s/d Jumat : 17:00 - 18:00 | Sabtu : 14:30 - 15:30" style="color: #1ab394; cursor: pointer;"></i></th>
+                                            <th class="text-center align-middle" style="width: 10%">OT 3 <i class="fa fa-info-circle" title="Senin s/d Jumat : 18:00 - 01:00 | Sabtu : 15:30 - 23:30" style="color: #1ab394; cursor: pointer;"></i></th>
                                             <th class="text-center align-middle" style="width: 8%">Pengajuan</th>
                                         </tr>
                                     </thead>
