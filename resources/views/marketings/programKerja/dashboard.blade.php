@@ -98,6 +98,107 @@
                 </div>
             </div>
         </div>
+        <hr>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title no-margins">Laporan Rencana Kerja</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label class="font-weight-bold">Cari Data</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-2">
+                                <select class="form-control select2" name="lrk_date_year" id="lrk_date_year" style="width: 100%;" onchange="cariData('lrk_sasaran_id', this.value)"></select>
+                            </div>
+                            <div class="col-sm-3">
+                                <select class="form-control select2" name="lrk_sasaran_id" id="lrk_sasaran_id" style="width: 100%;"></select>
+                            </div>
+                            <div class="col-sm-2">
+                                <button class="btn btn-primary" title="Cari Data" style="height: 38px;" onclick="cariData('lrk_tbl_sasaran', '')">Cari Data</button>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row" id="lrk_v_tbl_sasaran">
+                            <div class="col-sm-12">
+                                <h2 class="no-margins" id="lrk_tbl_sasaran_title">List Sasaran</h2>
+                                <br>
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover table-bordered" style="width: 100%;" id="lrk_tbl_sasaran">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center align-middle" style="width: 8%">No</th>
+                                                <th class="text-center align-middle">Bulan</th>
+                                                <th class="text-center align-middle" style="width: 15%;">Target</th>
+                                                <th class="text-center align-middle" style="width: 15%;">Realisasi</th>
+                                                <th class="text-center align-middle" style="width: 15%;">Persentase</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th class="text-right align-middle">Total :</th>
+                                                <th id="lrk_tbl_total_target"></th>
+                                                <th id="lrk_tbl_total_realisasi"></th>
+                                                <th id="lrk_tbl_total_selisih"></th>
+                                                <th id="lrk_tbl_total_presentase"></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row" id="lrk_v_tbl_program">
+                            <div class="col-sm-12">
+                                <h2 class="no-margins" id="lrk_program_title">Laporan Program Bulan </h2>
+                                <br>
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover table-bordered" style="width: 100%;" id="lrk_tbl_program">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center align-middle">No</th>
+                                                <th class="text-center align-middle">Nama Program</th>
+                                                <th class="text-center align-middle">Target</th>
+                                                <th class="text-center align-middle">Realisasi</th>
+                                                <th class="text-center align-middle">Persentase</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row" id="lrk_v_tbl_program_weekly">
+                            <div class="col-sm-12">
+                                <h2 class="no-margins" id="lrk_program_weekly_title">Laporan Program Mingguan Bulan</h2>
+                                <br>
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover table-bordered" style="width: 100%;" id="lrk_tbl_program_weekly">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center align-middle">No</th>
+                                                <th class="text-center align-middle">Nama Program</th>
+                                                <th class="text-center align-middle">Minggu-1</th>
+                                                <th class="text-center align-middle">Minggu-2</th>
+                                                <th class="text-center align-middle">Minggu-3</th>
+                                                <th class="text-center align-middle">Minggu-4</th>
+                                                <th class="text-center align-middle">Minggu-5</th>
+                                                <th class="text-center align-middle">Total</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     {{-- MDOAL LIST PROGRAM --}}

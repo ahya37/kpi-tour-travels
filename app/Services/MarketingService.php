@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
 use Log;
 use Request;
+use Symfony\Component\CssSelector\Node\FunctionNode;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -1459,5 +1460,94 @@ class MarketingService
             ORDER BY a.id, e.pkbd_type ASC             
             "
         );
+    }
+
+    public static function get_list_program_marketing_yearly($data)
+    {
+        $tahun      = $data['tahun_cari'];
+        $program_id = $data['program_id'] == "" ? "%" : $data['program_id'];
+        $program_seq= $data['program_seq'];
+        // HEADER
+        $header  = DB::table('proker_tahunan as a')
+                    ->join('group_divisions as b', 'a.division_group_id', '=', 'b.id')
+                    ->join('roles as c', 'b.roles_id', '=', 'c.id')
+                    ->join('proker_tahunan_detail as d', 'd.pkt_id', '=', 'a.id')
+                    ->select('a.uid as pkt_id', 'd.pktd_seq as pkt_det_seq', DB::raw('UPPER(d.pktd_title) as pkt_det_title'))
+                    ->where([
+                        ['c.name', 'like', '%marketing%'],
+                        ['a.pkt_year', '=', $tahun],
+                        ['a.uid', 'like', '%'.$program_id.'%']
+                    ])
+                    ->orderBy('a.id', 'asc')
+                    ->orderBy('d.pktd_seq', 'asc')
+                    ->get();
+        $detail     = [];
+        // DETAIL
+        if($program_seq != "" ) {
+            $program_mkt_id     = DB::table('proker_tahunan')
+                                    ->select('id')
+                                    ->where([
+                                        ['uid', '=', $program_id],
+                                        ['pkt_year', '=', $tahun]
+                                    ])
+                                    ->get();
+            $detail             = DB::select(
+                "
+                SELECT 	EXTRACT(MONTH FROM a.pkb_start_date) as program_bulan,
+                        SUM(b.pkbd_num_target) as total_target,
+                        SUM(b.pkbd_num_result) as realisasi
+                FROM 	proker_bulanan a
+                JOIN 	proker_bulanan_detail b ON a.id = b.pkb_id
+                WHERE 	SUBSTRING_INDEX(pkb_pkt_id, ' | ', 1) = '$program_id'
+                AND 	SUBSTRING_INDEX(pkb_pkt_id, ' | ', -1) = '$program_seq'
+                AND 	a.pkb_is_active = 't'
+                GROUP BY EXTRACT(MONTH FROM a.pkb_start_date)
+                "
+            );
+        }
+        
+        $output     = [
+            "header"    => $header,
+            "detail"    => $detail,
+        ];
+
+        return $output;
+    }
+
+    public static function get_list_program_marketing_monthly($data)
+    {
+        $pkb_pkt_id     = $data['program_pkt_id'];
+        $bulan          = $data['bulan_cari'];
+        $pkb_id         = $data['program_pkb_id'];
+        $pkb_seq        = $data['program_pkb_seq'];
+
+        $header         = DB::select(
+            "
+            SELECT 	a.uuid as pkb_id,
+                    a.pkb_title as pkb_title,
+                    SUM(b.pkbd_num_target) as pkb_total_target,
+                    SUM(b.pkbd_num_result) as pkb_total_result
+            FROM 	proker_bulanan a
+            JOIN 	proker_bulanan_detail b ON a.id = b.pkb_id
+            WHERE 	a.pkb_pkt_id = '$pkb_pkt_id'
+            AND 	EXTRACT(MONTH FROM pkb_start_date) = '$bulan'
+            AND 	a.pkb_is_active = 't'
+            GROUP BY a.id, a.uuid, a.pkb_title
+            ORDER BY a.id ASC
+            "
+        );
+        
+        $output         = [
+            "header"    => $header,
+            "detail"    => [],
+        ];
+
+        return $output;
+    }
+
+    public static function get_list_program_marketing_weekly($data)
+    {
+        $pkb_id     = $data['pkb_id'];
+        
     }
 }

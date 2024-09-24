@@ -144,6 +144,10 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/deleteProgram/{id}', [MarketingController::class, 'marketing_programKerja_deleteProgram']);
                 Route::get('/listMasterProgram', [MarketingController::class, 'marketing_programKerja_masterProgram']);
                 Route::get('/listDetailProgram/{id}', [MarketingController::class, 'marketing_programKerja_listDetailProgram']);
+                // FOR DASHBOARD
+                Route::get('/listProgramMarketingByYear', [MarketingController::class, 'marketing_programKerja_listProgramMarketing_yearly']);
+                Route::get('/listProgramMarketingByMonth', [MarketingController::class, 'marketing_programKerja_listProgramMarketing_monthly']);
+                Route::get('/listProgramMarketingByWeek', [MarketingController::class, 'marketing_programKerja_listProgramMarketing_weekly']);
             });
             // JENIS PEKERJAAN
             Route::prefix('jenisPekerjaan')->group(function(){

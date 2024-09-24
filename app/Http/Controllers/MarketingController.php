@@ -34,6 +34,7 @@ use Carbon\Carbon;
 
 class MarketingController extends Controller
 {
+    private $title  = "ERP Percik Tours | ";
     public function target()
     {
         
@@ -1182,7 +1183,7 @@ class MarketingController extends Controller
     {
         if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('marketing')) {
             $data   = array(
-                "title"         => "Marketing - Program Kerja - Dashboard",
+                "title"         => $this->title." Dashoard Program Kerja Marketing",
                 "sub_title"     => "Dashboard Program Kerja Marketing",
             );
 
@@ -1196,7 +1197,7 @@ class MarketingController extends Controller
     {
         if(Auth::user()->hasRole('admin') || Auth::user()->hasRole(('marketing'))) {
             $data   = array(
-                "title"         => "Marketing - Program Kerja - Sasaran",
+                "title"         => $this->title." Program Kerja Sasaran",
                 "sub_title"     => "Program Kerja - Sasaran",
                 "current_role"  => Auth::user()->getRoleNames()[0],
                 "current_id"    => Auth::user()->id,
@@ -1926,5 +1927,76 @@ class MarketingController extends Controller
         }
 
         return Response::json($output, $output['status']);
+    }
+
+    // 24 SEPTEMBER 2024
+    // NOTE : AMBIL DATA MARKEITNG BERDASARKAN TAHUN DIPILIH
+    // KEBUTUHAN UNTUK DASHBOARD MARKETING
+    public function marketing_programKerja_listProgramMarketing_yearly(Request $request)
+    {
+        $data   = [
+            "tahun_cari"    => $request->all()['sendData']['tahun'],
+            "program_id"    => $request->all()['sendData']['program_id'] == "" ? "" : explode(" | ", $request->all()['sendData']['program_id'])[0],
+            "program_seq"   => $request->all()['sendData']['program_id'] == "" ? "" : explode(" | ", $request->all()['sendData']['program_id'])[1],
+        ];
+
+        $get_data   = MarketingService::get_list_program_marketing_yearly($data);
+
+        if(count($get_data['header']) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data Program Marketing Tahun ".$data['tahun_cari'],
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Tidak Ada Data Program Marketing Tahun ".$data['tahun_cari'],
+                "data"      => [],
+            ];
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+
+    public function marketing_programKerja_listProgramMarketing_monthly(Request $request)
+    {
+        $data   = [
+            "program_pkt_id"    => $request->all()['sendData']['program_pkt_id'],
+            "bulan_cari"        => $request->all()['sendData']['program_month'],
+            "program_pkb_id"    => $request->all()['sendData']['program_pkb_id'],
+            "program_pkb_seq"   => $request->all()['sendData']['program_pkb_seq'],
+        ];
+
+        $get_data   = MarketingService::get_list_program_marketing_monthly($data);
+
+        if(count($get_data['header']) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data",
+                "data"      => [],
+            ]; 
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+
+    public function marketing_programKerja_listProgramMarketing_weekly(Request $request)
+    {
+        $data   = [
+            "pkb_id"    => $request->all()['sendData']['program_pkb_id'],
+        ];
+
+        $get_data   = MarketingService::get_list_program_marketing_weekly($data);
     }
 }

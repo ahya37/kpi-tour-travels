@@ -39,17 +39,17 @@ $(document).ready(() => {
         doTrans(pgj_lmb_url, pgj_lmb_type, "", "", true)
     ];
 
-    Promise.all(sendData)
+    Promise.allSettled(sendData)
         .then((success)     => {
 
             // EMP AREA
-            const emp_getData   = success[1].data;
+            const emp_getData   = success[1].value.data;
             $("#emp_total").html(emp_getData.length);
             
 
             // PENGAJUAN AREA
             let pgj_total_warn_count  = 0;
-            const pgj_getData   = success[0].data;
+            const pgj_getData   = success[0].value.data;
             $("#pgj_total").html(pgj_getData.length);
 
             for(const item_pgj of pgj_getData)
@@ -68,7 +68,7 @@ $(document).ready(() => {
             }
 
             // ABSENSI AREA
-            const abs_getData   = success[2].data;
+            const abs_getData   = success[2].value.data;
             let abs_total       = 0;
 
             for(const abs_item of abs_getData)
@@ -84,7 +84,7 @@ $(document).ready(() => {
             $("#abs_total").html(abs_total);
 
             // PENGAJUAN LEMBUR
-            const pgj_lmb_getData   = success[3].data;
+            const pgj_lmb_getData   = success[3].value.data;
             let pgj_lmb_pending     = 0;
 
             for(const pgj_lmb_item of pgj_lmb_getData) {
@@ -112,23 +112,47 @@ function showModal(idModal, jenis, data)
 
         showTable('table_list_pengajuan', '');
     } else if(idModal == 'modal_abs') {
-        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        // GET DATA
+        const emp_url   = "/divisi/master/getDataEmployees";
+        const emp_data  = "";
+        const emp_type  = "GET";
 
-        showSelect('abs_user_cari', 'semua', '', '');
-        showTable('table_list_absensi', '');
+        const sendData  = [
+            doTrans(emp_url, emp_type, emp_data, "", true)
+        ];
 
-        $("#abs_tgl_cari").daterangepicker({
-            minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
-            maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
-            autoApply   : false,
-            format      : 'DD/MM/YYYY',
-            setStartDate    : moment(today, 'YYYY-MM-DD'),
-            locale  : {
-                separator   : ' s/d ',
-                cancelLabel : 'Batal',
-                applyLabel  : 'Simpan',
-            },
-        });
+        const message   = Swal.fire({ title : 'Data Sedang Dimuat', allowOutsideClick: false }); Swal.showLoading();
+
+        Promise.allSettled(sendData)
+            .then((success)     => {
+                // CLOSE LOADING
+                Swal.close();
+                // GET DATA EMPLOYEES
+                const emp_getData   = success[0]['value']['data'];
+                // SHOW SELECT
+                showSelect('abs_user_cari', emp_getData, '', '');
+                // SHOW TABLE
+                showTable('table_list_absensi', '');
+                // SHOW DATERANGEPICKER
+                $("#abs_tgl_cari").daterangepicker({
+                    minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
+                    maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
+                    autoApply   : true,
+                    format      : 'DD/MM/YYYY',
+                    setStartDate    : moment(today, 'YYYY-MM-DD'),
+                    locale  : {
+                        separator   : ' s/d ',
+                        cancelLabel : 'Batal',
+                        applyLabel  : 'Simpan',
+                    },
+                });
+                // SHOW MODAL
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });  
+            })
+            .catch((err)        => {
+                Swal.close();
+                console.log(err);
+            })
     } else if(idModal == 'modal_emp') {
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
@@ -512,7 +536,7 @@ function showTable(idTable, data)
     }
 }
 
-function showSelect(idSelect, dataSelect, dataSelected, seq)
+function showSelect(idSelect, data, selectedData, seq)
 {
     $("#"+idSelect).select2({
         theme   : 'bootstrap4',
@@ -524,33 +548,14 @@ function showSelect(idSelect, dataSelect, dataSelected, seq)
             "<option selected disabled>Pilih User</option>",
             "<option value='semua'>Semua</option>"
         ];
-
-        // GET DATA
-        const emp_url   = "/divisi/master/getDataEmployees";
-        const emp_data  = "";
-        const emp_type  = "GET";
-
-        doTrans(emp_url, emp_type, emp_data, "", true)
-            .then((success) => {
-                const emp_getData   = success.data;
-                
-                if(success.data.length > 0) {
-                    for(const item of emp_getData)
-                    {
-                        // EXCLUDE ADMIN
-                        if(item.emp_id != 1) {
-                            html    += "<option value='" + item.emp_id + "'>" + item.emp_name + "</option>";
-                        }
-                    }
-                } else {
-                    html    += "";
-                }
-                $("#"+idSelect).html(html);
-            })
-            .catch((err)    => {
-                console.log(err);
-                $("#"+idSelect).html(html);
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += "<option value='" + item.emp_id + "'>" + item.emp_name + "</option>";
             });
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
     }
 }
 
