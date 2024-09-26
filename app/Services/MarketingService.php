@@ -9,6 +9,7 @@ use App\Models\AlumniProspekMaterial;
 use App\Models\DetailAlumniProspekMaterial;
 use App\Models\DetailMarketingTarget;
 use App\Models\MarketingTarget;
+use DateTime;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
@@ -1548,6 +1549,14 @@ class MarketingService
     public static function get_list_program_marketing_weekly($data)
     {
         $pkb_id     = $data['pkb_id'];
-        
+
+        $query      = DB::table('proker_bulanan as a')
+                        ->join('proker_bulanan_detail as b', 'a.id', '=', 'b.pkb_id')
+                        ->select(DB::raw("CONCAT(a.uuid, ' | ', b.id) as pkb_det_id"), 'b.pkbd_type as pkb_det_title', 'b.pkbd_num_target as pkb_det_target', 'b.pkbd_num_result as pkb_det_result')
+                        ->where('a.uuid', '=', $pkb_id)
+                        ->orderBy('b.id', 'asc')
+                        ->get();
+
+        return $query;
     }
 }

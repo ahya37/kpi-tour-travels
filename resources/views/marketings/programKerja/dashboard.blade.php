@@ -141,11 +141,11 @@
                                         <tbody></tbody>
                                         <tfoot>
                                             <tr>
+                                                <th>&nbsp;</th>
                                                 <th class="text-right align-middle">Total :</th>
-                                                <th id="lrk_tbl_total_target"></th>
-                                                <th id="lrk_tbl_total_realisasi"></th>
-                                                <th id="lrk_tbl_total_selisih"></th>
-                                                <th id="lrk_tbl_total_presentase"></th>
+                                                <th id="lrk_tbl_total_target">0</th>
+                                                <th id="lrk_tbl_total_realisasi">0</th>
+                                                <th id="lrk_tbl_total_presentase">0</th>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -155,6 +155,7 @@
                         <hr>
                         <div class="row" id="lrk_v_tbl_program">
                             <div class="col-sm-12">
+                                <input type="hidden" id="lrk_program_selected_month">
                                 <h2 class="no-margins" id="lrk_program_title">Laporan Program Bulan </h2>
                                 <br>
                                 <div class="table-responsive">
@@ -168,6 +169,16 @@
                                                 <th class="text-center align-middle">Persentase</th>
                                             </tr>
                                         </thead>
+                                        <tbody></tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>&nbsp;</th>
+                                                <th class="text-right align-middle">Total : </th>
+                                                <th id="lrk_tbl_program_total_target">0</th>
+                                                <th id="lrk_tbl_program_total_realisasi">0</th>
+                                                <th id="lrk_tbl_program_total_persentase">0</th>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>
@@ -175,22 +186,29 @@
                         <hr>
                         <div class="row" id="lrk_v_tbl_program_weekly">
                             <div class="col-sm-12">
-                                <h2 class="no-margins" id="lrk_program_weekly_title">Laporan Program Mingguan Bulan</h2>
+                                <h2 class="no-margins" id="lrk_program_weekly_title">Laporan Program Harian Bulan</h2>
                                 <br>
                                 <div class="table-responsive">
-                                    <table class="table table-striped table-hover table-bordered" style="width: 100%;" id="lrk_tbl_program_weekly">
+                                    <table class="table table-striped table-hover table-bordered" style="width: 100%;" id="lrk_tbl_program_daily">
                                         <thead>
                                             <tr>
                                                 <th class="text-center align-middle">No</th>
                                                 <th class="text-center align-middle">Nama Program</th>
-                                                <th class="text-center align-middle">Minggu-1</th>
-                                                <th class="text-center align-middle">Minggu-2</th>
-                                                <th class="text-center align-middle">Minggu-3</th>
-                                                <th class="text-center align-middle">Minggu-4</th>
-                                                <th class="text-center align-middle">Minggu-5</th>
-                                                <th class="text-center align-middle">Total</th>
+                                                <th class="text-center align-middle">Target</th>
+                                                <th class="text-center align-middle">Realisasi</th>
+                                                <th class="text-center align-middle">Persentase</th>
                                             </tr>
                                         </thead>
+                                        <tbody></tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th></th>
+                                                <th class="text-right align-middle">Total : </th>
+                                                <th id="lrk_tbl_program_daily_total_target">0</th>
+                                                <th id="lrk_tbl_program_daily_total_realisasi">0</th>
+                                                <th id="lrk_tbl_program_daily_total_persentase"></th>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>
@@ -530,6 +548,43 @@
                     <button class="btn btn-danger" id="jpk_btnHapus" onclick="hapus_data('modalTransJenisPekerjaan')" disabled>Hapus Data</button>
                     <button class="btn btn-secondary" onclick="close_modal('modalTransJenisPekerjaan')">Batal</button>
                     <button class="btn btn-primary" id="jpk_btnSimpan" onclick="do_simpan('modalTransJenisPekerjaan', this.value)">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_tbl_program_daily">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="no-margins modal-title">Detail Laporan Harian Bulan</h4>
+                    <button class="close" onclick="close_modal('modal_tbl_program_daily')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover table-bordered" style="width: 100%;" id="tbl_program_daily_detail">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Penanggung Jawab</th>
+                                            <th>Tanggal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th class="text-right align-middle" colspan="2">Total :</th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

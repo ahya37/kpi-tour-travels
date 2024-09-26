@@ -19,7 +19,7 @@ $(document).ready(function(){
     showSelectDynamic('lrk_sasaran_id', '', '');
     show_table('lrk_tbl_sasaran', '');
     show_table('lrk_tbl_program', '');
-    show_table('lrk_tbl_program_weekly', '');
+    show_table('lrk_tbl_program_daily', '');
 });
 
 function showDataDashboard()
@@ -776,6 +776,11 @@ function show_table(id_table, value)
             ],
         });
     } else if(id_table == 'lrk_tbl_sasaran') {
+        // RESET FOOTER
+        $("#lrk_tbl_total_target").html(0);
+        $("#lrk_tbl_total_realisasi").html(0);
+        $("#lrk_tbl_total_presentase").html("");
+
         $("#"+id_table).DataTable().clear().destroy();
         $("#"+id_table).DataTable({
             language    : {
@@ -786,10 +791,14 @@ function show_table(id_table, value)
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
                 { "targets" : [2, 3, 4], "className" : "text-center align-middle", "width" : "15%" },
             ],
+            autoWidth   : false,
         });
 
         if(value != '') {
             let seq     = 1;
+            let totalTarget     = 0;
+            let totalRealisasi  = 0;
+            let totalPersentase = 0;
             for(const item of value)
             {
                 $("#"+id_table).DataTable().row.add([
@@ -799,9 +808,22 @@ function show_table(id_table, value)
                     item.realisasi,
                     parseFloat((parseInt(item.realisasi) / parseInt(item.total_target)) * 100).toFixed(2) + "%",
                 ]).draw(false);
+                totalTarget     += parseInt(item.total_target);
+                totalRealisasi  += parseInt(item.realisasi);
             }
+
+            totalPersentase     = parseFloat((parseInt(totalRealisasi) / parseInt(totalTarget)) * 100).toFixed(2)+"%";
+            $("#lrk_tbl_total_target").html(totalTarget);
+            $("#lrk_tbl_total_realisasi").html(totalRealisasi);
+            $("#lrk_tbl_total_presentase").html(totalPersentase);
+
         }
     } else if(id_table == 'lrk_tbl_program') {
+        // RESET FOOTER
+        $("#lrk_tbl_program_total_target").html(0);
+        $("#lrk_tbl_program_total_realisasi").html(0);
+        $("#lrk_tbl_program_total_persentase").html("");
+
         $("#"+id_table).DataTable().clear().destroy();
         $("#"+id_table).DataTable({
             language    : {
@@ -812,34 +834,86 @@ function show_table(id_table, value)
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
                 { "targets" : [2, 3, 4], "className" : "text-center align-middle", "width" : "15%" },
             ],
+            autoWidth  : false,
         });
         if(value != '') {
             let seq  = 1;
-            let presentase  = 0;
+            let persentase      = 0;
+            let totalTarget     = 0;
+            let totalRealisasi  = 0;
+            let totalPersentase = 0;
             for(const item of value)
             {
-                if(item.pkb_total_target > 0) {
-                    presentase  = parseFloat(parseInt(item.pkb_total_result) / parseInt(item.pkb_total_target) * 100).toFixed(2);
-                } else {
-                    presentase  = 0.00;
-                }
+                persentase  = (parseInt(item.pkb_total_result) / parseInt(item.pkb_total_target)) * 100;
+                persentase  = isFinite(persentase) === true ? persentase : (persentase === Number.POSITIVE_INFINITY || persentase === Number.NEGATIVE_INFINITY ? parseInt(item.pkb_total_result)*100 : 0)
                 $("#"+id_table).DataTable().row.add([
                     seq++,
-                    "<label class='no-margins font-weight-normal' style='cursor: pointer; color: #18a689' title='Lihat Detail' onclick='cariData(`lrk_tbl_program_weekly`, `" + item.pkb_id + "`)'>" + item.pkb_title + "</label>",
+                    "<label class='no-margins font-weight-normal' style='cursor: pointer; color: #18a689' title='Lihat Detail' onclick='cariData(`lrk_tbl_program_daily`, `" + item.pkb_id + "`)'>" + item.pkb_title + "</label>",
                     item.pkb_total_target,
                     item.pkb_total_result,
-                    presentase+"%"
+                    parseFloat(persentase).toFixed(2)+"%",
                 ]).draw(false);
+                totalTarget     += parseInt(item.pkb_total_target);
+                totalRealisasi  += parseInt(item.pkb_total_result);
             }
+
+            totalPersentase     = parseFloat((parseInt(totalRealisasi) / parseInt(totalTarget)) * 100).toFixed(2)+"%";
+            $("#lrk_tbl_program_total_target").html(totalTarget);
+            $("#lrk_tbl_program_total_realisasi").html(totalRealisasi);
+            $("#lrk_tbl_program_total_persentase").html(totalPersentase);
         }
-    } else if(id_table == 'lrk_tbl_program_weekly') {
-        $("#"+id_table).DataTable().clear().destroy();
+    } else if(id_table == 'lrk_tbl_program_daily') {
+        // RESET FOOTER
+        $("#lrk_tbl_program_daily_total_target").html(0);
+        $("#lrk_tbl_program_daily_total_realisasi").html(0);
+        $("#lrk_tbl_program_daily_total_persentase").html("");
+
+        $("#"+id_table).DataTable().clear().destroy();        
         $("#"+id_table).DataTable({
             language    : {
                 "emptyTable"    : "Tidak Ada Data Yang Bisa Ditampilkan",
                 "zeroRecords"   : "Data Yang Dicari Tidak Ditemukan",
             },
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [2, 3], "className" : "text-center align-middle", "width" : "15%" },
+                { "targets" : [4], "className" : "text-left align-middle", "width" : "15%" },
+            ],
+            autoWidth   : false,
         });
+
+        if(value != '') {
+            $("#lrk_tbl_program_daily tbody .dataTables_empty").html("Berhasil Memuat Data");
+
+            let seq     = 1;
+            let totalTarget     = 0;
+            let totalRealisasi  = 0;
+            for(const item of value)
+            {
+                const id        = item.pkb_det_id;
+                const title     = item.pkb_det_title == null ? "..." : item.pkb_det_title
+                let persentase  = (parseInt(item.pkb_det_result) / parseInt(item.pkb_det_target)) * 100
+                $("#"+id_table).DataTable().row.add([
+                    seq++,
+                    "<label class='no-margins font-weight-normal' style='cursor:pointer; color: #18a689' title='Lihat Detail'>" + title.toUpperCase() + "</label>",
+                    item.pkb_det_target,
+                    item.pkb_det_result,
+                    isFinite(persentase) === true ? parseFloat(persentase).toFixed(2)+"%" : persentase == Number.POSITIVE_INFINITY || persentase == Number.NEGATIVE_INFINITY ? parseFloat(parseInt(item.pkb_det_result) * 100).toFixed(2) + "%" : parseFloat(0).toFixed(2)+"%",
+                ]).draw(false)
+                
+                totalTarget     += item.pkb_det_target;
+                totalRealisasi  += item.pkb_det_result;
+            }
+            
+            let hitungPersentaseTotal   = (parseInt(totalRealisasi) / parseInt(totalTarget)) * 100;
+            let cekPersentase           = isFinite(hitungPersentaseTotal) === true ? hitungPersentaseTotal : (hitungPersentaseTotal == Number.POSITIVE_INFINITY || hitungPersentaseTotal == Number.NEGATIVE_INFINITY ? parseInt(totalRealisasi) * 100 : 0);
+            let persentaseTotal         = parseFloat(cekPersentase).toFixed(2)+"%";
+            $("#lrk_tbl_program_daily_total_target").html(totalTarget);
+            $("#lrk_tbl_program_daily_total_realisasi").html(totalRealisasi);
+            $("#lrk_tbl_program_daily_total_persentase").html(persentaseTotal); 
+        } else {
+            $("#lrk_tbl_program_daily tbody .dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
+        }
     }
 }
 
@@ -1206,7 +1280,7 @@ function cariData(formSearch, value)
     } else if(formSearch == 'lrk_tbl_sasaran') {
         show_table('lrk_tbl_sasaran', '');
         show_table('lrk_tbl_program', '');
-        show_table('lrk_tbl_program_weekly', '');
+        show_table('lrk_tbl_program_daily', '');
         const prog_mkt_url  = base_url + "/marketings/programKerja/program/listProgramMarketingByYear";
         const prog_mkt_type = "GET";
         const prog_mkt_data = {
@@ -1231,6 +1305,7 @@ function cariData(formSearch, value)
                 console.log(error);
             })
     } else if(formSearch == 'lrk_tbl_program') {
+        $("#lrk_program_selected_month").val(moment(value, 'M').format('MM'));
         show_table('lrk_tbl_program', '');
         const prog_mkt_url      = base_url + "/marketings/programKerja/program/listProgramMarketingByMonth";
         const prog_mkt_type     = "GET";
@@ -1244,6 +1319,9 @@ function cariData(formSearch, value)
         
         doTrans(prog_mkt_url, prog_mkt_type, prog_mkt_data, prog_mkt_msg, true)
             .then((success)     => {
+                // UPDATE TITLE
+                $("#lrk_program_title").html("Laporan Program Bulan "+moment(value, 'M').format('MMMM'));
+                $("#lrk_program_weekly_title").html("Laporan Program Harian Bulan "+moment(value, 'M').format('MMMM'));
                 // REMOVE LOADER
                 $("#lrk_tbl_program tbody .dataTables_empty").html("Data Berhasil Dimuat");
                 // DATA
@@ -1254,22 +1332,26 @@ function cariData(formSearch, value)
                 $("#lrk_tbl_program tbody .dataTables_empty").html("Data Berhasil Dimuat");
                 console.log(err)
             })
-    } else if(formSearch == 'lrk_tbl_program_weekly') {
-        show_table('lrk_tbl_program_weekly', '');
-        
+    } else if(formSearch == 'lrk_tbl_program_daily') {   
+        show_table('lrk_tbl_program_daily', '');     
         const prog_mkt_url      = base_url + "/marketings/programKerja/program/listProgramMarketingByWeek";
         const prog_mkt_type     = "GET";
         const prog_mkt_data     = {
-            "program_pkb_id"    : value,
+            "program_pkb_id"        : value,
         };
-        const prog_mkt_msg      = $("#lrk_tbl_program tbody .dataTables_empty").html("<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..");
+        const prog_mkt_msg      = $("#lrk_tbl_program_daily tbody .dataTables_empty").html("<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..");
 
         doTrans(prog_mkt_url, prog_mkt_type, prog_mkt_data, prog_mkt_msg, true)
             .then((success)     => {
-                console.log(success)
+                const prog_mkt_getData  = success.data;
+                // REMOVE LOADER
+                show_table('lrk_tbl_program_daily', prog_mkt_getData);
             })
             .catch((error)      => {
-                console.log(error)
+                console.log(error);
+                // REMOVE LOADER
+                $("#lrk_tbl_program_daily tbody .dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
+                
             })
     }
 }

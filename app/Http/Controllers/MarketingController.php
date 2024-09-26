@@ -1998,5 +1998,23 @@ class MarketingController extends Controller
         ];
 
         $get_data   = MarketingService::get_list_program_marketing_weekly($data);
+
+        if(count($get_data) > 0 ) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Ambil Data",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Tidak Ada Data",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
     }
 }
