@@ -1364,11 +1364,56 @@ function downloadAbsen()
 
 function downloadLemburan()
 {
-    Swal.fire({
-        icon    : 'info',
-        title   : 'Informasi',
-        text    : 'Fitur Belum Tersedia'
-    });
+    const lmb_emp_id    = $("#sml_emp_id").val();
+    const lmb_emp_date  = $("#sml_emp_date").val();
+    const lmb_emp_startDate     = lmb_emp_date.split(" s/d ")[0];
+    const lmb_emp_endDate       = lmb_emp_date.split(" s/d ")[1];
+
+    const lmb_url       = base_url + "/divisi/finance/simulasi/employees_fee_download";
+    const lmb_type      = "GET";
+    const lmb_data      = {
+        "emp_id"        : lmb_emp_id,
+        "date_start"    : moment(lmb_emp_startDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+        "date_end"      : moment(lmb_emp_endDate, 'DD/MM/YYYY').format('YYYY-MM-DD') 
+    };
+    const lmb_msg       = Swal.fire({ title : "Data Sedang Diproses" }); Swal.showLoading();
+    
+    doTransV2(lmb_url, lmb_type, lmb_data, lmb_msg, true)
+        .then((success)    => {
+            Swal.fire({
+                icon    : 'success',
+                title   : 'Berhasil',
+                text    : 'Laporan Berhasil Dibuat..'
+            }).then((res)   => {
+                if(res.isConfirmed) {
+                    var link = document.createElement('a');
+                    link.href = base_url+"/"+success.data.file_url+"/"+success.data.file_name;
+                    document.body.appendChild(link);
+                    link.click();
+                    Swal.close();
+                    
+                    // DELETE FILE
+                    setTimeout(()=> {
+                        const abs_del_data  = {
+                            "file_url"  : success.data.file_url+"/"+success.data.file_name,
+                        };
+                        const abs_del_type  = "POST";
+                        const abs_del_url   = "/divisi/human_resource/absensi/excelDelete";
+                        
+                        doTransV2(abs_del_url, abs_del_type, abs_del_data, "", true)
+                            .then((sc)  => {
+                                console.log(sc);
+                            })
+                            .catch((err)    => {
+                                console.log(err);
+                            })
+                    }, 1000);
+                }
+            })
+        })
+        .catch((error)      => {
+            console.log(error)
+        })
 }
 
 function doTrans(url, type, data, message, isAsync)

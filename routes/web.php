@@ -391,6 +391,7 @@ Route::group(['middleware' => ['auth']], function () {
             });
             Route::prefix('simulasi')->group(function(){
                 Route::get('/employees_fee', [DivisiController::class, 'finance_sim_employees_fee']);
+                Route::get('/employees_fee_download', [DivisiController::class, 'finance_sim_employees_fee_download']);
             });
         });
 
