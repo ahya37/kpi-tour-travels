@@ -435,6 +435,38 @@ function show_modal(id_modal, jenis, value)
                 Swal.close();
                 console.log(err);
             })
+    } else if(id_modal == 'modal_tbl_program_daily') {
+
+        // GET DATA
+        const program_bulanan_data  = {
+            "program_bulanan_id"    : value,
+        };
+        const program_bulanan_url   = base_url + "/marketings/programKerja/program/listProgramMarketingByDay";
+        const program_bulanan_type  = "GET";
+        const program_bulanan_msg   = Swal.fire({ title : 'Data Sedang Dimuat' }); Swal.showLoading();
+        
+        doTrans(program_bulanan_url, program_bulanan_type, program_bulanan_data, program_bulanan_msg, true)
+            .then((success)     => {
+                console.log(success);
+                Swal.close();
+
+                const program_bulanan_getData   = success.data;
+                show_table('tbl_program_daily_detail', program_bulanan_getData);
+                
+                // SHOW MODAL
+                $("#"+id_modal).modal({
+                    backdrop    : 'static', 
+                    keyboard    : false,
+                });
+            })
+            .catch((error)      => {
+                console.log(error);
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : error.responseJSON.message,
+                });
+            })
     }
 }
 
@@ -476,6 +508,12 @@ function close_modal(id_modal)
     } else if(id_modal == 'modalDetailProgram') {
         $("#"+id_modal).modal('hide');
         show_modal('modalTableProgram', '', '')
+    } else if(id_modal == 'modal_tbl_program_daily') {
+        $("#"+id_modal).modal('hide');
+
+        $("#"+id_modal).on('hidden.bs.modal', () => {
+            $("#tbl_program_daily_detail_total_hasil").html(0);
+        });
     }
 }
 
@@ -891,11 +929,11 @@ function show_table(id_table, value)
             for(const item of value)
             {
                 const id        = item.pkb_det_id;
-                const title     = item.pkb_det_title == null ? "..." : item.pkb_det_title
+                const title     = item.pkb_det_title == null ? "..." : item.pkb_det_title;
                 let persentase  = (parseInt(item.pkb_det_result) / parseInt(item.pkb_det_target)) * 100
                 $("#"+id_table).DataTable().row.add([
                     seq++,
-                    "<label class='no-margins font-weight-normal' style='cursor:pointer; color: #18a689' title='Lihat Detail'>" + title.toUpperCase() + "</label>",
+                    "<label class='no-margins font-weight-normal' style='cursor:pointer; color: #18a689' title='Lihat Detail' onclick='show_modal(`modal_tbl_program_daily`, ``, `" + id + "`)'>" + title.toUpperCase() + "</label>",
                     item.pkb_det_target,
                     item.pkb_det_result,
                     isFinite(persentase) === true ? parseFloat(persentase).toFixed(2)+"%" : persentase == Number.POSITIVE_INFINITY || persentase == Number.NEGATIVE_INFINITY ? parseFloat(parseInt(item.pkb_det_result) * 100).toFixed(2) + "%" : parseFloat(0).toFixed(2)+"%",
@@ -913,6 +951,48 @@ function show_table(id_table, value)
             $("#lrk_tbl_program_daily_total_persentase").html(persentaseTotal); 
         } else {
             $("#lrk_tbl_program_daily tbody .dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
+        }
+    } else if(id_table == 'tbl_program_daily_detail') {
+        $("#"+id_table).DataTable().clear().destroy();
+        $("#"+id_table).DataTable({
+            language    : {
+                zeroRecords : "Data Yang Dicari Tidak Ditemukan"
+            },
+            autoWidth   : false,
+            pageLength  : -1,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [2], "className" : "text-center align-middle", "width" : "15%"},
+                { "targets" : [3], "className" : "text-right align-middle", "width" : "10%" },
+                { "targets" : [4], "className" : "align-middle", "width" : "25%" },
+            ],
+        });
+
+        if(value != '') {
+            $("#"+id_table+" tbody .dataTables_empty").html("Data Ditemukan");
+            let seq   = 1;
+            let total_res   = 0;
+            for(const item of value)
+            {
+                const program_seq   = seq++;
+                const program_title = item['pkh_title'];
+                const program_date  = item['pkh_date'];
+                const program_pic   = item['pkh_pic_name'];
+                const program_res   = item['pkh_total_activity'];
+
+                $("#"+id_table).DataTable().row.add([
+                    program_seq,
+                    program_title,
+                    moment(program_date, 'YYYY-MM-DD').format('DD/MM/YYYY'),
+                    program_res,
+                    program_pic
+                ]).draw(false);
+
+                total_res += program_res;
+            }
+            $("#tbl_program_daily_detail_total_hasil").html(total_res);
+        } else {
+            $("#"+id_table+" tbody .dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
         }
     }
 }

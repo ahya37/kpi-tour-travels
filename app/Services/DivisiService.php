@@ -2678,4 +2678,19 @@ class DivisiService
         );
         return $query;
     }
+
+    public static function get_list_program_marketing_daily($data)
+    {
+        $program_id     = $data['program_id'];
+
+        // GET HEADER
+        $query_get_header   = DB::table('proker_harian as a')
+                                ->join('users as b', 'a.created_by', '=', 'b.id')
+                                ->select('a.uuid as pkh_id', 'a.pkh_title', 'a.pkh_date', 'b.id as pkh_pic_id', 'b.name as pkh_pic_name', 'a.pkh_total_activity')
+                                ->where('a.pkh_pkb_id', '=', $program_id)
+                                ->where('a.pkh_is_active', '=', 't')
+                                ->orderBy('a.pkh_date', 'asc')
+                                ->get();
+        return $query_get_header;
+    }
 }

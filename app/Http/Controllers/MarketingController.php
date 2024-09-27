@@ -2017,4 +2017,31 @@ class MarketingController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    public function marketing_programKerja_listProgramMarketing_daily(Request $request)
+    {
+        $send_data  = [
+            "program_id"    => $request->all()['sendData']['program_bulanan_id'],
+        ];
+
+        $get_data   = DivisiService::get_list_program_marketing_daily($send_data);
+
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Harian",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Tidak Ada Data Harian Yang Bisa Ditampilkan",
+                "data"      => []
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

@@ -121,7 +121,9 @@ Route::group(['middleware' => ['auth']], function () {
 		
         // PROGRAM KERJA
         Route::prefix('programKerja')->group(function(){
-            Route::get('/programKerja/', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
+            Route::get('/', function(){
+                return redirect('/marketings/programKerja/Dashboard');
+            });
             Route::get('/Dashboard', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
             Route::get('/getListSasaran', [MarketingController::class, 'marketing_programKerja_dashboardSasaran']);
             Route::get('/getListDashboard', [MarketingController::class, 'marketing_programKerja_dashboardList']);
@@ -148,6 +150,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/listProgramMarketingByYear', [MarketingController::class, 'marketing_programKerja_listProgramMarketing_yearly']);
                 Route::get('/listProgramMarketingByMonth', [MarketingController::class, 'marketing_programKerja_listProgramMarketing_monthly']);
                 Route::get('/listProgramMarketingByWeek', [MarketingController::class, 'marketing_programKerja_listProgramMarketing_weekly']);
+                Route::get('/listProgramMarketingByDay', [MarketingController::class, 'marketing_programKerja_listProgramMarketing_daily']);
             });
             // JENIS PEKERJAAN
             Route::prefix('jenisPekerjaan')->group(function(){

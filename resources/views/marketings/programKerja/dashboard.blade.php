@@ -567,18 +567,19 @@
                                 <table class="table table-striped table-hover table-bordered" style="width: 100%;" id="tbl_program_daily_detail">
                                     <thead>
                                         <tr>
-                                            <th>No</th>
-                                            <th>Penanggung Jawab</th>
-                                            <th>Tanggal</th>
+                                            <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Judul</th>
+                                            <th class="text-center align-middle">Tanggal</th>
+                                            <th class="text-center align-middle">Hasil</th>
+                                            <th class="text-center align-middle">PIC</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
                                     <tfoot>
                                         <tr>
-                                            <th class="text-right align-middle" colspan="2">Total :</th>
-                                            <th></th>
-                                            <th></th>
-                                            <th></th>
+                                            <th colspan="3" class="text-right align-middle">Total :</th>
+                                            <th id="tbl_program_daily_detail_total_hasil">0</th>
+                                            <th>&nbsp;</th>
                                         </tr>
                                     </tfoot>
                                 </table>
