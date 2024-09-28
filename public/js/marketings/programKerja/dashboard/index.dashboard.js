@@ -1387,6 +1387,7 @@ function cariData(formSearch, value)
     } else if(formSearch == 'lrk_tbl_program') {
         $("#lrk_program_selected_month").val(moment(value, 'M').format('MM'));
         show_table('lrk_tbl_program', '');
+        show_table('lrk_tbl_program_daily', '');
         const prog_mkt_url      = base_url + "/marketings/programKerja/program/listProgramMarketingByMonth";
         const prog_mkt_type     = "GET";
         const prog_mkt_data     = {
