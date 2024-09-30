@@ -48,6 +48,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/getDataPresenceToday', [DashboardController::class, 'dashboard_getPresenceToday']);
         Route::get('/absensi_pulang', [DashboardController::class, 'index_pulang'])->name('absen.pulang');
         Route::get('/tarik_data', [DashboardController::class, 'index_tarik_data_presensi']);
+        Route::prefix('absensi')->group(function(){
+            Route::get('/get_user_presence', [DashboardController::class, 'absensi_ambil_data_user']);
+        });
     });
     // Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class,'logout'])->name('logout.store');

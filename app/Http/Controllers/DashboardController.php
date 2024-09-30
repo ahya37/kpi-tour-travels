@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\BaseService;
+use App\Services\EmployeeService;
+use Database\Seeders\EmployeeSeeder;
 use File;
 use Illuminate\Support\Facades\Auth;
 use Response;
@@ -30,6 +32,7 @@ class DashboardController extends Controller
                     'title'         => $this->title . " | Dashboard",
                     'sub_title'     => 'Selamat Datang '.Auth::user()->name,
                     'user_id'       => Auth::user()->id,
+                    'user_name'     => Auth::user()->name,
                 ];
         
                 return view('dashboard/index', $data);
@@ -43,9 +46,10 @@ class DashboardController extends Controller
             }
         } else {
             $data = [
-                'title'         => 'Home',
+                'title'         => $this->title . " | Dashboard",
                 'sub_title'     => 'Selamat Datang '.Auth::user()->name,
                 'user_id'       => '%',
+                'user_name'     => Auth::user()->name,
             ];
     
             return view('dashboard/index', $data);
@@ -154,6 +158,35 @@ class DashboardController extends Controller
                 "success"   => false,
                 "status"    => 404,
                 "message"   => "Data Absen Gagal Dimuat",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function absensi_ambil_data_user(Request $request)
+    {
+        $send_data  = [
+            "user_id"   => $request->all()['data']['user_id'],
+            "month"     => $request->all()['data']['selected_month'],
+            "year"      => $request->all()['data']['selected_year'],
+        ];
+
+        $get_data   = EmployeeService::get_absensi_ambil_data_user($send_data);
+        
+        if(count($get_data) > 0) {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Ambil Data Absensi",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Gagal Mengambil Data Absensi",
                 "data"      => [],
             ];
         }
