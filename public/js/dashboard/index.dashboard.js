@@ -315,6 +315,8 @@ function showModal(idModal, jenis)
                 $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
                 // SHOW TABLE
                 showTable('tbl_total_absen', success.data);
+                // SHOW SELECT
+                showSelect('tbl_filter_month', '', '');
             })
             .catch((error)      => {
                 Swal.fire({
@@ -349,12 +351,6 @@ function showModal(idModal, jenis)
                     text    : 'Data Izin / Sakit / Cuti Tidak Ada',
                 });
             })
-        // $("#"+idModal).modal({
-        //     backdrop    : 'static', 
-        //     keyboard    : false
-        // });
-
-        // showTable('tbl_total_cuti', []);
     }
 }
 
@@ -367,8 +363,72 @@ function closeModal(idModal)
     }
 }
 
+function showSelect(idSelect, data, selectedData)
+{
+    $("#"+idSelect).select2({
+        theme   : 'bootstrap4'
+    });
+    
+    if(idSelect == 'tbl_filter_month')
+    {
+        var html        = "<option selected disabled>Pilih Bulan</option>";
+        
+        data            = moment.months();
+        selectedData    = moment().format('MM');
+
+        let seq         = 1;
+        for(const item of data)
+        {
+            const monthNumber   = seq < 10 ? "0"+seq++ : seq++;
+            const monthName     = item;
+
+            html    += "<option value='" + monthNumber + "'>" + monthName + "</option>";
+        }
+
+        $("#"+idSelect).html(html);
+        
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData).trigger('change');
+        };
+    }
+}
+
 function simpanData(jenis) 
 {
+}
+
+function cariData(idForm)
+{
+    if(idForm == 'tbl_total_absen')
+    {
+        const user_id           = $("#prs_user_id").val();
+        const selected_month    = $("#tbl_filter_month").val();
+        const selected_year     = moment(today, 'YYYY-MM-DD').format('YYYY');
+
+        const abs_url           = base_url + "/dashboard/absensi/get_user_presence";
+        const abs_type          = "GET";
+        const abs_data          = {
+            "data"  : {
+                "user_id"       : user_id,
+                "selected_month": selected_month,
+                "selected_year" : selected_year,
+            }
+        };
+        const abs_msg           = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+
+        doTrans(abs_url, abs_type, abs_data, abs_msg, true)
+            .then((success)     => {
+                showTable('tbl_total_absen', success.data);
+                Swal.close();
+            })
+            .catch((error)      => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Tidak Ada Absen Pada Bulan yang Dipilih',
+                });
+            })
+    }
 }
 
 function doTrans(url, type, data, customMessage, isAsync)
