@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="{{ asset('css/customCSS/DataTables/fixedHeader-3.2.0/fixedHeader.dataTables.min.css') }}">
     {{-- DATERANGEPICKER --}}
     <link rel="stylesheet" href="{{ asset('css/customCSS/daterangepicker/daterangepicker.css') }}">
+    {{-- SELECT2 --}}
+    <link href="{{ asset('assets/css/plugins/select2/select2.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/plugins/select2/select2-bootstrap4.min.css') }}" rel="stylesheet">
+
     <link href="{{ asset('assets/css/swal2.custom.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
@@ -81,7 +85,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-sm-6">
+                        <div class="col-sm-6 border-right">
                             <h2 class="no-margins">{{ $user_name }}</h2>
                             <div class="row mt-2">
                                 <div class="col-sm-5">
@@ -105,6 +109,23 @@
                                 </div>
                                 <div class="col-sm-6">
                                     <label id="tbl_total_absen_lebih_jam_1">00:00:00</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <h2 class="no-margins">Filter</h2>
+                            <div class="row mt-2">
+                                <div class="col-sm-8">
+                                    <div class="form-group">
+                                        <label class="font-weight-bold">Pilih Bulan</label>
+                                        <select class="form-control" name="tbl_filter_month" id="tbl_filter_month" style="width: 100%;"></select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="text-white">test</label><br>
+                                        <button class="btn btn-primary" title="Cari Data" id="tbl_filter_button" onclick="cariData('tbl_total_absen')" style="height: 38px;">Cari Data</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -188,6 +209,8 @@
     <script src="{{ asset('js/customJS/SweetAlert/sweetalert2.all.min.js') }}"></script>
     {{-- DATERANGEPICKER --}}
     <script src="{{ asset('js/customJS/daterangepicker/daterangepicker.min.js') }}"></script>
+    {{-- SELECT2 --}}
+    <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
 
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/dashboard/index.dashboard.js') }}"></script>
