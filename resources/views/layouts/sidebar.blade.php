@@ -61,7 +61,8 @@
                     <li class="active"><a href="{{ route('marketings.haji.report') }}">Laporan Haji</a></li>
                     <li class="active"><a href="{{ route('marketings.rencancakerja.report')}}">Laporan Rencana Kerja</a></li>
                     <li class="active"><a href="{{ route('marketing.pekerjaan.report') }}">Laporan Pekerjaan Harian</a></li>
-                    <li class="{{ request()->is('marketings/*') ? 'active' : '' }}"><a href="{{ route('marketing.programkerja.dashboard') }}">Program Kerja</a></li>
+                <li class="{{ request()->is('marketings/*') ? 'active' : '' }}"><a href="{{ route('marketing.programkerja.dashboard') }}">Program Kerja</a></li>
+                    <li class=""><a href="{{ route('umhaj.dashboard') }}">Umhaj</a></li>
                 </ul>
             </li>
 

@@ -18,8 +18,10 @@ use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TarikDataController;
+use App\Http\Controllers\SysUmhajController;
 use App\Models\Division;
 use App\Services\ProgramKerjaService;
+use App\Services\SysUmhajService;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
@@ -173,6 +175,24 @@ Route::group(['middleware' => ['auth']], function () {
         });
 		
         
+    });
+
+    Route::prefix('umhaj')->group(function(){
+        Route::get('/', [SysUmhajController::class, 'index_umhaj'])->name('umhaj.dashboard');
+        Route::prefix('umrah')->group(function(){
+            Route::get("/get_data", [SysUmhajController::class, 'umhaj_umrah_get_data'])->name('umhaj.umrah.get_data');
+            Route::get("/get_data_detail", [SysUmhajController::class, 'umhaj_umrah_get_data_detail'])->name('umhaj.umrah.get_data');
+            Route::get("/list_program", [SysUmhajController::class, 'umhaj_umrah_get_list_program'])->name('umhaj.umrah.get_list_program');
+        });
+        
+        Route::prefix('member')->group(function(){
+            Route::get('/get_data', [SysUmhajController::class, 'umhaj_member_get_data'])->name('umhaj.member.get_data');
+            Route::get('/get_data_detail', [SysUmhajController::class, 'umhaj_member_get_data_detail'])->name('umhaj.member.get_data.detail');
+        });
+
+        Route::prefix('cs')->group(function(){
+            Route::get('/get_data', [SysUmhajController::class, 'umhaj_cs_get_data'])->name('umhaj.cs.get_data');
+        });
     });
 
      // Rencana Kerja
