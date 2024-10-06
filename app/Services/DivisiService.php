@@ -2636,7 +2636,7 @@ class DivisiService
                                 ->join('job_employees as b', 'b.employee_id', '=', 'a.employee_id')
                                 ->join('group_divisions as c', 'b.group_division_id', '=', 'c.id')
                                 ->select('a.employee_id as emp_id', 'a.employee_name as emp_name', 'a.employee_fee as emp_fee', 'c.name as emp_division')
-                                ->where('a.employee_id', '=', $emp_id)
+                                ->where('a.employee_id', 'LIKE', $emp_id)
                                 ->get();
 
         $emp_detail     = DB::table('tm_presence as a')
@@ -2654,5 +2654,43 @@ class DivisiService
         ];
 
         return $output;
+    }
+
+    public static function get_data_employee_all()
+    {
+        // $query  = DB::table('employees as a')
+        //                 ->join('users as b', 'a.user_id', '=', 'b.id')
+        //                 ->select('a.id as emp_id', 'a.name as emp_name')
+        //                 ->where('b.is_active', '=', '1')
+        //                 ->whereNotIn('b.id', ['1', '41'])
+        //                 ->orderBy('a.user_id', 'asc')
+        //                 ->get();
+        $query  = DB::select(
+            "
+            SELECT 	a.id as emp_id,
+                    a.name as emp_name
+            FROM 	employees a
+            JOIN 	users b ON a.user_id = b.id
+            AND 	b.is_active = '1'
+            AND 	b.id NOT IN ('1', '41')
+            ORDER BY a.user_id ASC
+            "
+        );
+        return $query;
+    }
+
+    public static function get_list_program_marketing_daily($data)
+    {
+        $program_id     = $data['program_id'];
+
+        // GET HEADER
+        $query_get_header   = DB::table('proker_harian as a')
+                                ->join('users as b', 'a.created_by', '=', 'b.id')
+                                ->select('a.uuid as pkh_id', 'a.pkh_title', 'a.pkh_date', 'b.id as pkh_pic_id', 'b.name as pkh_pic_name', 'a.pkh_total_activity')
+                                ->where('a.pkh_pkb_id', '=', $program_id)
+                                ->where('a.pkh_is_active', '=', 't')
+                                ->orderBy('a.pkh_date', 'asc')
+                                ->get();
+        return $query_get_header;
     }
 }

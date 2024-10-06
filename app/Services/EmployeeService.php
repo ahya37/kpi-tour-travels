@@ -260,4 +260,23 @@ class EmployeeService
 
         return $output;
     }
+
+    // UPDATE UNTUK AMBIL DATA ABSENSI
+    public static function get_absensi_ambil_data_user($data)
+    {
+        $user_id    = $data['user_id'];
+        $year       = $data['year'];
+        $month      = $data['month'];
+
+        $query      = DB::table('tm_presence as a')
+                        ->join('users as b', 'a.prs_user_id', '=', 'b.id')
+                        ->select('b.name as prs_name', 'a.prs_date', 'a.prs_in_time', 'a.prs_out_time')
+                        ->where(DB::raw('EXTRACT(YEAR FROM a.prs_date)'),'=', $year)
+                        ->where(DB::raw('EXTRACT(MONTH FROM a.prs_date)'),'=', $month)
+                        ->where('a.prs_user_id', '=', $user_id)
+                        ->orderBy('a.prs_date', 'asc')
+                        ->get();
+        
+        return $query;
+    }
 }

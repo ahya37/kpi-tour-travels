@@ -18,7 +18,8 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 class DivisiController extends Controller
 {
     var $title  = "ERP Percik Tours";
@@ -2032,6 +2033,415 @@ class DivisiController extends Controller
                 "status"    => 404,
                 "message"   => "Data Tidak Ditemukan",
                 "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function finance_sim_employees_fee_download(Request $request)
+    {
+        $get_data_employee  = DivisiService::get_data_employee_all();
+        $get_data           = DivisiService::get_data_finance_sim_employees_fee($request->all());
+
+        $spreadsheet    = new Spreadsheet;
+        
+        function autoSizeColumn(Worksheet $sheet, $column)
+        {
+            $maxLength = 0;
+            $columnIndex = Coordinate::columnIndexFromString($column); // Mendapatkan indeks kolom dari huruf kolom
+        
+            // Iterasi melalui semua baris dalam kolom
+            foreach ($sheet->getRowIterator() as $row) {
+                $cell = $sheet->getCell($column . $row->getRowIndex());
+                $value = $cell->getValue();
+                $length = strlen((string) $value); // Konversi nilai sel ke string
+        
+                // Periksa panjang sel untuk menentukan lebar kolom maksimum
+                if ($length > $maxLength) {
+                    $maxLength = $length;
+                }
+            }
+        
+            // Set lebar kolom
+            $sheet->getColumnDimension($column)->setWidth($maxLength + 3); // Menambahkan sedikit ruang ekstra
+        }
+
+        function getDayName($day)
+        {
+            switch($day) {
+                case "Mon" :
+                    $hari   = "Senin";
+                break;
+                case "Tue" : 
+                    $hari   = "Selasa";
+                break;
+                case "Wed" :
+                    $hari   = "Rabu";
+                break;
+                case "Thu"  : 
+                    $hari   = "Kamis";
+                break;
+                case "Fri"  : 
+                    $hari   = "Jumat";
+                break;
+                case "Sat"  :
+                    $hari   = "Sabtu";
+                break;
+                case "Sun"  :
+                    $hari   = "Minggu";
+                break;
+            }
+
+            return $hari;
+        }
+
+        function getTime($day)
+        {
+            switch($day)
+            {
+                case "Sat" :
+                    $jam_masuk  = "08:00:00";
+                    $jam_keluar = "13:30:00";
+                    $batas_ot_1 = "14:30:00";
+                    $batas_ot_2 = "23:59:59";
+                break;
+                case "Sun" : 
+                    $jam_masuk  = "00:00:00";
+                    $jam_keluar = "23:59:00";
+                    $batas_ot_1 = "00:00:00";
+                    $batas_ot_2 = "00:00:00";
+                break;
+                default : 
+                    $jam_masuk  = "08:00:00";
+                    $jam_keluar = "16:00:00";
+                    $batas_ot_1 = "17:00:00";
+                    $batas_ot_2 = "23:59:00";
+            }
+
+            $data   = [
+                "jam_masuk"     => $jam_masuk,
+                "jam_keluar"    => $jam_keluar,
+                "batas_ot_1"    => $batas_ot_1,
+                "batas_ot_2"    => $batas_ot_2,
+            ];
+
+            return $data;
+        }
+        
+        if(count($get_data_employee) > 0) {
+            for($x = 0; $x < count($get_data_employee); $x++) {
+                $emp_id     = $get_data_employee[$x]->emp_id;
+                $emp_name   = $get_data_employee[$x]->emp_name;
+    
+                $curr_seq   = $x + 1;
+    
+                $send_data  = [
+                    "emp_id"    => $emp_id,
+                    "date_start"=> $request->all()['date_start'],
+                    "date_end"  => $request->all()['date_end'],
+                ];
+    
+                $get_data   = DivisiService::get_data_finance_sim_employees_fee($send_data);
+    
+                if(count($get_data['header']) > 0) {
+                    $header     = $get_data['header'][0];
+                    $detail     = $get_data['detail'];
+        
+                    $employee_fee       = $header->emp_fee;
+                    $employee_division  = $header->emp_division;
+                    $column_start       = 2;
+        
+                    $ot_1                   = 0;
+                    $ot_2                   = 0;
+                    $ot_3                   = 0;
+                    $total_ot_1             = 0;
+                    $total_ot_2             = 0;
+                    $total_ot_3             = 0;
+        
+                    $sheetStyle = [
+                        "font"  => [
+                            "bold"  => true,
+                        ],
+                    ];
+        
+                    $sheetStyleBorder    = [
+                        "borders"   => [
+                            "allBorders"    => [
+                                "borderStyle"   => Border::BORDER_THIN,
+                                "color"         => ['argb'  => '000']
+                            ],
+                        ],
+                    ];
+        
+                    if($curr_seq == 1) {
+                        $sheet1     = $spreadsheet->getActiveSheet();
+                    } else {
+                        $sheet1     = $spreadsheet->createSheet();
+                    }
+        
+                    // TABLE LAPORAN ABSENSI
+                    $sheet1->getStyle('B1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet1->getStyle('B1:E1')->applyFromArray($sheetStyleBorder);
+                    $sheet1->getStyle('B1:E1')->applyFromArray($sheetStyle);
+        
+                    $sheet1->getStyle('B2:E2')->applyFromArray($sheetStyle);
+                    $sheet1->getStyle('B2:E2')->applyFromArray($sheetStyleBorder);
+                    $sheet1->getStyle('B2:E2')->getAlignment()->setHorizontal('center');
+        
+                    $sheet1->setTitle($emp_name);
+                    $sheet1->setCellValue('B1', 'LAPORAN ABSENSI');
+                    $sheet1->mergeCells('B1:E1');
+                    $sheet1->setCellValue('B2', 'NAMA');
+                    $sheet1->setCellValue('C2', 'TANGGAL');
+                    $sheet1->setCellValue('D2', 'JAM MASUK');
+                    $sheet1->setCellValue('E2', 'JAM KELUAR');
+        
+                    // TABLE LAPORAN LEMBURAN
+                    $sheet1->setCellValue('G1', 'LAPORAN LEMBURAN');
+                    $sheet1->mergeCells('G1:N1');
+                    $sheet1->getStyle('G1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet1->getStyle('G1:N1')->applyFromArray($sheetStyleBorder);
+                    $sheet1->getStyle('G1:N1')->applyFromArray($sheetStyle);
+                    
+                    $sheet1->getStyle('G2:N2')->applyFromArray($sheetStyle);
+                    $sheet1->getStyle('G2:N2')->applyFromArray($sheetStyleBorder);
+                    $sheet1->getStyle('G2:N2')->getAlignment()->setHorizontal('center');
+                    $sheet1->setCellValue('G2', 'TANGGAL');
+                    $sheet1->setCellValue('H2', 'HARI');
+                    $sheet1->setCellValue('I2', 'JAM MASUK');
+                    $sheet1->setCellValue('J2', 'JAM KELUAR');
+                    $sheet1->setCellValue('K2', 'OT1');
+                    $sheet1->setCellValue('L2', 'OT2');
+                    $sheet1->setCellValue('M2', 'OT3');
+                    $sheet1->setCellValue('N2', 'TOTAL');
+        
+                    // TABLE PEMBAYARAN
+                    $sheet1->setCellValue('P1', 'LAPORAN PEMBAYARAN');
+                    $sheet1->mergeCells('P1:R1');
+                    $sheet1->getStyle('P1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet1->getStyle('P1:R6')->applyFromArray($sheetStyleBorder);
+                    $sheet1->getStyle('P1:R1')->applyFromArray($sheetStyle);
+                    $sheet1->getStyle('P6:R6')->applyFromArray($sheetStyle);
+        
+                    $sheet1->getStyle('Q1:R1')->applyFromArray($sheetStyle);
+                    $sheet1->getStyle('Q1:R1')->applyFromArray($sheetStyleBorder);
+                    $sheet1->getStyle('P1:R1')->getAlignment()->setHorizontal('center');
+        
+                    $sheet1->getStyle('P1:P6')->applyFromArray($sheetStyle);
+                    $sheet1->getStyle('P1:P6')->applyFromArray($sheetStyleBorder);
+                    $sheet1->setCellValue('P2', 'Gaji Pokok');
+                    $sheet1->setCellValue('P3', 'OT1');
+                    $sheet1->setCellValue('P4', 'OT2');
+                    $sheet1->setCellValue('P5', 'OT3');
+                    $sheet1->setCellValue('P6', 'Total');
+        
+                    for($i = 0; $i < count($detail); $i++)
+                    {
+                        $column_start           = $column_start + 1;
+                        $employee_prs_date      = $detail[$i]->emp_prs_date;
+                        $employee_prs_in_time   = date("H:i:s", strtotime($detail[$i]->emp_prs_in_time));
+                        $employee_prs_out_time  = date("H:i:s", strtotime($detail[$i]->emp_prs_out_time));
+                        $employee_prs_name      = $detail[$i]->emp_name;
+        
+                        $date_day_name          = date('D', strtotime($employee_prs_date));
+        
+                        // GET JAM MASUK - JAM KELUAR
+                        $jam_telat              = "08:10:00";
+                        $jam_masuk              = getTime($date_day_name)['jam_masuk'];
+                        $jam_keluar             = getTime($date_day_name)['jam_keluar'];
+                        $batas_jam_ot_1         = getTime($date_day_name)['batas_ot_1'];
+                        $batas_jam_ot_2         = getTime($date_day_name)['batas_ot_2'];
+        
+                        // CHECK TELAT
+                        if($employee_prs_in_time > $jam_telat) {
+                            $waktu_1    = strtotime($employee_prs_in_time);
+                            $waktu_2    = strtotime($jam_telat);
+                            $beda_menit = ($waktu_1 - $waktu_2) / 60;
+                            
+                            $jam_keluar_konversi    = strtotime($employee_prs_out_time);
+        
+                            $jam_keluar_konversi    -= $beda_menit * 60;
+        
+                            $jam_keluar_baru        = date('H:i:s', $jam_keluar_konversi);
+                        } else {
+                            $jam_keluar_baru        = $employee_prs_out_time;
+                        }
+        
+                        if($jam_keluar_baru >= $batas_jam_ot_1) 
+                        {
+                            // GET OT2
+                            $beda_waktu_ot_2_sec    = strtotime($jam_keluar_baru) - strtotime($batas_jam_ot_1);
+                            $beda_waktu_ot_2_min    = $beda_waktu_ot_2_sec / 60;
+                            $beda_jam_ot_2          = floor($beda_waktu_ot_2_min / 60);
+        
+                            if($beda_waktu_ot_2_min > 60) {
+                                $beda_jam_ot_2   += 1;
+                            }
+        
+                            // GET OT3
+                            if($jam_keluar_baru >= $batas_jam_ot_2) {
+                                $beda_waktu_ot_3_sec    = strtotime($jam_keluar_baru) - strtotime($batas_jam_ot_2);
+                                $beda_waktu_ot_3_min    = $beda_waktu_ot_3_sec / 60;
+                                $beda_jam_ot_3          = floor($beda_waktu_ot_3_min / 60);
+        
+                                if($beda_jam_ot_3 > 60) {
+                                    $beda_jam_ot_3  += 1;
+                                }
+                            } else {
+                                $beda_jam_ot_3  = 0;
+                            }
+        
+                            $ot_1                   = 1;
+                            $ot_2                   = number_format($beda_jam_ot_2, 0) > 0 ? number_format($beda_jam_ot_2, 0) - 1 : 0;
+                            $ot_3                   = number_format($beda_jam_ot_3, 0) > 0 ? number_format($beda_jam_ot_3, 0) - 1 : 0;
+        
+                            $data[]   = [
+                                "tanggal_lembur"    => $employee_prs_date,
+                                "jam_masuk"         => $employee_prs_in_time,
+                                "jam_keluar"        => $employee_prs_out_time,
+                                "ot_1"              => $ot_1,
+                                "ot_2"              => $ot_2,
+                                "ot_3"              => $ot_3
+                            ];
+        
+                            $total_ot_1         += $ot_1;
+                            $total_ot_2         += $ot_2;
+                            $total_ot_3         += $ot_3;
+                        }
+        
+                        $ot_1   = 0;
+                        $ot_2   = 0;
+                        $ot_3   = 0;
+        
+                        $sheet1->getStyle('B'.$column_start.':E'.$column_start)->applyFromArray($sheetStyleBorder);
+                        $sheet1->setCellValue('B'.$column_start, strtoupper($employee_prs_name));
+                        $sheet1->setCellValue('C'.$column_start, getDayName($date_day_name).", ".date('d.m.Y', strtotime($employee_prs_date)));
+                        $sheet1->setCellValue('D'.$column_start, $employee_prs_in_time);
+                        $sheet1->setCellValue('E'.$column_start, $employee_prs_out_time);
+                        // $sheet1->setCellValue('F'.$column_start, $jam_masuk);
+                        // $sheet1->setCellValue('G'.$column_start, $jam_keluar);
+                        $sheet1->getStyle('C'.$column_start.':E'.$column_start)->getAlignment()->setHorizontal('right');
+                    }
+        
+                    $data_lemburan  = [
+                        "nama_karyawan"     => $header->emp_name,
+                        "gaji_pokok"        => $header->emp_fee,
+                        "data_lemburan"     => $data, 
+                        "total_overtime_1"  => $total_ot_1,
+                        "total_overtime_2"  => $total_ot_2,
+                        "total_overtime_3"  => $total_ot_3
+                    ];
+
+                    $data   = [];
+        
+                    $emp_gaji_pokok     = $data_lemburan['gaji_pokok'];
+                    $emp_gaji_perjam    = $emp_gaji_pokok / 173;
+                    $emp_total_ot_1     = $data_lemburan['total_overtime_1'];
+                    $emp_total_ot_2     = $data_lemburan['total_overtime_2'];
+                    $emp_total_ot_3     = $data_lemburan['total_overtime_3'];
+                    $emp_fee_ot_1       = $emp_gaji_perjam * $emp_total_ot_1 * 1.5;
+                    $emp_fee_ot_2       = $emp_gaji_perjam * $emp_total_ot_2 * 2;
+                    $emp_fee_ot_3       = $emp_gaji_perjam * $emp_total_ot_3 * 3;
+                    $total_semua_ot     = $emp_total_ot_1 + $emp_total_ot_2 + $emp_total_ot_3;
+                    $total_bayar_ot     = $emp_fee_ot_1 + $emp_fee_ot_2 + $emp_fee_ot_3;
+        
+                    $sheet1->setCellValue('R2', number_format(round($emp_gaji_pokok, 3), 2));
+                    $sheet1->setCellValue('S2', number_format(round($emp_gaji_perjam, 3), 2));
+                    $sheet1->setCellValue('Q3', $emp_total_ot_1);
+                    $sheet1->setCellValue('R3', number_format(round($emp_fee_ot_1, 3), 2));
+                    $sheet1->setCellValue('Q4', $emp_total_ot_2);
+                    $sheet1->setCellValue('R4', number_format(round($emp_fee_ot_2, 3), 2));
+                    $sheet1->setCellValue('Q5', $emp_total_ot_3);
+                    $sheet1->setCellValue('R5', number_format(round($emp_fee_ot_3, 3), 2));
+                    $sheet1->setCellValue('Q6', $total_semua_ot);
+                    $sheet1->setCellValue('R6', number_format(round($total_bayar_ot, 3), 2));
+                    $sheet1->getStyle('Q2:R6')->getAlignment()->setHorizontal('right');
+        
+                    // LOOP LEMBURAN
+                    $cell_lemburan  = 3;
+                    if(count($data_lemburan['data_lemburan']) > 0) 
+                    {
+                        for($k = 0; $k < count($data_lemburan['data_lemburan']); $k++)
+                        {
+                            $lemburan_tanggal   = $data_lemburan['data_lemburan'][$k]['tanggal_lembur'];
+                            $lemburan_jam_masuk = $data_lemburan['data_lemburan'][$k]['jam_masuk'];
+                            $lemburan_jam_keluar= $data_lemburan['data_lemburan'][$k]['jam_keluar'];
+                            $lemburan_ot1       = $data_lemburan['data_lemburan'][$k]['ot_1'];
+                            $lemburan_ot2       = $data_lemburan['data_lemburan'][$k]['ot_2'];
+                            $lemburan_ot3       = $data_lemburan['data_lemburan'][$k]['ot_3'];
+                            $lemburan_total     = $lemburan_ot1 + $lemburan_ot2 + $lemburan_ot3;
+                            
+                            $sheet1->setCellValue('G'.$cell_lemburan, date('d.m.Y', strtotime($lemburan_tanggal)));
+                            $sheet1->setCellValue('H'.$cell_lemburan, getDayName(date('D', strtotime($lemburan_tanggal))));
+                            $sheet1->setCellvalue('I'.$cell_lemburan, $lemburan_jam_masuk);
+                            $sheet1->setCellvalue('J'.$cell_lemburan, $lemburan_jam_keluar);
+                            $sheet1->setCellvalue('K'.$cell_lemburan, $lemburan_ot1);
+                            $sheet1->setCellvalue('L'.$cell_lemburan, $lemburan_ot2);
+                            $sheet1->setCellvalue('M'.$cell_lemburan, $lemburan_ot3);
+                            $sheet1->setCellvalue('N'.$cell_lemburan, $lemburan_total);
+            
+                            $cell_lemburan++;
+                        }
+                        // TOTAL TOTALAN
+                        $sheet1->getStyle('G3:N'.$cell_lemburan)->applyFromArray($sheetStyleBorder);
+                        $sheet1->getStyle('G'.$cell_lemburan.':N'.$cell_lemburan)->applyFromArray($sheetStyle);
+                        $sheet1->mergeCells('G'.$cell_lemburan.':H'.$cell_lemburan);
+                        $sheet1->setCellValue('G'.$cell_lemburan, 'Total');
+                        $sheet1->setCellValue('K'.$cell_lemburan, $data_lemburan['total_overtime_1']);
+                        $sheet1->setCellValue('L'.$cell_lemburan, $data_lemburan['total_overtime_2']);
+                        $sheet1->setCellValue('M'.$cell_lemburan, $data_lemburan['total_overtime_3']);
+                        $sheet1->setCellValue('N'.$cell_lemburan, $total_semua_ot);
+                    }
+
+                    $data_lemburan  = "";
+        
+                    autoSizeColumn($sheet1, 'B');
+                    autoSizeColumn($sheet1, 'C');
+                    autoSizeColumn($sheet1, 'D');
+                    autoSizeColumn($sheet1, 'E');
+                    autoSizeColumn($sheet1, 'G');
+                    autoSizeColumn($sheet1, 'H');
+                    autoSizeColumn($sheet1, 'I');
+                    autoSizeColumn($sheet1, 'J');
+                    autoSizeColumn($sheet1, 'K');
+                    autoSizeColumn($sheet1, 'L');
+                    autoSizeColumn($sheet1, 'M');
+                    autoSizeColumn($sheet1, 'N');
+                    autoSizeColumn($sheet1, 'P');
+                    autoSizeColumn($sheet1, 'Q');
+                    autoSizeColumn($sheet1, 'R');
+                }
+            }
+            $spreadsheet->setActiveSheetIndex(0);
+            // Simpan file Excel ke disk
+            $file_path      = public_path('storage/data-files/lemburan_xls/');
+            $file_name      = time()."_Lemburan.xlsx";
+
+            if(!File::exists($file_path)) {
+                File::makeDirectory($file_path, 0755, true);
+            }
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($file_path.$file_name);
+
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "data"      => [
+                    "file_url"  => "storage/data-files/lemburan_xls",
+                    "file_name" => $file_name,
+                ],
+                "message"   => "Berhasil Memuat Data",
+            ];
+        } else {
+            $output     = [
+                "status"    => 404,
+                "success"   => false,
+                "data"      => [
+                    "file_url"  => "",
+                    "file_name" => "",
+                ],
+                "message"   => "Gagal Membuat Report ",
             ];
         }
 

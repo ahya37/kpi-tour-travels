@@ -18,8 +18,10 @@ use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TarikDataController;
+use App\Http\Controllers\SysUmhajController;
 use App\Models\Division;
 use App\Services\ProgramKerjaService;
+use App\Services\SysUmhajService;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
@@ -48,6 +50,9 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/getDataPresenceToday', [DashboardController::class, 'dashboard_getPresenceToday']);
         Route::get('/absensi_pulang', [DashboardController::class, 'index_pulang'])->name('absen.pulang');
         Route::get('/tarik_data', [DashboardController::class, 'index_tarik_data_presensi']);
+        Route::prefix('absensi')->group(function(){
+            Route::get('/get_user_presence', [DashboardController::class, 'absensi_ambil_data_user']);
+        });
     });
     // Route::get('/dashboard', [DashboardController::class,'index'])->name('dashboard');
     Route::post('/logout', [LoginController::class,'logout'])->name('logout.store');
@@ -121,7 +126,9 @@ Route::group(['middleware' => ['auth']], function () {
 		
         // PROGRAM KERJA
         Route::prefix('programKerja')->group(function(){
-            Route::get('/programKerja/', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
+            Route::get('/', function(){
+                return redirect('/marketings/programKerja/Dashboard');
+            });
             Route::get('/Dashboard', [MarketingController::class, 'marketing_programKerja_dashboard'])->name('marketing.programkerja.dashboard');
             Route::get('/getListSasaran', [MarketingController::class, 'marketing_programKerja_dashboardSasaran']);
             Route::get('/getListDashboard', [MarketingController::class, 'marketing_programKerja_dashboardList']);
@@ -148,6 +155,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/listProgramMarketingByYear', [MarketingController::class, 'marketing_programKerja_listProgramMarketing_yearly']);
                 Route::get('/listProgramMarketingByMonth', [MarketingController::class, 'marketing_programKerja_listProgramMarketing_monthly']);
                 Route::get('/listProgramMarketingByWeek', [MarketingController::class, 'marketing_programKerja_listProgramMarketing_weekly']);
+                Route::get('/listProgramMarketingByDay', [MarketingController::class, 'marketing_programKerja_listProgramMarketing_daily']);
             });
             // JENIS PEKERJAAN
             Route::prefix('jenisPekerjaan')->group(function(){
@@ -167,6 +175,29 @@ Route::group(['middleware' => ['auth']], function () {
         });
 		
         
+    });
+
+    Route::prefix('umhaj')->group(function(){
+        Route::get('/', function(){
+            return redirect('/umhaj/dashboard');
+        });
+        Route::get('/dashboard', [SysUmhajController::class, 'index_umhaj'])->name('umhaj.dashboard');
+        Route::prefix('umrah')->group(function(){
+            Route::get("/get_data", [SysUmhajController::class, 'umhaj_umrah_get_data'])->name('umhaj.umrah.get_data');
+            Route::get("/get_data_detail", [SysUmhajController::class, 'umhaj_umrah_get_data_detail'])->name('umhaj.umrah.get_data');
+            Route::get("/list_program", [SysUmhajController::class, 'umhaj_umrah_get_list_program'])->name('umhaj.umrah.get_list_program');
+            Route::get("/get_data_umrah_list/tahun/{tahun}", [SysUmhajController::class, 'umhaj_umrah_list'])->name('umhaj.umrah.list_data');
+            Route::get("/get_data_umrah/tourcode/{tourcode}", [SysUmhajController::class, 'umhaj_umrah_detail'])->name('umhaj.umhra.get_data_detail');
+        });
+        
+        Route::prefix('member')->group(function(){
+            Route::get('/get_data', [SysUmhajController::class, 'umhaj_member_get_data'])->name('umhaj.member.get_data');
+            Route::get('/get_data_detail', [SysUmhajController::class, 'umhaj_member_get_data_detail'])->name('umhaj.member.get_data.detail');
+        });
+
+        Route::prefix('cs')->group(function(){
+            Route::get('/get_data', [SysUmhajController::class, 'umhaj_cs_get_data'])->name('umhaj.cs.get_data');
+        });
     });
 
      // Rencana Kerja
@@ -391,6 +422,7 @@ Route::group(['middleware' => ['auth']], function () {
             });
             Route::prefix('simulasi')->group(function(){
                 Route::get('/employees_fee', [DivisiController::class, 'finance_sim_employees_fee']);
+                Route::get('/employees_fee_download', [DivisiController::class, 'finance_sim_employees_fee_download']);
             });
         });
 
