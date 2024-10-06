@@ -197,11 +197,17 @@ $(document).ready(function(){
     const cs_type       = "GET";
     const cs_data       = "";
 
+    // GET DATA UMRAH
+    const list_umrah_url    = base_url + "/umhaj/umrah/get_data_umrah_list/tahun/"+moment(today, 'YYYY-MM-DD').format('YYYY');
+    const list_umrah_type   = "GET";
+    const list_umrah_data   = "";
+
     const send_data     = [
         doTransaction(umrah_url, umrah_type, umrah_data, '', true),
         doTransaction(prog_umrah_url, prog_umrah_type, prog_umrah_data, '', true),
         doTransaction(member_url, member_type, member_data, '', true),
-        doTransaction(cs_url, cs_type, cs_data, '', true)
+        doTransaction(cs_url, cs_type, cs_data, '', true),
+        doTransaction(list_umrah_url, list_umrah_type, list_umrah_data, "", true)
     ];
 
     Promise.allSettled(send_data)
@@ -231,6 +237,13 @@ $(document).ready(function(){
             const cs_sendData           = success[3].value.data;
             showSelect('g_umrah_filter_package', prog_umrah_sendData, 'semua');
             showSelect('g_member_filter_cs', cs_sendData, 'semua');
+
+            // LIST UMRAH
+            const list_umrah_getData    = success[4].value.data;
+            $("#dashboard_umrah_total_data").html("<h2 class='no-margins font-weight-bold'>"+ list_umrah_getData['total_data'] +"</h2>");
+
+            // LIST HAJI
+            $("#dashboard_haji_total_data").html("<h2 class='no-margins font-weight-bold'>0</h2>")
         })
         .catch((error)      => {
             console.log(error)
@@ -353,6 +366,33 @@ function showModal(idModal, data)
                     text    : 'Tidak Ada Data Yang Bisa Dimuat',
                 });
             })
+    } else if(idModal == 'modal_list_umrah') {
+        // GET DATA
+        const list_umrah_url    = base_url + "/umhaj/umrah/get_data_umrah_list/tahun/"+moment(today, 'YYYY-MM-DD').format('YYYY');
+        const list_umrah_type   = "GET";
+        const list_umrah_data   = "";
+        const list_umrah_msg    = Swal.fire({ title : 'Data Sedang Dimuat..', allowOutsideClick: false }); Swal.showLoading();
+
+        doTransaction(list_umrah_url, list_umrah_type, list_umrah_data, list_umrah_msg, true)
+            .then((success)     => {
+                Swal.close();
+                $("#"+idModal).modal({ keyboard: false, backdrop: 'static' });
+                // GET DATA
+                const list_umrah_sendData   = success.data.data;
+                showTable('table_list_umrah', list_umrah_sendData);
+            })
+            .catch((error)      => {
+                console.log(error)
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Tidak Ada Data Yang Bisa Dimuat..'
+                });
+            })
+    } else if(idModal == 'modal_list_umrah_detail') {
+        var tourCode    = data;
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        $("#modal_list_umrah_detail_tour_code").html(tourCode);
     }
 }
 
@@ -369,6 +409,14 @@ function closeModal(idModal)
         $("#"+idModal).on('hidden.bs.modal', () => {
             $("#table_modal_umrah_total").html(0);
             $("#modal_umrah_title_month").html("");
+        })
+    } else if(idModal == 'modal_list_umrah') {
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            
+        })
+    } else if(idModal == 'modal_list_umrah_detail') {
+        $("#"+idModal).on('hidden.bs.modal', () => {
+
         })
     }
 }
@@ -625,14 +673,62 @@ function showTable(idTable, data)
             let grandTotal  = 0;
             for(let i = 0; i < dataKategoriUmrah.length; i++) {
                 $("#"+idTable).DataTable().row.add([
-                    seq++,
-                    dataKategoriUmrah[i]['kategori_nama'],
-                    dataKategoriUmrah[i]['total_data'],
+                    "<label class='font-weight-normal no-margins'>" + seq++ + "</label>",
+                    "<label class='font-weight-normal no-margins'>" + dataKategoriUmrah[i]['kategori_nama'] + "</label>",
+                    "<label class='font-weight-normal no-margins'>" + dataKategoriUmrah[i]['total_data'] + "</label>",
                 ]).draw(false);
                 
                 grandTotal  += dataKategoriUmrah[i]['total_data'];
             }
-            $("#table_modal_umrah_total").html(grandTotal);
+            $("#table_modal_umrah_summary_total").html(grandTotal);
+        }
+    } else if(idTable == 'table_list_umrah') {
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : 'Tidak Ada Data Yang Bisa Ditampilkan..',
+                zeroRecords : 'Data Yang Dicari Tidak Ditemukan'
+            },
+            ordering    : true,
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [1], "className" : "text-left align-middle", "width" : "18%" },
+                { "targets" : [2, 3], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [5, 6], "className" : "text-right align-middle", "width" : "8%" },
+            ],
+        });
+        $("#table_list_umrah_wrapper").css('padding-bottom','0px');
+
+        if(data.length > 0) {
+            let i = 1;
+            let grandTotalTarget        = 0;
+            let grandTotalRealization   = 0;
+            for(const item of data) {
+                var list_umrah_seq            = i++;
+                var list_umrah_tourCode       = item['UMRAH_TOUR_CODE'];
+                var list_umrah_tourDepature   = item['UMRAH_DEPATURE'];
+                var list_umrah_tourArrival    = item['UMRAH_ARRIVAL'];
+                var list_umrah_tourLeader     = item['UMRAH_TOUR_MENTOR'];
+                var list_umrah_tourTarget     = item['UMRAH_TARGET'];
+                var list_umrah_tourRealization= item['UMRAH_TARGET_REALIZATION'];
+
+                $("#"+idTable).DataTable().row.add([
+                    "<label class='font-weight-normal no-margins'>" + list_umrah_seq + "</label>",
+                    "<label class='font-weight-normal no-margins' style='cursor: pointer; color: #1ab394; text-decoration: underline;' title='Lihat Detail' onclick='showModal(`modal_list_umrah_detail`, `" + list_umrah_tourCode + "`)'>" + list_umrah_tourCode + "</label>",
+                    "<label class='font-weight-normal no-margins'>" + list_umrah_tourDepature + "</label>",
+                    "<label class='font-weight-normal no-margins'>" + list_umrah_tourArrival + "</label>",
+                    "<label class='font-weight-normal no-margins'>" + list_umrah_tourLeader + "</label>",
+                    "<label class='font-weight-normal no-margins'>" + list_umrah_tourTarget + "</label>",
+                    "<label class='font-weight-normal no-margins'>" + list_umrah_tourRealization + "</label>"
+                ]).draw(false);
+                
+                grandTotalTarget        += list_umrah_tourTarget;
+                grandTotalRealization   += list_umrah_tourRealization;
+            }
+            let persentase  = ((parseInt(grandTotalRealization) / parseInt(grandTotalTarget)) * 100);
+            $("#table_list_umrah_total_target").html(grandTotalTarget);
+            $("#table_list_umrah_total_realisasi").html(grandTotalRealization);
+            $("#table_list_umrah_persentase").html(parseFloat(persentase).toFixed(2));
         }
     }
 }

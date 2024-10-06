@@ -171,4 +171,58 @@ class SysUmhajService
                         ->get();
         return $query;
     }
+
+    // 04 OKTOBER 2024
+    // NOTE : AMBIL LIST UMRAH
+    public static function get_data_umhaj_umrah_list($tahun)
+    {
+        // RAW QUERY
+        // $query  = DB::connection('umhaj_percik')
+        //             ->select(
+        //                 "
+        //                 SELECT 	a.KODE AS UMRAH_TOUR_CODE,
+        //                         a.TIPE AS UMRAH_TYPE,
+        //                         a.RUTE AS UMRAH_ROUTE,
+        //                         a.LAMA AS UMRAH_DAY,
+        //                         a.BERANGKAT AS UMRAH_DEPATURE,
+        //                         a.PULANG AS UMRAH_ARRIVAL,
+        //                         a.KAPASITAS AS UMRAH_TARGET,
+        //                         COUNT(b.ID) AS UMRAH_TARGET_REALIZATION,
+        //                         a.PEMBIMBING AS UMRAH_TOUR_MENTOR,
+        //                         a.TOURLEADER AS UMRAH_TOUR_LEADER
+        //                 FROM 	jadwal_umrah a
+        //                 JOIN 	umrah b ON a.KODE = b.JENIS_UMRAH
+        //                 WHERE 	EXTRACT(YEAR FROM a.BERANGKAT) = '2024'
+        //                 GROUP BY a.KODE, a.TIPE, a.RUTE, a.LAMA, a.BERANGKAT, a.PULANG, a.KAPASITAS, a.PEMBIMBING, a.TOURLEADER
+        //                 ORDER BY a.BERANGKAT ASC
+        //                 "
+        //             );
+
+        $query  = DB::connection('umhaj_percik')
+                    ->table('jadwal_umrah as a')
+                    ->join('umrah as b', 'a.KODE', '=', 'b.JENIS_UMRAH')
+                    ->select(
+                        'a.KODE as UMRAH_TOUR_CODE',
+                        'a.TIPE as UMRAH_TYPE',
+                        'a.RUTE as UMRAH_ROUTE',
+                        'a.LAMA as UMRAH_DAY',
+                        'a.BERANGKAT as UMRAH_DEPATURE',
+                        'a.PULANG as UMRAH_ARRIVAL',
+                        'a.KAPASITAS as UMRAH_TARGET',
+                        DB::raw('COUNT(b.ID) as UMRAH_TARGET_REALIZATION'),
+                        'a.PEMBIMBING as UMRAH_TOUR_MENTOR',
+                        'a.TOURLEADER as UMRAH_TOUR_LEADER',
+                    )
+                    ->where(DB::raw('EXTRACT(YEAR FROM a.BERANGKAT)'), '=', $tahun)
+                    ->groupBy('a.KODE', 'a.TIPE', 'a.RUTE', 'a.LAMA', 'a.BERANGKAT', 'a.PULANG', 'a.KAPASITAS', 'a.PEMBIMBING', 'a.TOURLEADER')
+                    ->orderBy('a.BERANGKAT', 'asc')
+                    ->get();
+        return $query;
+    }
+
+    // 05 OKTOBER 2024
+    public static function get_data_umhaj_umrah_detail_byTourCode($tourCode)
+    {
+        $get_data   = [];
+    }
 }

@@ -178,11 +178,16 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
     Route::prefix('umhaj')->group(function(){
-        Route::get('/', [SysUmhajController::class, 'index_umhaj'])->name('umhaj.dashboard');
+        Route::get('/', function(){
+            return redirect('/umhaj/dashboard');
+        });
+        Route::get('/dashboard', [SysUmhajController::class, 'index_umhaj'])->name('umhaj.dashboard');
         Route::prefix('umrah')->group(function(){
             Route::get("/get_data", [SysUmhajController::class, 'umhaj_umrah_get_data'])->name('umhaj.umrah.get_data');
             Route::get("/get_data_detail", [SysUmhajController::class, 'umhaj_umrah_get_data_detail'])->name('umhaj.umrah.get_data');
             Route::get("/list_program", [SysUmhajController::class, 'umhaj_umrah_get_list_program'])->name('umhaj.umrah.get_list_program');
+            Route::get("/get_data_umrah_list/tahun/{tahun}", [SysUmhajController::class, 'umhaj_umrah_list'])->name('umhaj.umrah.list_data');
+            Route::get("/get_data_umrah/tourcode/{tourcode}", [SysUmhajController::class, 'umhaj_umrah_detail'])->name('umhaj.umhra.get_data_detail');
         });
         
         Route::prefix('member')->group(function(){

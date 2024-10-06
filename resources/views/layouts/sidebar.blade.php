@@ -48,21 +48,21 @@
                 </ul> --}}
             </li>
 
-            <li class="{{ request()->is('marketings/*') ? 'active' : '' }}">
+            <li class="{{ request()->is('marketings/*') || request()->is('umhaj/*') ? 'active' : '' }}">
                 <a href="#">
                     <i class="fa fa-diamond"></i> 
                     <span class="nav-label">Marketing</span>
                     <span class="fa arrow"></span>
                 </a>
                 <ul class="nav nav-second-level collapse">
-                    <li class="active"><a href="{{ route('marketing.alumniprospectmaterial') }}">Bahan Prospek Alumni</a></li>
-                    <li class="active"><a href="{{ route('marketings.haji.target') }}">Setting Target Haji</a></li>
-                    <li class="active"><a href="{{ route('marketing.target') }}">Laporan Umrah</a></li>
-                    <li class="active"><a href="{{ route('marketings.haji.report') }}">Laporan Haji</a></li>
-                    <li class="active"><a href="{{ route('marketings.rencancakerja.report')}}">Laporan Rencana Kerja</a></li>
-                    <li class="active"><a href="{{ route('marketing.pekerjaan.report') }}">Laporan Pekerjaan Harian</a></li>
-                <li class="{{ request()->is('marketings/*') ? 'active' : '' }}"><a href="{{ route('marketing.programkerja.dashboard') }}">Program Kerja</a></li>
-                    <li class=""><a href="{{ route('umhaj.dashboard') }}">Umhaj</a></li>
+                    <li class="{{ request()->is('marketings/alumniprospectmaterial') ? 'active' : '' }}"><a href="{{ route('marketing.alumniprospectmaterial') }}">Bahan Prospek Alumni</a></li>
+                    <li class="{{ request()->is('marketings/haji/target/create') ? 'active' : '' }}"><a href="{{ route('marketings.haji.target') }}">Setting Target Haji</a></li>
+                    <li class="{{ request()->is('marketings/target') ? 'active' : '' }}"><a href="{{ route('marketing.target') }}">Laporan Umrah</a></li>
+                    <li class="{{ request()->is('marketings/haji/report') ? 'active' : '' }}"><a href="{{ route('marketings.haji.report') }}">Laporan Haji</a></li>
+                    <li class="{{ request()->is('marketings/rencanakerja/*') ? 'active' : '' }}"><a href="{{ route('marketings.rencancakerja.report')}}">Laporan Rencana Kerja</a></li>
+                    <li class="{{ request()->is('master/programkerja/*') ? 'active' : '' }}"><a href="{{ route('marketing.pekerjaan.report') }}">Laporan Pekerjaan Harian</a></li>
+                    <li class="{{ request()->is('marketings/programKerja/*') ? 'active' : '' }}"><a href="{{ route('marketing.programkerja.dashboard') }}">Program Kerja</a></li>
+                    <li class="{{ request()->is('umhaj/*') ? 'active' : '' }}"><a href="{{ route('umhaj.dashboard') }}">Umhaj</a></li>
                 </ul>
             </li>
 

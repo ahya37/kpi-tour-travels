@@ -238,4 +238,60 @@ class SysUmhajController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 04 OKTOBER 2024
+    // NOTE : AMBIL LIST DATA UMRAH
+    public function umhaj_umrah_list($tahun)
+    {
+        $get_data   = SysUmhajService::get_data_umhaj_umrah_list($tahun);
+        
+        if(count($get_data) > 0) {
+            $output  = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Data Berhasil Dimuat",
+                "data"      => [
+                    "total_data"    => count($get_data),
+                    "data"          => $get_data,
+                ],
+            ];
+        } else {
+            $output  = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Data Gagal Dimuat",
+                "data"      => [
+                    "total_data"    => 0,
+                    "data"          => []
+                ],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 05 OKTOBER 2024
+    // NOTE : AMBIL DATA TOUR CODE DETAIL
+    public function umhaj_umrah_detail($tourCode)
+    {
+        $get_data   = SysUmhajService::get_data_umhaj_umrah_detail_byTourCode($tourCode);
+
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Umrah Tour Code : ".$tourCode,
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data Umrah Tour Code : ".$tourCode,
+                "data"      => $get_data,
+            ];
+        }
+        
+        return Response::json($output, $output['status']);
+    }
 }

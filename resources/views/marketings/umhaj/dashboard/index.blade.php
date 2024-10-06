@@ -43,20 +43,32 @@
     <div class="container-fluid">
         <div class="wrapper wrapper-content animated fadeInRight">
             <div class="row align-items-center">
-                <div class="col-sm-3">
+                <div class="col-sm-3 mb-2">
                     <div class="card">
                         <div class="card-header bg-primary">
                             <h4 class="no-margins">Umrah</h4>
                         </div>
-                        <div class="card-body text-right">
-                            <h2 class="no-margins">0</h2>
+                        <div class="card-body text-right" id="dashboard_umrah_total_data">
+                            <div class="spinner-border font-weight-normal"></div>
                         </div>
-                        <a href="#show_daftar_umrah" class="card-footer">
+                        <a href="#show_daftar_umrah" class="card-footer" onclick="showModal('modal_list_umrah', '')">
                             Lihat Detail
                         </a>
                     </div>
                 </div>
-                <div class="col-sm-3"></div>
+                <div class="col-sm-3 mb-2">
+                    <div class="card">
+                        <div class="card-header bg-primary">
+                            <h4 class="no-margins">Haji</h4>
+                        </div>
+                        <div class="card-body text-right" id="dashboard_haji_total_data">
+                            <div class="spinner-border"></div>
+                        </div>
+                        <a href="#show_daftar_haji" class="card-footer">
+                            Lihat Detail
+                        </a>
+                    </div>
+                </div>
                 <div class="col-sm-3"></div>
                 <div class="col-sm-3"></div>
             </div>
@@ -239,6 +251,136 @@
                                             <th colspan="2">&nbsp;</th>
                                             <th class="text-right align-middle">Total :</th>
                                             <th class="text-center align-middle" id="table_modal_umrah_total">0</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_list_umrah">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-row justify-content-between align-items-center w-100">
+                        <h4 class="no-margins">List Program Umrah</h4>
+                        <button class="close" title="Tutup Tampilan" onclick="closeModal('modal_list_umrah')">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="row align-items-center">
+                        <div class="col-sm-12">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover" style="width: 100%;" id="table_list_umrah">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Tour Code</th>
+                                            <th class="text-center align-middle">Keberangkatan</th>
+                                            <th class="text-center align-middle">Kepulangan</th>
+                                            <th class="text-center align-middle">Pembimbing</th>
+                                            <th class="text-center align-middle">Target</th>
+                                            <th class="text-center align-middle">Realisasi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th class="text-center align-middle">&nbsp;</th>
+                                            <th class="text-center align-middle">&nbsp;</th>
+                                            <th class="text-center align-middle">&nbsp;</th>
+                                            <th class="text-center align-middle">&nbsp;</th>
+                                            <th class="text-right align-middle">Total : </th>
+                                            <th class="text-right align-middle" id="table_list_umrah_total_target">0</th>
+                                            <th class="text-right align-middle" id="table_list_umrah_total_realisasi">0</th>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-center align-middle" colspan="4">&nbsp;</th>
+                                            <th class="text-right align-middle">Persentase : </th>
+                                            <th class="text-right align-middle" id="table_list_umrah_persentase">0</th>
+                                            <th class="text-left align-middle">%</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_list_umrah_detail">
+        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="d-flex flex-row align-items-center w-100 justify-conrent-between">
+                        <h4 class="no-margins modal-title">Detail Tour Code : <span id="modal_list_umrah_detail_tour_code"></span></h4>
+                        <button class="close" title="Tutup Tampilan" onclick="closeModal('modal_list_umrah_detail')">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="row align-items-top" style="border: 1px solid red;">
+                        <div class="col-sm-6">
+                            <div class="row ml-2 align-items-center">
+                                <div class="col-sm-4">
+                                    <label class="no-margins font-weight-bold">
+                                        <h4 class="no-margins">Tour Code</h4>
+                                    </label>
+                                </div>
+                                <div class="col-sm-8">
+                                    <label class="no-margins font-weight-normal">
+                                        <h4 class="no-margins" id="umrah_list_detail_tour_code">{tour_code}</h4>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="row mt-2 ml-2">
+                                <div class="col-sm-4">
+                                    <label class="no-margins font-weight-bold">
+                                        <h4 class="no-margins">Tanggal</h4>
+                                    </label>
+                                </div>
+                                <div class="col-sm-8">
+                                    <label class="no-margins font-weight-normal">
+                                        <h4 class="no-margins" id="umrah_list_detail_date">{icon_plane_depature} {depature_date} & {icon_plane_arrival} {arrival_date}</h4>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="row mt-2 ml-2">
+                                <div class="col-sm-4">
+                                    <label class="no-margins font-weight-bold">
+                                        <h4 class="no-margins">Pembimbing</h4>
+                                    </label>
+                                </div>
+                                <div class="col-sm-8">
+                                    <label class="no-margins font-weight-normal">
+                                        <h4 class="no-margins" id="umrah_list_detail_mentor">{icon_user} {mentor_name}</h4>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="align-items-center">
+                        <div class="col-sm-12">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hovered" id="table_modal_list_umrah_detail">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Tanggal Daftar</th>
+                                            <th class="text-center align-middle">Banyaknya</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th class="text-right align-middle" colspan="2">Total :</th>
+                                            <th class="text-center align-middle" id="table_modal_list_umrah_detail_total_banyaknya">0</th>
                                         </tr>
                                     </tfoot>
                                 </table>
