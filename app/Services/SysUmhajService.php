@@ -223,6 +223,26 @@ class SysUmhajService
     // 05 OKTOBER 2024
     public static function get_data_umhaj_umrah_detail_byTourCode($tourCode)
     {
-        $get_data   = [];
+        // GET DATA HEADER
+        $query_header   = DB::connection('umhaj_percik')
+                            ->table('jadwal_umrah as a')
+                            ->select('a.KODE as umrah_tour_code', 'a.RUTE as umrah_route', 'a.BERANGKAT as umrah_depature', 'a.PULANG as umrah_arrival', 'a.PEMBIMBING as umrah_mentor', 'a.TOURLEADER as umrah_tour_leader')
+                            ->where('a.KODE', '=', $tourCode)
+                            ->groupBy('a.KODE', 'a.RUTE', 'a.BERANGKAT', 'a.PULANG', 'a.PEMBIMBING', 'a.TOURLEADER')
+                            ->get();
+        // GET DATA DETAIL
+        $query_detail   = DB::connection('umhaj_percik')
+                            ->table('umrah as a')
+                            ->select('a.TGL_DAFTAR as detail_umrah_registry_date', DB::raw('COUNT(a.id) as detail_umrah_total_data'))
+                            ->where('a.JENIS_UMRAH', '=', $tourCode)
+                            ->groupBy('a.TGL_DAFTAR')
+                            ->get();
+        
+        $output         = [
+            "header"    => $query_header,
+            "detail"    => $query_detail,
+        ];
+
+        return $output;
     }
 }

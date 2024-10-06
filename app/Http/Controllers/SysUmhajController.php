@@ -272,16 +272,20 @@ class SysUmhajController extends Controller
 
     // 05 OKTOBER 2024
     // NOTE : AMBIL DATA TOUR CODE DETAIL
-    public function umhaj_umrah_detail($tourCode)
+    public function umhaj_umrah_detail(Request $request)
     {
+        $tourCode   = $request->all()['tourCode'];
         $get_data   = SysUmhajService::get_data_umhaj_umrah_detail_byTourCode($tourCode);
 
-        if(count($get_data) > 0) {
+        if(count($get_data['header']) > 0) {
             $output     = [
                 "success"   => true,
                 "status"    => 200,
                 "message"   => "Berhasil Mengambil Data Umrah Tour Code : ".$tourCode,
-                "data"      => $get_data,
+                "data"      => [
+                    "header"    => $get_data['header'][0],
+                    "detail"    => $get_data['detail'],
+                ],
             ];
         } else {
             $output     = [

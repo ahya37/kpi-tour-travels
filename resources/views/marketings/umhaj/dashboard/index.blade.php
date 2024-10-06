@@ -324,7 +324,7 @@
                     </div>
                 </div>
                 <div class="modal-body">
-                    <div class="row align-items-top" style="border: 1px solid red;">
+                    <div class="row align-items-top">
                         <div class="col-sm-6">
                             <div class="row ml-2 align-items-center">
                                 <div class="col-sm-4">
@@ -334,7 +334,7 @@
                                 </div>
                                 <div class="col-sm-8">
                                     <label class="no-margins font-weight-normal">
-                                        <h4 class="no-margins" id="umrah_list_detail_tour_code">{tour_code}</h4>
+                                        <h4 class="font-weight-normal no-margins" id="umrah_list_detail_tour_code">{tour_code}</h4>
                                     </label>
                                 </div>
                             </div>
@@ -346,7 +346,7 @@
                                 </div>
                                 <div class="col-sm-8">
                                     <label class="no-margins font-weight-normal">
-                                        <h4 class="no-margins" id="umrah_list_detail_date">{icon_plane_depature} {depature_date} & {icon_plane_arrival} {arrival_date}</h4>
+                                        <h4 class="font-weight-normal no-margins" id="umrah_list_detail_date">{icon_plane_depature} {depature_date} & {icon_plane_arrival} {arrival_date}</h4>
                                     </label>
                                 </div>
                             </div>
@@ -358,14 +358,14 @@
                                 </div>
                                 <div class="col-sm-8">
                                     <label class="no-margins font-weight-normal">
-                                        <h4 class="no-margins" id="umrah_list_detail_mentor">{icon_user} {mentor_name}</h4>
+                                        <h4 class="font-weight-normal no-margins" id="umrah_list_detail_mentor">{icon_user} {mentor_name}</h4>
                                     </label>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <hr>
-                    <div class="align-items-center">
+                    <div class="row align-items-center">
                         <div class="col-sm-12">
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped table-hovered" id="table_modal_list_umrah_detail">

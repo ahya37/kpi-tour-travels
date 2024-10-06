@@ -390,9 +390,43 @@ function showModal(idModal, data)
                 });
             })
     } else if(idModal == 'modal_list_umrah_detail') {
+        closeModal('modal_list_umrah');
         var tourCode    = data;
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
         $("#modal_list_umrah_detail_tour_code").html(tourCode);
+        // GET DATA
+        const detailUmrah_url   = base_url + "/umhaj/umrah/get_data_umrah/tour_code";
+        const detailUmrah_type  = "GET";
+        const detailUmrah_data  = {
+            "tourCode"  : tourCode,
+        };
+        const detailUmrah_msg   = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
+
+        doTransaction(detailUmrah_url, detailUmrah_type, detailUmrah_data, detailUmrah_msg, true)
+            .then((success)     => {
+                Swal.close();
+                const detailUmrah_getData   = success.data;
+                // HEADER
+                const detailUmrah_getData_header    = detailUmrah_getData['header'];
+                $("#umrah_list_detail_tour_code").html(detailUmrah_getData_header['umrah_tour_code']);
+                $("#umrah_list_detail_date").html(
+                    "<i class='fa fa-plane'></i> &nbsp;"+moment(detailUmrah_getData_header['umrah_depature'], 'YYYY-MM-DD').format('DD/MM/YYYY')+"&nbsp; <i class='fa fa-plane fa-rotate-90'></i> &nbsp;"+moment(detailUmrah_getData_header['umrah_arrival'], 'YYYY-MM-DD').format('DD/MM/YYYY')+""
+                );
+                $("#umrah_list_detail_mentor").html(
+                    "<i class='fa fa-user'></i> &nbsp;"+detailUmrah_getData_header['umrah_mentor']
+                );
+                // DETAIL
+                const detailUmrah_getData_detail    = detailUmrah_getData['detail'];
+                showTable('table_modal_list_umrah_detail', detailUmrah_getData_detail);
+            })
+            .catch((error)      => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Data Tour Code : '+tourCode+' Tidak Ada'
+                })
+                console.log(error)
+            })
     }
 }
 
@@ -415,8 +449,12 @@ function closeModal(idModal)
             
         })
     } else if(idModal == 'modal_list_umrah_detail') {
+        showModal('modal_list_umrah');
         $("#"+idModal).on('hidden.bs.modal', () => {
-
+            $("#umrah_list_detail_tour_code").html();
+            $("#umrah_list_detail_date").html();
+            $("#umrah_list_detail_mentor").html();
+            $("#table_modal_list_umrah_detail_total_banyaknya").html(0);
         })
     }
 }
@@ -730,7 +768,49 @@ function showTable(idTable, data)
             $("#table_list_umrah_total_realisasi").html(grandTotalRealization);
             $("#table_list_umrah_persentase").html(parseFloat(persentase).toFixed(2));
         }
+    } else if(idTable == 'table_modal_list_umrah_detail') {
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : 'Tidak Ada Data Yang Bisa Ditampilkan..',
+                zeroRecords : 'Data Yang Dicari Tidak Ditemukan'
+            },
+            ordering    : true,
+            autoWidth   : false,
+            pageLength  : -1,
+            paging      : false,
+            bInfo       : false,
+            searching   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [2], "className" : "text-center align-middle", "width" : "8%" },
+            ],
+        });
+
+        if(data.length > 0) {
+            let seq     = 1;
+            let total   = 0;
+            for(const item of data)
+            {
+                $("#"+idTable).DataTable().row.add([
+                    "<label class='font-weight-normal no-margins'>" + seq++ + "</label>",
+                    "<label class='font-weight-normal no-margins'>" + moment(item.detail_umrah_registry_date, 'YYYY-MM-DD').format('DD MMMM YYYY') + "</label>",
+                    "<label class='font-weight-normal no-margins'>" + item.detail_umrah_total_data + "</label>"
+                ]).draw(false);
+
+                total   += item.detail_umrah_total_data;
+            }
+
+            $("#table_modal_list_umrah_detail_total_banyaknya").html("<label class='font-weight-bold no-margins'>" + total + "</label>");
+        }
     }
+}
+
+
+function clearUrl()
+{
+    var url     = window.location.href;
+    var cleanUrl= url.split('#')[0];
+    window.history.replaceState({}, document.title, cleanUrl);
 }
 
 function doTransaction(url, type, data, msg, isAysnc)
