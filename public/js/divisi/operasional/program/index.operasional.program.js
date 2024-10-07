@@ -1,3 +1,4 @@
+var today   = moment().format('YYYY-MM-DD');
 $(document).ready(function(){
     // console.log('test');
     // current_month
@@ -231,7 +232,10 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
         if(valueCari != '') {
             if(valueCari.length > 0) {
                 $.each(valueCari, (i, item) => {
-                    html    += "<option value='" + item.KODE + "'>" + item.KODE + "</option>";
+                    const tourCode      = item.tour_code_umrah;
+                    const dateDepature  = item.tour_code_depature;
+                    const dateArrival   = item.tour_code_arrival;
+                    html    += "<option value='" + tourCode + "'>" + tourCode + " (" + moment(dateDepature, 'YYYY-MM-DD').format('DD/MM/YYYY') + " s/d " + moment(dateArrival, 'YYYY-MM-DD').format('DD/MM/YYYY') + ")</option>";
                 });
             }
             $("#"+idSelect).html(html);
@@ -458,20 +462,21 @@ function showModalV2(idModal, value, jenis)
         };
         const message     = Swal.fire({ title : "Data Sedang Dimuat", allowOutsideClick: false }); Swal.showLoading();
         var getData     = [
-            doTransAPI('/umrah/tourcode?year=2024', 'GET', '', message, true),
+            // doTransAPI('/umrah/tourcode?year=2024', 'GET', '', message, true),
+            doTrans('/divisi/operasional/umhaj/umrah_getData_tourCode/'+moment(today, 'YYYY-MM-DD').format('YYYY'), 'GET', '', true),
             doTrans('/master/data/getProgramUmrah/umrah', 'GET', dataProgram, '', true),
-            jenis == 'edit' ? doTrans('/divisi/operasional/program/getDataJadwalUmrah', 'GET', detailProgramUmrah, '', true) : '',
+            jenis == 'edit' ? doTrans('/divisi/operasional/program/getDataJadwalUmrah', 'GET', detailProgramUmrah, '', true) : [],
         ];
         Promise.all(getData)
             .then((success) => {
                 // DATA API
-                const tour_code_api     = success[0].data.jadwal;
+                const tourCode      = success[0].data;
                 const list_program      = success[1].data;
                 const detail_program    = jenis == 'edit' ? success[2].data[0] : '';
                 
                 $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
                 
-                showSelect('tourCode_id', tour_code_api, '', true);
+                showSelect('tourCode_id', tourCode, '', true);
                 showSelect('tourCode_programID', list_program, '', true);
 
                 if(jenis == 'edit') {
@@ -507,33 +512,38 @@ function showModalV2(idModal, value, jenis)
 function showData(jenis, value)
 {
     if(jenis == 'tourCode') {
-        var message     = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
-        var url         = "/umrah/tourcode?year=2024&tourcode="+value;
-        var getData     = [
-            doTransAPI(url, 'GET', '', message, true)
-        ];
+        const tourCode_url  = "/divisi/operasional/umhaj/umrah_getData_tourCode_detail";
+        const tourCode_data = {
+            "tour_code" : value,
+        };
+        const tourCode_type = "GET";
+        const tourCode_msg  = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
 
-        Promise.all(getData)
-            .then((success) => {
-                setTimeout(() => {
-                    // console.log(success[0].data.jadwal);
-                    // FILL FORM
-                    const data  = success[0].data.jadwal;
+        doTrans(tourCode_url, tourCode_type, tourCode_data, tourCode_msg, true)
+            .then((success)     => {
+                Swal.close();
+                // FILL FORM
+                const tourCode_getData  = success.data[0];
+                const depatureDate      = tourCode_getData['umrah_depature'];
+                const arrivalDate       = tourCode_getData['umrah_arrival'];
+                const mentorName        = tourCode_getData['umrah_mentor_name'];
+                const programID         = tourCode_getData['umrah_program_id'];
+                const programName       = tourCode_getData['umrah_program_name'];
 
-                    $("#tourCode_dptDate").val(moment(data.BERANGKAT).format('DD/MM/YYYY'));
-                    $("#tourCode_arvDate").val(moment(data.PULANG).format('DD/MM/YYYY'));
-                    $("#tourCode_mentorName").val(data.PEMBIMBING);
-                    $("#tourCode_programID").val(data.ERP_PROGRAM_ID).trigger('change');
-                    Swal.close();
-                }, 2000);
+                $("#tourCode_dptDate").val(moment(depatureDate, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                $("#tourCode_arvDate").val(moment(arrivalDate, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                $("#tourCode_mentorName").val(mentorName);
+                $("#tourCode_programID").val(programID).trigger('change');
+                $("#tourCode_programID").prop('disabled', true);
             })
-            .catch((err)    => {
+            .catch((error)      => {
                 Swal.fire({
                     icon    : 'error',
                     title   : 'Terjadi Kesalahan',
-                    text    : err.statusMessage,
-                })
-                console.log(err);
+                    text    : 'Data Tour Code '+value+' Tidak Ditemukan'
+                });
+                
+                console.log(error)
             })
     }
 }
@@ -728,6 +738,13 @@ function showModalTourCode(idModal, jenis)
 function closeModalTourCode(idModal)
 {
     $("#"+idModal).modal('hide');
+
+    if(idModal == 'modalFormV2')
+    {
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#tourCode_programID").prop('disabled', false);
+        })
+    }
 }
 
 

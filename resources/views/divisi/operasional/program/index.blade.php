@@ -308,5 +308,5 @@
 @push('addon-script')
     @include('layouts.js')
     <script src="{{ asset('js/csrf-token.js') }}"></script>
-    <script src={{ asset('js/divisi/operasional/program/index.operasional.program.js') }}></script>
+    <script src="{{ asset('js/divisi/operasional/program/index.operasional.program.js') }}"></script>
 @endpush

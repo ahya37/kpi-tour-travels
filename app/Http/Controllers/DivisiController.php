@@ -2447,4 +2447,54 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // GET DATA FROM UMHAJ
+    public function umh_get_data_tour_code($tahun)
+    {
+        $get_data   = DivisiService::get_data_tour_code_umhaj($tahun);
+
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Tour Code Tahun ".$tahun,
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data Tour Code",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // GET DATA FROM UMHAJ BY TOUR CODE
+    public function umh_get_data_tour_code_detail(Request $request)
+    {
+        $tour_code  = $request->all()['sendData']['tour_code'];
+        
+        $get_data   = DivisiService::get_data_tour_code_detail($tour_code);
+        
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Tour Code : ".$tour_code,
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data Tour Code : ".$tour_code,
+                "data"      => []
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

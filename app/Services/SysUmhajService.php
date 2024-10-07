@@ -215,7 +215,7 @@ class SysUmhajService
                     )
                     ->where(DB::raw('EXTRACT(YEAR FROM a.BERANGKAT)'), '=', $tahun)
                     ->groupBy('a.KODE', 'a.TIPE', 'a.RUTE', 'a.LAMA', 'a.BERANGKAT', 'a.PULANG', 'a.KAPASITAS', 'a.PEMBIMBING', 'a.TOURLEADER')
-                    ->orderBy('a.BERANGKAT', 'asc')
+                    ->orderBy('a.BERANGKAT', 'desc')
                     ->get();
         return $query;
     }

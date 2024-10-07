@@ -147,19 +147,17 @@ const showChartPie  = (idChart, data) => {
                     title   : {
                         display     : true,
                         text        : 'Total Member Baru Per '+ $("#modal_member_title_month").text() + " " + moment().format('YYYY'),
-                    }
-                }
+                    },
+                    onHover     : (evt, item) => {
+                        if(item.length > 0) {
+                            $("#chart_modal_total_member").css('cursor', 'pointer');
+                        } else {
+                            $("#chart_modal_total_member").css('cursor', 'default');
+                        }
+                    },
+                },
+                
             })
-            // new Chart(ctx, {
-            //     type    : 'pie',
-            //     data    : chartData,
-            //     options : {
-            //         title   : {
-            //             display     : true,
-            //             text        : 'Total Member Baru Per Januari 2024',
-            //         }
-            //     }
-            // });
         }
     }
 }
@@ -349,14 +347,15 @@ function showModal(idModal, data)
 
         doTransaction(umrah_url, umrah_type, umrah_data, umrah_msg, true)
             .then((success)     => {
-                Swal.close();
                 $("#modal_umrah_title_month").html(moment(data['bulan_ke'], 'MM').format('MMMM'));
                 const umrah_getData     = success.data;
-                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
                 showTable('table_modal_umrah', umrah_getData);
 
                 showTable('table_modal_umrah_summary', umrah_getData);
+
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                Swal.close();
             })
             .catch((error)        => {
                 console.log(error)
@@ -445,6 +444,7 @@ function closeModal(idModal)
             $("#modal_umrah_title_month").html("");
         })
     } else if(idModal == 'modal_list_umrah') {
+        clearUrl();
         $("#"+idModal).on('hidden.bs.modal', () => {
             
         })
