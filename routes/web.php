@@ -402,6 +402,12 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/simpanDataRules/{tipe}', [DivisiController::class, 'simpanDataRules']);
                 Route::get('/getRulesDetail/{rulesID}', [DivisiController::class, 'getRulesDetail']);
             });
+
+            // UMHAJ
+            Route::prefix('umhaj')->group(function(){
+                Route::get('/umrah_getData_tourCode/{tahun}', [DivisiController::class, 'umh_get_data_tour_code']);
+                Route::get('/umrah_getData_tourCode_detail', [DivisiController::class, 'umh_get_data_tour_code_detail']);
+            });
         });
 
         Route::prefix('finance')->group(function(){

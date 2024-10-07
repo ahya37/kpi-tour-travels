@@ -2693,4 +2693,28 @@ class DivisiService
                                 ->get();
         return $query_get_header;
     }
+
+    // 07 OKTOBER 2024
+    // NOTE : PENGAMBILAN DATA DARI UMHAJ
+    public static function get_data_tour_code_umhaj($tahun)
+    {
+        $query  = DB::connection('umhaj_percik')
+                    ->table('jadwal_umrah')
+                    ->select('KODE as tour_code_umrah', 'BERANGKAT as tour_code_depature', 'PULANG as tour_code_arrival')
+                    ->where(DB::raw('EXTRACT(YEAR from BERANGKAT)'), '=', $tahun)
+                    ->orderBy('BERANGKAT', 'desc')
+                    ->get();
+        return $query;
+    }
+
+    public static function get_data_tour_code_detail($tour_code)
+    {
+        $query  = DB::connection('umhaj_percik')
+                    ->table('jadwal_umrah as a')
+                    ->join('program as b', 'a.TIPE', '=', 'b.PROGRAM')
+                    ->select('a.KODE as umrah_tour_code', 'b.erp_program_id as umrah_program_id', 'b.PROGRAM as umrah_program_name', 'a.BERANGKAT as umrah_depature', 'a.PULANG as umrah_arrival', 'a.PEMBIMBING as umrah_mentor_name')
+                    ->where('a.KODE', '=', $tour_code)
+                    ->get();
+        return $query;
+    }
 }
