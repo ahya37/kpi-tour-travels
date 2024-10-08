@@ -422,6 +422,7 @@ function showTable(idTable, data)
                 var prs_date    = item.emp_prs_date;
                 var prs_in      = item.emp_prs_in_time;
                 var prs_out     = item.emp_prs_out_time;
+                var prs_status  = item.emp_status;
 
                 // SHOW TIME ONLY
                 var prs_in_time     = moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
@@ -439,15 +440,17 @@ function showTable(idTable, data)
                     var prs_out_time_new    = prs_out_time;
                 }
 
+                const isApproved    = prs_status == "t" ? "<i class='fa fa-check'></i>" : "<i class='fa fa-times'></i>";
+
                 if(prs_out != null && prs_out_time_new > "16:59" && moment(prs_date, 'YYYY-MM-DD').format('dddd') != 'Sabtu') {
-                    prs_out_time_new >= "17:00" ? overtimeOne = 1 : "";
-                    prs_out_time_new >= "17:01" && prs_out_time_new < "23:59" ? overtimeTwo = hitungJumlahJam("17:01", prs_out_time_new) : "";
-                    prs_out_time_new >= "23:59" ? overtimeThree = hitungJumlahJam("23:59", prs_out_time_new) : "";
+                    prs_out_time_new >= "17:00" && prs_status == "t" ? overtimeOne = 1 : "";
+                    prs_out_time_new >= "17:01" && prs_out_time_new < "23:59" && prs_status == "t" ? overtimeTwo = hitungJumlahJam("17:01", prs_out_time_new) : "";
+                    prs_out_time_new >= "23:59" && prs_status == "t" ? overtimeThree = hitungJumlahJam("23:59", prs_out_time_new) : "";
                     
                     // FOR TOTAL
-                    prs_out_time_new >= "17:00" ? totalOvertimeOne += overtimeOne: "";
-                    prs_out_time_new >= "17:01" && prs_out_time_new < "23:59" ? totalOvertimeTwo += overtimeTwo : "";
-                    prs_out_time_new >= "23:59" ? totalOvertimeThree += overtimeThree : "";
+                    prs_out_time_new >= "17:00" && prs_status == "t" ? totalOvertimeOne += overtimeOne: "";
+                    prs_out_time_new >= "17:01" && prs_out_time_new < "23:59" && prs_status == "t" ? totalOvertimeTwo += overtimeTwo : "";
+                    prs_out_time_new >= "23:59" && prs_status == "t" ? totalOvertimeThree += overtimeThree : "";
                     
                     $("#"+idTable).DataTable().row.add([
                         seq++,
@@ -455,18 +458,18 @@ function showTable(idTable, data)
                         overtimeOne,
                         overtimeTwo,
                         overtimeThree,
-                        "<i class='fa fa-check'></fa>"
+                        isApproved
                     ]).draw(false);
                     $(".dataTables_empty").html("Data Sedang Ditampilkan");
                 } else if(prs_out != null && prs_out_time_new > "14:29" && moment(prs_date, 'YYYY-MM-DD').format('dddd') == 'Sabtu') {
-                    prs_out_time_new >= "14:30" ? overtimeOne = 1 : "";
-                    prs_out_time_new >= "14:31" && prs_out_time_new < "23:29" ? overtimeTwo = hitungJumlahJam("14:31", prs_out_time_new) : "";
-                    prs_out_time_new >= "23:59" ? overtimeThree = hitungJumlahJam("23:59", prs_out_time_new) : "";
+                    prs_out_time_new >= "14:30" && prs_status == "t" ? overtimeOne = 1 : "";
+                    prs_out_time_new >= "14:31" && prs_out_time_new < "23:29" && prs_status == "t" ? overtimeTwo = hitungJumlahJam("14:31", prs_out_time_new) : "";
+                    prs_out_time_new >= "23:59" && prs_status == "t" ? overtimeThree = hitungJumlahJam("23:59", prs_out_time_new) : "";
 
                     // FOR TOTAL
-                    prs_out_time_new >= "14:30" ? totalOvertimeOne += overtimeOne : "";
-                    prs_out_time_new >= "15:29" ? totalOvertimeTwo += overtimeTwo : "";
-                    prs_out_time_new >= "17:29" && prs_out_time_new <= "23:59" ? totalOvertimeThree++ : "";
+                    prs_out_time_new >= "14:30" && prs_status == "t" ? totalOvertimeOne += overtimeOne : "";
+                    prs_out_time_new >= "15:29" && prs_status == "t" ? totalOvertimeTwo += overtimeTwo : "";
+                    prs_out_time_new >= "17:29" && prs_out_time_new <= "23:59" && prs_status == "t" ? totalOvertimeThree++ : "";
 
                     $("#"+idTable).DataTable().row.add([
                         seq++,
@@ -474,7 +477,7 @@ function showTable(idTable, data)
                         overtimeOne,
                         overtimeTwo,
                         overtimeThree,
-                        "<i class='fa fa-check'></fa>"
+                        isApproved
                     ]).draw(false);
                     $(".dataTables_empty").html("Data Sedang Ditampilkan");   
                 } else {

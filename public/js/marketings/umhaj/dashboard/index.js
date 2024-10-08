@@ -147,17 +147,19 @@ const showChartPie  = (idChart, data) => {
                     title   : {
                         display     : true,
                         text        : 'Total Member Baru Per '+ $("#modal_member_title_month").text() + " " + moment().format('YYYY'),
-                    },
-                    onHover     : (evt, item) => {
-                        if(item.length > 0) {
-                            $("#chart_modal_total_member").css('cursor', 'pointer');
-                        } else {
-                            $("#chart_modal_total_member").css('cursor', 'default');
-                        }
-                    },
-                },
-                
+                    }
+                }
             })
+            // new Chart(ctx, {
+            //     type    : 'pie',
+            //     data    : chartData,
+            //     options : {
+            //         title   : {
+            //             display     : true,
+            //             text        : 'Total Member Baru Per Januari 2024',
+            //         }
+            //     }
+            // });
         }
     }
 }

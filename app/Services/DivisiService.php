@@ -2647,10 +2647,57 @@ class DivisiService
                             ->whereBetween('a.prs_date', [$date_start, $date_end])
                             ->orderBy('a.prs_date', 'ASC')
                             ->get();
+
+        $emp_ovt_detail = DB::table('employees_activity as a')
+                            ->join('employees as b', 'a.emp_act_user_id', '=', 'b.user_id')
+                            ->join('employees_activity_detail as c', 'a.id', '=', 'c.emp_act_id')
+                            ->select('b.id as emp_user_id', 'c.empd_date as emp_ovt_date', 'a.emp_act_status as emp_ovt_status')
+                            ->where('b.id', '=', $emp_id)
+                            ->whereBetween('a.emp_act_start_date', [$date_start, $date_end])
+                            ->where('a.emp_act_type', '=', 'Lembur')
+                            ->orderBy('a.emp_act_start_date', 'asc')
+                            ->get();
+
+        if(count($emp_ovt_detail) > 0) {
+            foreach($emp_detail as $item) :
+                for($i = 0; $i < count($emp_ovt_detail); $i++) {
+                    if($emp_ovt_detail[$i]->emp_ovt_date == $item->emp_prs_date) {
+                        if($emp_ovt_detail[$i]->emp_ovt_status == '1') {
+                            $status     = "t";
+                        } else {
+                            $status     = "f";
+                        }
+                        break;
+                    } else {
+                        $status     = "f";
+                    }
+                }
+
+                $detail[]   = [
+                    "emp_id"            => $item->emp_id,
+                    "emp_name"          => $item->emp_name,
+                    "emp_prs_date"      => $item->emp_prs_date,
+                    "emp_prs_in_time"   => $item->emp_prs_in_time,
+                    "emp_prs_out_time"  => $item->emp_prs_out_time,
+                    "emp_status"        => $item->emp_prs_date < "2024-10-01" ? "t" : $status
+                ];
+            endforeach;
+        } else {
+            foreach($emp_detail as $item) :
+                $detail[]   = [
+                    "emp_id"            => $item->emp_id,
+                    "emp_name"          => $item->emp_name,
+                    "emp_prs_date"      => $item->emp_prs_date,
+                    "emp_prs_in_time"   => $item->emp_prs_in_time,
+                    "emp_prs_out_time"  => $item->emp_prs_out_time,
+                    "emp_status"        => $item->emp_prs_date < "2024-10-01" ? "t" : "f"
+                ];
+            endforeach;
+        }
         
         $output         = [
             "header"        => $emp_header,
-            "detail"        => $emp_detail,
+            "detail"        => !empty($detail) ? $detail : [],
         ];
 
         return $output;
@@ -2658,13 +2705,6 @@ class DivisiService
 
     public static function get_data_employee_all()
     {
-        // $query  = DB::table('employees as a')
-        //                 ->join('users as b', 'a.user_id', '=', 'b.id')
-        //                 ->select('a.id as emp_id', 'a.name as emp_name')
-        //                 ->where('b.is_active', '=', '1')
-        //                 ->whereNotIn('b.id', ['1', '41'])
-        //                 ->orderBy('a.user_id', 'asc')
-        //                 ->get();
         $query  = DB::select(
             "
             SELECT 	a.id as emp_id,

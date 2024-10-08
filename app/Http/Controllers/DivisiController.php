@@ -2239,10 +2239,11 @@ class DivisiController extends Controller
                     for($i = 0; $i < count($detail); $i++)
                     {
                         $column_start           = $column_start + 1;
-                        $employee_prs_date      = $detail[$i]->emp_prs_date;
-                        $employee_prs_in_time   = date("H:i:s", strtotime($detail[$i]->emp_prs_in_time));
-                        $employee_prs_out_time  = date("H:i:s", strtotime($detail[$i]->emp_prs_out_time));
-                        $employee_prs_name      = $detail[$i]->emp_name;
+                        $employee_prs_date      = $detail[$i]['emp_prs_date'];
+                        $employee_prs_in_time   = date("H:i:s", strtotime($detail[$i]['emp_prs_in_time']));
+                        $employee_prs_out_time  = date("H:i:s", strtotime($detail[$i]['emp_prs_out_time']));
+                        $employee_prs_name      = $detail[$i]['emp_name'];
+                        $employee_is_approved   = $detail[$i]['emp_status'];
         
                         $date_day_name          = date('D', strtotime($employee_prs_date));
         
@@ -2267,8 +2268,7 @@ class DivisiController extends Controller
                         } else {
                             $jam_keluar_baru        = $employee_prs_out_time;
                         }
-        
-                        if($jam_keluar_baru >= $batas_jam_ot_1) 
+                        if($jam_keluar_baru >= $batas_jam_ot_1 === true) 
                         {
                             // GET OT2
                             $beda_waktu_ot_2_sec    = strtotime($jam_keluar_baru) - strtotime($batas_jam_ot_1);
@@ -2292,11 +2292,12 @@ class DivisiController extends Controller
                                 $beda_jam_ot_3  = 0;
                             }
         
-                            $ot_1                   = 1;
-                            $ot_2                   = number_format($beda_jam_ot_2, 0) > 0 ? number_format($beda_jam_ot_2, 0) - 1 : 0;
-                            $ot_3                   = number_format($beda_jam_ot_3, 0) > 0 ? number_format($beda_jam_ot_3, 0) - 1 : 0;
+                            $ot_1                   = $employee_is_approved == "t" ? 1 : 0;
+                            $ot_2                   = number_format($beda_jam_ot_2, 0) > 0 && $employee_is_approved == "t" ? number_format($beda_jam_ot_2, 0) - 1 : 0;
+                            $ot_3                   = number_format($beda_jam_ot_3, 0) > 0 && $employee_is_approved == "t" ? number_format($beda_jam_ot_3, 0) - 1 : 0;
         
                             $data[]   = [
+                                "emp_name"          => $employee_prs_name,
                                 "tanggal_lembur"    => $employee_prs_date,
                                 "jam_masuk"         => $employee_prs_in_time,
                                 "jam_keluar"        => $employee_prs_out_time,
@@ -2308,6 +2309,16 @@ class DivisiController extends Controller
                             $total_ot_1         += $ot_1;
                             $total_ot_2         += $ot_2;
                             $total_ot_3         += $ot_3;
+                        } else {
+                            $data[]   = [
+                                "emp_name"          => $employee_prs_name,
+                                "tanggal_lembur"    => $employee_prs_date,
+                                "jam_masuk"         => $employee_prs_in_time,
+                                "jam_keluar"        => $employee_prs_out_time,
+                                "ot_1"              => 0,
+                                "ot_2"              => 0,
+                                "ot_3"              => 0
+                            ];
                         }
         
                         $ot_1   = 0;
@@ -2362,26 +2373,29 @@ class DivisiController extends Controller
                     $cell_lemburan  = 3;
                     if(count($data_lemburan['data_lemburan']) > 0) 
                     {
+                        // print("<pre>".print_r($data_lemburan, true)."</pre>");
                         for($k = 0; $k < count($data_lemburan['data_lemburan']); $k++)
                         {
-                            $lemburan_tanggal   = $data_lemburan['data_lemburan'][$k]['tanggal_lembur'];
-                            $lemburan_jam_masuk = $data_lemburan['data_lemburan'][$k]['jam_masuk'];
-                            $lemburan_jam_keluar= $data_lemburan['data_lemburan'][$k]['jam_keluar'];
-                            $lemburan_ot1       = $data_lemburan['data_lemburan'][$k]['ot_1'];
-                            $lemburan_ot2       = $data_lemburan['data_lemburan'][$k]['ot_2'];
-                            $lemburan_ot3       = $data_lemburan['data_lemburan'][$k]['ot_3'];
-                            $lemburan_total     = $lemburan_ot1 + $lemburan_ot2 + $lemburan_ot3;
-                            
-                            $sheet1->setCellValue('G'.$cell_lemburan, date('d.m.Y', strtotime($lemburan_tanggal)));
-                            $sheet1->setCellValue('H'.$cell_lemburan, getDayName(date('D', strtotime($lemburan_tanggal))));
-                            $sheet1->setCellvalue('I'.$cell_lemburan, $lemburan_jam_masuk);
-                            $sheet1->setCellvalue('J'.$cell_lemburan, $lemburan_jam_keluar);
-                            $sheet1->setCellvalue('K'.$cell_lemburan, $lemburan_ot1);
-                            $sheet1->setCellvalue('L'.$cell_lemburan, $lemburan_ot2);
-                            $sheet1->setCellvalue('M'.$cell_lemburan, $lemburan_ot3);
-                            $sheet1->setCellvalue('N'.$cell_lemburan, $lemburan_total);
-            
-                            $cell_lemburan++;
+                            if($data_lemburan['data_lemburan'][$k]['ot_1'] > 0) {
+                                $lemburan_tanggal   = $data_lemburan['data_lemburan'][$k]['tanggal_lembur'];
+                                $lemburan_jam_masuk = $data_lemburan['data_lemburan'][$k]['jam_masuk'];
+                                $lemburan_jam_keluar= $data_lemburan['data_lemburan'][$k]['jam_keluar'];
+                                $lemburan_ot1       = $data_lemburan['data_lemburan'][$k]['ot_1'];
+                                $lemburan_ot2       = $data_lemburan['data_lemburan'][$k]['ot_2'];
+                                $lemburan_ot3       = $data_lemburan['data_lemburan'][$k]['ot_3'];
+                                $lemburan_total     = $lemburan_ot1 + $lemburan_ot2 + $lemburan_ot3;
+                                
+                                $sheet1->setCellValue('G'.$cell_lemburan, date('d.m.Y', strtotime($lemburan_tanggal)));
+                                $sheet1->setCellValue('H'.$cell_lemburan, getDayName(date('D', strtotime($lemburan_tanggal))));
+                                $sheet1->setCellvalue('I'.$cell_lemburan, $lemburan_jam_masuk);
+                                $sheet1->setCellvalue('J'.$cell_lemburan, $lemburan_jam_keluar);
+                                $sheet1->setCellvalue('K'.$cell_lemburan, $lemburan_ot1);
+                                $sheet1->setCellvalue('L'.$cell_lemburan, $lemburan_ot2);
+                                $sheet1->setCellvalue('M'.$cell_lemburan, $lemburan_ot3);
+                                $sheet1->setCellvalue('N'.$cell_lemburan, $lemburan_total);
+                
+                                $cell_lemburan++;
+                            }
                         }
                         // TOTAL TOTALAN
                         $sheet1->getStyle('G3:N'.$cell_lemburan)->applyFromArray($sheetStyleBorder);
@@ -2413,6 +2427,7 @@ class DivisiController extends Controller
                     autoSizeColumn($sheet1, 'R');
                 }
             }
+            // die();
             $spreadsheet->setActiveSheetIndex(0);
             // Simpan file Excel ke disk
             $file_path      = public_path('storage/data-files/lemburan_xls/');
