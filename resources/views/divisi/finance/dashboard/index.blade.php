@@ -98,24 +98,28 @@
                 </div>
             </div>
         </div>
-        <div class="row mt-2">
-            <div class="col-sm-3">
-                <div class="card">
-                    <div class="card-header bg-primary">
-                        <h4 class="no-margins">Update Gaji Pokok Karyawan</h4>
+        @if ($role_name == 'finance' || $role_name == 'admin')
+            @if ($user_id != '43' && $user_id != '44')
+                <div class="row mt-2">
+                    <div class="col-sm-3">
+                        <div class="card">
+                            <div class="card-header bg-primary">
+                                <h4 class="no-margins">Update Gaji Pokok Karyawan</h4>
+                            </div>
+                            <div class="card-body text-right">
+                                <h2 class="no-margins">
+                                    <span id="kar_text">0</span>
+                                </h2>
+                                <small>Total Karyawan</small>
+                            </div>
+                            <a href="#UpdateGajiPokokKaryawan" class="card-footer" onclick="showModal('modal_update_gapok_karyawan', '', '')">
+                                Lihat Detail
+                            </a>
+                        </div>
                     </div>
-                    <div class="card-body text-right">
-                        <h2 class="no-margins">
-                            <span id="kar_text">0</span>
-                        </h2>
-                        <small>Total Karyawan</small>
-                    </div>
-                    <a href="#UpdateGajiPokokKaryawan" class="card-footer" onclick="showModal('modal_update_gapok_karyawan', '', '')">
-                        Lihat Detail
-                    </a>
                 </div>
-            </div>
-        </div>
+            @endif
+        @endif
     </div>
 
     <div class="modal fade" id="modal_daily_activity">

@@ -917,6 +917,8 @@ class DivisiController extends Controller
     public function indexFinance()
     {
         $data   = [
+            'user_id'       => Auth::user()->id,
+            'role_name'     => Auth::user()->getRoleNames()[0],
             'title'         => $this->title." | Dashboard Keuangan",
             'sub_title'     => "Dashboard - Divisi Keuangan"
         ];
