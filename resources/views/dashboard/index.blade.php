@@ -89,7 +89,7 @@
                             <h2 class="no-margins">{{ $user_name }}</h2>
                             <div class="row mt-2">
                                 <div class="col-sm-5">
-                                    <label class="font-weight-bold">Total Absensi</label>
+                                    <label class="font-weight-bold">Total Kehadiran</label>
                                 </div>
                                 <div class="col-sm-6">
                                     <label id="tbl_total_absensi">0</label>
@@ -167,10 +167,35 @@
         <div class="modal-dialog modal-dialog-scrollable modal-xl">
             <div class="modal-content">
                 <div class="modal-header align-items-center justify-content-between">
-                    <h4 class="modal-title">List Izin / Sakit / Cuti</h4>
+                    <h4 class="modal-title no-margins">
+                        <label class="no-margins font-weight-bold">List Izin / Sakit / Cuti</label>
+                    </h4>
                     <button class="close" onclick="closeModal('modal_total_ketidakhadiran')">&times;</button>
                 </div>
                 <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <h2 class="no-margins font-weight-thin">
+                                <label class="no-margins">Filter</label>
+                            </h2>
+                            <br>
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <div class="form-group">
+                                        <label class="no-margins font-weight-bold">Pilih Bulan</label>
+                                        <select name="filter_bulan_cuti" id="filter_bulan_cuti" style="width: 100%;"></select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="no-margins font-weight-bold text-white" style="width: 100%;">test</label>
+                                        <button class="btn btn-primary" id="btn_filter_bulan_cuti" style="height: 38px;" title="Filter" onclick="cariData('tbl_total_cuti')">Cari</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="table-responsive">

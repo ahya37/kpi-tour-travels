@@ -1373,10 +1373,11 @@ class DivisiController extends Controller
         return view('activities.pengajuan.cuti.index', $data);
     }
 
-    public function pengajuan_list_cuti()
+    public function pengajuan_list_cuti(Request $request)
     {
         $data   = [
             "user_id"       => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id,
+            "current_month" => $request->all()['bulan'],
             "current_year"  => date('Y'),
         ];
 

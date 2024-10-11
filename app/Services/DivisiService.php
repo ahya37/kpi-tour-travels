@@ -2160,6 +2160,7 @@ class DivisiService
     {
         $user_id        = $data['user_id'];
         $current_year   = $data['current_year'];
+        $current_month  = $data['current_month'];
 
         return DB::select(
             "
@@ -2175,6 +2176,7 @@ class DivisiService
             JOIN    employees b ON a.emp_act_user_id = b.user_id
             WHERE   a.emp_act_user_id LIKE '$user_id'
             AND     EXTRACT(YEAR FROM a.created_at) = '$current_year'
+            AND     EXTRACT(MONTH FROM a.created_at) = '$current_month'
             AND     a.emp_act_type <> 'Lembur'
             ORDER BY a.emp_act_start_date DESC
             "
