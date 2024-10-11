@@ -82,21 +82,23 @@
                     </a>
                 </div>
             </div>
-            <div class="col-sm-3">
-                <div class="card">
-                    <div class="card-header bg-primary">
-                        <h4 class="no-margins">Perhitungan Lemburan</h4>
+            @if ($role_name == 'finance' && $user_id != '43' && $user_id != '44' || $role_name == 'admin')
+                <div class="col-sm-3">
+                    <div class="card">
+                        <div class="card-header bg-primary">
+                            <h4 class="no-margins">Perhitungan Lemburan</h4>
+                        </div>
+                        <div class="card-body">
+                            <h2 class="no-margins">
+                                Lakukan Simulasi
+                            </h2>
+                        </div>
+                        <a href="#SimulasiLemburanKaryawan" class="card-footer" onclick="showModal('modal_simulasi_lemburan', '', '')">
+                            Lihat Detail
+                        </a>
                     </div>
-                    <div class="card-body">
-                        <h2 class="no-margins">
-                            Lakukan Simulasi
-                        </h2>
-                    </div>
-                    <a href="#SimulasiLemburanKaryawan" class="card-footer" onclick="showModal('modal_simulasi_lemburan', '', '')">
-                        Lihat Detail
-                    </a>
                 </div>
-            </div>
+            @endif
         </div>
         @if ($role_name == 'finance' || $role_name == 'admin')
             @if ($user_id != '43' && $user_id != '44')
