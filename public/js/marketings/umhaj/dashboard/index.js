@@ -155,62 +155,6 @@ const showChartPie  = (idChart, data) => {
 }
 
 $(document).ready(function(){
-    // GET DATA UMRAH
-    const umrah_url     = base_url + "/umhaj/umrah/get_data";
-    const umrah_type    = "GET";
-    const umrah_data    = {
-        "data"      : {
-            "jenis"     : "semua",
-            "tahun_cari": moment(today).format('YYYY'),
-            "bulan_cari": "",
-        }
-    };
-
-    // GET DATA MEMBER
-    const member_url    = base_url + "/umhaj/member/get_data";
-    const member_type   = "GET";
-    const member_data   = {
-        "data"  : {
-            "cs_name"   : "semua",
-            "tahun_cari": moment(today).format('YYYY'),
-            "bulan_cari": "",
-        }
-    };
-
-    // GET DATA UMRAH
-    const list_umrah_url    = base_url + "/umhaj/umrah/get_data_umrah_list/tahun/"+moment(today, 'YYYY-MM-DD').format('YYYY');
-    const list_umrah_type   = "GET";
-    const list_umrah_data   = "";
-
-    const send_data     = [
-        // doTransaction(umrah_url, umrah_type, umrah_data, '', true),
-        doTransaction(member_url, member_type, member_data, '', true),
-        doTransaction(list_umrah_url, list_umrah_type, list_umrah_data, "", true)
-    ];
-
-    Promise.allSettled(send_data)
-        .then((success)     => {
-            // MEMBER ZONE
-            const member_getData    = success[0].value.data;
-            const member_sendData   = [];
-            for(let i = 0; i < member_getData.length; i++) {
-                member_sendData.push(member_getData[i]['total_data']);
-            }
-            $("#chart_member_loading").addClass('d-none');
-            $("#chart_member_view").removeClass('d-none');
-            showChart('chart_member', member_sendData);
-
-            // LIST UMRAH
-            const list_umrah_getData    = success[1].value.data;
-            $("#dashboard_umrah_total_data").html("<h2 class='no-margins font-weight-bold'>"+ list_umrah_getData['total_data'] +"</h2>");
-
-            // LIST HAJI
-            $("#dashboard_haji_total_data").html("<h2 class='no-margins font-weight-bold'>0</h2>")
-        })
-        .catch((error)      => {
-            console.log(error)
-        })
-
     // GET DATA FROM API
     const programUmrahURL   = "api/umhaj/master/program";
     const customerServiceURL= "api/umhaj/master/user/cs";
@@ -221,14 +165,25 @@ $(document).ready(function(){
         "tahun_cari"    : moment(today).format('YYYY'),
         "bulan_cari"    : "",
     };
+
+    const jadwalUmrahURL    = "api/umhaj/master/jadwal_umrah?tahun="+moment(today, 'YYYY-MM-DD').format('YYYY');
     
     const agentURL          = "api/umhaj/agent/list";
+
+    const memberURL         = "api/umhaj/member/chart_data";
+    const memberData        = {
+        "cs_name"           : "semua",
+        "tahun_cari"        : moment(today, 'YYYY-MM-DD').format('YYYY'),
+        "bulan_cari"        : "",
+    };
 
     const apiGetData        = [
         doTransactionAPI(programUmrahURL, "GET", [], "", true),
         doTransactionAPI(customerServiceURL, "GET", [], "", true),
         doTransactionAPI(umrahURL, "POST", umrahSendData, "", true),
-        doTransactionAPI(agentURL, "GET", [], "", true)
+        doTransactionAPI(agentURL, "GET", [], "", true),
+        doTransactionAPI(jadwalUmrahURL, "GET", [], "", true),
+        doTransactionAPI(memberURL, "POST", memberData, "", true)
     ];
 
     Promise.allSettled(apiGetData)
@@ -250,7 +205,24 @@ $(document).ready(function(){
 
             // LIST AGENT
             const agentGetData  = success[3].value.data;
-            $("#dashboard_agent_total_data").html(`<h2 class='no-margins font-weight-bold'>${agentGetData.length}</h2>`)
+            $("#dashboard_agent_total_data").html(`<h2 class='no-margins font-weight-bold'>${agentGetData.length}</h2>`);
+
+            // LIST JADWAL UMRAH
+            const jadwalUmrahGetData    = success[4].value.data;
+            $("#dashboard_umrah_total_data").html(`<h2 class='no-margins font-weight-bold'>${jadwalUmrahGetData.length}</h2>`)
+            
+            // CHART MEMBER
+            const memberGetData     = success[5].value.data;
+            const memberSendData    = [];
+            for(let i = 0; i < memberGetData.length; i++) {
+                memberSendData.push(memberGetData[i]['total_data']);
+            }
+            $("#chart_member_loading").addClass('d-none');
+            $("#chart_member_view").removeClass('d-none');
+            showChart('chart_member', memberSendData);
+
+            // LIST HAJI
+            $("#dashboard_haji_total_data").html("<h2 class='no-margins font-weight-bold'>0</h2>")
             
         })
         .catch((err)        => {
@@ -533,32 +505,30 @@ function cariData(idForm, data)
                 showChart('chart_umrah', umrahChartData);
             })
     } else if(idForm == 'chart_member') {
-        // GET DATA MEMBER
-        const member_url    = base_url + "/umhaj/member/get_data";
-        const member_type   = "GET";
-        const member_data   = {
-            "data"  : {
-                "cs_name"   : data,
-                "tahun_cari": moment(today).format('YYYY'),
-                "bulan_cari": "",
-            }
-        };
+        // LOADING
         $("#chart_member_loading").removeClass('d-none');
         $("#chart_member_view").addClass('d-none');
-        doTransaction(member_url, member_type, member_data, '', true)
+
+        // GET DATA
+        const memberURL         = "api/umhaj/member/chart_data";
+        const memberData        = {
+            "cs_name"           : data,
+            "tahun_cari"        : moment(today, 'YYYY-MM-DD').format('YYYY'),
+            "bulan_cari"        : "",
+        };
+        doTransactionAPI(memberURL, 'POST', memberData, '', true)
             .then((success)     => {
-                const member_getData    = success.data;
-                const member_sendData   = [];
-                for(const item of member_getData) {
-                    member_sendData.push(item['total_data']);
+                const memberGetData     = success.data;
+                const memberSendData    = [];
+                for(const item of memberGetData) {
+                    memberSendData.push(item['total_data']);
                 }
-                
+
                 $("#chart_member_loading").addClass('d-none');
                 $("#chart_member_view").removeClass('d-none');
-                showChart('chart_member', member_sendData);
+                showChart('chart_member', memberSendData);
             })
-            .catch((error)      => {
-                console.log(error);
+            .catch((err)        => {
                 $("#chart_member_loading").addClass('d-none');
                 $("#chart_member_view").removeClass('d-none');
                 showChart('chart_member', '');
