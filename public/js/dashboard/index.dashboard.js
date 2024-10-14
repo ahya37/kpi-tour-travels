@@ -49,7 +49,9 @@ $(document).ready(()    => {
 
     const ct_url    = base_url + "/pengajuan/listCuti";
     const ct_type   = "GET";
-    const ct_data   = "";
+    const ct_data   = {
+        "bulan"     : moment(today, 'YYYY-MM-DD').format('MM')
+    };
     
     const api_url   = [
         doTrans(abs_url, abs_type, abs_data, "", true),
@@ -258,7 +260,7 @@ function showTable(idTable, data)
             var ct_status   = "";
             for(const item of data)
             {
-                const ct_date   = item.emp_act_start_date == item.emp_act_end_date ? moment(item.emp_act_start_date, 'YYYY-MM-DD').format('DD/MM/YYYY') : moment(item.emp_act_start_date, 'YYYY-MM-DD').format('DD/MM/YYYY')+" s.d "+moment(item.emp_act_end_date, 'YYYY-MM-DD').format('DD/MM/YYYY');
+                const ct_date   = item.emp_act_start_date == item.emp_act_end_date ? moment(item.emp_act_start_date, 'YYYY-MM-DD').format('dddd') + ", " + moment(item.emp_act_start_date, 'YYYY-MM-DD').format('DD/MM/YYYY') : moment(item.emp_act_start_date, 'YYYY-MM-DD').format('DD/MM/YYYY')+" s.d "+moment(item.emp_act_end_date, 'YYYY-MM-DD').format('DD/MM/YYYY');
                 const ct_desc   = item.emp_act_title;
                 const ct_type   = item.emp_act_type;
                 switch(item.emp_act_status) {
@@ -328,7 +330,9 @@ function showModal(idModal, jenis)
     } else if(idModal == 'modal_total_ketidakhadiran') {
         // GET DATA CUTI
         const cuti_url  = base_url + "/pengajuan/listCuti";
-        const cuti_data = "";
+        const cuti_data = {
+            "bulan"     : moment(today, 'YYYY-MM-DD').format('MM'),
+        };
         const cuti_type = "GET";
         const cuti_msg  = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
 
@@ -341,6 +345,10 @@ function showModal(idModal, jenis)
                 
                 const cuti_getData   = success.data;
                 showTable('tbl_total_cuti', cuti_getData);
+
+                const selectDataBulanCuti   = moment(today, 'YYYY-MM-DD').format('MM');
+                const dataBulanCuti         = moment.months();
+                showSelect('filter_bulan_cuti', dataBulanCuti, selectDataBulanCuti);
                 Swal.close();
             })
             .catch((error)      => {
@@ -390,6 +398,21 @@ function showSelect(idSelect, data, selectedData)
         if(selectedData != '') {
             $("#"+idSelect).val(selectedData).trigger('change');
         };
+    } else if(idSelect == 'filter_bulan_cuti') {
+        let html    = "<option selected disabled>Pilih Bulan</option>";
+        let seq     = 1;
+        for(const item of data) {
+            const monthNumber   = seq < 10 ? "0"+seq++ : seq++;
+            const monthName     = item;
+            
+            html    += `<option value=${monthNumber}>${monthName}</option>`;
+        }
+
+        $(`#${idSelect}`).html(html);
+
+        if(selectedData != '') {
+            $(`#${idSelect}`).val(selectedData).trigger('change');
+        }
     }
 }
 
@@ -427,6 +450,24 @@ function cariData(idForm)
                     title   : 'Terjadi Kesalahan',
                     text    : 'Tidak Ada Absen Pada Bulan yang Dipilih',
                 });
+            })
+    } else if(idForm == 'tbl_total_cuti') {
+        const cuti_url  = base_url + "/pengajuan/listCuti";
+        const cuti_data = {
+            "bulan"     : $("#filter_bulan_cuti").val(),
+        };
+        const cuti_type = "GET";
+        const cuti_msg  = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+
+        doTrans(cuti_url, cuti_type, cuti_data, cuti_msg, true)
+            .then((success)     => {
+                const cuti_getData  = success.data;
+                showTable(`${idForm}`, cuti_getData);
+                Swal.close();
+            })
+            .catch((err)        => {
+                showTable(`${idForm}`, []);
+                Swal.close();
             })
     }
 }

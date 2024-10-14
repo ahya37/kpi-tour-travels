@@ -30,7 +30,11 @@ Route::get('/test', function () {
 });
 
 Route::get('/', function () {
-    return view('auth.login');  
+    if(!empty(Auth::user()->id)) {
+        return redirect('/dashboard');
+    } else {
+        return view('auth.login');
+    }  
 });
 
 //route login index
