@@ -69,7 +69,19 @@
                         </a>
                     </div>
                 </div>
-                <div class="col-sm-3"></div>
+                <div class="col-sm-3 mb-2">
+                    <div class="card">
+                        <div class="card-header bg-primary">
+                            <h4 class="no-margins">Agen</h4>
+                        </div>
+                        <div class="card-body text-right" id="dashboard_agent_total_data">
+                            <div class="spinner-border"></div>
+                        </div>
+                        <a href="#show_daftar_agent" class="card-footer" onclick="showModal('modal_agent', '')">
+                            Lihat Detail
+                        </a>
+                    </div>
+                </div>
                 <div class="col-sm-3"></div>
             </div>
             <br>
@@ -383,6 +395,47 @@
                                             <th class="text-center align-middle" id="table_modal_list_umrah_detail_total_banyaknya">0</th>
                                         </tr>
                                     </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="modal_agent">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header align-items-center">
+                    <h4 class="modal-title no-margins">
+                        <label class="no-margins">List Agent</label>
+                    </h4>
+                    <button class="close" titl="Tutup Tampilan" onclick="closeModal('modal_agent')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    {{-- FILTER --}}
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <button class="btn btn-primary" id="btn_tambah_data_agent" title="Tambah Data">Tambah Data</button>
+                        </div>
+                    </div>
+                    <hr>
+                    {{-- TABLE --}}
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-borderd table-hovered" id="table_list_agent" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Nama</th>
+                                            <th class="text-center align-middle">PIC</th>
+                                            <th class="text-center align-middle">Kontak</th>
+                                            <th class="text-center align-middle">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
                                 </table>
                             </div>
                         </div>

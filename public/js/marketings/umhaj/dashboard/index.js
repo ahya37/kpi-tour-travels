@@ -150,26 +150,11 @@ const showChartPie  = (idChart, data) => {
                     }
                 }
             })
-            // new Chart(ctx, {
-            //     type    : 'pie',
-            //     data    : chartData,
-            //     options : {
-            //         title   : {
-            //             display     : true,
-            //             text        : 'Total Member Baru Per Januari 2024',
-            //         }
-            //     }
-            // });
         }
     }
 }
 
 $(document).ready(function(){
-    // GET DATA PROGRAM UMRAH
-    const prog_umrah_url    = base_url + "/umhaj/umrah/list_program";
-    const prog_umrah_type   = "GET";
-    const prog_umrah_data   = [];
-
     // GET DATA UMRAH
     const umrah_url     = base_url + "/umhaj/umrah/get_data";
     const umrah_type    = "GET";
@@ -192,38 +177,21 @@ $(document).ready(function(){
         }
     };
 
-    // GET DATA CS
-    const cs_url        = base_url + "/umhaj/cs/get_data";
-    const cs_type       = "GET";
-    const cs_data       = "";
-
     // GET DATA UMRAH
     const list_umrah_url    = base_url + "/umhaj/umrah/get_data_umrah_list/tahun/"+moment(today, 'YYYY-MM-DD').format('YYYY');
     const list_umrah_type   = "GET";
     const list_umrah_data   = "";
 
     const send_data     = [
-        doTransaction(umrah_url, umrah_type, umrah_data, '', true),
-        doTransaction(prog_umrah_url, prog_umrah_type, prog_umrah_data, '', true),
+        // doTransaction(umrah_url, umrah_type, umrah_data, '', true),
         doTransaction(member_url, member_type, member_data, '', true),
-        doTransaction(cs_url, cs_type, cs_data, '', true),
         doTransaction(list_umrah_url, list_umrah_type, list_umrah_data, "", true)
     ];
 
     Promise.allSettled(send_data)
         .then((success)     => {
-            // UMRAH ZONE
-            const umrah_getData     = success[0].value.data;
-            const umrah_sendData    = [];
-            for(let i = 0; i < umrah_getData.length; i++) {
-                umrah_sendData.push(umrah_getData[i]['total_data']);
-            }
-            $("#chart_umrah_loading").addClass('d-none');
-            $("#chart_umrah_view").removeClass('d-none');
-            showChart('chart_umrah', umrah_sendData);
-
             // MEMBER ZONE
-            const member_getData    = success[2].value.data;
+            const member_getData    = success[0].value.data;
             const member_sendData   = [];
             for(let i = 0; i < member_getData.length; i++) {
                 member_sendData.push(member_getData[i]['total_data']);
@@ -232,14 +200,8 @@ $(document).ready(function(){
             $("#chart_member_view").removeClass('d-none');
             showChart('chart_member', member_sendData);
 
-            // SHOW SELECT
-            const prog_umrah_sendData   = success[1].value.data;
-            const cs_sendData           = success[3].value.data;
-            showSelect('g_umrah_filter_package', prog_umrah_sendData, 'semua');
-            showSelect('g_member_filter_cs', cs_sendData, 'semua');
-
             // LIST UMRAH
-            const list_umrah_getData    = success[4].value.data;
+            const list_umrah_getData    = success[1].value.data;
             $("#dashboard_umrah_total_data").html("<h2 class='no-margins font-weight-bold'>"+ list_umrah_getData['total_data'] +"</h2>");
 
             // LIST HAJI
@@ -247,6 +209,52 @@ $(document).ready(function(){
         })
         .catch((error)      => {
             console.log(error)
+        })
+
+    // GET DATA FROM API
+    const programUmrahURL   = "api/umhaj/master/program";
+    const customerServiceURL= "api/umhaj/master/user/cs";
+    
+    const umrahURL          = "api/umhaj/umrah/get_data_umrah";
+    const umrahSendData     = {
+        "jenis"         : "semua",
+        "tahun_cari"    : moment(today).format('YYYY'),
+        "bulan_cari"    : "",
+    };
+    
+    const agentURL          = "api/umhaj/agent/list";
+
+    const apiGetData        = [
+        doTransactionAPI(programUmrahURL, "GET", [], "", true),
+        doTransactionAPI(customerServiceURL, "GET", [], "", true),
+        doTransactionAPI(umrahURL, "POST", umrahSendData, "", true),
+        doTransactionAPI(agentURL, "GET", [], "", true)
+    ];
+
+    Promise.allSettled(apiGetData)
+        .then((success)     => {
+            const programUmrahData  = success[0].value.data;
+            showSelect('g_umrah_filter_package', programUmrahData, 'semua');
+
+            const customerServiceData   = success[1].value.data;
+            showSelect('g_member_filter_cs', customerServiceData, 'semua');
+
+            const umrahData         = success[2].value.data;
+            const umrahDataChart    = [];
+            for(let i = 0; i < umrahData.length; i++) {
+                umrahDataChart.push(umrahData[i]['total_data']);
+            }
+            $("#chart_umrah_loading").addClass('d-none');
+            $("#chart_umrah_view").removeClass('d-none');
+            showChart('chart_umrah', umrahDataChart);
+
+            // LIST AGENT
+            const agentGetData  = success[3].value.data;
+            $("#dashboard_agent_total_data").html(`<h2 class='no-margins font-weight-bold'>${agentGetData.length}</h2>`)
+            
+        })
+        .catch((err)        => {
+            console.log(err)
         })
 });
 
@@ -265,10 +273,9 @@ function showSelect(idSelect, data, selectedData)
         ];
 
         if(data.length > 0) {
-            $.each(data, (i, item)  => {
-                html    += "<option value='" + item.prog_name + "'>" + item.prog_name.toUpperCase() + "</option>";
-            });
-
+            for(const item of data) {
+                html    += `<option value=${item.program_name}>${item.program_name}</option>`;
+            }
             $("#"+idSelect).html(html);
         } else {
             $("#"+idSelect).html(html);
@@ -285,7 +292,7 @@ function showSelect(idSelect, data, selectedData)
         
         if(data.length  > 0) {
             $.each(data, (i, item)  => {
-                html    += "<option value='" + item.cs_name + "'>" + item.cs_name + "</option>";
+                html    += `<option value='${item.cs_name}'>${item.cs_name}</option>`;
             });
 
             $("#"+idSelect).html(html);
@@ -376,11 +383,12 @@ function showModal(idModal, data)
 
         doTransaction(list_umrah_url, list_umrah_type, list_umrah_data, list_umrah_msg, true)
             .then((success)     => {
-                Swal.close();
-                $("#"+idModal).modal({ keyboard: false, backdrop: 'static' });
                 // GET DATA
                 const list_umrah_sendData   = success.data.data;
                 showTable('table_list_umrah', list_umrah_sendData);
+                
+                Swal.close();
+                $("#"+idModal).modal({ keyboard: false, backdrop: 'static' });
             })
             .catch((error)      => {
                 console.log(error)
@@ -393,7 +401,6 @@ function showModal(idModal, data)
     } else if(idModal == 'modal_list_umrah_detail') {
         closeModal('modal_list_umrah');
         var tourCode    = data;
-        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
         $("#modal_list_umrah_detail_tour_code").html(tourCode);
         // GET DATA
         const detailUmrah_url   = base_url + "/umhaj/umrah/get_data_umrah/tour_code";
@@ -419,6 +426,8 @@ function showModal(idModal, data)
                 // DETAIL
                 const detailUmrah_getData_detail    = detailUmrah_getData['detail'];
                 showTable('table_modal_list_umrah_detail', detailUmrah_getData_detail);
+                
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
             })
             .catch((error)      => {
                 Swal.fire({
@@ -427,6 +436,26 @@ function showModal(idModal, data)
                     text    : 'Data Tour Code : '+tourCode+' Tidak Ada'
                 })
                 console.log(error)
+            })
+    } else if(idModal == 'modal_agent') {
+        // GET DATA FROM API
+        const agentURL  = "api/umhaj/agent/list";
+        const agentMsg  = Swal.fire({ title : 'Data Sedang Dimuat..' }); Swal.showLoading();
+
+        doTransactionAPI(agentURL, "GET", [], agentMsg, true)
+            .then((success)     => {
+                Swal.close();
+                const agentGetData  = success.data;
+                showTable('table_list_agent', agentGetData);
+                
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+            })
+            .catch((err)        => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Tidak Ada Data Agent',
+                })
             })
     }
 }
@@ -458,6 +487,8 @@ function closeModal(idModal)
             $("#umrah_list_detail_mentor").html();
             $("#table_modal_list_umrah_detail_total_banyaknya").html(0);
         })
+    } else if(idModal == 'modal_agent') {
+        clearUrl();
     }
 }
 
@@ -465,28 +496,41 @@ function cariData(idForm, data)
 {
     if(idForm == 'chart_umrah')
     {
-        // GET DATA UMRAH
-        const umrah_url     = base_url + "/umhaj/umrah/get_data";
-        const umrah_type    = "GET";
-        const umrah_data    = {
-            "data"      : {
-                "jenis"     : data,
-                "tahun_cari": moment(today).format('YYYY'),
-                "bulan_cari": "",
-            }
+        const umrahURL      = "api/umhaj/umrah/get_data_umrah";
+        const umrahSendData     = {
+            "jenis"     : data,
+            "tahun_cari": moment(today).format('YYYY'),
+            "bulan_cari": "",
         };
-        doTransaction(umrah_url, umrah_type, umrah_data, '', true)
+
+        $("#chart_umrah_loading").removeClass('d-none');
+        $("#chart_umrah_view").addClass('d-none');
+
+        doTransactionAPI(umrahURL, "POST", umrahSendData, "", true)
             .then((success)     => {
-                const umrah_getData     = success.data;
-                const umrah_sendData    = [];
-                for(let i = 0; i < umrah_getData.length; i++) {
-                    umrah_sendData.push(umrah_getData[i]['total_data']);
+                const umrahGetData  = success.data;
+                let umrahChartData= [];
+
+                for(let i = 0; i < umrahGetData.length; i++) {
+                    umrahChartData.push(umrahGetData[i]['total_data']);
                 }
-                showChart('chart_umrah', umrah_sendData);
+                
+                $("#chart_umrah_loading").addClass('d-none');
+                $("#chart_umrah_view").removeClass('d-none');
+                showChart('chart_umrah', umrahChartData);
             })
-            .catch((error)      => {
-                console.log(error)
-                showChart('chart_umrah', '');
+            .catch((err)        => {
+                let umrahChartData  = [];
+                for(let i = 0; i < 12; i++) {
+                    umrahChartData.push({
+                        i   : 0,
+                    });
+                }
+                setTimeout(() => {
+                    $("#chart_umrah_loading").addClass('d-none');
+                    $("#chart_umrah_view").removeClass('d-none');
+                }, 1000);
+                showChart('chart_umrah', umrahChartData);
             })
     } else if(idForm == 'chart_member') {
         // GET DATA MEMBER
@@ -804,6 +848,40 @@ function showTable(idTable, data)
 
             $("#table_modal_list_umrah_detail_total_banyaknya").html("<label class='font-weight-bold no-margins'>" + total + "</label>");
         }
+    } else if(idTable == 'table_list_agent') {
+        $("#"+idTable).DataTable({
+            language        : {
+                emptyTable  : "Tidak Ada Data Yang Bisa Ditampilkan",
+                zeroRecords : "Data Yang Dicari Tidak Ditemukan",
+            },
+            columnDefs      : [
+                { "targets" : [0, 4], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [1], "className" : "text-left align-middle", "width" : "20%" },
+                { "targets" : [2], "className" : "text-left align-middle" },
+                { "targets" : [3], "className" : "text-left align-middle", "width" : "10%" },
+            ],
+        })
+
+        $("#table_list_agent_wrapper").css('padding-bottom', '0px');
+
+        if(data.length > 0) {
+            let seq  = 1;
+            for(const item of data) {
+                let agentId     = item.agent_id;
+                let agentName   = item.agent_name;
+                let agentPIC    = item.agent_pic;
+                let agentContact= item.agent_contact_2 != "" ? item.agent_contact_1+" / "+item.agent_contact_2 : item.agent_contact_1;
+                let agentAct    = "<button class='btn btn-sm btn-primary' title='Lihat Detail' value='" + agentId + "'><i class='fa fa-eye'></i></button>";
+
+                $("#"+idTable).DataTable().row.add([
+                    `<label class='no-margins font-weight-normal'>${seq++}</label>`,
+                    `<label class="no-margins font-weight-normal">${agentName}</label>`,
+                    `<label class="no-margins font-weight-normal">${agentPIC}</label>`,
+                    `<label class="no-margins font-weight-normal">${agentContact}</label>`,
+                    agentAct,
+                ]).draw(false);
+            }
+        }
     }
 }
 
@@ -834,6 +912,34 @@ function doTransaction(url, type, data, msg, isAysnc)
                 resolve(success)
             },
             error       : (error)   => {
+                reject(error)
+            }
+        })
+    })
+}
+
+function doTransactionAPI(url, type, data, msg, isAsync)
+{
+    const newData   = new URLSearchParams(data).toString();
+    return new Promise((resolve, reject)    => {
+        $.ajax({
+            cache           : false,
+            type            : type, 
+            async           : isAsync,
+            // url             : "http://localhost:3001/"+url,
+            url             : 'https://apiv2.perciktours.com/'+url,
+            headers         : {
+                "x-api-key"     : "",
+                "Content-Type"  : 'application/x-www-form-urlencoded',
+            },
+            data            : newData,
+            beforeSend      : ()    => {
+                msg;
+            },
+            success         : (success) => {
+                resolve(success)
+            },
+            error           : (error)   => {
                 reject(error)
             }
         })
