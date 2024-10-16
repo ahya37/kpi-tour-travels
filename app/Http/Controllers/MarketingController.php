@@ -2044,4 +2044,80 @@ class MarketingController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 15 oktober 2024
+    public function marketing_agent_dashboard()
+    {
+        $data   = [
+            "title"     => $this->title." Agent",
+            "sub_title" => "Dashboard Agent",
+            "user_name" => Auth::user()->name,
+            "user_id"   => Auth::user()->id,
+            "user_roles"=> Auth::user()->getRoleNames()[0]
+        ];
+
+        if(Auth::user()->getRoleNames()[0] == 'admin' || Auth::user()->getRoleNames()[0] == 'marketing') {
+            return view('marketings.agent.dashboard', $data);
+        } else {
+            return redirect('/');
+        }
+    }
+
+    public function marketing_agent_tarik_data_agent(Request $request)
+    {
+        $host   = env('API_PERCIK_V2');
+        // GET DATA FROM DATABASE LOCAL
+        $get_data_local     = MarketingService::get_data_agent();
+        $get_data_api       = Http::get($host.'api/umhaj/agent/all');
+        
+        if(count($get_data_local) == 0) {
+            $data_api   = $get_data_api->json();
+
+            if(count($data_api['data']) > 0) {
+                $total_data     = 0;
+                for($i = 0; $i < count($data_api['data']); $i++) {
+                    $data   = [
+                        "agt_id"            => "AGT" . str_pad($i + 1, 5, '0', STR_PAD_LEFT),
+                        "agt_name"          => $data_api['data'][$i]['agt_name'],
+                        "agt_pic"           => $data_api['data'][$i]['agt_pic'],
+                        "agt_address"       => $data_api['data'][$i]['agt_address'],
+                        "agt_contact_1"     => $data_api['data'][$i]['agt_contact_1'],
+                        "agt_contact_2"     => $data_api['data'][$i]['agt_contact_2'],
+                        "agt_fax"           => $data_api['data'][$i]['agt_fax'],
+                        "agt_email"         => $data_api['data'][$i]['agt_email'],
+                        "agt_note"          => $data_api['data'][$i]['agt_note'],
+                        "agt_create_date"   => date('Y-m-d', strtotime($data_api['data'][$i]['agt_create_date'])),
+                        "agt_old_id"        => $data_api['data'][$i]['agt_id'],
+                    ];
+
+                    $send_data      = [
+                        "ip"        => $request->ip(),
+                        "type"      => "add",
+                        "data"      => $data,
+                    ];
+
+                    $simpan_data    = MarketingService::doSimpanAgent($send_data);
+
+                    if($simpan_data['status'] == "berhasil") {
+                        $total_data++;
+                    } else {
+                        $total_data     = $total_data;
+                    }
+                }
+
+                $output     = [
+                    "status"    => 200,
+                    "success"   => true,
+                    "message"   => "Berhasil Menarik Data Agent Sebanyak : ".$total_data,
+                    "data"      => [],   
+                ];
+            } else {
+                var_dump('tidak ada data');die();
+            }
+        } else {
+            var_dump('test');die();
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }
