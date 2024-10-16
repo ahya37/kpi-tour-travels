@@ -139,8 +139,6 @@ function addColumnTable(idTable, seq, data)
             inputDes
         ]).draw(false);
 
-        console.log(moment.monthsShort());
-
         if(seq > 1) {
             let valueTahunSebelumnya    = $("#tahun"+ (seq - 1)).val();
             $("#tahun"+seq).val(parseFloat(valueTahunSebelumnya) + 1);
@@ -189,6 +187,9 @@ function simulasiHitung(idTable, column, seq)
         let tempData        = [];
         let tempData2       = [];
 
+        let rumus1          = Math.floor((7 * 3) * (50 / 100));
+        let rumus2          = Math.floor((7 * 3) * (35 / 100));
+
         let jan             = $("#Jan"+seq).val() == '' ? 0 : parseInt($("#Jan"+seq).val());
         let feb             = $("#Feb"+seq).val() == '' ? 0 : parseInt($("#Feb"+seq).val());
         let mar             = $("#Mar"+seq).val() == '' ? 0 : parseInt($("#Mar"+seq).val());
@@ -232,37 +233,23 @@ function simulasiHitung(idTable, column, seq)
             }
         }
 
-        if(tempData2.length >= 3 && q1 == 0) {
+        if(jan >= 7 && feb >= 7 && mar >= 7) {
+            q1  = rumus1;
+        } else if(tempData2.length >= 3 && q1 == 0) {
+            let temp = 0;
+            for(let i = 0; i < tempData2.length; i++)
+            {
+                temp    += parseInt(tempData2[i]['bulan_ke']);
+            }
+            if(temp % 3 == 0) {
+                q1  = rumus1;
+            } else {
+                q1  = rumus2;
+            }
             tempData2.splice(0, 3);
-            console.log(tempData2);
-            q1  = 1;
         } else {
             q1  = 0;
         }
-        
-        if(tempData2.length >= 3 && q2 == 0) {
-            tempData2.splice(0, 3);
-            q2  = 1;
-        } else {
-            q2  = 0;
-        }
-        
-        if(tempData2.length >= 3 && q3 == 0) {
-            tempData2.splice(0, 3);
-            q3  = 1;
-        } else {
-            q3  = 0;
-        } 
-        
-        if(tempData2.length >= 3 && q3 == 0) {
-            tempData2.splice(0, 3);
-            q4  = 1;
-        } else {
-            q4  = 0;
-        }
-
-        let pcTarget1   = (50 / 100);
-        let pcTarget2   = (35 / 100);
 
         $("#bonus_"+seq).html(q1 + q2 + q3 + q4);
 

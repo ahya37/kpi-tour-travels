@@ -43,7 +43,7 @@
     <div class="container-fluid">
         <div class="wrapper wrapper-content animated fadeInRight">
             <div class="row align-items-center">
-                <div class="col-sm-2 mb-2">
+                <div class="col-sm-3 mb-2">
                     <div class="card" id="card_agent">
                         <div class="card-header bg-primary">
                             <h4 class="no-margins font-weight-bold">
@@ -60,7 +60,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="col-sm-2 mb-2">
+                <div class="col-sm-3 mb-2">
                     <div class="card" id="card_simulasi">
                         <div class="card-header bg-primary">
                             <h4 class="no-margins font-weight-bold">
