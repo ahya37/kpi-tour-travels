@@ -63,6 +63,7 @@
                     <li class="{{ request()->is('master/programkerja/*') ? 'active' : '' }}"><a href="{{ route('marketing.pekerjaan.report') }}">Laporan Pekerjaan Harian</a></li>
                     <li class="{{ request()->is('marketings/programKerja/*') ? 'active' : '' }}"><a href="{{ route('marketing.programkerja.dashboard') }}">Program Kerja</a></li>
                     <li class="{{ request()->is('umhaj/*') ? 'active' : '' }}"><a href="{{ route('umhaj.dashboard') }}">Umhaj</a></li>
+                    <li class="{{ request()->is('marketings/agent') || request()->is('marketings/agent/*') ? 'active' : '' }}"><a href="{{ route('marketing.agent') }}">Agent</a></li>
                 </ul>
             </li>
 
@@ -90,7 +91,7 @@
                     <span class="nav-label">Divisi</span><span class='fa arrow'></span>
                 </a>
                 <ul class="nav nav-second-level collapse">
-                    <li><a href="#">Marketing</a></li>
+                    <li class=""><a href="#">Marketing</a></li>
                     <li class="{{ request()->is('divisi/operasional') || request()->is('divisi/operasional/*') ? 'active' : '' }}"><a href="{{ route('index.operasional') }}">Operasional</a></li>
                     <li class="{{ request()->is('divisi/finance') || request()->is('divisi/finance/*') ? 'active' : '' }}"><a href="{{ route('index.finance') }}">Finance</a></li>
                     <li class="{{ request()->is('divisi/human_resource') ? 'active' : '' }}"><a href="{{ route('index.human_resouce') }}">HR</a></li>

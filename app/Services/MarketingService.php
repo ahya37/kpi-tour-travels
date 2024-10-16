@@ -1559,4 +1559,61 @@ class MarketingService
 
         return $query;
     }
+    // 15 OKTOBER 2024
+    public static function get_data_agent()
+    {
+        return DB::table('agent')->get();
+    }
+
+    public static function doSimpanAgent($get_data)
+    {
+        $ip     = $get_data['ip'];
+        $jenis  = $get_data['type'];
+
+        DB::beginTransaction();
+
+        if($jenis == 'add') {
+            $data   = [
+                "agt_id"            => $get_data['data']['agt_id'],
+                "agt_name"          => $get_data['data']['agt_name'],
+                "agt_pic"           => $get_data['data']['agt_pic'],
+                "agt_address"       => $get_data['data']['agt_address'],
+                "agt_contact_1"     => $get_data['data']['agt_contact_1'],
+                "agt_contact_2"     => $get_data['data']['agt_contact_2'],
+                "agt_fax"           => $get_data['data']['agt_fax'],
+                "agt_email"         => $get_data['data']['agt_email'],
+                "agt_note"          => $get_data['data']['agt_note'],
+                "agt_create_date"   => $get_data['data']['agt_create_date'],
+                "agt_old_id"        => $get_data['data']['agt_old_id'],
+                "created_by"        => Auth::user()->id,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_by"        => Auth::user()->id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+            
+            DB::table('agent')->insert($data);
+        }
+
+        try {
+            DB::commit();
+            $jenis == 'add' ? $msg = "Berhasil Menambahkan Data Agent Baru : ".$get_data['data']['agt_id'] : $msg = "Berhasil Merubah Data Agent : ".$get_data['data']['agt_id'];
+            LogHelper::create($jenis, $msg, $ip);
+            $output    = [
+                "status"    => "berhasil",
+                "errMsg"    => ""
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+            $jenis == 'add' ? $errMsg   = "Gagal Menambahkan Data Agent Baru" : $errMsg = "Gagal Mengubah Data Agent";
+            LogHelper::create('error_system', $errMsg, $ip);
+            Log::channel('daily')->error($e->getMessage());
+
+            $output    = [
+                "status"    => "gagal", 
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
 }

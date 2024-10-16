@@ -178,6 +178,11 @@ Route::group(['middleware' => ['auth']], function () {
             });
         });
 		
+        // AGENT
+        Route::prefix('agent')->group(function(){
+            Route::get('/', [MarketingController::class, 'marketing_agent_dashboard'])->name('marketing.agent');
+            Route::get('/tarik_data_agent', [MarketingController::class, 'marketing_agent_tarik_data_agent']);
+        });
         
     });
 
