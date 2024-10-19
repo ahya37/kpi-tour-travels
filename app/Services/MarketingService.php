@@ -1616,4 +1616,10 @@ class MarketingService
 
         return $output;
     }
+    // 17 OKTOBER 2024
+    // NOTE : AMBIL DATA AGENT
+    public static function get_data_agent_local()
+    {
+        return DB::table('agent')->get();
+    }
 }

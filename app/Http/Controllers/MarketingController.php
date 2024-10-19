@@ -2069,7 +2069,7 @@ class MarketingController extends Controller
         // GET DATA FROM DATABASE LOCAL
         $get_data_local     = MarketingService::get_data_agent();
         $get_data_api       = Http::get($host.'api/umhaj/agent/all');
-        
+
         if(count($get_data_local) == 0) {
             $data_api   = $get_data_api->json();
 
@@ -2115,7 +2115,34 @@ class MarketingController extends Controller
                 var_dump('tidak ada data');die();
             }
         } else {
-            var_dump('test');die();
+            $output     = [
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "TIdak Ada Data Agent Baru",
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function marketing_agent_tarik_data_agent_local()
+    {
+        $get_data   = MarketingService::get_data_agent_local();
+
+        if(count($get_data) > 0) {
+            $output = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Memuat Data Agent",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Tidak Ada Data Agent Yang Bisa Dimuat",
+                "data"      => [],
+            ];
         }
 
         return Response::json($output, $output['status']);

@@ -129,9 +129,30 @@
                             <h1 class="no-margins">Simulasi Perhitungan Point Agent</h1>
                         </div>
                     </div>
+                    {{-- <hr>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-sm-4">
+                                    <label class="no-margins">Nama Agent</label>
+                                </div>
+                                <div class="col-sm-8">
+                                    <select name="agt_id" id="agt_id" class="form-control"></select>
+                                </div>
+                            </div>
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-sm-4">
+                                    <label clas="no-margins">PIC</label>
+                                </div>
+                                <div class="col-sm-8">
+                                    <label name="agt_pic" id="agt_pic" class="no-margins font-weight-normal">Test</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div> --}}
                     <hr>
                     <div class="row mb-4 align-items-top">
-                        <div class="col-sm-6 text-center border-right">
+                        <div class="col-sm-6 text-center border-right mb-2">
                             <h2 class="no-margins"><label class="font-weight-light no-margins">Total Pengumpulan Point</label></h2>
                             <hr>
                             <div class="row ml-2 mr-2 text-left border">
@@ -139,10 +160,11 @@
                                 <div class="col-sm-2 text-center"><label class="no-margins">Point</label></div>
                                 <div class="col-sm-2 text-center"><label class="no-margins">Bonus</label></div>
                                 <div class="col-sm-2 text-center"><label class="no-margins">Total</label></div>
+                                <div class="col-sm-2 text-center"><label class="no-margins">Sisa</label></div>
                             </div>
                             <div class="row ml-2 mr-2 text-left border align-items-center">
                                 <div class="col-sm-4">
-                                    <label class="mt-2">Point Tahun Pertama</label>
+                                    <label class="mt-2">Tahun Pertama</label>
                                 </div>
                                 <div class="col-sm-2 text-center">
                                     <span id="point_1">0</span>
@@ -153,10 +175,13 @@
                                 <div class="col-sm-2 text-center">
                                     <span id="total_1">0</span>
                                 </div>
+                                <div class="col-sm-2 text-center">
+                                    <span id="sisa_1">0</span>
+                                </div>
                             </div>
                             <div class="row ml-2 mr-2 text-left border align-items-center">
                                 <div class="col-sm-4">
-                                    <label class="mt-2">Point Tahun Kedua</label>
+                                    <label class="mt-2">Tahun Kedua</label>
                                 </div>
                                 <div class="col-sm-2 text-center">
                                     <span id="point_2">0</span>
@@ -167,10 +192,13 @@
                                 <div class="col-sm-2 text-center">
                                     <span id="total_2">0</span>
                                 </div>
+                                <div class="col-sm-2 text-center">
+                                    <span id="sisa_2">0</span>
+                                </div>
                             </div>
                             <div class="row ml-2 mr-2 text-left border align-items-center">
                                 <div class="col-sm-4">
-                                    <label class="mt-2">Point Tahun Ketiga</label>
+                                    <label class="mt-2">Tahun Ketiga</label>
                                 </div>
                                 <div class="col-sm-2 text-center">
                                     <span id="point_3">0</span>
@@ -181,10 +209,29 @@
                                 <div class="col-sm-2 text-center">
                                     <span id="total_3">0</span>
                                 </div>
+                                <div class="col-sm-2 text-center">
+                                    <span id="sisa_3">0</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-sm-6 text-center">
+                        <div class="col-sm-6 text-center mb-2">
                             <h2 class="no-margins"><label class="font-weight-light no-margins">Reward / Hadiah</label></h2>
+                            <hr>
+                            <div class="row d-none" style="height: 69%;" id="card_umrah_reward">
+                                <div class="col-sm-12">
+                                    <div class="card card-body bg-primary align-items-center" style="height: 100%;">
+                                        <div class="row m-auto">
+                                            <div class="col-sm-12">
+                                                <h1 class="no-margins">
+                                                    <label class="no-margins font-weight-light">
+                                                        Selamat, Anda Mendapatkan <span id="total_reward" class="font-weight-bold">0</span> Tiket Umrah
+                                                    </label>
+                                                </h1>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <hr>
@@ -195,7 +242,7 @@
                     </div>
                     <div class="row">
                         <div class="col-sm-12">
-                            <div class="table-repsonsive">
+                            <div class="table-responsive">
                                 <table class="table table-sm table-striped table-hovered table-bordered" style="width: 100%;" id="table_simulasi">
                                     <thead>
                                         <tr>
