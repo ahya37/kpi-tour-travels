@@ -2160,7 +2160,7 @@ class MarketingController extends Controller
             $new_id     = "AGT" . str_pad($last_number + 1, 5, 0, STR_PAD_LEFT);
             // GET LAST ID DARI UMHAJ
             $host           = env('API_PERCIK_V2');
-            $get_data_api   = Http::get($host.'api/umhaj/agent/all');
+            $get_data_api   = Http::get($host.'/api/umhaj/agent/all');
             $data_api       = $get_data_api->json();
             $agent_umhaj_id = count($data_api) > 0 ? $data_api['data'][count($data_api['data']) - 1]['agt_id'] : 0;
 
