@@ -2068,7 +2068,7 @@ class MarketingController extends Controller
         $host   = env('API_PERCIK_V2');
         // GET DATA FROM DATABASE LOCAL
         $get_data_local     = MarketingService::get_data_agent();
-        $get_data_api       = Http::get($host.'api/umhaj/agent/all');
+        $get_data_api       = Http::get($host.'/api/umhaj/agent/all');
 
         if(count($get_data_local) == 0) {
             $data_api   = $get_data_api->json();
