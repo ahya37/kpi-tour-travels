@@ -1,7 +1,20 @@
 $(document).ready(()    => {
-    console.log('test')
+    // GET DATA FOR DASHBOARD
+    const agentURL  = "marketings/agent/tarik_data_agent_local";
+    
+    const getData   = [
+        doTransaction(agentURL, "GET", [], "", true)
+    ];
 
-    $("#agent_text").html("<label class='font-weight-bold no-margins'>0</label>");
+    Promise.allSettled(getData)
+        .then((success)     => {
+            const agentGetData  = success[0].value.data;
+            $("#agent_text").html("<label class='font-weight-bold no-margins'>" + agentGetData.length + "</label>");
+        })
+        .catch((err)        => {
+            $("#agent_text").html("<label class='font-weight-bold no-margins'>0</label>");
+            console.log({err})
+        })
 })
 
 function showModal(idModal, data, action)
@@ -9,7 +22,7 @@ function showModal(idModal, data, action)
     if(idModal == 'modal_agent') {
         // GET DATA AGENT
         let agentURL    = "marketings/agent/tarik_data_agent_local";
-        let agentMsg    = Swal.fire({ title : 'Data Sedang Dimuat..' }); Swal.showLoading();
+        let agentMsg    = Swal.fire({ title : 'Data Sedang Dimuat..', allowOutsideClick: false }); Swal.showLoading();
         doTransaction(agentURL, 'GET', [], agentMsg, true)
             .then((success)     => {
                 Swal.close();
@@ -20,6 +33,9 @@ function showModal(idModal, data, action)
             })
             .catch((err)        => {
                 console.log(err)
+                Swal.close();
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                showTable('table_list_agent', []);
             })
     } else if(idModal == 'modal_tarik_data_agent') {
         closeModal('modal_agent');
@@ -55,6 +71,55 @@ function showModal(idModal, data, action)
 
         showTable('table_simulasi');
         addColumnTable('table_simulasi', 1, []);
+    } else if(idModal == 'modal_data_agent') {
+        closeModal('modal_agent');
+        if(action == 'add') {            
+            $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+            $("#modal_data_agent_title").html('Tambah Data Agent Baru');
+            
+            $("#"+idModal).on('shown.bs.modal', () => {
+                $("#agt_name").focus();
+                $("#modal_data_agent_simpan").val(action);
+            })
+        } else if(action == 'edit') {
+            $("#modal_data_agent_title").html('Ubah Data Agent');
+
+            const agentURL  = "marketings/agent/ambil_data/"+data;
+            const agentMsg  = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
+            doTransaction(agentURL, "GET", [], agentMsg, true)
+                .then((success)     => {
+                    const agentGetData  = success.data;
+                    $("#"+idModal).modal({backdrop : 'static', keyboard: false});
+                    
+                    // FILL FORM
+                    $("#agt_id").val(agentGetData.agt_id);
+                    $("#agt_name").val(agentGetData.agt_name);
+                    $("#agt_pic").val(agentGetData.agt_pic);
+                    $("#agt_address").val(agentGetData.agt_address);
+                    $("#agt_contact_1").val(agentGetData.agt_contact_1);
+                    $("#agt_contact_2").val(agentGetData.agt_contact_2);
+                    $("#agt_fax").val(agentGetData.agt_fax);
+                    $("#agt_email").val(agentGetData.agt_email);
+                    $("#agt_note").val(agentGetData.agt_note);
+
+                    $("#"+idModal).on('shown.bs.modal', () => {
+                        $("#modal_data_agent_simpan").val(action);
+                    })
+                    
+                    Swal.close();
+                })
+                .catch((err)        => {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : err.responseJSON.message,
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            showTable('table_list_agent', []);
+                        }
+                    })
+                })
+        }
     }
 }
 
@@ -76,6 +141,20 @@ function closeModal(idModal)
             $("#card_umrah_reward").addClass('d-none');
             $("#total_reward").html(0);
         })
+    } else if(idModal == 'modal_data_agent') {
+        $("#"+idModal).modal('hide');
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#agt_id").val("");
+            $("#agt_name").val("");
+            $("#agt_pic").val("");
+            $("#agt_address").val("");
+            $("#agt_contact_1").val("");
+            $("#agt_contact_2").val("");
+            $("#agt_fax").val("");
+            $("#agt_email").val("");
+            $("#agt_note").val("");
+        })
+        showModal('modal_agent', '', 'view');
     }
 }
 
@@ -90,8 +169,10 @@ function showTable(idTable, data)
                 emptyTable  : "Tidak Ada Data Yang Bisa Dimuat",
                 zeroRecords : "Data Yang Dicari Tidak Ditemukan"
             },
+            autoWidth   : false,
             columnDefs  : [
-                { "targets" : [0], "className" : "text-center", "width" : "5%" },
+                { "targets" : [0, 4], "className" : "text-center", "width" : "5%" },
+                { "targets" : [1, 2], "className" : "text-left", "width" : "30%" },
             ],
         })
 
@@ -104,6 +185,7 @@ function showTable(idTable, data)
                     `<label class='font-weight-normal no-margins'>${item.agt_name}</label>`,
                     `<label class='font-weight-normal no-margins'>${item.agt_pic}</label>`,
                     item.agt_contact_1.length < 2 ? `<label class='font-weight-normal no-margins'>${item.agt_contact_2}</label>` : `<label class='font-weight-normal no-margins'>${item.agt_contact_1+" & "+item.agt_contact_2}</label>`,
+                    `<button class='btn btn-sm btn-primary' title='Edit Data' value='${item.agt_id}' onclick='showModal("modal_data_agent", this.value, "edit")'><i class='fa fa-edit'></i></button>`
                 ]).draw(false);
             }
         }
@@ -540,6 +622,100 @@ function simulasiHitung(idTable, column, seq)
             }
         }
     }
+}
+
+function doSimpanData(idForm, jenis)
+{
+    if(idForm == 'modal_data_agent')
+    {
+        const agtID         = $("#agt_id");
+        const agtName       = $("#agt_name");
+        const agtPIC        = $("#agt_pic");
+        const agtAddress    = $("#agt_address");
+        const agtContact1   = $("#agt_contact_1");
+        const agtContact2   = $("#agt_contact_2");
+        const agtFax        = $("#agt_fax");
+        const agtEmail      = $("#agt_email");
+        const agtNote       = $("#agt_note");
+
+        if(agtName.val() == "") {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Nama Agent Tidak Boleh Kosong',
+            }).then((results)   => {
+                if(results.isConfirmed) {
+                    agtName.addClass('is-invalid');
+                }
+            })
+        } else if(agtPIC.val() == "") {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'PIC Tidak Boleh Kosong',
+            }).then((results)   => {
+                if(results.isConfirmed) {
+                    agtPIC.addClass('d-none');
+                }
+            })
+        } else if(agtAddress.val() == "") {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Alamat Harus Diisi',
+            }).then((results)   => {
+            if(results.isConfirmed) {
+                    agtAddress.addClass('is-invalid');
+                }
+            })
+        } else {
+            const agtSendData   = {
+                "agent_id"      : agtID.val(),
+                "agent_name"    : agtName.val(),
+                "agent_pic"     : agtPIC.val(),
+                "agent_address" : agtAddress.val(),
+                "agent_contact1": agtContact1.val(),
+                "agent_contact2": agtContact2.val(),
+                "agent_fax"     : agtFax.val(),
+                "agent_email"   : agtEmail.val(),
+                "agent_note"    : agtNote.val(),
+            };
+
+            const agtURL        = "marketings/agent/simpan_data/"+jenis;
+            const agtData       = agtSendData;
+            const agtMsg        = Swal.fire({ title : "Data Sedang Diproses" }); Swal.showLoading();
+
+            doTransaction(agtURL, "POST", agtData, agtMsg, true)
+                .then((success)     => {
+                    Swal.fire({
+                        icon    : success.alert.icon,
+                        title   : success.alert.message.title,
+                        text    : success.alert.message.text,
+                    }).then((results)   => {
+                        if(results.isConfirmed) {
+                            closeModal('modal_data_agent');
+                        }
+                    })
+                })
+                .catch((err)        => {
+                    Swal.fire({
+                        icon    : err.responseJSON.alert.icon,
+                        title   : err.responseJSON.alert.message.title,
+                        text    : err.responseJSON.alert.message.text,
+                    })
+                })
+        }
+    }
+}
+
+function uppercase(idForm, value)
+{
+    $("#"+idForm).val(value.toUpperCase());
+}
+
+function removeInvalid(idForm)
+{
+    $("#"+idForm).removeClass('is-invalid');
 }
 
 function doTransaction(url, type, data, message, isAsync)

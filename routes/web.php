@@ -183,6 +183,8 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/', [MarketingController::class, 'marketing_agent_dashboard'])->name('marketing.agent');
             Route::get('/tarik_data_agent', [MarketingController::class, 'marketing_agent_tarik_data_agent']);
             Route::get('/tarik_data_agent_local', [MarketingController::class, 'marketing_agent_tarik_data_agent_local']);
+            Route::post('/simpan_data/{jenis}', [MarketingController::class, 'marketing_agent_simpan_data']);
+            Route::get('/ambil_data/{idAgent}', [MarketingController::class, 'marketing_agent_ambil_data']);
         });
         
     });
