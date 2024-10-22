@@ -89,8 +89,13 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-sm-12">
-                            <button class="btn btn-primary" title="Perbarui Data" onclick="showModal('modal_tarik_data_agent')">
-                                <i class="fa fa-redo"></i> Tarik Data
+                            @if ($user_roles == 'admin')
+                                <button class="btn btn-primary" title="Ambil Data Dari Umhaj" onclick="showModal('modal_tarik_data_agent')">
+                                    Tarik Data
+                                </button>
+                            @endif
+                            <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_data_agent', '', 'add')">
+                                Tambah Data
                             </button>
                         </div>
                     </div>
@@ -105,6 +110,7 @@
                                             <th class="text-center align-middle">Nama</th>
                                             <th class="text-center align-middle">PIC</th>
                                             <th class="text-center align-middle">Kontak</th>
+                                            <th class="text-center align-middle">Aksi</th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -131,7 +137,7 @@
                     </div>
                     <hr>
                     <div class="row mb-4 align-items-top">
-                        <div class="col-sm-6 text-center border-right">
+                        <div class="col-sm-6 text-center border-right mb-2">
                             <h2 class="no-margins"><label class="font-weight-light no-margins">Total Pengumpulan Point</label></h2>
                             <hr>
                             <div class="row ml-2 mr-2 text-left border">
@@ -139,10 +145,11 @@
                                 <div class="col-sm-2 text-center"><label class="no-margins">Point</label></div>
                                 <div class="col-sm-2 text-center"><label class="no-margins">Bonus</label></div>
                                 <div class="col-sm-2 text-center"><label class="no-margins">Total</label></div>
+                                <div class="col-sm-2 text-center"><label class="no-margins">Sisa</label></div>
                             </div>
                             <div class="row ml-2 mr-2 text-left border align-items-center">
                                 <div class="col-sm-4">
-                                    <label class="mt-2">Point Tahun Pertama</label>
+                                    <label class="mt-2">Tahun Pertama</label>
                                 </div>
                                 <div class="col-sm-2 text-center">
                                     <span id="point_1">0</span>
@@ -153,10 +160,13 @@
                                 <div class="col-sm-2 text-center">
                                     <span id="total_1">0</span>
                                 </div>
+                                <div class="col-sm-2 text-center">
+                                    <span id="sisa_1">0</span>
+                                </div>
                             </div>
                             <div class="row ml-2 mr-2 text-left border align-items-center">
                                 <div class="col-sm-4">
-                                    <label class="mt-2">Point Tahun Kedua</label>
+                                    <label class="mt-2">Tahun Kedua</label>
                                 </div>
                                 <div class="col-sm-2 text-center">
                                     <span id="point_2">0</span>
@@ -167,10 +177,13 @@
                                 <div class="col-sm-2 text-center">
                                     <span id="total_2">0</span>
                                 </div>
+                                <div class="col-sm-2 text-center">
+                                    <span id="sisa_2">0</span>
+                                </div>
                             </div>
                             <div class="row ml-2 mr-2 text-left border align-items-center">
                                 <div class="col-sm-4">
-                                    <label class="mt-2">Point Tahun Ketiga</label>
+                                    <label class="mt-2">Tahun Ketiga</label>
                                 </div>
                                 <div class="col-sm-2 text-center">
                                     <span id="point_3">0</span>
@@ -181,10 +194,29 @@
                                 <div class="col-sm-2 text-center">
                                     <span id="total_3">0</span>
                                 </div>
+                                <div class="col-sm-2 text-center">
+                                    <span id="sisa_3">0</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-sm-6 text-center">
+                        <div class="col-sm-6 text-center mb-2">
                             <h2 class="no-margins"><label class="font-weight-light no-margins">Reward / Hadiah</label></h2>
+                            <hr>
+                            <div class="row d-none" style="height: 69%;" id="card_umrah_reward">
+                                <div class="col-sm-12">
+                                    <div class="card card-body bg-primary align-items-center" style="height: 100%;">
+                                        <div class="row m-auto">
+                                            <div class="col-sm-12">
+                                                <h1 class="no-margins">
+                                                    <label class="no-margins font-weight-light">
+                                                        Selamat, Anda Mendapatkan <span id="total_reward" class="font-weight-bold">0</span> Tiket Umrah
+                                                    </label>
+                                                </h1>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <hr>
@@ -195,7 +227,7 @@
                     </div>
                     <div class="row">
                         <div class="col-sm-12">
-                            <div class="table-repsonsive">
+                            <div class="table-responsive">
                                 <table class="table table-sm table-striped table-hovered table-bordered" style="width: 100%;" id="table_simulasi">
                                     <thead>
                                         <tr>
@@ -237,6 +269,88 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_data_agent">
+        <div class="modal-dialog modal-dialog-scrollable modal-md">
+            <div class="modal-content">
+                <div class="modal-header align-items-center">
+                    <h4 class="modal-title font-weight-bold no-margins" id="modal_data_agent_title"></h4>
+                    <button class="close" onclick="closeModal('modal_data_agent')" title="Tutup Tampilan">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-sm-3">
+                            <label class="no-margins">Nama</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="hidden" id="agt_id" name="agt_id">
+                            <input type="text" class="form-control form-control-sm" id="agt_name" name="agt_name" placeholder="Nama Agent" onkeyup="uppercase(this.id, this.value), removeInvalid(this.id)" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-sm-3">
+                            <label class="no-margins">PIC</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control form-control-sm" name="agt_pic" id="agt_pic" placeholder="PIC" onkeyup="uppercase(this.id, this.value)" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-top">
+                        <div class="col-sm-3">
+                            <label class="no-margins">Alamat</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <textarea class="form-control form-control-sm" name="agt_address" id="agt_address" rows="4" style="resize: none;" placeholder="Isi Alamat Lengkap" onkeyup="removeInvalid(this.id)"></textarea>
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-sm-3">
+                            <label class="no-margins">Telepon</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control form-control-sm" name="agt_contact_1" id="agt_contact_1" placeholder="Nomor Telepon" inputmode="numeric">
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-sm-3">
+                            <label class="no-margins">Fax</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control form-control-sm" name="agt_fax" id="agt_fax" placeholder="Fax" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-sm-3">
+                            <label class="no-margins">Handphone</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control form-control-sm" name="agt_contact_2" id="agt_contact_2" placeholder="Nomor Handphone" inputmode="numeric" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-sm-3">
+                            <label class="no-margins">Alamat Email</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="email" class="form-control form-control-sm" name="agt_email" id="agt_email" placeholder="contoh@example.com" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-top">
+                        <div class="col-sm-3">
+                            <label class="no-margins">Note</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <textarea class="form-control form-control-sm" name="agt_note" id="agt_note" placeholder="Keterangan Tambahan" rows="4" style="resize: none;"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" id="modal_data_agent_batal" onclick="closeModal('modal_data_agent')" title="Tutup Tampilan">Batal</button>
+                    <button class="btn btn-primary" id="modal_data_agent_simpan" title="Simpan Data" onclick="doSimpanData('modal_data_agent', this.value)">Simpan</button>
                 </div>
             </div>
         </div>

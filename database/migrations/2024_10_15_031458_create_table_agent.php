@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('agent', function (Blueprint $table) {
-            $table->string('agt_id', length: 7)->primary();
+            $table->string('agt_id', length: 8)->primary();
             $table->string('agt_name', length: 50);
             $table->string('agt_pic', length: 30)->nullable();
             $table->longText('agt_address');

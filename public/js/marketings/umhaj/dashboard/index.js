@@ -824,11 +824,12 @@ function showTable(idTable, data)
                 emptyTable  : "Tidak Ada Data Yang Bisa Ditampilkan",
                 zeroRecords : "Data Yang Dicari Tidak Ditemukan",
             },
+            autoWidth       : false,
             columnDefs      : [
-                { "targets" : [0, 4], "className" : "text-center align-middle", "width" : "8%" },
-                { "targets" : [1], "className" : "text-left align-middle", "width" : "20%" },
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
+                { "targets" : [1], "className" : "text-left align-middle", "width" : "30%" },
                 { "targets" : [2], "className" : "text-left align-middle" },
-                { "targets" : [3], "className" : "text-left align-middle", "width" : "10%" },
+                { "targets" : [3], "className" : "text-left align-middle", "width" : "30%" },
             ],
         })
 

@@ -414,13 +414,6 @@
                     <button class="close" titl="Tutup Tampilan" onclick="closeModal('modal_agent')">&times;</button>
                 </div>
                 <div class="modal-body">
-                    {{-- FILTER --}}
-                    <div class="row">
-                        <div class="col-sm-3">
-                            <button class="btn btn-primary" id="btn_tambah_data_agent" title="Tambah Data">Tambah Data</button>
-                        </div>
-                    </div>
-                    <hr>
                     {{-- TABLE --}}
                     <div class="row">
                         <div class="col-sm-12">
@@ -432,7 +425,6 @@
                                             <th class="text-center align-middle">Nama</th>
                                             <th class="text-center align-middle">PIC</th>
                                             <th class="text-center align-middle">Kontak</th>
-                                            <th class="text-center align-middle">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>

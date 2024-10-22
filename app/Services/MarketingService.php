@@ -1567,6 +1567,7 @@ class MarketingService
 
     public static function doSimpanAgent($get_data)
     {
+        // print("<pre>".print_r($get_data, true)."</pre>");die();
         $ip     = $get_data['ip'];
         $jenis  = $get_data['type'];
 
@@ -1590,8 +1591,27 @@ class MarketingService
                 "updated_by"        => Auth::user()->id,
                 "updated_at"        => date('Y-m-d H:i:s'),
             ];
-            
+
             DB::table('agent')->insert($data);
+        } else if($jenis == 'edit') {
+            $data_where      = [
+                "agt_id"        => $get_data['data']['agt_id'],
+            ];
+
+            $data_update    = [
+                "agt_name"          => $get_data['data']['agt_name'],
+                "agt_pic"           => $get_data['data']['agt_pic'],
+                "agt_address"       => $get_data['data']['agt_address'],
+                "agt_contact_1"     => $get_data['data']['agt_contact_1'],
+                "agt_contact_2"     => $get_data['data']['agt_contact_2'],
+                "agt_fax"           => $get_data['data']['agt_fax'],
+                "agt_email"         => $get_data['data']['agt_email'],
+                "agt_note"          => $get_data['data']['agt_note'],
+                "updated_by"        => Auth::user()->id,
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('agent')->where($data_where)->update($data_update);
         }
 
         try {
@@ -1615,5 +1635,33 @@ class MarketingService
         }
 
         return $output;
+    }
+    // 17 OKTOBER 2024
+    // NOTE : AMBIL DATA AGENT
+    public static function get_data_agent_local()
+    {
+        return DB::table('agent')
+                ->orderBy('agt_id', 'desc')
+                ->get();
+    }
+
+    // 21 OKTOBER 2024
+    // NOTE : AMBIL LAST ID AGENT
+    public static function get_last_id_agent()
+    {
+        $query  = DB::table('agent')
+                        ->select('agt_id')
+                        ->orderBy('agt_id', 'desc')
+                        ->limit(1)
+                        ->get();
+        return $query;
+    }
+
+    // NOTE : AMBIL DATA AGENT BY ID
+    public static function get_data_agent_by_id($id_agent)
+    {
+        return DB::table('agent')
+                    ->where('agt_id', $id_agent)
+                    ->get();
     }
 }

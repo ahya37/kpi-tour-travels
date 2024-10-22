@@ -9,7 +9,9 @@ $(document).ready(() => {
     // GET DATA PENGAJUAN
     const pgj_url   = "/pengajuan/listCuti";
     const pgj_type  = "GET";
-    const pgj_data  = "";
+    const pgj_data  = {
+        "bulan" : moment(today, 'YYYY-MM-DD').format('MM')
+    };
 
     // GET DATA EMPLOYEE
     const emp_url   = "/master/employees/trans/get/dataTableEmployee";
@@ -262,7 +264,9 @@ function showTable(idTable, data)
         // GET DATA
         const pgj_url   = "/pengajuan/listCuti";
         const pgj_type  = "GET";
-        const pgj_data  = "";
+        const pgj_data  = {
+            "bulan"     : moment(today, 'YYYY-MM-DD').format('MM'),
+        };
         const pgj_msg   = "";
 
         doTrans(pgj_url, pgj_type, pgj_data, pgj_msg, true)

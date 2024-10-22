@@ -36,7 +36,9 @@
                     </div>
                     <div class="ibox-content">
                         <h1 class="no-margins">
-                            <label id="emp_total" title="Total Karyawan">0</label>
+                            <label id="emp_total" title="Total Karyawan">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </label>
                         </h1>
                         <div class="d-flex flex-row align-items-center justify-content-between w-100">
                             <small>Total Karyawan</small>
@@ -55,7 +57,9 @@
                     </div>
                     <div class="ibox-content">
                         <h1 class="no-margins">
-                            <label id="pgj_total" title="Total Pengajuan">0</label>
+                            <label id="pgj_total" title="Total Pengajuan">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </label>
                         </h1>
                         <div class="d-flex flex-row align-items-center justify-content-between w-100">
                             <small>Total Pengajuan</small>
@@ -77,7 +81,9 @@
                     </div>
                     <div class="ibox-content">
                         <h1 class="no-margins">
-                            <label id="abs_total" title="Total Absensi Hari Ini">0</label>
+                            <label id="abs_total" title="Total Absensi Hari Ini">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </label>
                         </h1>
                         <div class="d-flex flex-row align-items-center justify-content-between w-100">
                             <small class="text-white"><label class="font-weight-normal no-margins">test</label></small>
@@ -95,7 +101,9 @@
                     </div>
                     <div class="ibox-content">
                         <h1 class="no-margins">
-                            <label id="pgj_lmb_total" title="Total Pengajuan Lembur">0</label>
+                            <label id="pgj_lmb_total" title="Total Pengajuan Lembur">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </label>
                         </h1>
                         <div class="d-flex flex-row align-items-center justify-content-between w-100">
                             <small>Total Pengajuan</small>
