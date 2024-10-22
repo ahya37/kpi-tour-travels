@@ -1591,7 +1591,7 @@ class MarketingService
                 "updated_by"        => Auth::user()->id,
                 "updated_at"        => date('Y-m-d H:i:s'),
             ];
-            
+
             DB::table('agent')->insert($data);
         } else if($jenis == 'edit') {
             $data_where      = [

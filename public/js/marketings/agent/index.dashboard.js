@@ -655,7 +655,7 @@ function doSimpanData(idForm, jenis)
                 text    : 'PIC Tidak Boleh Kosong',
             }).then((results)   => {
                 if(results.isConfirmed) {
-                    agtPIC.addClass('d-none');
+                    agtPIC.addClass('is-invalid');
                 }
             })
         } else if(agtAddress.val() == "") {

@@ -2150,6 +2150,7 @@ class MarketingController extends Controller
 
     public function marketing_agent_simpan_data($jenis, Request $req)
     {
+        $host           = env('API_PERCIK_V2');
         if($jenis == 'add')
         {
             // AMBIL DULU LAST ID DARI ERP
@@ -2158,11 +2159,11 @@ class MarketingController extends Controller
             $last_id    = count($ambil_last_id) > 0 ? $ambil_last_id[0]->agt_id : "AGT00000";
             $last_number= (int)substr($last_id, 3, 5);
             $new_id     = "AGT" . str_pad($last_number + 1, 5, 0, STR_PAD_LEFT);
+
             // GET LAST ID DARI UMHAJ
-            $host           = env('API_PERCIK_V2');
-            $get_data_api   = Http::get($host.'/api/umhaj/agent/all');
+            $get_data_api   = Http::get($host.'/api/umhaj/agent/last_id');
             $data_api       = $get_data_api->json();
-            $agent_umhaj_id = count($data_api) > 0 ? $data_api['data'][count($data_api['data']) - 1]['agt_id'] : 0;
+            $agent_umhaj_id = $data_api['data'][0]['agt_last_id'];
 
             $data_kirim     = [
                 "ip"    => $req->ip(),
@@ -2178,9 +2179,56 @@ class MarketingController extends Controller
                     "agt_email"         => $req->all()['agent_email'],
                     "agt_note"          => $req->all()['agent_note'],
                     "agt_create_date"   => date('Y-m-d H:i:s'),
-                    "agt_old_id"        => (int)$agent_umhaj_id + 1,
+                    "agt_old_id"        => $agent_umhaj_id,
                 ],
             ];
+
+            $do_simpan  = MarketingService::doSimpanAgent($data_kirim);
+            
+            if($do_simpan['status'] == 'berhasil') {
+                $post_data_api  = Http::asForm()->post($host."/api/umhaj/agent/add", [
+                    'agt_id'        => $data_kirim['data']['agt_id'],
+                    'agt_name'      => $data_kirim['data']['agt_name'],
+                    'agt_pic'       => $data_kirim['data']['agt_pic'],
+                    'agt_address'   => $data_kirim['data']['agt_address'],
+                    'agt_contact_1' => $data_kirim['data']['agt_contact_1'],
+                    'agt_contact_2' => $data_kirim['data']['agt_contact_2'],
+                    'agt_fax'       => $data_kirim['data']['agt_fax'],
+                    'agt_email'     => $data_kirim['data']['agt_email'],
+                    'agt_note'      => $data_kirim['data']['agt_note'],
+                    'created_date'  => date('Y-m-d H:i:s'),
+                    'created_by'    => Auth::user()->name,
+                    'updated_date'  => date('Y-m-d H:i:s'),
+                    'updated_by'    => Auth::user()->name,
+                ]);
+
+                if($post_data_api->status() >= 200 && $post_data_api->status() < 300) {
+                    $output     = [
+                        "success"   => true,
+                        "status"    => $post_data_api->status(),
+                        "alert"     => [
+                            "icon"      => "success",
+                            "message"   => [
+                                "title"     => "Berhasil",
+                                "text"      => "Berhasil Menambahkan Data Agent Baru"
+                            ],
+                        ],
+                    ];
+                } else {
+                    $output     = [
+                        "success"   => false,
+                        "status"    => $post_data_api->status(),
+                        "alert"     => [
+                            "icon"      => "error",
+                            "message"   => [
+                                "title"     => "Terjadi Kesalahan",
+                                "text"      => $post_data_api->json()['message'],
+                            ],
+                        ],
+                    ];
+                }
+                
+            }
         } else if($jenis == 'edit') {
             $data_kirim     = [
                 "ip"        => $req->ip(),
@@ -2197,35 +2245,52 @@ class MarketingController extends Controller
                     "agt_note"          => $req->all()['agent_note'],
                 ],
             ];
-        }
 
-        $do_simpan  = MarketingService::doSimpanAgent($data_kirim);
+            $do_simpan  = MarketingService::doSimpanAgent($data_kirim);
 
-        if($do_simpan['status'] == 'berhasil') {
-            $output     = [
-                "success"   => true,
-                "status"    => 200,
-                "alert"     => [
-                    "icon"      => "success",
-                    "message"   => [
-                        "title"     => "Berhasil",
-                        "text"      => $jenis == "add" ? "Berhasil Menambahkan Data Agent Baru" : "Berhasil Mengubah Data Agent"
-                    ],
-                ],
-                "data"      => [],
-            ];
-        } else {
-            $output     = [
-                "success"   => false,
-                "status"    => 500,
-                "alert"     => [
-                    "icon"      => "error",
-                    "message"   => [
-                        "title"     => "Terjadi Kesalahan",
-                        "text"      => "Internal Server Error",
-                    ],
-                ],
-            ];
+            if($do_simpan['status'] == 'berhasil') {
+                // UPDATE JUGA APINYA
+                $put_data_api  = Http::asForm()->put($host."/api/umhaj/agent/edit", [
+                    'agt_id'        => $data_kirim['data']['agt_id'],
+                    'agt_name'      => $data_kirim['data']['agt_name'],
+                    'agt_pic'       => $data_kirim['data']['agt_pic'],
+                    'agt_address'   => $data_kirim['data']['agt_address'],
+                    'agt_contact_1' => $data_kirim['data']['agt_contact_1'],
+                    'agt_contact_2' => $data_kirim['data']['agt_contact_2'],
+                    'agt_fax'       => $data_kirim['data']['agt_fax'],
+                    'agt_email'     => $data_kirim['data']['agt_email'],
+                    'agt_note'      => $data_kirim['data']['agt_note'],
+                    'updated_date'  => date('Y-m-d H:i:s'),
+                    'updated_by'    => Auth::user()->name,
+                ]);
+
+                if($put_data_api->status() >= 200 && $put_data_api->status() < 300)
+                {
+                    $output     = [
+                        "success"       => true,
+                        "status"        => $put_data_api->status(),
+                        "alert"         => [
+                            "icon"      => "success",
+                            "message"   => [
+                                "title"     => "Berhasil",
+                                "text"      => "Berhasil Update Data Agent",
+                            ],
+                        ],
+                    ];
+                } else {
+                    $output     = [
+                        "success"       => false,
+                        "status"        => $put_data_api->status(),
+                        "alert"         => [
+                            "icon"      => "error",
+                            "message"   => [
+                                "title"     => "Terjadi Kesalahan",
+                                "text"      => $put_data_api->json()['message']
+                            ],
+                        ],
+                    ];
+                }
+            }
         }
 
         return Response::json($output, $output['status']);

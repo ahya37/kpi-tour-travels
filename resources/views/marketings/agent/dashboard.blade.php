@@ -90,7 +90,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             @if ($user_roles == 'admin')
-                                <button class="btn btn-primary" title="Ambil Data Dari Umhaj" onclick="showModal('modal_tarik_data_agent')">
+                                <button class="btn b-primary" title="Ambil Data Dari Umhaj" onclick="showModal('modal_tarik_data_agent')">
                                     Tarik Data
                                 </button>
                             @endif
