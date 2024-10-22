@@ -897,8 +897,8 @@ function doTransactionAPI(url, type, data, msg, isAsync)
             cache           : false,
             type            : type, 
             async           : isAsync,
-            url             : "http://localhost:3001/"+url,
-            // url             : 'https://apiv2.perciktours.com/'+url,
+            // url             : "http://localhost:3001/"+url,
+            url             : 'https://apiv2.perciktours.com/'+url,
             headers         : {
                 "x-api-key"     : "",
                 "Content-Type"  : 'application/x-www-form-urlencoded',
