@@ -202,7 +202,7 @@
                         <div class="col-sm-6 text-center mb-2">
                             <h2 class="no-margins"><label class="font-weight-light no-margins">Reward / Hadiah</label></h2>
                             <hr>
-                            <div class="row d-none" style="height: 69%;" id="card_umrah_reward">
+                            <div class="row" style="height: 69%;" id="card_umrah_reward">
                                 <div class="col-sm-12">
                                     <div class="card card-body bg-primary align-items-center" style="height: 100%;">
                                         <div class="row m-auto">

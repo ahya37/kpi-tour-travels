@@ -137,8 +137,20 @@ function closeModal(idModal)
                 $("#bonus_"+seq).html(0);
                 $("#total_"+seq).html(0);
             }
-            
-            $("#card_umrah_reward").addClass('d-none');
+
+            $("#total_Jan").html(0);
+            $("#total_Feb").html(0);
+            $("#total_Mar").html(0);
+            $("#total_Apr").html(0);
+            $("#total_Mei").html(0);
+            $("#total_Jun").html(0);
+            $("#total_Jul").html(0);
+            $("#total_Agt").html(0);
+            $("#total_Sep").html(0);
+            $("#total_Okt").html(0);
+            $("#total_Nov").html(0);
+            $("#total_Des").html(0);
+
             $("#total_reward").html(0);
         })
     } else if(idModal == 'modal_data_agent') {
@@ -545,7 +557,7 @@ function simulasiHitung(idTable, column, seq)
             q4  = 0;
         }
 
-        let hitungPoint   = jan + feb + mar + apr + mei + jun + jul + agt + sep + okt + nov + des;
+        let hitungPoint     = jan + feb + mar + apr + mei + jun + jul + agt + sep + okt + nov + des;
         let hitungBonus     = q1 + q2 + q3 + q4;
         let hitungTotal     = parseInt(hitungPoint) + parseInt(hitungBonus);
 
@@ -554,71 +566,113 @@ function simulasiHitung(idTable, column, seq)
         $("#total_"+seq).html(hitungTotal);
 
         if(seq == 1) {
+            let total_1     = parseInt($("#total_1").text());
+            let total_2     = parseInt($("#total_2").text());
+            let total_3     = parseInt($("#total_3").text());
+
+            let reward_1    = 0;
+            let reward_2    = Math.floor(total_2 / 50);
+            let reward_3    = Math.floor(total_3 / 50);
+
             if(hitungTotal >= 50) {
-                $("#sisa_1").html(hitungTotal - 50);
-                $("#card_umrah_reward").removeClass('d-none');
-                $("#total_reward").html(1);
+                reward_1    = Math.floor(total_1 / 50);
+                
+                let newReward   = reward_1 + reward_2 + reward_3;
+                let sisanya     = total_1 - ((reward_1) * 50);
+
+                $("#total_reward").html(newReward);
+                $("#sisa_1").html(sisanya);
             } else {
-                $("#sisa_1").html(0);
-                $("#total_reward").html(0);
+                let newReward   = reward_1 + reward_2 + reward_3;
+                $("#total_reward").html(newReward);
+                $("#sisa_1").html(total_1);
             }
         } else if(seq == 2) {
-            let hitungTotalPrev     = $("#total_1").text();
-            let hitungTotalCurr     = $("#total_2").text();
-            let currentTotalReward  = $("#total_reward").text();
-
-            if(parseInt(hitungTotalPrev) >= 50) {
-                hitungTotalPrev     = hitungTotalPrev - 50;
-                $("#total_reward").html(1);
-            }
+            let total_1     = parseInt($("#total_1").text());
+            let total_2     = parseInt($("#total_2").text());
+            let total_3     = parseInt($("#total_3").text());
             
-            if(parseInt(hitungTotalCurr) >= 50) {
-                $("#card_umrah_reward").removeClass('d-none');
-                if(parseInt($("#total_reward").text()) > 0) {
-                    let newTotalReward  = parseInt($("#total_reward").text()) + 1;
-                    $("#total_reward").html(parseInt(newTotalReward));
-                    $("#sisa_2").html(hitungTotalCurr - 50);
+            let sisa_1      = parseInt($("#sisa_1").text());
+
+            // GET REWARD DARI DATA SEBELUMNYA
+            let reward_1    = Math.floor(total_1 / 50);
+            let reward_2    = 0;
+            let reward_3    = Math.floor(total_3 / 50);
+            
+            if(total_2 >= 50) {
+                // HITUNG REWARD 2
+                reward_2    = Math.floor(total_2 / 50);
+                
+                let newReward;
+                let sisanya; 
+                let sisaLama    = total_2 - ((reward_2) * 50);
+
+                if(sisaLama + sisa_1 >= 80) {
+                    reward_2    = reward_2 + (Math.floor((sisaLama + sisa_1) / 80));
+                    newReward   = reward_1 + reward_2 + reward_3;
+                    sisanya     = (sisaLama + sisa_1) - 80;
+                } else {
+                    newReward   = reward_1 + reward_2 + reward_3;
+                    sisanya     = sisaLama;
                 }
-            } else if(parseInt(hitungTotalCurr) < 50) {
-                $("#sisa_2").html(0);
-                // CHECK DULU SISA POINT SEBELUMNYA
-                let hitungPointBaru     = parseInt(hitungTotalPrev) + parseInt(hitungTotalCurr);
-                if(hitungPointBaru >= 80) {
-                    $("#card_umrah_reward").removeClass('d-none');
-                    let newTotalReward  = parseInt($("#total_reward").text()) + 1;
-                    $("#total_reward").html(parseInt(newTotalReward));
+
+                $("#total_reward").html(newReward);
+                $("#sisa_2").html(sisanya);
+
+                
+            } else {
+                // DAPATKAN TOTAL SISA SEBELUMNYA DITAMBAH TOTAL SEKARANG
+                let hitungSisa  = total_2 + sisa_1;
+                
+                if(hitungSisa >= 80) {
+                    reward_2    = Math.floor(hitungSisa / 80);
+
+                    let newReward   = reward_1 + reward_2 + reward_3;
+
+                    $("#total_reward").html(newReward);
+                    $("#sisa_2").html(0);
+                } else {
+                    let newReward   = reward_1 + reward_2 + reward_3;
+                    $("#total_reward").html(newReward);
+                    $("#sisa_2").html(total_2)
                 }
             }
         } else if(seq == 3) {
-            let totalPoint_1    = $("#total_1").text();
-            let totalPoint_2    = $("#total_2").text();
-            let totalPoint_3    = $("#total_3").text();
+            let total_1     = parseInt($("#total_1").text());
+            let total_2     = parseInt($("#total_2").text());
+            let total_3     = parseInt($("#total_3").text());
 
-            let sisaPoint_1     = $("#sisa_1").text();
-            let sisaPoint_2     = $("#sisa_2").text();
+            let sisa_2      = parseInt($("#sisa_2").text());
+            let sisa_3      = 0;
 
-            if(parseInt(totalPoint_1) >= 50) {
-                $("#card_umrah_reward").removeClass('d-none');
-                $("#total_reward").html(1);
-            }
+            // GET REWARD DARI DATA SEBELUMNYA
+            let reward_1    = Math.floor(total_1 / 50);
+            let reward_2    = Math.floor(total_2 / 50);
+            let reward_3    = 0
 
-            if(parseInt(totalPoint_2) >= 50) {
-                $("#card_umrah_reward").removeClass('d-none');
-                $("#total_reward").html(2);
-            }
+            if(total_3 >= 50) {
+                reward_3    = Math.floor(total_3 / 50);
 
-            if(parseInt(totalPoint_3) >= 50) {
-                $("#card_umrah_reward").removeClass('d-none');
-                
-                if(parseInt($("#total_reward").text()) < 3 && parseInt($("#total_reward").text()) >= 2) {
-                    $("#total_reward").html(3);
-                } else {
-                    $("#total_reward").html(parseInt($("#total_reward").text()) + 1);
-                }
+                let newReward   = reward_1 + reward_2 + reward_3;
+                let sisanya     = total_3 - ((reward_3) * 50);
 
-                $("#sisa_3").html(parseInt(totalPoint_3) - 50);
+                $("#total_reward").html(newReward);
+                $("#sisa_3").html(sisanya);
             } else {
-                $("#sisa_3").html(0);
+                let hitungSisa  = sisa_2 + sisa_3;
+
+                if(hitungSisa >= 110) {
+                    reward_3    = Math.floor(hitungSisa / 110);
+
+                    let newReward  = reward_1 + reward_2 + reward_3;
+
+                    $("#total_reward").html(newReward);
+                    $("#sisa_3").html(0)
+                } else {
+                    let newReward   = reward_1 + reward_2 + reward_3;
+                    $("#total_reward").html(newReward);
+                    $("#sisa_3").html(total_3);
+                }
             }
         }
     }
