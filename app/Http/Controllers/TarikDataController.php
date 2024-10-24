@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Services\BaseService;
 use App\Services\TarikDataService;
 use Response;
+use Http;
 
 class TarikDataController extends Controller
 {
@@ -25,38 +26,37 @@ class TarikDataController extends Controller
 
     public function tarik_data_get_absensi(Request $request)
     {
-        $data   = [
-            "tgl_cari"  => $request->all()['tgl_cari']
-        ];
+        $host   = env('API_PERCIK_V2');
+        $tgl_cari   = $request->all()['tgl_cari'];
+        
+        $url        = $host . "/api/presensi/get_data_presensi?tgl_awal=".$tgl_cari;
+        $get_data   = Http::get($url);
 
-        $getData    = TarikDataService::get_data_absensi($data);
-        $abs_temp_data  = [];
-
-        if(count($getData) > 0) {
-            for($i = 0; $i < count($getData); $i++)
+        if($get_data->status() == 200) {
+            $presensi_data  = $get_data->json()['data'];
+            for($i = 0; $i < count($presensi_data); $i++)
             {
                 $abs_temp_data[]    = [
                     "abs_no"            => $i + 1,
-                    "abs_name"          => $getData[$i]->name,
-                    "abs_in"            => date('H:i:s', strtotime($getData[$i]->clock_in)),
-                    "abs_in_location"   => $getData[$i]->clock_in_latitude.", ".$getData[$i]->clock_in_longitude,
-                    "abs_out"           => $getData[$i]->clock_out == "0000-00-00 00:00:00" ? null : date('H:i:s', strtotime($getData[$i]->clock_out)),
-                    "abs_out_location"  => $getData[$i]->clock_out == "0000-00-00 00:00:00" ? null : $getData[$i]->clock_out_latitude.", ".$getData[$i]->clock_out_longitude,
+                    "abs_name"          => $presensi_data[$i]['emp_name'],
+                    "abs_in"            => date('H:i:s', strtotime($presensi_data[$i]['prs_in_time'])),
+                    "abs_in_location"   => $presensi_data[$i]['prs_in_location'],
+                    "abs_out"           => !empty($presensi_data[$i]['prs_out_time']) ? $presensi_data[$i]['prs_out_time'] : "",
+                    "abs_out_location"  => !empty($presensi_data[$i]['prs_out_location']) ? $presensi_data[$i]['prs_out_location'] : "",
                 ];
             }
 
             $output     = [
                 "success"   => true,
-                "status"    => 200,
-                "message"   => "Berhasil Ambil Data Presensi",
+                "status"    => $get_data->status(),
+                "message"   => "Berhasil Ambil Data Presensi Tanggal ".date('d-M-Y', strtotime($tgl_cari)),
                 "data"      => $abs_temp_data,
             ];
-
         } else {
             $output     = [
                 "success"   => false,
-                "status"    => 404,
-                "message"   => "Data Tidak Ditemukan",
+                "status"    => $get_data->status(),
+                "message"   => "Gagal Ambil Data Presensi Tanggal ".date('d-M-Y', strtotime($tgl_cari)),
                 "data"      => [],
             ];
         }

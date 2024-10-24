@@ -136,6 +136,7 @@ function closeModal(idModal)
                 $("#point_"+seq).html(0);
                 $("#bonus_"+seq).html(0);
                 $("#total_"+seq).html(0);
+                $("#sisa_"+seq).html(0);
             }
 
             $("#total_Jan").html(0);
@@ -603,23 +604,11 @@ function simulasiHitung(idTable, column, seq)
                 // HITUNG REWARD 2
                 reward_2    = Math.floor(total_2 / 50);
                 
-                let newReward;
-                let sisanya; 
-                let sisaLama    = total_2 - ((reward_2) * 50);
-
-                if(sisaLama + sisa_1 >= 80) {
-                    reward_2    = reward_2 + (Math.floor((sisaLama + sisa_1) / 80));
-                    newReward   = reward_1 + reward_2 + reward_3;
-                    sisanya     = (sisaLama + sisa_1) - 80;
-                } else {
-                    newReward   = reward_1 + reward_2 + reward_3;
-                    sisanya     = sisaLama;
-                }
+                let newReward   = reward_1 + reward_2 + reward_3;
+                let sisanya     = total_2 - ((reward_2) * 50);
 
                 $("#total_reward").html(newReward);
                 $("#sisa_2").html(sisanya);
-
-                
             } else {
                 // DAPATKAN TOTAL SISA SEBELUMNYA DITAMBAH TOTAL SEKARANG
                 let hitungSisa  = total_2 + sisa_1;
@@ -642,6 +631,7 @@ function simulasiHitung(idTable, column, seq)
             let total_2     = parseInt($("#total_2").text());
             let total_3     = parseInt($("#total_3").text());
 
+            let sisa_1      = parseInt($("#sisa_1").text());
             let sisa_2      = parseInt($("#sisa_2").text());
             let sisa_3      = 0;
 
@@ -659,7 +649,7 @@ function simulasiHitung(idTable, column, seq)
                 $("#total_reward").html(newReward);
                 $("#sisa_3").html(sisanya);
             } else {
-                let hitungSisa  = sisa_2 + sisa_3;
+                let hitungSisa  = sisa_1 + sisa_2 + total_3;
 
                 if(hitungSisa >= 110) {
                     reward_3    = Math.floor(hitungSisa / 110);
@@ -667,7 +657,7 @@ function simulasiHitung(idTable, column, seq)
                     let newReward  = reward_1 + reward_2 + reward_3;
 
                     $("#total_reward").html(newReward);
-                    $("#sisa_3").html(0)
+                    $("#sisa_3").html(total_3)
                 } else {
                     let newReward   = reward_1 + reward_2 + reward_3;
                     $("#total_reward").html(newReward);

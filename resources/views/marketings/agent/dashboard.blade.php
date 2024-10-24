@@ -67,7 +67,7 @@
                                 <label class="no-margins">Simulasi Point Agent</label>
                             </h4>
                         </div>
-                        <div class="card-body text-center">
+                        <div class="card-body">
                             <h2 class="no-margins font-weight-normal" id="simulasi_text">Lakukan Simulasi</h2>
                         </div>
                         <a href="#show_modal_simulasi" class="card-footer" title="Lihat Detail" onclick="showModal('modal_simulasi', '', 'view')">
