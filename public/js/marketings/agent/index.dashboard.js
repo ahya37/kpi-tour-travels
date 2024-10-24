@@ -243,7 +243,7 @@ function addColumnTable(idTable, seq, data)
         let isBtnDeleteDisabledCursor   = seq > 1 ? "pointer" : "no-drop";
         let monthName           = moment.monthsShort();
         const btnDelete     = "<button class='btn btn-sm btn-danger' "+isBtnDeleteDisabled+" onclick='deleteColumnTable(`table_simulasi`, "+seq+")' style='cursor: "+isBtnDeleteDisabledCursor+"'><i class='fa fa-trash'></i></button>";
-        const inputTahun    = "<input type='text' class='form-control form-control-sm text-center' id='tahun"+seq+"'value='2022' readonly>";
+        const inputTahun    = "<input type='text' class='form-control form-control-sm text-center' id='tahun"+seq+"'value='2025' readonly>";
         const inputJan      = "<input type='text' class='form-control form-control-sm text-right' id='Jan"+seq+"' value='0' onkeyup='simulasiHitung(`table_simulasi`, `Jan`, "+seq+")' autocomplete='off'>";
         const inputFeb      = "<input type='text' class='form-control form-control-sm text-right' id='Feb"+seq+"' value='0' onkeyup='simulasiHitung(`table_simulasi`, `Feb`, "+seq+")' autocomplete='off'>";
         const inputMar      = "<input type='text' class='form-control form-control-sm text-right' id='Mar"+seq+"' value='0' onkeyup='simulasiHitung(`table_simulasi`, `Mar`, "+seq+")' autocomplete='off'>";
