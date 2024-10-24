@@ -1,4 +1,5 @@
 $(document).ready(()    => {
+    clearUrl();
     // GET DATA FOR DASHBOARD
     const agentURL  = "marketings/agent/tarik_data_agent_local";
     
@@ -127,6 +128,7 @@ function closeModal(idModal)
 {
     if(idModal == 'modal_agent') {
         $("#"+idModal).modal('hide');
+        clearUrl();
     } else if(idModal == 'modal_simulasi') {
         $("#"+idModal).modal('hide');
 
@@ -154,6 +156,7 @@ function closeModal(idModal)
 
             $("#total_reward").html(0);
         })
+        clearUrl();
     } else if(idModal == 'modal_data_agent') {
         $("#"+idModal).modal('hide');
         $("#"+idModal).on('hidden.bs.modal', () => {
@@ -781,6 +784,13 @@ function uppercase(idForm, value)
 function removeInvalid(idForm)
 {
     $("#"+idForm).removeClass('is-invalid');
+}
+
+function clearUrl()
+{
+    var url     = window.location.href;
+    var cleanUrl= url.split('#')[0];
+    window.history.replaceState({}, document.title, cleanUrl);
 }
 
 function doTransaction(url, type, data, message, isAsync)
