@@ -41,7 +41,7 @@ class TarikDataController extends Controller
                     "abs_name"          => $presensi_data[$i]['emp_name'],
                     "abs_in"            => date('H:i:s', strtotime($presensi_data[$i]['prs_in_time'])),
                     "abs_in_location"   => $presensi_data[$i]['prs_in_location'],
-                    "abs_out"           => !empty($presensi_data[$i]['prs_out_time']) ? $presensi_data[$i]['prs_out_time'] : "",
+                    "abs_out"           => !empty($presensi_data[$i]['prs_out_time']) ? date('H:i:s', strtotime($presensi_data[$i]['prs_out_time'])) : "",
                     "abs_out_location"  => !empty($presensi_data[$i]['prs_out_location']) ? $presensi_data[$i]['prs_out_location'] : "",
                 ];
             }
