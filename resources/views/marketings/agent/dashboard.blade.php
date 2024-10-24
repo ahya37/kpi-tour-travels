@@ -219,6 +219,38 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <h2 class="no-margins font-weight-light">Pendapatan Tahun Pertama</h2>
+                                </div>
+                                <div class="col-sm-4">
+                                    <h2 class="no-margins font-weight-light">Pendapatan Tahun Kedua</h2>
+                                </div>
+                                <div class="col-sm-4">
+                                    <h2 class="no-margins font-weight-light">Pendapatan Tahun Ketiga</h2>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <h2 class="no-margins font-weight-bold" id="total_pendapatan_tahun_pertama">
+                                        Rp. 0,00
+                                    </h2>
+                                </div>
+                                <div class="col-sm-4">
+                                    <h2 class="no-margins font-weight-bold" id="total_pendapatan_tahun_kedua">
+                                        Rp. 0,00
+                                    </h2>
+                                </div>
+                                <div class="col-sm-4">
+                                    <h2 class="no-margins font-weight-bold" id="total_pendapatan_tahun_ketiga">
+                                        Rp. 0,00
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <hr>
                     <div class="row mb-2">
                         <div class="col-sm-12">

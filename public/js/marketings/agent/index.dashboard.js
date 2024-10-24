@@ -364,6 +364,8 @@ function simulasiHitung(idTable, column, seq)
         let prevNov    = 0;
         let prevDes    = 0;
 
+        let fee         = 1000000;
+
         const tableData     = $("#"+idTable).DataTable().rows().count();
 
         for(let i = 0; i < tableData; i++)
@@ -588,6 +590,12 @@ function simulasiHitung(idTable, column, seq)
                 $("#total_reward").html(newReward);
                 $("#sisa_1").html(total_1);
             }
+
+            // HITUNG FEE
+            let point_1     = parseInt($("#point_1").text());
+            let fee_1       = fee * point_1;
+            let formatRp    = new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR"}).format(fee_1);
+            $("#total_pendapatan_tahun_pertama").html(formatRp);
         } else if(seq == 2) {
             let total_1     = parseInt($("#total_1").text());
             let total_2     = parseInt($("#total_2").text());
@@ -626,6 +634,13 @@ function simulasiHitung(idTable, column, seq)
                     $("#sisa_2").html(total_2)
                 }
             }
+
+            // HITUNG FEE
+            let point_2     = parseInt($("#point_2").text());
+            let fee_2       = fee * point_2;
+            let formatRp    = new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR"}).format(fee_2);
+            $("#total_pendapatan_tahun_kedua").html(formatRp);
+
         } else if(seq == 3) {
             let total_1     = parseInt($("#total_1").text());
             let total_2     = parseInt($("#total_2").text());
@@ -664,6 +679,12 @@ function simulasiHitung(idTable, column, seq)
                     $("#sisa_3").html(total_3);
                 }
             }
+
+            // HITUNG FEE
+            let point_3     = parseInt($("#point_3").text());
+            let fee_3       = fee * point_3;
+            let formatRp    = new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR"}).format(fee_3);
+            $("#total_pendapatan_tahun_ketiga").html(formatRp);
         }
     }
 }
