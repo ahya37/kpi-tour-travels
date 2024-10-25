@@ -6,36 +6,6 @@ var longitude;
 var today       = moment().format('YYYY-MM-DD');
 
 $(document).ready(()    => {
-    // showTable('table_absensi', '');
-    // $("#prs_tgl_cari").daterangepicker({
-    //     minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
-    //     maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
-    //     autoApply   : false,
-    //     format      : 'DD/MM/YYYY',
-    //     setStartDate    : moment(today, 'YYYY-MM-DD'),
-    //     locale  : {
-    //         separator   : ' s/d ',
-    //         cancelLabel : 'Batal',
-    //         applyLabel  : 'Simpan',
-    //     },
-    // });
-
-    // $("#btn_cari_data_absen").on('click', () => {
-    //     const abs_user_id       = $("#prs_user_id").val();
-    //     const abs_tanggal_cari  = $("#prs_tgl_cari").val().split(' s/d ');
-    //     const abs_tanggal_awal  = moment(abs_tanggal_cari[0], 'DD/MM/YYYY').format('YYYY-MM-DD');
-    //     const abs_tanggal_akhir = moment(abs_tanggal_cari[1], 'DD/MM/YYYY').format('YYYY-MM-DD');
-    //     const abs_jml_hari      = moment(abs_tanggal_akhir, 'YYYY-MM-DD').diff(moment(abs_tanggal_awal, 'YYYY-MM-DD'), 'days') + 1;
-
-    //     const abs_sendData      = {
-    //         "tanggal_awal"      : abs_tanggal_awal,
-    //         "tanggal_akhir"     : abs_tanggal_akhir,
-    //         "user_id"           : abs_user_id,
-    //         "jml_hari"          : abs_jml_hari,
-    //     };
-    //     showTable('table_absensi', abs_sendData);
-    // })
-
     // GET DATA KEHADIRAN
     const abs_url   = base_url + "/dashboard/absensi/get_user_presence";
     const abs_type  = "GET";
