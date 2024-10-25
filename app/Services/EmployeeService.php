@@ -273,7 +273,7 @@ class EmployeeService
                         ->select('b.name as prs_name', 'a.prs_date', 'a.prs_in_time', 'a.prs_out_time')
                         ->where(DB::raw('EXTRACT(YEAR FROM a.prs_date)'),'=', $year)
                         ->where(DB::raw('EXTRACT(MONTH FROM a.prs_date)'),'=', $month)
-                        ->where('a.prs_user_id', '=', $user_id)
+                        ->where('a.prs_user_id', 'LIKE', '%'.$user_id.'%')
                         ->orderBy('a.prs_date', 'asc')
                         ->get();
         
