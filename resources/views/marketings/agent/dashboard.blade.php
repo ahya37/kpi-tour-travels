@@ -28,6 +28,11 @@
     input[type=number] {
     -moz-appearance: textfield;
     }
+
+    button:disabled {
+        cursor: not-allowed;
+        pointer-events: all !important;
+    }
     </style>
 @endpush
 
@@ -71,6 +76,23 @@
                             <h2 class="no-margins font-weight-normal" id="simulasi_text">Lakukan Simulasi</h2>
                         </div>
                         <a href="#show_modal_simulasi" class="card-footer" title="Lihat Detail" onclick="showModal('modal_simulasi', '', 'view')">
+                            Lihat Detail
+                        </a>
+                    </div>
+                </div>
+                <div class="col-sm-3 mb-2">
+                    <div class="card" id="card_pengaturan_agen">
+                        <dic class="card-header bg-primary">
+                            <h4 class="no-margins font-weight-bold">
+                                <label class="no-margins">Pengaturan Agen</label>
+                            </h4>
+                        </dic>
+                        <div class="card-body">
+                            <h2 class="no-margins font-weight-normal" id="pengaturan_agen_text">
+                                Pengaturan Agen
+                            </h2>
+                        </div>
+                        <a href="#show_modal_pengaturan_agen" class="card-footer" title="Lihat Detail" onclick="showModal('modal_pengaturan_agen', '', 'view')">
                             Lihat Detail
                         </a>
                     </div>
@@ -383,6 +405,55 @@
                 <div class="modal-footer">
                     <button class="btn btn-secondary" id="modal_data_agent_batal" onclick="closeModal('modal_data_agent')" title="Tutup Tampilan">Batal</button>
                     <button class="btn btn-primary" id="modal_data_agent_simpan" title="Simpan Data" onclick="doSimpanData('modal_data_agent', this.value)">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_pengaturan_agen">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header align-items-center">
+                    <h4 class="no-margins font-weight-bold">
+                        <i class="fa fa-cog"></i> Pengaturan Agen
+                    </h4>
+                    <button class="close" title="tutup tampilan" onclick="closeModal('modal_pengaturan_agen')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-4">
+                            <label class="font-weight-bold no-margins">Pilih Agen</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <select class="form-control form-control-sm" name="sl_agt_id" id="sl_agt_id" style="width: 100%;" onchange="showSelectDetail(this.id, this.value)"></select>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            &nbsp;
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped table-bordered table-hover" id="table_pengaturan_agen" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Tanggal</th>
+                                            <th class="text-center align-middle">Tour Code</th>
+                                            <th class="text-center align-middle">Banyaknya</th>
+                                            <th class="text-center align-middle">Jenis</th>
+                                            <th class="text-center align-middle">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer align-items-center">
+                    <button class="btn btn-secondary" id="btn_close_modal_pengaturan_agen" title="Tutup Tampilan" onclick="closeModal('modal_pengaturan_agen')">Tutup</button>
+                    <button class="btn btn-success" id="btn_tambah_data_modal_pengaturan_agen" title="Tambah Baris" value="0" disabled onclick="addColumnTable('table_pengaturan_agen', this.value, '')">Tambah Baris</button>
                 </div>
             </div>
         </div>

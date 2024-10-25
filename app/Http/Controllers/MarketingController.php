@@ -2328,4 +2328,39 @@ class MarketingController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 25 OKTOBER 2024
+    // GET DATA TOUR CODE BY TAHUN
+    public function marketing_agent_ambil_data_tour_code_by_tahun($tahun)
+    {
+        $host       = env('API_PERCIK_V2');
+
+        $get_data   = Http::get($host.'/api/umhaj/master/jadwal_umrah?tahun='.$tahun);
+        
+        if($get_data->status() >= 200 || $get_data()->status < 300) {
+            $data_api   = $get_data->json();
+
+            for($i = 0; $i < count($data_api['data']); $i++) {
+                $data[]     = [
+                    "tour_code" => $data_api['data'][$i]['UMRAH_TOUR_CODE'],
+                ];
+            }
+
+            $output = [
+                "status"    => $get_data->status(),
+                "success"   => true,
+                "message"   => "Berhasil Mengambil Data Tour Code",
+                "data"      => $data,
+            ];
+        } else {
+            $output     = [
+                "status"    => $get_data->status(),
+                "success"   => false,
+                "message"   => "Gagal Mengambil Data Tour Code",
+                "data"      => [], 
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

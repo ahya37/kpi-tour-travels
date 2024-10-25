@@ -12,7 +12,7 @@ class Kernel extends ConsoleKernel
         $current_time   = date('H:i');
 
         if($current_time <= "15:00") {
-            $schedule->command('app:get-data-absen')->everyFiveMinutes();
+            $schedule->command('app:get-data-absen')->everyMinute();
         } else {
             $schedule->command('app:get-data-absen')->everyTwoHours();
         }

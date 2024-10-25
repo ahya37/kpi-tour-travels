@@ -1,16 +1,30 @@
+var dataAgent       = [];
+var dataTourCode    = [];
+var today           = moment().format('YYYY-MM-DD');
 $(document).ready(()    => {
     clearUrl();
     // GET DATA FOR DASHBOARD
     const agentURL  = "marketings/agent/tarik_data_agent_local";
+
+    // GET DATA TOURCODE
+    const tourCode_url  = "marketings/agent/ambil_data_tour_code/"+moment(today).format('YYYY');
+    const tourCode_type = "GET";
+    const tourCode_data = [];
+    const tourCode_msg  = "";
     
     const getData   = [
-        doTransaction(agentURL, "GET", [], "", true)
+        doTransaction(agentURL, "GET", [], "", true),
+        doTransaction(tourCode_url, tourCode_type, tourCode_data, tourCode_msg, true)
     ];
 
     Promise.allSettled(getData)
         .then((success)     => {
             const agentGetData  = success[0].value.data;
             $("#agent_text").html("<label class='font-weight-bold no-margins'>" + agentGetData.length + "</label>");
+
+            if(dataTourCode.length == 0) {
+                dataTourCode.push(success[1].value.data);
+            }
         })
         .catch((err)        => {
             $("#agent_text").html("<label class='font-weight-bold no-margins'>0</label>");
@@ -121,6 +135,49 @@ function showModal(idModal, data, action)
                     })
                 })
         }
+    } else if(idModal == 'modal_pengaturan_agen') {
+        // GET DATA DULU
+        if(dataAgent.length == 0) {
+            const agentUrl  = "marketings/agent/tarik_data_agent_local";
+
+            const doTrans   = [
+                doTransaction(agentUrl, 'GET', [], "", true)
+            ];
+
+            Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+            Promise.allSettled(doTrans)
+                .then((success)     => {
+                    // FOR DATA AGENT
+                    const agentGetData  = success[0].value.data;
+                    for(const agtItem of agentGetData)
+                    {
+                        dataAgent.push({
+                            "agent_id"  : agtItem.agt_id,
+                            "agent_name": agtItem.agt_name,
+                        })
+                    }
+                    Swal.close();
+                    $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+                    showSelect('sl_agt_id', dataAgent, '', '');
+                    showTable('table_pengaturan_agen', '');
+                })
+                .catch((err)        => {
+                    console.log(err);
+                    Swal.fire({
+                        icon    : 'erorr',
+                        title   : 'Terjadi Kesalahan',
+                        text    : 'Tidak Ada Data Yang Bisa Dimuat..'
+                    })
+                })
+        } else {
+            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+            showSelect('sl_agt_id', dataAgent, '', '');
+            showTable('table_pengaturan_agen', '');
+        }
+
+        $("#"+idModal).on('shown.bs.modal',  () => {
+            $("#table_pengaturan_agen").DataTable().columns.adjust().draw(false);
+        })
     }
 }
 
@@ -171,6 +228,73 @@ function closeModal(idModal)
             $("#agt_note").val("");
         })
         showModal('modal_agent', '', 'view');
+    } else if(idModal == 'modal_pengaturan_agen') {
+        $("#"+idModal).modal('hide');
+        clearUrl();
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#btn_tambah_data_modal_pengaturan_agen").prop('disabled', true);
+        })
+    }
+}
+
+function showSelect(idSelect, data, value, seq)
+{
+    $("#"+idSelect+seq).select2({
+        theme   : 'bootstrap4',
+    })
+    if(idSelect == 'sl_agt_id') {
+        let html    = "<option selected disabled>List Agen</option>";
+        
+        if(data.length > 0) {
+            for(const item of data) {
+                html += `<option value='${item.agent_id}'>${item.agent_name}</option>`;
+            }
+        }
+
+        if(value != '') {
+            $("#"+idSelect).val(value);
+        }
+
+        $("#"+idSelect).html(html);
+    } else if(idSelect == 'agt_tourCode') {
+        let html    = "<option selected disabled>Pilih Tour Code</option>";
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += `<option value=${item['tour_code']}>${item['tour_code']}</option>`
+            })
+        }
+
+        $("#"+idSelect+seq).html(html);
+
+        if(value != '') {
+            $("#"+idSelect+seq).val(value);
+        }
+    } else if(idSelect == 'agt_jenis') {
+        let html    = "<option selected disabled>Jenis</option>";
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += `<option value=${item['id']}>${item['name']}</option>`;
+            })
+        }
+
+        $("#"+idSelect+seq).html(html);
+
+        if(value != '') {
+            $("#"+idSelect+seq).val(val);
+        }
+    }
+}
+
+function showSelectDetail(idSelect, data)
+{
+    if(idSelect == 'sl_agt_id')
+    {
+        $("#btn_tambah_data_modal_pengaturan_agen").prop('disabled', false);
+        // HARUSNYA GET DATA
+        showTable('table_pengaturan_agen', []);
+        
     }
 }
 
@@ -236,6 +360,37 @@ function showTable(idTable, data)
             ],
         })
         $("#table_simulasi_wrapper").css("padding-bottom", "0px");
+    } else if(idTable == 'table_pengaturan_agen') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : "Pilih Agent Terlebih Dahulu",
+            },
+            scrollY     : true,
+            pageLength  : -1,
+            paging      : false,
+            searching   : false,
+            bInfo       : false,
+            columnDefs   : [
+                { "targets" : [0], "className" : "text-center", "width" : "8%" },
+                { "targets" : [1], "width" : "15%" },
+                { "targets" : [3], "width" : "13%" },
+                { "targets" : [4], "width" : "10%" },
+                { "targets" : [5], "className" : "text-center align-middle", "width" : "10%" },
+            ],
+            ordering    : false,
+        })
+
+        const agent     = $("#sl_agt_id").val();
+        if(agent !== null) {
+            if(data.length > 0) {
+                addColumnTable(idTable, data.length, data);
+            } else {
+                addColumnTable(idTable, 0, []);
+            }
+        }
+
+        $("#"+idTable+"_wrapper").css("padding-bottom", "0px");
     }
 }
 
@@ -289,6 +444,56 @@ function addColumnTable(idTable, seq, data)
 
         let next_seq    = parseInt(seq) + 1;
         $("#btn_table_simulasi").val(next_seq);
+    } else if(idTable == 'table_pengaturan_agen') {
+        let ke              = parseInt(seq) + 1;
+        let inputNo         = "<input type='text' class='form-control text-center' id='agt_no"+ke+"' readonly placeholder='No' style='height: 38px;'>";
+        let inputTanggal    = "<input type='text' class='form-control' id='agt_tgl"+ke+"' placeholder='DD/MM/YYY' readonly style='background: white; cursor: pointer; height: 38px;'>";
+        let inputTourCode   = "<select class='form-control' style='width: 100%;' id='agt_tourCode"+ke+"'></select>";
+        let inputBanyaknya  = "<input type='number' inputmode='numeric' class='form-control' id='agt_banyaknya"+ke+"' placeholder='Banyaknya' min='0' max='999' step='1' style='height: 38px;'>";
+        let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"'></select>";
+        let inputAksi       = "<button class='btn btn-sm btn-primary' title='Ubah Data'><i class='fa fa-edit'></i></button>";
+        let inputDelete     = "<button class='btn btn-sm btn-danger' title='Hapus Data' id='btn_delete_agen"+ke+"' onclick='deleteColumnTable("+idTable+","+ke+")'><i class='fa fa-trash'></i></button>";
+        $("#"+idTable).DataTable().row.add([
+            inputNo,
+            inputTanggal,
+            inputTourCode,
+            inputBanyaknya,
+            inputJenis,
+            inputAksi+" "+inputDelete
+        ]).draw(false);
+
+        $("#agt_no"+ke).val(ke);
+        $("#agt_banyaknya"+ke).val(0);
+
+        $("#agt_tgl"+ke).daterangepicker({
+            minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
+            maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
+            autoApply   : true,
+            format      : 'DD/MM/YYYY',
+            setStartDate    : moment(today, 'YYYY-MM-DD'),
+            singleDatePicker    : true,
+            locale  : {
+                cancelLabel : 'Batal',
+                applyLabel  : 'Simpan',
+            },
+        });
+
+        const dataJenis     = [
+            { "id" : "act", "name" : "Aktif" },
+            { "id" : "ref", "name" : "Referral" },
+            { "id" : "psv", "name" : "Passif" },
+        ];
+
+        $("#agt_banyaknya"+(ke)).focus();
+
+        showSelect('agt_tourCode', dataTourCode[0], '', ke);
+        showSelect('agt_jenis', dataJenis, '', ke);
+
+        if(ke > 1) {
+            $("#btn_delete_agen"+(ke - 1)).prop('disabled', true);
+        }
+
+        $("#btn_tambah_data_modal_pengaturan_agen").val(ke);
     }
 }
 
