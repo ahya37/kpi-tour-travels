@@ -35,10 +35,10 @@ class getDataAbsen extends Command
     public function handle()
     {
         $today  = date('Y-m-d');
-        $get_data   = TarikDataService::get_tarik_data_presensi($today);
-        LogHelper::cronjob('add', $get_data['message'], "Tarik Data Presensi");
+        // $get_data   = TarikDataService::get_tarik_data_presensi($today);
+        LogHelper::cronjob('add', "test", "Tarik Data Presensi");
         
-        $output     = "[".date('Y-m-d H:i:s')."] ".$get_data['message']."";
+        $output     = "[".date('Y-m-d H:i:s')."] Berahasil";
 
         var_dump($output);
     }
