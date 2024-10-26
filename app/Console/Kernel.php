@@ -18,5 +18,7 @@ class Kernel extends ConsoleKernel
     {
         // Daftarkan semua command di siniq
         $this->load(__DIR__.'/Commands');
+
+        require base_path('routes/console.php');
     }
 }
