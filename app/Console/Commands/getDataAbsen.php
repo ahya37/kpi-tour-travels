@@ -38,7 +38,12 @@ class getDataAbsen extends Command
         // $get_data   = TarikDataService::get_tarik_data_presensi($today);
         LogHelper::cronjob('add', "test", "Tarik Data Presensi");
         
-        $output     = "[".date('Y-m-d H:i:s')."] Berahasil";
+        $output     = "[".date('Y-m-d H:i:s')."] Berhasil";
+
+        \Log::info('Handling app:get-data-absen command', [
+            'arguments'     => $this->argument(),
+            'options'       => $this->options()
+        ]);
 
         var_dump($output);
     }
