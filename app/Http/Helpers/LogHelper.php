@@ -31,5 +31,17 @@ class LogHelper {
 
         DB::table('log_activity')->insert($dataSimpan);
     }
+
+    public static function cronjob($type, $desc, $job)
+    {
+        $data_simpan    = array(
+            "log_type"      => $type,
+            "log_desc"      => $desc,
+            "log_date_time" => date('Y-m-d H:i:s'),
+            "job_title"     => $job
+        );
+
+        DB::table('log_cronjob')->insert($data_simpan);
+    }
 }
 ?>

@@ -1,15 +1,30 @@
+var dataAgent       = [];
+var dataTourCode    = [];
+var today           = moment().format('YYYY-MM-DD');
 $(document).ready(()    => {
+    clearUrl();
     // GET DATA FOR DASHBOARD
     const agentURL  = "marketings/agent/tarik_data_agent_local";
+
+    // GET DATA TOURCODE
+    const tourCode_url  = "marketings/agent/ambil_data_tour_code/"+moment(today).format('YYYY');
+    const tourCode_type = "GET";
+    const tourCode_data = [];
+    const tourCode_msg  = "";
     
     const getData   = [
-        doTransaction(agentURL, "GET", [], "", true)
+        doTransaction(agentURL, "GET", [], "", true),
+        doTransaction(tourCode_url, tourCode_type, tourCode_data, tourCode_msg, true)
     ];
 
     Promise.allSettled(getData)
         .then((success)     => {
             const agentGetData  = success[0].value.data;
             $("#agent_text").html("<label class='font-weight-bold no-margins'>" + agentGetData.length + "</label>");
+
+            if(dataTourCode.length == 0) {
+                dataTourCode.push(success[1].value.data);
+            }
         })
         .catch((err)        => {
             $("#agent_text").html("<label class='font-weight-bold no-margins'>0</label>");
@@ -120,6 +135,49 @@ function showModal(idModal, data, action)
                     })
                 })
         }
+    } else if(idModal == 'modal_pengaturan_agen') {
+        // GET DATA DULU
+        if(dataAgent.length == 0) {
+            const agentUrl  = "marketings/agent/tarik_data_agent_local";
+
+            const doTrans   = [
+                doTransaction(agentUrl, 'GET', [], "", true)
+            ];
+
+            Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+            Promise.allSettled(doTrans)
+                .then((success)     => {
+                    // FOR DATA AGENT
+                    const agentGetData  = success[0].value.data;
+                    for(const agtItem of agentGetData)
+                    {
+                        dataAgent.push({
+                            "agent_id"  : agtItem.agt_id,
+                            "agent_name": agtItem.agt_name,
+                        })
+                    }
+                    Swal.close();
+                    $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+                    showSelect('sl_agt_id', dataAgent, '', '');
+                    showTable('table_pengaturan_agen', '');
+                })
+                .catch((err)        => {
+                    console.log(err);
+                    Swal.fire({
+                        icon    : 'erorr',
+                        title   : 'Terjadi Kesalahan',
+                        text    : 'Tidak Ada Data Yang Bisa Dimuat..'
+                    })
+                })
+        } else {
+            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+            showSelect('sl_agt_id', dataAgent, '', '');
+            showTable('table_pengaturan_agen', '');
+        }
+
+        $("#"+idModal).on('shown.bs.modal',  () => {
+            $("#table_pengaturan_agen").DataTable().columns.adjust().draw(false);
+        })
     }
 }
 
@@ -127,6 +185,7 @@ function closeModal(idModal)
 {
     if(idModal == 'modal_agent') {
         $("#"+idModal).modal('hide');
+        clearUrl();
     } else if(idModal == 'modal_simulasi') {
         $("#"+idModal).modal('hide');
 
@@ -136,11 +195,25 @@ function closeModal(idModal)
                 $("#point_"+seq).html(0);
                 $("#bonus_"+seq).html(0);
                 $("#total_"+seq).html(0);
+                $("#sisa_"+seq).html(0);
             }
-            
-            $("#card_umrah_reward").addClass('d-none');
+
+            $("#total_Jan").html(0);
+            $("#total_Feb").html(0);
+            $("#total_Mar").html(0);
+            $("#total_Apr").html(0);
+            $("#total_Mei").html(0);
+            $("#total_Jun").html(0);
+            $("#total_Jul").html(0);
+            $("#total_Agt").html(0);
+            $("#total_Sep").html(0);
+            $("#total_Okt").html(0);
+            $("#total_Nov").html(0);
+            $("#total_Des").html(0);
+
             $("#total_reward").html(0);
         })
+        clearUrl();
     } else if(idModal == 'modal_data_agent') {
         $("#"+idModal).modal('hide');
         $("#"+idModal).on('hidden.bs.modal', () => {
@@ -155,6 +228,73 @@ function closeModal(idModal)
             $("#agt_note").val("");
         })
         showModal('modal_agent', '', 'view');
+    } else if(idModal == 'modal_pengaturan_agen') {
+        $("#"+idModal).modal('hide');
+        clearUrl();
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#btn_tambah_data_modal_pengaturan_agen").prop('disabled', true);
+        })
+    }
+}
+
+function showSelect(idSelect, data, value, seq)
+{
+    $("#"+idSelect+seq).select2({
+        theme   : 'bootstrap4',
+    })
+    if(idSelect == 'sl_agt_id') {
+        let html    = "<option selected disabled>List Agen</option>";
+        
+        if(data.length > 0) {
+            for(const item of data) {
+                html += `<option value='${item.agent_id}'>${item.agent_name}</option>`;
+            }
+        }
+
+        if(value != '') {
+            $("#"+idSelect).val(value);
+        }
+
+        $("#"+idSelect).html(html);
+    } else if(idSelect == 'agt_tourCode') {
+        let html    = "<option selected disabled>Pilih Tour Code</option>";
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += `<option value=${item['tour_code']}>${item['tour_code']}</option>`
+            })
+        }
+
+        $("#"+idSelect+seq).html(html);
+
+        if(value != '') {
+            $("#"+idSelect+seq).val(value);
+        }
+    } else if(idSelect == 'agt_jenis') {
+        let html    = "<option selected disabled>Jenis</option>";
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += `<option value=${item['id']}>${item['name']}</option>`;
+            })
+        }
+
+        $("#"+idSelect+seq).html(html);
+
+        if(value != '') {
+            $("#"+idSelect+seq).val(val);
+        }
+    }
+}
+
+function showSelectDetail(idSelect, data)
+{
+    if(idSelect == 'sl_agt_id')
+    {
+        $("#btn_tambah_data_modal_pengaturan_agen").prop('disabled', false);
+        // HARUSNYA GET DATA
+        showTable('table_pengaturan_agen', []);
+        
     }
 }
 
@@ -220,6 +360,37 @@ function showTable(idTable, data)
             ],
         })
         $("#table_simulasi_wrapper").css("padding-bottom", "0px");
+    } else if(idTable == 'table_pengaturan_agen') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : "Pilih Agent Terlebih Dahulu",
+            },
+            scrollY     : true,
+            pageLength  : -1,
+            paging      : false,
+            searching   : false,
+            bInfo       : false,
+            columnDefs   : [
+                { "targets" : [0], "className" : "text-center", "width" : "8%" },
+                { "targets" : [1], "width" : "15%" },
+                { "targets" : [3], "width" : "13%" },
+                { "targets" : [4], "width" : "10%" },
+                { "targets" : [5], "className" : "text-center align-middle", "width" : "10%" },
+            ],
+            ordering    : false,
+        })
+
+        const agent     = $("#sl_agt_id").val();
+        if(agent !== null) {
+            if(data.length > 0) {
+                addColumnTable(idTable, data.length, data);
+            } else {
+                addColumnTable(idTable, 0, []);
+            }
+        }
+
+        $("#"+idTable+"_wrapper").css("padding-bottom", "0px");
     }
 }
 
@@ -230,7 +401,7 @@ function addColumnTable(idTable, seq, data)
         let isBtnDeleteDisabledCursor   = seq > 1 ? "pointer" : "no-drop";
         let monthName           = moment.monthsShort();
         const btnDelete     = "<button class='btn btn-sm btn-danger' "+isBtnDeleteDisabled+" onclick='deleteColumnTable(`table_simulasi`, "+seq+")' style='cursor: "+isBtnDeleteDisabledCursor+"'><i class='fa fa-trash'></i></button>";
-        const inputTahun    = "<input type='text' class='form-control form-control-sm text-center' id='tahun"+seq+"'value='2022' readonly>";
+        const inputTahun    = "<input type='text' class='form-control form-control-sm text-center' id='tahun"+seq+"'value='2025' readonly>";
         const inputJan      = "<input type='text' class='form-control form-control-sm text-right' id='Jan"+seq+"' value='0' onkeyup='simulasiHitung(`table_simulasi`, `Jan`, "+seq+")' autocomplete='off'>";
         const inputFeb      = "<input type='text' class='form-control form-control-sm text-right' id='Feb"+seq+"' value='0' onkeyup='simulasiHitung(`table_simulasi`, `Feb`, "+seq+")' autocomplete='off'>";
         const inputMar      = "<input type='text' class='form-control form-control-sm text-right' id='Mar"+seq+"' value='0' onkeyup='simulasiHitung(`table_simulasi`, `Mar`, "+seq+")' autocomplete='off'>";
@@ -273,6 +444,56 @@ function addColumnTable(idTable, seq, data)
 
         let next_seq    = parseInt(seq) + 1;
         $("#btn_table_simulasi").val(next_seq);
+    } else if(idTable == 'table_pengaturan_agen') {
+        let ke              = parseInt(seq) + 1;
+        let inputNo         = "<input type='text' class='form-control text-center' id='agt_no"+ke+"' readonly placeholder='No' style='height: 38px;'>";
+        let inputTanggal    = "<input type='text' class='form-control' id='agt_tgl"+ke+"' placeholder='DD/MM/YYY' readonly style='background: white; cursor: pointer; height: 38px;'>";
+        let inputTourCode   = "<select class='form-control' style='width: 100%;' id='agt_tourCode"+ke+"'></select>";
+        let inputBanyaknya  = "<input type='number' inputmode='numeric' class='form-control' id='agt_banyaknya"+ke+"' placeholder='Banyaknya' min='0' max='999' step='1' style='height: 38px;'>";
+        let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"'></select>";
+        let inputAksi       = "<button class='btn btn-sm btn-primary' title='Ubah Data'><i class='fa fa-edit'></i></button>";
+        let inputDelete     = "<button class='btn btn-sm btn-danger' title='Hapus Data' id='btn_delete_agen"+ke+"' onclick='deleteColumnTable("+idTable+","+ke+")'><i class='fa fa-trash'></i></button>";
+        $("#"+idTable).DataTable().row.add([
+            inputNo,
+            inputTanggal,
+            inputTourCode,
+            inputBanyaknya,
+            inputJenis,
+            inputAksi+" "+inputDelete
+        ]).draw(false);
+
+        $("#agt_no"+ke).val(ke);
+        $("#agt_banyaknya"+ke).val(0);
+
+        $("#agt_tgl"+ke).daterangepicker({
+            minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
+            maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
+            autoApply   : true,
+            format      : 'DD/MM/YYYY',
+            setStartDate    : moment(today, 'YYYY-MM-DD'),
+            singleDatePicker    : true,
+            locale  : {
+                cancelLabel : 'Batal',
+                applyLabel  : 'Simpan',
+            },
+        });
+
+        const dataJenis     = [
+            { "id" : "act", "name" : "Aktif" },
+            { "id" : "ref", "name" : "Referral" },
+            { "id" : "psv", "name" : "Passif" },
+        ];
+
+        $("#agt_banyaknya"+(ke)).focus();
+
+        showSelect('agt_tourCode', dataTourCode[0], '', ke);
+        showSelect('agt_jenis', dataJenis, '', ke);
+
+        if(ke > 1) {
+            $("#btn_delete_agen"+(ke - 1)).prop('disabled', true);
+        }
+
+        $("#btn_tambah_data_modal_pengaturan_agen").val(ke);
     }
 }
 
@@ -350,6 +571,8 @@ function simulasiHitung(idTable, column, seq)
         let prevOkt    = 0;
         let prevNov    = 0;
         let prevDes    = 0;
+
+        let fee         = 1000000;
 
         const tableData     = $("#"+idTable).DataTable().rows().count();
 
@@ -545,7 +768,7 @@ function simulasiHitung(idTable, column, seq)
             q4  = 0;
         }
 
-        let hitungPoint   = jan + feb + mar + apr + mei + jun + jul + agt + sep + okt + nov + des;
+        let hitungPoint     = jan + feb + mar + apr + mei + jun + jul + agt + sep + okt + nov + des;
         let hitungBonus     = q1 + q2 + q3 + q4;
         let hitungTotal     = parseInt(hitungPoint) + parseInt(hitungBonus);
 
@@ -554,72 +777,122 @@ function simulasiHitung(idTable, column, seq)
         $("#total_"+seq).html(hitungTotal);
 
         if(seq == 1) {
+            let total_1     = parseInt($("#total_1").text());
+            let total_2     = parseInt($("#total_2").text());
+            let total_3     = parseInt($("#total_3").text());
+
+            let reward_1    = 0;
+            let reward_2    = Math.floor(total_2 / 50);
+            let reward_3    = Math.floor(total_3 / 50);
+
             if(hitungTotal >= 50) {
-                $("#sisa_1").html(hitungTotal - 50);
-                $("#card_umrah_reward").removeClass('d-none');
-                $("#total_reward").html(1);
-            } else {
-                $("#sisa_1").html(0);
-                $("#total_reward").html(0);
-            }
-        } else if(seq == 2) {
-            let hitungTotalPrev     = $("#total_1").text();
-            let hitungTotalCurr     = $("#total_2").text();
-            let currentTotalReward  = $("#total_reward").text();
-
-            if(parseInt(hitungTotalPrev) >= 50) {
-                hitungTotalPrev     = hitungTotalPrev - 50;
-                $("#total_reward").html(1);
-            }
-            
-            if(parseInt(hitungTotalCurr) >= 50) {
-                $("#card_umrah_reward").removeClass('d-none');
-                if(parseInt($("#total_reward").text()) > 0) {
-                    let newTotalReward  = parseInt($("#total_reward").text()) + 1;
-                    $("#total_reward").html(parseInt(newTotalReward));
-                    $("#sisa_2").html(hitungTotalCurr - 50);
-                }
-            } else if(parseInt(hitungTotalCurr) < 50) {
-                $("#sisa_2").html(0);
-                // CHECK DULU SISA POINT SEBELUMNYA
-                let hitungPointBaru     = parseInt(hitungTotalPrev) + parseInt(hitungTotalCurr);
-                if(hitungPointBaru >= 80) {
-                    $("#card_umrah_reward").removeClass('d-none');
-                    let newTotalReward  = parseInt($("#total_reward").text()) + 1;
-                    $("#total_reward").html(parseInt(newTotalReward));
-                }
-            }
-        } else if(seq == 3) {
-            let totalPoint_1    = $("#total_1").text();
-            let totalPoint_2    = $("#total_2").text();
-            let totalPoint_3    = $("#total_3").text();
-
-            let sisaPoint_1     = $("#sisa_1").text();
-            let sisaPoint_2     = $("#sisa_2").text();
-
-            if(parseInt(totalPoint_1) >= 50) {
-                $("#card_umrah_reward").removeClass('d-none');
-                $("#total_reward").html(1);
-            }
-
-            if(parseInt(totalPoint_2) >= 50) {
-                $("#card_umrah_reward").removeClass('d-none');
-                $("#total_reward").html(2);
-            }
-
-            if(parseInt(totalPoint_3) >= 50) {
-                $("#card_umrah_reward").removeClass('d-none');
+                reward_1    = Math.floor(total_1 / 50);
                 
-                if(parseInt($("#total_reward").text()) < 3 && parseInt($("#total_reward").text()) >= 2) {
-                    $("#total_reward").html(3);
-                } else {
-                    $("#total_reward").html(parseInt($("#total_reward").text()) + 1);
-                }
+                let newReward   = reward_1 + reward_2 + reward_3;
+                let sisanya     = total_1 - ((reward_1) * 50);
 
-                $("#sisa_3").html(parseInt(totalPoint_3) - 50);
+                $("#total_reward").html(newReward);
+                $("#sisa_1").html(sisanya);
             } else {
-                $("#sisa_3").html(0);
+                let newReward   = reward_1 + reward_2 + reward_3;
+                $("#total_reward").html(newReward);
+                $("#sisa_1").html(total_1);
             }
+
+            // HITUNG FEE
+            let point_1     = parseInt($("#point_1").text());
+            let fee_1       = fee * point_1;
+            let formatRp    = new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR"}).format(fee_1);
+            $("#total_pendapatan_tahun_pertama").html(formatRp);
+        } else if(seq == 2) {
+            let total_1     = parseInt($("#total_1").text());
+            let total_2     = parseInt($("#total_2").text());
+            let total_3     = parseInt($("#total_3").text());
+            
+            let sisa_1      = parseInt($("#sisa_1").text());
+
+            // GET REWARD DARI DATA SEBELUMNYA
+            let reward_1    = Math.floor(total_1 / 50);
+            let reward_2    = 0;
+            let reward_3    = Math.floor(total_3 / 50);
+            
+            if(total_2 >= 50) {
+                // HITUNG REWARD 2
+                reward_2    = Math.floor(total_2 / 50);
+                
+                let newReward   = reward_1 + reward_2 + reward_3;
+                let sisanya     = total_2 - ((reward_2) * 50);
+
+                $("#total_reward").html(newReward);
+                $("#sisa_2").html(sisanya);
+            } else {
+                // DAPATKAN TOTAL SISA SEBELUMNYA DITAMBAH TOTAL SEKARANG
+                let hitungSisa  = total_2 + sisa_1;
+                
+                if(hitungSisa >= 80) {
+                    reward_2    = Math.floor(hitungSisa / 80);
+
+                    let newReward   = reward_1 + reward_2 + reward_3;
+
+                    $("#total_reward").html(newReward);
+                    $("#sisa_2").html(0);
+                } else {
+                    let newReward   = reward_1 + reward_2 + reward_3;
+                    $("#total_reward").html(newReward);
+                    $("#sisa_2").html(total_2)
+                }
+            }
+
+            // HITUNG FEE
+            let point_2     = parseInt($("#point_2").text());
+            let fee_2       = fee * point_2;
+            let formatRp    = new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR"}).format(fee_2);
+            $("#total_pendapatan_tahun_kedua").html(formatRp);
+
+        } else if(seq == 3) {
+            let total_1     = parseInt($("#total_1").text());
+            let total_2     = parseInt($("#total_2").text());
+            let total_3     = parseInt($("#total_3").text());
+
+            let sisa_1      = parseInt($("#sisa_1").text());
+            let sisa_2      = parseInt($("#sisa_2").text());
+            let sisa_3      = 0;
+
+            // GET REWARD DARI DATA SEBELUMNYA
+            let reward_1    = Math.floor(total_1 / 50);
+            let reward_2    = Math.floor(total_2 / 50);
+            let reward_3    = 0
+
+            if(total_3 >= 50) {
+                reward_3    = Math.floor(total_3 / 50);
+
+                let newReward   = reward_1 + reward_2 + reward_3;
+                let sisanya     = total_3 - ((reward_3) * 50);
+
+                $("#total_reward").html(newReward);
+                $("#sisa_3").html(sisanya);
+            } else {
+                let hitungSisa  = sisa_1 + sisa_2 + total_3;
+
+                if(hitungSisa >= 110) {
+                    reward_3    = Math.floor(hitungSisa / 110);
+
+                    let newReward  = reward_1 + reward_2 + reward_3;
+
+                    $("#total_reward").html(newReward);
+                    $("#sisa_3").html(total_3)
+                } else {
+                    let newReward   = reward_1 + reward_2 + reward_3;
+                    $("#total_reward").html(newReward);
+                    $("#sisa_3").html(total_3);
+                }
+            }
+
+            // HITUNG FEE
+            let point_3     = parseInt($("#point_3").text());
+            let fee_3       = fee * point_3;
+            let formatRp    = new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR"}).format(fee_3);
+            $("#total_pendapatan_tahun_ketiga").html(formatRp);
         }
     }
 }
@@ -716,6 +989,13 @@ function uppercase(idForm, value)
 function removeInvalid(idForm)
 {
     $("#"+idForm).removeClass('is-invalid');
+}
+
+function clearUrl()
+{
+    var url     = window.location.href;
+    var cleanUrl= url.split('#')[0];
+    window.history.replaceState({}, document.title, cleanUrl);
 }
 
 function doTransaction(url, type, data, message, isAsync)

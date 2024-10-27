@@ -28,9 +28,12 @@ function showTable(idTable)
 
         // GET DATA
         const pgj_url   = "/pengajuan/listCuti";
+        const pgj_data  = {
+            "bulan" : moment().format('MM'),
+        };
         const pgj_type  = "GET";
         
-        doTrans(pgj_url, pgj_type, "", "", true)
+        doTrans(pgj_url, pgj_type, pgj_data, "", true)
             .then(success   => {
                 const pgj_getData   = success.data;
 

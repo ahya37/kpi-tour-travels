@@ -1,40 +1,13 @@
 var today       = moment().format('YYYY-MM-DD');
 var base_url    = window.location.origin;
 $(document).ready(function(){
-    console.log('test');
-
     showTable('table_group_division');
-
     $("#tgl_cari").daterangepicker({
         singleDatePicker    : true,
         autoApply           : true,
         minDate             : moment(today, 'YYYY-MM-DD').subtract(1, 'years').format('DD/MM/YYYY'),
         maxDate             : moment(today, 'YYYY-MM-DD').add(1, 'years').format('DD/MM/YYYY'),
     });
-
-    // TEST KIRIM TEXT KE API
-    const formData  = {
-        "emp_id"    : "ini dari laravel",
-    };
-    
-    const data      = new URLSearchParams(formData).toString();
-    
-    $.ajax({
-        url     : 'http://localhost:3001/api/employees/test_get_dari_fe',
-        cache   : false,
-        type    : "POST",
-        dataType: "json",
-        headers : {
-            'Content-Type' : 'application/x-www-form-urlencoded',
-        },
-        data    : data,
-        success : (success) => {
-            console.log(success)
-        },
-        error   : (err)     => {
-            console.log(err)
-        }
-    })
 });
 
 function showTable(idTable)
