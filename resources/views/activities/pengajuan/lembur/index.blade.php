@@ -134,5 +134,4 @@
     @include('layouts.js')
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/activities/pengajuan/lembur/index.js') }}"></script>
-    {{-- <script src="{{ asset('js/activities/pengajuan/cuti/index.js') }}"></script> --}}
 @endpush

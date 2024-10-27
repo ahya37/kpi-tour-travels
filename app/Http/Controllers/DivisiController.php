@@ -26,6 +26,89 @@ class DivisiController extends Controller
     // MARKETING
     // IT
     // OPERASIONAL
+    // FOR EXCEL PURPOSE
+    public function autoSizeColumn(Worksheet $sheet, $column)
+        {
+            $maxLength = 0;
+            $columnIndex = Coordinate::columnIndexFromString($column); // Mendapatkan indeks kolom dari huruf kolom
+        
+            // Iterasi melalui semua baris dalam kolom
+            foreach ($sheet->getRowIterator() as $row) {
+                $cell = $sheet->getCell($column . $row->getRowIndex());
+                $value = $cell->getValue();
+                $length = strlen((string) $value); // Konversi nilai sel ke string
+        
+                // Periksa panjang sel untuk menentukan lebar kolom maksimum
+                if ($length > $maxLength) {
+                    $maxLength = $length;
+                }
+            }
+        
+            // Set lebar kolom
+            $sheet->getColumnDimension($column)->setWidth($maxLength + 2); // Menambahkan sedikit ruang ekstra
+        }
+
+    public function getDayName($day)
+    {
+        switch($day) {
+            case "Mon" :
+                $hari   = "Senin";
+            break;
+            case "Tue" : 
+                $hari   = "Selasa";
+            break;
+            case "Wed" :
+                $hari   = "Rabu";
+            break;
+            case "Thu"  : 
+                $hari   = "Kamis";
+            break;
+            case "Fri"  : 
+                $hari   = "Jumat";
+            break;
+            case "Sat"  :
+                $hari   = "Sabtu";
+            break;
+            case "Sun"  :
+                $hari   = "Minggu";
+            break;
+        }
+
+        return $hari;
+    }
+
+    public function getTime($day)
+    {
+        switch($day)
+        {
+            case "Sat" :
+                $jam_masuk  = "08:00:00";
+                $jam_keluar = "13:30:00";
+                $batas_ot_1 = "14:30:00";
+                $batas_ot_2 = "23:59:59";
+            break;
+            case "Sun" : 
+                $jam_masuk  = "00:00:00";
+                $jam_keluar = "23:59:00";
+                $batas_ot_1 = "00:00:00";
+                $batas_ot_2 = "00:00:00";
+            break;
+            default : 
+                $jam_masuk  = "08:00:00";
+                $jam_keluar = "16:00:00";
+                $batas_ot_1 = "17:00:00";
+                $batas_ot_2 = "23:59:00";
+        }
+
+        $data   = [
+            "jam_masuk"     => $jam_masuk,
+            "jam_keluar"    => $jam_keluar,
+            "batas_ot_1"    => $batas_ot_1,
+            "batas_ot_2"    => $batas_ot_2,
+        ];
+
+        return $data;
+    }
     public function indexOperasional() {
         if(Auth::user()->getRoleNames()[0] == 'operasional' || Auth::user()->getRoleNames()[0] == 'admin') {
             $data   = [
@@ -1355,7 +1438,7 @@ class DivisiController extends Controller
             "sub_title" => "Dashboard - Divisi Human Resource",
         ];
 
-        return view("/divisi/human_resource/dashboard/index", $data);
+        return view(".divisi.human_resource.dashboard.index", $data);
     }
 
     // 22 AGUSTUS 2024
@@ -1532,26 +1615,6 @@ class DivisiController extends Controller
         
         $spreadsheet    = new Spreadsheet;
 
-        function autoSizeColumn(Worksheet $sheet, $column)
-        {
-            $maxLength = 0;
-            $columnIndex = Coordinate::columnIndexFromString($column); // Mendapatkan indeks kolom dari huruf kolom
-        
-            // Iterasi melalui semua baris dalam kolom
-            foreach ($sheet->getRowIterator() as $row) {
-                $cell = $sheet->getCell($column . $row->getRowIndex());
-                $value = $cell->getValue();
-                $length = strlen((string) $value); // Konversi nilai sel ke string
-        
-                // Periksa panjang sel untuk menentukan lebar kolom maksimum
-                if ($length > $maxLength) {
-                    $maxLength = $length;
-                }
-            }
-        
-            // Set lebar kolom
-            $sheet->getColumnDimension($column)->setWidth($maxLength + 2); // Menambahkan sedikit ruang ekstra
-        }
         for($i = 0; $i < count($getDataUser); $i++)
         {
             $emp_data   = $getDataUser[$i];
@@ -1658,12 +1721,12 @@ class DivisiController extends Controller
             $sheet1->setCellValue('E'.$total_data, $total_lebih_jam->format('H:i:s'));
             $spreadsheet->setActiveSheetIndex(0);
 
-            autoSizeColumn($sheet1, 'A');
-            autoSizeColumn($sheet1, 'B');
-            autoSizeColumn($sheet1, 'C');
-            autoSizeColumn($sheet1, 'D');
-            autoSizeColumn($sheet1, 'E');
-            autoSizeColumn($sheet1, 'F');
+            $this->autoSizeColumn($sheet1, 'A');
+            $this->autoSizeColumn($sheet1, 'B');
+            $this->autoSizeColumn($sheet1, 'C');
+            $this->autoSizeColumn($sheet1, 'D');
+            $this->autoSizeColumn($sheet1, 'E');
+            $this->autoSizeColumn($sheet1, 'F');
         }
 
         // Simpan file Excel ke disk
@@ -2049,88 +2112,6 @@ class DivisiController extends Controller
 
         $spreadsheet    = new Spreadsheet;
         
-        function autoSizeColumn(Worksheet $sheet, $column)
-        {
-            $maxLength = 0;
-            $columnIndex = Coordinate::columnIndexFromString($column); // Mendapatkan indeks kolom dari huruf kolom
-        
-            // Iterasi melalui semua baris dalam kolom
-            foreach ($sheet->getRowIterator() as $row) {
-                $cell = $sheet->getCell($column . $row->getRowIndex());
-                $value = $cell->getValue();
-                $length = strlen((string) $value); // Konversi nilai sel ke string
-        
-                // Periksa panjang sel untuk menentukan lebar kolom maksimum
-                if ($length > $maxLength) {
-                    $maxLength = $length;
-                }
-            }
-        
-            // Set lebar kolom
-            $sheet->getColumnDimension($column)->setWidth($maxLength + 3); // Menambahkan sedikit ruang ekstra
-        }
-
-        function getDayName($day)
-        {
-            switch($day) {
-                case "Mon" :
-                    $hari   = "Senin";
-                break;
-                case "Tue" : 
-                    $hari   = "Selasa";
-                break;
-                case "Wed" :
-                    $hari   = "Rabu";
-                break;
-                case "Thu"  : 
-                    $hari   = "Kamis";
-                break;
-                case "Fri"  : 
-                    $hari   = "Jumat";
-                break;
-                case "Sat"  :
-                    $hari   = "Sabtu";
-                break;
-                case "Sun"  :
-                    $hari   = "Minggu";
-                break;
-            }
-
-            return $hari;
-        }
-
-        function getTime($day)
-        {
-            switch($day)
-            {
-                case "Sat" :
-                    $jam_masuk  = "08:00:00";
-                    $jam_keluar = "13:30:00";
-                    $batas_ot_1 = "14:30:00";
-                    $batas_ot_2 = "23:59:59";
-                break;
-                case "Sun" : 
-                    $jam_masuk  = "00:00:00";
-                    $jam_keluar = "23:59:00";
-                    $batas_ot_1 = "00:00:00";
-                    $batas_ot_2 = "00:00:00";
-                break;
-                default : 
-                    $jam_masuk  = "08:00:00";
-                    $jam_keluar = "16:00:00";
-                    $batas_ot_1 = "17:00:00";
-                    $batas_ot_2 = "23:59:00";
-            }
-
-            $data   = [
-                "jam_masuk"     => $jam_masuk,
-                "jam_keluar"    => $jam_keluar,
-                "batas_ot_1"    => $batas_ot_1,
-                "batas_ot_2"    => $batas_ot_2,
-            ];
-
-            return $data;
-        }
         
         if(count($get_data_employee) > 0) {
             for($x = 0; $x < count($get_data_employee); $x++) {
@@ -2252,10 +2233,10 @@ class DivisiController extends Controller
         
                         // GET JAM MASUK - JAM KELUAR
                         $jam_telat              = "08:10:00";
-                        $jam_masuk              = getTime($date_day_name)['jam_masuk'];
-                        $jam_keluar             = getTime($date_day_name)['jam_keluar'];
-                        $batas_jam_ot_1         = getTime($date_day_name)['batas_ot_1'];
-                        $batas_jam_ot_2         = getTime($date_day_name)['batas_ot_2'];
+                        $jam_masuk              = $this->getTime($date_day_name)['jam_masuk'];
+                        $jam_keluar             = $this->getTime($date_day_name)['jam_keluar'];
+                        $batas_jam_ot_1         = $this->getTime($date_day_name)['batas_ot_1'];
+                        $batas_jam_ot_2         = $this->getTime($date_day_name)['batas_ot_2'];
         
                         // CHECK TELAT
                         if($employee_prs_in_time > $jam_telat) {
@@ -2330,7 +2311,7 @@ class DivisiController extends Controller
         
                         $sheet1->getStyle('B'.$column_start.':E'.$column_start)->applyFromArray($sheetStyleBorder);
                         $sheet1->setCellValue('B'.$column_start, strtoupper($employee_prs_name));
-                        $sheet1->setCellValue('C'.$column_start, getDayName($date_day_name).", ".date('d.m.Y', strtotime($employee_prs_date)));
+                        $sheet1->setCellValue('C'.$column_start, $this->getDayName($date_day_name).", ".date('d.m.Y', strtotime($employee_prs_date)));
                         $sheet1->setCellValue('D'.$column_start, $employee_prs_in_time);
                         $sheet1->setCellValue('E'.$column_start, $employee_prs_out_time);
                         // $sheet1->setCellValue('F'.$column_start, $jam_masuk);
@@ -2389,7 +2370,7 @@ class DivisiController extends Controller
                                 $lemburan_total     = $lemburan_ot1 + $lemburan_ot2 + $lemburan_ot3;
                                 
                                 $sheet1->setCellValue('G'.$cell_lemburan, date('d.m.Y', strtotime($lemburan_tanggal)));
-                                $sheet1->setCellValue('H'.$cell_lemburan, getDayName(date('D', strtotime($lemburan_tanggal))));
+                                $sheet1->setCellValue('H'.$cell_lemburan, $this->getDayName(date('D', strtotime($lemburan_tanggal))));
                                 $sheet1->setCellvalue('I'.$cell_lemburan, $lemburan_jam_masuk);
                                 $sheet1->setCellvalue('J'.$cell_lemburan, $lemburan_jam_keluar);
                                 $sheet1->setCellvalue('K'.$cell_lemburan, $lemburan_ot1);
@@ -2413,21 +2394,21 @@ class DivisiController extends Controller
 
                     $data_lemburan  = "";
         
-                    autoSizeColumn($sheet1, 'B');
-                    autoSizeColumn($sheet1, 'C');
-                    autoSizeColumn($sheet1, 'D');
-                    autoSizeColumn($sheet1, 'E');
-                    autoSizeColumn($sheet1, 'G');
-                    autoSizeColumn($sheet1, 'H');
-                    autoSizeColumn($sheet1, 'I');
-                    autoSizeColumn($sheet1, 'J');
-                    autoSizeColumn($sheet1, 'K');
-                    autoSizeColumn($sheet1, 'L');
-                    autoSizeColumn($sheet1, 'M');
-                    autoSizeColumn($sheet1, 'N');
-                    autoSizeColumn($sheet1, 'P');
-                    autoSizeColumn($sheet1, 'Q');
-                    autoSizeColumn($sheet1, 'R');
+                    $this->autoSizeColumn($sheet1, 'B');
+                    $this->autoSizeColumn($sheet1, 'C');
+                    $this->autoSizeColumn($sheet1, 'D');
+                    $this->autoSizeColumn($sheet1, 'E');
+                    $this->autoSizeColumn($sheet1, 'G');
+                    $this->autoSizeColumn($sheet1, 'H');
+                    $this->autoSizeColumn($sheet1, 'I');
+                    $this->autoSizeColumn($sheet1, 'J');
+                    $this->autoSizeColumn($sheet1, 'K');
+                    $this->autoSizeColumn($sheet1, 'L');
+                    $this->autoSizeColumn($sheet1, 'M');
+                    $this->autoSizeColumn($sheet1, 'N');
+                    $this->autoSizeColumn($sheet1, 'P');
+                    $this->autoSizeColumn($sheet1, 'Q');
+                    $this->autoSizeColumn($sheet1, 'R');
                 }
             }
             // die();

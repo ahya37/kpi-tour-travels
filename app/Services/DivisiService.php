@@ -2440,6 +2440,7 @@ class DivisiService
                     ->select('emp_act_uuid as emp_act_id', 'emp_act_user_id as emp_user_id', 'b.name as emp_user_name', 'emp_act_start_date as emp_act_date', 'emp_act_title as emp_description', 'emp_act_type as emp_trans_type', 'emp_act_status as emp_trans_status')
                     ->where('emp_act_type', '=', 'Lembur')
                     ->where('emp_act_user_id', 'LIKE', '%'.$user_id.'%')
+                    ->orderBy('emp_act_start_date', 'desc')
                     ->get();
         return $query;
     }

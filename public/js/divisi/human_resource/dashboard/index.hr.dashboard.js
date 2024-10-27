@@ -1,9 +1,8 @@
 // INDEX JS DASHBOARD
-
 moment().locale('id');
-var today   = moment().format('YYYY-MM-DD');
+var today               = moment().format('YYYY-MM-DD');
 var abs_data_global     = [];
-var base_url          = window.location.origin;
+var base_url            = window.location.origin;
 
 $(document).ready(() => {
     // GET DATA PENGAJUAN
