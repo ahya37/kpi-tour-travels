@@ -119,14 +119,14 @@ function showModal(idModal, data)
             picker.container.find(".calendar-table").hide();
         });
 
+        $("#"+idModal).on('shown.bs.modal', () => {
+            $("#lmb_keterangan").focus();
+        });
+
         if(data == '') {
             $("#btn_save_modal_buat_pengajuan").val('add');
             $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
             $("#btn_simpan").val('add');
-            $("#"+idModal).on('shown.bs.modal', () => {
-                $("#lmb_keterangan").focus();
-            });
-
         } else {
             $("#btn_save_modal_buat_pengajuan").val('edit');
             const lmb_id    = data;
@@ -152,6 +152,8 @@ function showModal(idModal, data)
                     $("#lmb_start_time").data('daterangepicker').setEndDate(moment(success.data.detail[0].empd_start_time));
                     $("#lmb_end_time").data('daterangepicker').setStartDate(moment(success.data.detail[0].empd_end_time));
                     $("#lmb_end_time").data('daterangepicker').setEndDate(moment(success.data.detail[0].empd_end_time));
+
+                    $("#lmb_keterangan_length").html(success.data.header[0].emp_act_description.length+"/100");
 
 
                 })
