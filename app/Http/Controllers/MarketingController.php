@@ -2340,16 +2340,20 @@ class MarketingController extends Controller
         if($get_data->status() >= 200 || $get_data()->status < 300) {
             $data_api   = $get_data->json();
 
-            for($i = 0; $i < count($data_api['data']); $i++) {
-                $data[]     = [
-                    "tour_code" => $data_api['data'][$i]['UMRAH_TOUR_CODE'],
-                ];
+            if(count($data_api['data']) > 0) {
+                for($i = 0; $i < count($data_api['data']); $i++) {
+                    $data[]     = [
+                        "tour_code" => $data_api['data'][$i]['UMRAH_TOUR_CODE'],
+                    ];
+                }
+            } else {
+                $data   = [];
             }
 
             $output = [
                 "status"    => $get_data->status(),
-                "success"   => true,
-                "message"   => "Berhasil Mengambil Data Tour Code",
+                "success"   => $data_api['success'],
+                "message"   => $data_api['message'],
                 "data"      => $data,
             ];
         } else {

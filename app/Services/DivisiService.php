@@ -2464,8 +2464,8 @@ class DivisiService
                 "emp_act_uuid"      => Str::uuid(),
                 "emp_act_user_id"   => $user_id,
                 "emp_act_title"     => $header['lmb_description'],
-                "emp_act_start_date"=> date('Y-m-d'),
-                "emp_act_end_date"  => date('Y-m-d'),
+                "emp_act_start_date"=> $detail[0]['lmbd_date'],
+                "emp_act_end_date"  => $detail[0]['lmbd_date'],
                 "emp_act_type"      => "Lembur",
                 "emp_act_status"    => 3,
                 "created_by"        => $user_id,
@@ -2499,9 +2499,12 @@ class DivisiService
                 "emp_act_uuid"      => $data['data']['header']['lmb_id']
             ];
             $data_update_header = [
+                "emp_act_start_date"=> $data['data']['detail'][0]['lmbd_date'],
+                "emp_act_end_date"  => $data['data']['detail'][0]['lmbd_date'],
                 "updated_by"        => Auth::user()->id,
                 "updated_at"        => date('Y-m-d H:i:s'),
             ];
+            
             DB::table('employees_activity')->where($data_where_header)->update($data_update_header);
 
             // UPDATE DETAIL

@@ -85,6 +85,8 @@ function showTable(idTable)
                 { "targets" : [1, 3, 4], "width" : "15%", "className" : "text-center align-middle" },
             ],
         });
+
+        $("#"+idTable+"_wrapper").css('padding-bottom', '0px');
     }
 }
 

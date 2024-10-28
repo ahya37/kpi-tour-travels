@@ -56,13 +56,11 @@
     <div class="modal fade" id="modal_buat_lemburan">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header">
-                    <div class="d-flex flex-row align-items-center justify-content-between w-100">
-                        <h4 class="no-margins">
-                            <label class="no-margins">Buat Pengajuan Lembur</label>
-                        </h4>
-                        <button class="close" onclick="closeModal('modal_buat_lemburan')">&times;</button>
-                    </div>
+                <div class="modal-header align-items-center">
+                    <h4 class="no-margins">
+                        <label class="no-margins font-weight-bold">Buat Pengajuan Lembur</label>
+                    </h4>
+                    <button class="close" onclick="closeModal('modal_buat_lemburan')" title="Tutup Tampilan">&times;</button>
                 </div>
                 <div class="modal-body">
                     <div class="row mb-2 align-items-center d-none">
@@ -119,8 +117,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-primary" id="btn_tambah_baris" value="1" onclick="addRow('table_list_lembur_detail', this.value, '')">Tambah Baris</button>
-                    |
+                    {{-- <button class="btn btn-primary" id="btn_tambah_baris" value="1" onclick="addRow('table_list_lembur_detail', this.value, '')">Tambah Baris</button>
+                    | --}}
                     <button class="btn btn-secondary" id="btn_cancel" onclick="closeModal('modal_buat_lemburan')">Batal</button>
                     <button class="btn btn-primary" id="btn_simpan" value="" onclick="simpanData('lemburan', this.value)">Simpan Data</button>
                 </div>
