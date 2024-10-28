@@ -54,13 +54,15 @@
     </div>
 
     <div class="modal fade" id="modal_buat_lemburan">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header align-items-center">
                     <h4 class="no-margins">
-                        <label class="no-margins font-weight-bold">Buat Pengajuan Lembur</label>
+                        <label class="no-margins font-weight-bold">
+                            Buat Pengajuan Lembur
+                        </label>
                     </h4>
-                    <button class="close" onclick="closeModal('modal_buat_lemburan')" title="Tutup Tampilan">&times;</button>
+                    <button class="close" title="Tutup Tampilan" onclick="closeModal('modal_buat_lemburan')">&times;</button>
                 </div>
                 <div class="modal-body">
                     <div class="row mb-2 align-items-center d-none">
@@ -76,51 +78,57 @@
                             <label class="no-margins font-weight-bold">Nama</label>
                         </div>
                         <div class="col-sm-8">
-                            <input type="hidden" class="form-control" placeholder="ID user" readonly id="lmb_name_id">
-                            <input type="text" class="form-control" placeholder="Nama" readonly id="lmb_name">
+                            <input type="text" class="form-control d-none" placeholder="ID User" readonly id="lmb_name_id">
+                            <input type="text" class="form-control" placeholder="Nama User" readonly id="lmb_name">
                         </div>
                     </div>
                     <div class="row mb-2 align-items-center">
                         <div class="col-sm-4">
-                            <label class="no-margins font-weight-bold">Bagian</label>
+                            <label class="no-margins font-weight-bold">Divisi</label>
                         </div>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" placeholder="Bagian" readonly id="lmb_divisi">
+                            <input type="text" class="form-control" placeholder="Divisi" readonly id="lmb_divisi">
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-top">
+                        <div class="col-sm-4">
+                            <label class="no-margins font-weight-bold">Keterangan</label>
+                        </div>
+                        <div class="col-sm-8 text-right">
+                            <textarea class="form-control" placeholder="Keterangan Lemburan" id="lmb_keterangan" onkeyup="textToUppercase(this.id, this.value)" rows="4" style="resize: none;"></textarea>
+                            <span>
+                                <label class="no-margins font-weight-normal" title="Maksimal Karakter" id="lmb_keterangan_length">0/100</label>
+                            </span>
                         </div>
                     </div>
                     <div class="row mb-2 align-items-center">
                         <div class="col-sm-4">
-                            <label class="no-margins font-weight-bold">Untuk</label>
+                            <label class="no-margins font-weight-bold">Tanggal</label>
                         </div>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" placeholder="Keterangan" readonly id="lmb_keterangan" value="Untuk Lemburan">
+                            <input type="text" class="form-control" placeholder="DD/MM/YYYY" id="lmb_date" style="background: white; cursor: pointer;" readonly>
                         </div>
                     </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="table-responsive">
-                                <table class="table table-sm table-striped table-hovered table-bordered" id="table_list_lembur_detail" style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center align-middle" style="width: 10%">Aksi</th>
-                                            <th class="text-center align-middle" style="width: 20%;">Tanggal</th>
-                                            <th class="text-center align-middle">Uraian Pekerjaan</th>
-                                            <th class="text-center align-middle" style="width: 20%;">Jam Mulai</th>
-                                            <th class="text-center align-middle" style="width: 20%;">Jam Selesai</th>
-                                            <th class="text-center align-middle" style="width: 10%">Persetujuan</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-sm-4">
+                            <label class="no-margins font-weight-bold">Jam Mulai</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="lmb_start_time" placeholder="HH:mm" value="00:00" id="lmb_start_time" style="background: white; cursor: pointer;" readonly>
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-sm-4">
+                            <label class="no-margins font-weight-bold">Jam Selesai</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="lmb_end_time" placeholder="HH:mm" value="00:00" id="lmb_end_time" style="background: white; cursor: pointer;" readonly>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    {{-- <button class="btn btn-primary" id="btn_tambah_baris" value="1" onclick="addRow('table_list_lembur_detail', this.value, '')">Tambah Baris</button>
-                    | --}}
-                    <button class="btn btn-secondary" id="btn_cancel" onclick="closeModal('modal_buat_lemburan')">Batal</button>
-                    <button class="btn btn-primary" id="btn_simpan" value="" onclick="simpanData('lemburan', this.value)">Simpan Data</button>
+                    <button class="btn btn-secondary" id="btn_cancel_modal_buat_pengajuan" onclick="closeModal('modal_buat_lemburan')" title="Tutup Tampilan">Tutup</button>
+                    <button class="btn btn-primary" id="btn_save_modal_buat_pengajuan" value="" onclick="simpanData('lemburan', this.value)" title="Simpan Data">Simpan</button>
                 </div>
             </div>
         </div>
