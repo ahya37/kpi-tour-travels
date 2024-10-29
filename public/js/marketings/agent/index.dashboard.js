@@ -5,6 +5,7 @@ $(document).ready(()    => {
     clearUrl();
     // GET DATA FOR DASHBOARD
     const agentURL  = "marketings/agent/tarik_data_agent_local";
+    const agentType = "GET";
 
     // GET DATA TOURCODE
     const tourCode_url  = "marketings/agent/ambil_data_tour_code/"+moment(today).format('YYYY');
@@ -13,8 +14,8 @@ $(document).ready(()    => {
     const tourCode_msg  = "";
     
     const getData   = [
-        doTransaction(agentURL, "GET", [], "", true),
-        doTransaction(tourCode_url, tourCode_type, tourCode_data, tourCode_msg, true)
+        doTransaction(agentURL, agentType, [], "", true),
+        doTransaction(tourCode_url, tourCode_type, tourCode_data, tourCode_msg, true),
     ];
 
     Promise.allSettled(getData)
@@ -25,6 +26,12 @@ $(document).ready(()    => {
             if(dataTourCode.length == 0) {
                 dataTourCode.push(success[1].value.data);
             }
+
+            if(dataAgent.length == 0) {
+                dataAgent.push(success[0].value.data);
+            }
+
+            showTable('table_list_agent', dataAgent[0]);
         })
         .catch((err)        => {
             $("#agent_text").html("<label class='font-weight-bold no-margins'>0</label>");
@@ -34,25 +41,7 @@ $(document).ready(()    => {
 
 function showModal(idModal, data, action)
 {
-    if(idModal == 'modal_agent') {
-        // GET DATA AGENT
-        let agentURL    = "marketings/agent/tarik_data_agent_local";
-        let agentMsg    = Swal.fire({ title : 'Data Sedang Dimuat..', allowOutsideClick: false }); Swal.showLoading();
-        doTransaction(agentURL, 'GET', [], agentMsg, true)
-            .then((success)     => {
-                Swal.close();
-                const agentGetData  = success.data;
-                showTable('table_list_agent', agentGetData);
-                // SHOW MODAL
-                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-            })
-            .catch((err)        => {
-                console.log(err)
-                Swal.close();
-                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-                showTable('table_list_agent', []);
-            })
-    } else if(idModal == 'modal_tarik_data_agent') {
+    if(idModal == 'modal_tarik_data_agent') {
         closeModal('modal_agent');
         // GET DATA
         let agentURL    = "marketings/agent/tarik_data_agent";
@@ -241,8 +230,10 @@ function showSelect(idSelect, data, value, seq)
     })
     if(idSelect == 'sl_agt_id') {
         let html    = "<option selected disabled>List Agen</option>";
-        
-        if(data.length > 0) {
+
+        console.table(data[0]);
+
+        if(data[0].length > 0) {
             for(const item of data) {
                 html += `<option value='${item.agent_id}'>${item.agent_name}</option>`;
             }
@@ -327,15 +318,23 @@ function showTable(idTable, data)
         })
 
         if(data.length > 0) {
-            let seq = 1;
+            let seq  = 1;
             for(const item of data)
             {
+                let agentID     = item['agent_id'];
+                let agentName   = item['agent_name'];
+                let agentPIC    = item['agent_pic'];
+                let agentContact1   = item['agent_contact1'];
+                let agentContact2   = item['agent_contact2'];
+                let agentContact    = agentContact1 != '-' || agentContact1 != '' ? agentContact1 + " / " + agentContact2 : agentContact1;
+                let buttonAct       = `<button type="button" class="btn btn-sm btn-primary" value="${agentID}" onclick="showModal('modal_data_agent', this.value, 'edit')" title="Ubah Data"><i class='fa fa-edit'></i></button>`;
+
                 $("#"+idTable).DataTable().row.add([
-                    `<label class='font-weight-normal no-margins'>${seq++}</label>`,
-                    `<label class='font-weight-normal no-margins'>${item.agt_name}</label>`,
-                    `<label class='font-weight-normal no-margins'>${item.agt_pic}</label>`,
-                    item.agt_contact_1.length < 2 ? `<label class='font-weight-normal no-margins'>${item.agt_contact_2}</label>` : `<label class='font-weight-normal no-margins'>${item.agt_contact_1+" & "+item.agt_contact_2}</label>`,
-                    `<button class='btn btn-sm btn-primary' title='Edit Data' value='${item.agt_id}' onclick='showModal("modal_data_agent", this.value, "edit")'><i class='fa fa-edit'></i></button>`
+                    `<label class="no-margins font-weight-normal">${seq++}</label>`,
+                    `<label class="no-margins font-weight-normal">${agentName}</label>`,
+                    `<label class="no-margins font-weight-normal">${agentPIC}</label>`,
+                    `<label class="no-margins font-weight-normal">${agentContact}</label>`,
+                    buttonAct,
                 ]).draw(false);
             }
         }

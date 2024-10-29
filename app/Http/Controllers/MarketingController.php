@@ -2130,11 +2130,22 @@ class MarketingController extends Controller
         $get_data   = MarketingService::get_data_agent_local();
 
         if(count($get_data) > 0) {
+
+            for($i = 0; $i < count($get_data); $i++) {
+                $data[]     = [
+                    "agent_id"      => $get_data[$i]->agt_id,
+                    "agent_name"    => $get_data[$i]->agt_name,
+                    "agent_pic"     => $get_data[$i]->agt_pic,
+                    "agent_contact1"=> $get_data[$i]->agt_contact_1,
+                    "agent_contact2"=> $get_data[$i]->agt_contact_2,  
+                ];
+            }
+
             $output = [
                 "success"   => true,
                 "status"    => 200,
                 "message"   => "Berhasil Memuat Data Agent",
-                "data"      => $get_data,
+                "data"      => $data,
             ];
         } else {
             $output = [

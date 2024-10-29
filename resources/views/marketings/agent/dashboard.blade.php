@@ -98,34 +98,28 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modal_agent">
-        <div class="modal-dialog modal-dialog-scrollable modal-xl">
-            <div class="modal-content">
-                <div class="modal-header align-items-center">
-                    <h4 class="no-margins font-weight-bold">List Agent</h4>
-                    <button class="close" onclick="closeModal('modal_agent')">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-12">
+            <hr>
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4>
+                            <label class="no-margins font-weight-bold">List Agent</label>
+                            </h4>
+                        </div>
+                        <div>
                             @if ($user_roles == 'admin')
-                                <button class="btn btn-primary" title="Ambil Data Dari Umhaj" onclick="showModal('modal_tarik_data_agent')">
-                                    Tarik Data
-                                </button>
+                                <button class="btn btn-primary" title="Ambil Data Umhaj">Tarik Data</button>
                             @endif
-                            <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_data_agent', '', 'add')">
-                                Tambah Data
-                            </button>
+                            <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_data_agent')">Tambah Data</button>
                         </div>
                     </div>
-                    <hr>
-                    <div class="row">
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
                         <div class="col-sm-12">
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered table-hovered" id="table_list_agent" style="width: 100%;">
+                                <table class="table table-striped table-hover" id="table_list_agent">
                                     <thead>
                                         <tr>
                                             <th class="text-center align-middle">No</th>
@@ -143,6 +137,8 @@
             </div>
         </div>
     </div>
+
+    
 
     <div class="modal fade" id="modal_simulasi">
         <div class="modal-dialog modal-dialog-scrollable modal-xl">
