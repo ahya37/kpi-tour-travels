@@ -469,7 +469,7 @@ function addColumnTable(idTable, seq, data)
         let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"'></select>";
         let inputAksi       = `<button class="btn btn-sm btn-primary" title="Simpan Data" value='add' onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_agen${ke}"><i class="fa fa-check"></i></button>`
         let inputDelete     = `<button class="btn btn-sm btn-danger" title="Hapus Baris" value="${ke}" onclick="deleteColumnTable('${idTable}', '${ke}')" id="btn_delete_agen${ke}"><i class="fa fa-trash"></i></button>`;
-        let inputPaid       = `<button class="btn btn-sm btn-primary" title="Konfirmasi Pembayaran" value="unpaid" onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_paid${ke}"><i class="fa fa-dollar-sign"></i></button>`;
+        let inputPaid       = `<button class="btn btn-sm btn-primary d-none" title="Konfirmasi Pembayaran" value="unpaid" onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_paid${ke}"><i class="fa fa-dollar-sign"></i></button>`;
         $("#"+idTable).DataTable().row.add([
             inputNo,
             inputTanggal,
@@ -532,8 +532,10 @@ function addColumnTable(idTable, seq, data)
                 $("#btn_act_paid"+ke).removeClass('btn-primary');
                 $("#btn_act_paid"+ke).addClass('btn-secondary');
                 $("#btn_act_paid"+ke).prop('title', 'Sudah Dibayarkan');
+                $("#btn_act_paid"+ke).removeClass('d-none');
             }
         } else {
+            $("#btn_act_paid"+ke).addClass('d-none');
             showSelect('agt_tourCode', dataTourCode[0], '', ke);
             showSelect('agt_jenis', dataJenis, '', ke);
         }
@@ -930,6 +932,11 @@ function simulasiHitung(idTable, column, seq)
 
                 $("#total_reward").html(newReward);
                 $("#sisa_2").html(sisanya);
+                
+                if(sisanya + sisa_1 >= 80) {
+                    newReward   = newReward + Math.floor((sisanya + sisa_1) / 80);
+                    $("#total_reward").html(newReward);
+                }
             } else {
                 // DAPATKAN TOTAL SISA SEBELUMNYA DITAMBAH TOTAL SEKARANG
                 let hitungSisa  = total_2 + sisa_1;
@@ -974,20 +981,24 @@ function simulasiHitung(idTable, column, seq)
                 let newReward   = reward_1 + reward_2 + reward_3;
                 let sisanya     = total_3 - ((reward_3) * 50);
 
+                // HITUNG SISA SEBELUMNYA
+                if(sisa_1 + sisa_2 >= 80) {
+                    newReward   = newReward + Math.floor((sisa_1 + sisa_2) / 80);
+                }
+
                 $("#total_reward").html(newReward);
                 $("#sisa_3").html(sisanya);
             } else {
-                let hitungSisa  = sisa_1 + sisa_2 + total_3;
-
+                let hitungSisa  = sisa_1 + sisa_2 == 80 ? Math.round((sisa_1 - sisa_2)) + sisa_3 : sisa_1 + sisa_2 + sisa_3;
                 if(hitungSisa >= 110) {
                     reward_3    = Math.floor(hitungSisa / 110);
-
                     let newReward  = reward_1 + reward_2 + reward_3;
-
+                    newReward   = sisa_1 + sisa_2 >= 80 ? newReward + Math.floor((sisa_1 + sisa_1) / 80) : newReward;
                     $("#total_reward").html(newReward);
                     $("#sisa_3").html(total_3)
                 } else {
                     let newReward   = reward_1 + reward_2 + reward_3;
+                    newReward   = sisa_1 + sisa_2 >= 80 ? newReward + Math.floor((sisa_1 + sisa_1) / 80) : newReward;
                     $("#total_reward").html(newReward);
                     $("#sisa_3").html(total_3);
                 }
