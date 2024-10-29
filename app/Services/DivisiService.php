@@ -2435,11 +2435,13 @@ class DivisiService
     public static function get_list_lembur()
     {
         $user_id    = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id;
-        $query  = DB::table('employees_activity')
-                    ->join('users as b', 'emp_act_user_id', '=', 'b.id')
-                    ->select('emp_act_uuid as emp_act_id', 'emp_act_user_id as emp_user_id', 'b.name as emp_user_name', 'emp_act_start_date as emp_act_date', 'emp_act_title as emp_description', 'emp_act_type as emp_trans_type', 'emp_act_status as emp_trans_status')
+        $query  = DB::table('employees_activity as a')
+                    ->join('users as b', 'a.emp_act_user_id', '=', 'b.id')
+                    ->join('employees_activity_detail as c', 'a.id', '=', 'c.emp_act_id')
+                    ->select('emp_act_uuid as emp_act_id', 'emp_act_user_id as emp_user_id', 'b.name as emp_user_name', 'emp_act_start_date as emp_act_date', 'emp_act_title as emp_description', 'emp_act_type as emp_trans_type', 'emp_act_status as emp_trans_status', 'c.empd_start_time as emp_start_time', 'c.empd_end_time as emp_end_time')
                     ->where('emp_act_type', '=', 'Lembur')
                     ->where('emp_act_user_id', 'LIKE', '%'.$user_id.'%')
+                    ->where('c.empd_seq', '=', '1')
                     ->orderBy('emp_act_start_date', 'desc')
                     ->get();
         return $query;
@@ -2454,18 +2456,17 @@ class DivisiService
         $user_id    = $data['user_id'];
         $user_name  = $data['user_name'];
 
-        $header     = $data['data']['header'];
-        $detail     = $data['data']['detail'];
+        $data_lemburan  = $data['data'];
 
         if($jenis == 'add')
         {
-            // INSERT HEADER
-            $data_header    = [
+            // INSERT TO HEADER
+            $data_header =  [
                 "emp_act_uuid"      => Str::uuid(),
                 "emp_act_user_id"   => $user_id,
-                "emp_act_title"     => $header['lmb_description'],
-                "emp_act_start_date"=> date('Y-m-d'),
-                "emp_act_end_date"  => date('Y-m-d'),
+                "emp_act_title"     => $data_lemburan['lmb_keterangan'],
+                "emp_act_start_date"=> $data_lemburan['lmb_tanggal'],
+                "emp_act_end_date"  => $data_lemburan['lmb_tanggal'],
                 "emp_act_type"      => "Lembur",
                 "emp_act_status"    => 3,
                 "created_by"        => $user_id,
@@ -2473,59 +2474,61 @@ class DivisiService
                 "updated_by"        => $user_id,
                 "updated_at"        => date('Y-m-d H:i:s'),
             ];
-
+            
             DB::table('employees_activity')->insert($data_header);
             $emp_act_id     = DB::getPdo()->lastInsertId();
 
             // INSERT DETAIL
-            for($i = 0; $i < count($detail); $i++) {
-                $data_detail    = [
-                    "emp_act_id"        => $emp_act_id,
-                    "empd_seq"          => $detail[$i]['lmbd_seq'],
-                    "empd_description"  => $detail[$i]['lmbd_desc'],
-                    "empd_date"         => $detail[$i]['lmbd_date'],
-                    "empd_start_time"   => $detail[$i]['lmbd_start_time'],
-                    "empd_end_time"     => $detail[$i]['lmbd_end_time'],
-                    "empd_status"       => 0, 
-                ];
+            $data_detail    = [
+                "emp_act_id"        => $emp_act_id,
+                "empd_seq"          => 1,
+                "empd_description"  => $data_lemburan['lmb_keterangan'],
+                "empd_date"         => $data_lemburan['lmb_tanggal'],
+                "empd_start_time"   => $data_lemburan['lmb_t_start'],
+                "empd_end_time"     => $data_lemburan['lmb_t_end'],
+                "empd_status"       => 0,
+            ];
 
-                DB::table('employees_activity_detail')->insert($data_detail);
-            }
+            DB::table('employees_activity_detail')->insert($data_detail);
         } else if($jenis == 'edit') {
             // GET ID
-            $emp_act_id     = DB::table('employees_activity')->select('id')->where('emp_act_uuid', '=', $data['data']['header']['lmb_id'])->get()[0]->id;
-            // UPDATE HEADER
+            $emp_act_id     = DB::table('employees_activity')
+                                ->select('id')
+                                ->where('emp_act_uuid', '=', $data_lemburan['lmb_act_id'])
+                                ->get()[0]
+                                ->id;
             $data_where_header  = [
-                "emp_act_uuid"      => $data['data']['header']['lmb_id']
+                "emp_act_uuid"  => $data_lemburan['lmb_act_id'],
+                "id"            => $emp_act_id,
             ];
+
             $data_update_header = [
-                "updated_by"        => Auth::user()->id,
-                "updated_at"        => date('Y-m-d H:i:s'),
+                "emp_act_title"         => $data_lemburan['lmb_keterangan'],
+                "emp_act_start_date"    => $data_lemburan['lmb_tanggal'],
+                "emp_act_end_date"      => $data_lemburan['lmb_tanggal'],
+                "updated_by"            => Auth::user()->id,
+                "updated_at"            => date('Y-m-d H:i:s'),
             ];
-            DB::table('employees_activity')->where($data_where_header)->update($data_update_header);
+
+            DB::table('employees_activity')
+                ->where($data_where_header)
+                ->update($data_update_header);
 
             // UPDATE DETAIL
-            $emp_act_detail = $data['data']['detail'];
-            
-            // DELETE EMPLOYEES ACTIVITY USERS
-            DB::table('employees_activity_detail')->where('emp_act_id', '=', $emp_act_id)->delete();
+            $data_where_detail  = [
+                "emp_act_id"        => $emp_act_id,
+            ];
 
-            // INSERT NEW DATA
-            for($i = 0; $i < count($emp_act_detail); $i++) {
-                if($emp_act_detail[$i]['lmbd_desc'] != '') {
-                    $data_detail    = [
-                        "emp_act_id"        => $emp_act_id,
-                        "empd_seq"          => $emp_act_detail[$i]['lmbd_seq'],
-                        "empd_description"  => $emp_act_detail[$i]['lmbd_desc'],
-                        "empd_date"         => $emp_act_detail[$i]['lmbd_date'],
-                        "empd_start_time"   => $emp_act_detail[$i]['lmbd_start_time'],
-                        "empd_end_time"     => $emp_act_detail[$i]['lmbd_end_time'],
-                        "empd_status"       => 0, 
-                    ];
-    
-                    DB::table('employees_activity_detail')->insert($data_detail);
-                }
-            }
+            $data_update_detail = [
+                "empd_description"      => $data_lemburan['lmb_keterangan'],
+                "empd_date"             => $data_lemburan['lmb_tanggal'],
+                "empd_start_time"       => $data_lemburan['lmb_t_start'],
+                "empd_end_time"         => $data_lemburan['lmb_t_end'],
+            ];
+
+            DB::table('employees_activity_detail')
+                ->where($data_where_detail)
+                ->update($data_update_detail);
         }
 
         try {
@@ -2563,17 +2566,17 @@ class DivisiService
                                     ->join('job_employees as c', 'c.employee_id', '=', 'b.id')
                                     ->join('group_divisions as d', 'c.group_division_id', '=', 'd.id')
                                     ->join('users as e', 'b.user_id', '=', 'e.id')
-                                    ->select('a.emp_act_uuid as emp_act_id', 'a.emp_act_user_id as emp_user_id','e.name as emp_user_name', 'a.emp_act_title as emp_act_description', 'd.name as emp_group_division', 'a.emp_act_status')
+                                    ->select('a.emp_act_uuid as emp_act_id', 'a.emp_act_user_id as emp_user_id','e.name as emp_user_name', 'a.emp_act_title as emp_act_description', 'd.name as emp_group_division', 'a.emp_act_status', 'a.emp_act_start_date as emp_act_date')
                                     ->where('a.emp_act_type', '=', 'Lembur')
                                     ->where('a.emp_act_uuid', '=', $emp_act_id)
                                     ->get();
         
         $get_data_detail    = DB::table('employees_activity as a')
-                                ->join('employees_activity_detail as b', 'a.id', '=', 'b.emp_act_id')
-                                ->select('a.emp_act_uuid as emp_act_id', 'b.empd_seq', 'b.empd_description', 'b.empd_date', 'b.empd_start_time', 'b.empd_end_time')
-                                ->where('a.emp_act_type', '=', 'Lembur')
-                                ->where('a.emp_act_uuid', '=', $emp_act_id)
-                                ->get();
+                                    ->join('employees_activity_detail as b', 'a.id', '=', 'b.emp_act_id')
+                                    ->select('a.emp_act_uuid as emp_act_id', 'b.empd_seq', 'b.empd_description', 'b.empd_date', 'b.empd_start_time', 'b.empd_end_time')
+                                    ->where('a.emp_act_type', '=', 'Lembur')
+                                    ->where('a.emp_act_uuid', '=', $emp_act_id)
+                                    ->get();
 
         $output         = [
             "header"    => $get_data_header,

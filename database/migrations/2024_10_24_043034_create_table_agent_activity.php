@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('agent_activity', function (Blueprint $table) {
             $table->string('agt_id', length:8);
-            $table->integer('agt_act_id')->primary();
+            $table->date('agt_act_date');
             $table->string('agt_act_tour_code', length:30);
-            $table->integer('agt_act_count')->default(0);
+            $table->integer('agt_act_qty')->default(0);
             $table->enum('agt_act_status', ['act', 'ref', 'psv'])->default('act');
+            $table->char('agt_act_is_paid', length:1)->default(0);
             $table->string('created_by');
             $table->string('updated_by');
             $table->timestamps();

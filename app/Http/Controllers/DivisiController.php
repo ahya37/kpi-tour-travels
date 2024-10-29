@@ -1975,15 +1975,23 @@ class DivisiController extends Controller
 
     public function simpan_pengajuan_lembur($jenis, Request $request)
     {
-        $data   = [
-            "user_id"   => Auth::user()->id, 
-            "user_name" => Auth::user()->name,
-            "data"      => [
-                "header"    => $request->all()['header'],
-                "detail"    => $request->all()['detail'],
-            ],
-            "jenis"     => $jenis,
-            "ip"        => $request->ip(),
+        // $data   = [
+        //     "user_id"   => Auth::user()->id, 
+        //     "user_name" => Auth::user()->name,
+        //     "data"      => [
+        //         "header"    => $request->all()['header'],
+        //         "detail"    => $request->all()['detail'],
+        //     ],
+        //     "jenis"     => $jenis,
+        //     "ip"        => $request->ip(),
+        // ];
+
+        $data       = [
+            "user_id"       => Auth::user()->id,
+            "user_name"     => Auth::user()->name,
+            "data"          => $request->all(),
+            "jenis"         => $jenis,
+            "ip"            => $request->ip(),
         ];
 
         $doSimpan   = DivisiService::do_simpan_pengajuan_lembur($data);

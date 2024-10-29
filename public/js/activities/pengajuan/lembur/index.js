@@ -53,10 +53,12 @@ function showTable(idTable)
                             break;
                         }
 
+                        let startTime   = moment(emp_item['emp_start_time'], 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
+                        let endTime     = moment(emp_item['emp_end_time'], 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
 
                         $("#"+idTable).DataTable().row.add([
                             emp_seq++,
-                            moment(emp_item['emp_act_date'], 'YYYY-MM-DD').format('DD/MM/YYYY'),
+                            moment(emp_item['emp_act_date'], 'YYYY-MM-DD').format('DD/MM/YYYY') + " (" + startTime + " - " + endTime + ")",
                             emp_item['emp_description'],
                             emp_status,
                             "<button type='button' class='btn btn-sm btn-primary' value='"+emp_item[`emp_act_id`]+"' onclick='showModal(`modal_buat_lemburan`, this.value)' title='Lihat Data'><i class='fa fa-eye'></i></button>"
@@ -69,22 +71,6 @@ function showTable(idTable)
             .catch((err)        => {
                 console.log(err);
             })
-    } else if(idTable == 'table_list_lembur_detail') {
-        $("#"+idTable).DataTable({
-            language    : {
-                emptyTable  : "Tambahkan Beberapa Data",
-            },
-            searching   : false,
-            pageLength  : -1,
-            bInfo       : false,
-            paging      : false,
-            ordering    : false,
-            autoWidth   : false,
-            columnDefs  : [
-                { "targets" : [0, 5], "width" : "10%", "className" : "text-center align-middle" },
-                { "targets" : [1, 3, 4], "width" : "15%", "className" : "text-center align-middle" },
-            ],
-        });
     }
 }
 
@@ -96,94 +82,8 @@ function showModal(idModal, data)
         $("#lmb_name_id").val($("#emp_id").val());
         $("#lmb_name").val($("#emp_name").val());
         $("#lmb_divisi").val($("#emp_divisi").val());
-        // SHOW TABLE
-        showTable('table_list_lembur_detail');
 
-        if(data == '') {
-            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-            $("#btn_simpan").val('add');
-            addRow('table_list_lembur_detail', 1, '');
-        } else {
-            $("#btn_simpan").val('edit');
-            const lmb_id    = data;
-            const lmb_url   = base_url + "/pengajuan/lembur/get_data/";
-            const lmb_data  = {
-                "lmb_id"    : lmb_id,
-            };
-            const lmb_type  = "GET";
-            const lmb_msg   = Swal.fire({ title : 'Data Sedang Dimuat', allowOutsideClick : false }); Swal.showLoading();
-
-            doTrans(lmb_url, lmb_type, lmb_data, lmb_msg, true)
-                .then((success)     => {    
-                    Swal.close();
-                    // HEADER
-                    const lmb_data_header   = success.data['header'][0];
-
-                    $("#lmb_id").val(lmb_data_header['emp_act_id']);
-                    $("#lmb_name_id").val(lmb_data_header['emp_user_id']);
-                    $("#lmb_name").val(lmb_data_header['emp_user_name']);
-                    $("#lmb_divisi").val(lmb_data_header['emp_group_division']);
-                    $("#lmb_keterangan").val(lmb_data_header['emp_act_description']);
-
-                    // DETAIL
-                    const lmb_data_detail   = success.data['detail'];
-                    let total_data          = lmb_data_detail.length;
-                    for(let i = 0; i < total_data; i++)
-                    {
-                        addRow('table_list_lembur_detail', i + 1, lmb_data_detail[i]);
-                    }
-                    addRow('table_list_lembur_detail', total_data + 1, '');
-                    $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-                })
-                .catch((err)        => {
-                    console.log(err);
-                    Swal.close();
-                    addRow('table_list_lembur_detail', 1, '');
-                    $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-                })
-        }
-
-        $("#"+idModal).on('shown.bs.modal', () => {
-            if(data == "")
-            {
-                $("#lmb_desc1").focus();
-            }
-        })
-    }
-}
-
-function closeModal(idModal)
-{
-    $("#"+idModal).modal('hide');
-
-    if(idModal == 'modal_buat_lemburan') {
-        $("#btn_tambah_baris").val(1);
-    }
-}
-
-function addRow(idTable, seq, data)
-{
-    if(idTable == 'table_list_lembur_detail')
-    {
-        let current_row     = parseInt($("#btn_tambah_baris").val());
-        let next_row        = current_row + 1;
-
-        const lmb_act_del   = "<button class='btn btn-danger' title='Hapus Baris' value='" +seq+ "' onclick='deleteRow(`"+idTable+"`, "+seq+")'><i class='fa fa-trash'></i></button>";
-        const lmb_date      = "<input type='text' class='form-control' id='lmb_date"+seq+"' placeholder='DD/MM/YYYY' readonly style='background: white; cursor: pointer;'>";
-        const lmb_desc      = "<input type='text' class='form-control' id='lmb_desc"+seq+"' placeholder='Uraian Pekerjaan' autocomplete='off'>";
-        const lmb_t_start   = "<input type='text' class='form-control' id='lmb_t_start"+seq+"' placeholder='HH:MM:SS' readonly style='background: white; cursor: pointer;'>";
-        const lmb_t_end     = "<input type='text' class='form-control' id='lmb_t_end"+seq+"' placeholder='HH:MM:SS' readonly style='background: white; cursor: pointer;'>";
-        const lmb_act_acc   = "";
-        $("#"+idTable).DataTable().row.add([
-            lmb_act_del,
-            lmb_date,
-            lmb_desc,
-            lmb_t_start,
-            lmb_t_end,
-            lmb_act_acc
-        ]).draw(false);
-
-        $("#lmb_date"+seq).daterangepicker({
+        $("#lmb_date").daterangepicker({
             singleDatePicker    : true,
             minDate             : moment(today, 'YYYY-MM-DD').subtract(1, 'years').format('DD/MM/YYYY'),
             maxDate             : moment(today, 'YYYY-MM-DD').add(1, 'years').format('DD/MM/YYYY'),
@@ -192,8 +92,8 @@ function addRow(idTable, seq, data)
             },
             autoApply           : true,
         });
-        
-        $("#lmb_t_start"+seq).daterangepicker({
+
+        $("#lmb_start_time").daterangepicker({
             singleDatePicker    : true,
             timePicker          : true,
             timePicker24Hour    : true,
@@ -206,7 +106,7 @@ function addRow(idTable, seq, data)
             picker.container.find(".calendar-table").hide();
         });
 
-        $("#lmb_t_end"+seq).daterangepicker({
+        $("#lmb_end_time").daterangepicker({
             singleDatePicker    : true,
             timePicker          : true,
             timePicker24Hour    : true,
@@ -219,119 +119,145 @@ function addRow(idTable, seq, data)
             picker.container.find(".calendar-table").hide();
         });
 
-        $("#lmb_desc"+seq).on('keyup', () => {
-            const description   = $("#lmb_desc"+seq).val();
-            $("#lmb_desc"+seq).val(description.toUpperCase());
-        })
+        $("#"+idModal).on('shown.bs.modal', () => {
+            $("#lmb_keterangan").focus();
+        });
 
-        if(data != '') {
-            $("#lmb_date"+seq).data('daterangepicker').setStartDate(moment(data['empd_date'], 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            $("#lmb_date"+seq).data('daterangepicker').setEndDate(moment(data['empd_date'], 'YYYY-MM-DD').format('DD/MM/YYYY'));
-            $("#lmb_desc"+seq).val(data['empd_description']);
-            $("#lmb_t_start"+seq).val(moment(data['empd_start_time'], 'YYYY-MM-DD HH:mm:ss').format('HH:mm'));
-            $("#lmb_t_end"+seq).val(moment(data['empd_end_time'], 'YYYY-MM-DD HH:mm:ss').format('HH:mm'));
+        if(data == '') {
+            $("#btn_save_modal_buat_pengajuan").val('add');
+            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+            $("#btn_simpan").val('add');
         } else {
-            $("#lmb_desc"+seq).focus();
-        }
+            $("#btn_save_modal_buat_pengajuan").val('edit');
+            const lmb_id    = data;
+            const lmb_url   = base_url + "/pengajuan/lembur/get_data/";
+            const lmb_data  = {
+                "lmb_id"    : lmb_id,
+            };
+            const lmb_type  = "GET";
+            const lmb_msg   = Swal.fire({ title : 'Data Sedang Dimuat'}); Swal.showLoading();
 
-        $("#btn_tambah_baris").val(parseInt(next_row));
+            doTrans(lmb_url, lmb_type, lmb_data, lmb_msg, true)
+                .then((success)     => { 
+                    Swal.close();
+                    $("#"+idModal).modal({backdrop: 'static', keyboard: false});
+
+                    // FILL FOFRM
+                    $("#lmb_id").val(success.data.header[0].emp_act_id);
+                    $("#lmb_keterangan").val(success.data.header[0].emp_act_description);
+                    
+                    $("#lmb_date").data('daterangepicker').setStartDate(moment(success.data.header[0].emp_act_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                    $("#lmb_date").data('daterangepicker').setEndDate(moment(success.data.header[0].emp_act_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                    $("#lmb_start_time").data('daterangepicker').setStartDate(moment(success.data.detail[0].empd_start_time));
+                    $("#lmb_start_time").data('daterangepicker').setEndDate(moment(success.data.detail[0].empd_start_time));
+                    $("#lmb_end_time").data('daterangepicker').setStartDate(moment(success.data.detail[0].empd_end_time));
+                    $("#lmb_end_time").data('daterangepicker').setEndDate(moment(success.data.detail[0].empd_end_time));
+
+                    $("#lmb_keterangan_length").html(success.data.header[0].emp_act_description.length+"/100");
+
+
+                })
+                .catch((err)        => {
+                    console.log(err);
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : 'Data Yang Dicari Tidak Ditemukan'
+                    })
+                })
+        }
     }
 }
 
-function deleteRow(idTable, seq)
+function closeModal(idModal)
 {
-    if(idTable == 'table_list_lembur_detail')
-    {
-        let current_seq     = $("#btn_tambah_baris").val();
-        let column_row      = seq - 1;
-        if(seq  == 1) {
-            Swal.fire({
-                icon    : 'error',
-                title   : 'Terjadi Kesalahan',
-                text    : 'Baris Pertama Tidak Bisa Dihapus..',
-            });
-        } else {
-            if(parseInt(current_seq) - seq == 1) {
-                $("#"+idTable).DataTable().row(column_row).remove().draw(false);
-                $("#btn_tambah_baris").val(parseInt(current_seq) - 1 );
-                $("#lmb_desc"+(seq - 1)).focus();
-            } else {
-                Swal.fire({
-                    icon    : 'error',
-                    title   : 'Terjadi Kesalahan',
-                    text    : 'Hanya Baris Pertama yang bisa dihapus..'
-                })
-            }
-        }
+    if(idModal == 'modal_buat_lemburan') {
+        $("#"+idModal).modal('hide');
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+
+            $("#lmb_keterangan_length").html("0/100");
+            $("#lmb_name_id").val('');
+            $("#lmb_name").val('');
+            $("#lmb_divisi").val('');
+            $("#lmb_keterangan").val('');
+            $("#lmb_date").data('daterangepicker').setStartDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            $("#lmb_date").data('daterangepicker').setEndDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            $("#lmb_start_time").val('00:00');
+            $("#lmb_end_time").val('00:00');
+        })
     }
 }
 
 function simpanData(idForm, jenisSimpan)
 {
     if(idForm == 'lemburan') {
-        // HEADER
-        const lmb_id        = $("#lmb_id").val();
-        const lmb_id_user   = $("#lmb_name_id").val();
-        const lmb_name      = $("#lmb_name").val();
-        const lmb_divisi    = $("#lmb_divisi").val();
-        const lmb_desc      = $("#lmb_keterangan").val();
+        let lmb_keterangan      = $("#lmb_keterangan");
+        let lmb_tanggal         = $("#lmb_date");
+        let lmb_waktu_mulai     = $("#lmb_start_time");
+        let lmb_waktu_akhir     = $("#lmb_end_time");
 
-        // DETAIL
-        const detail_data   = $("#table_list_lembur_detail").DataTable().rows().count();
-        const lmbd_data     = [];
-        for(let i = 0; i < detail_data; i++)
-        {
-            const lmbd_seq  = i + 1;
-            const lmbd_date = $("#lmb_date"+lmbd_seq).val();
-            const lmbd_desc = $("#lmb_desc"+lmbd_seq).val();
-            const lmbd_start_time   = $("#lmb_t_start"+lmbd_seq).val();
-            const lmbd_end_time     = $("#lmb_t_end"+lmbd_seq).val();
-            
-            const lmbd_detail_data  = {
-                "lmbd_seq"          : lmbd_seq,
-                "lmbd_date"         : moment(lmbd_date, 'DD/MM/YYYY').format('YYYY-MM-DD'),
-                "lmbd_desc"         : lmbd_desc,
-                "lmbd_start_time"   : moment(lmbd_date, 'DD/MM/YYYY').format('YYYY-MM-DD')+" "+lmbd_start_time+":00",
-                "lmbd_end_time"     : moment(lmbd_date, 'DD/MM/YYYY').format('YYYY-MM-DD')+" "+lmbd_end_time+":00",
+        if(lmb_keterangan.val() == '') {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Keterangan Tidak Boleh Kosong',
+                didClose    : () => {
+                    lmb_keterangan.focus();
+                }
+            })
+        } else if(lmb_keterangan.val().length > 100) {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Hanya Bisa Menampung 100 Karakter',
+                didClose    : () => {
+                    lmb_keterangan.focus();
+                }
+            })
+        } else {
+            const lmb_sendData = {
+                "lmb_act_id"    : $("#lmb_id").val(),
+                "lmb_user_id"   : $("#lmb_id").val(),
+                "lmb_keterangan": lmb_keterangan.val(),
+                "lmb_tanggal"   : moment(lmb_tanggal.val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
+                "lmb_t_start"   : moment(lmb_tanggal.val(), 'DD/MM/YYYY').format('YYYY-MM-DD')+" "+lmb_waktu_mulai.val()+":00",
+                "lmb_t_end"     : moment(lmb_tanggal.val(), 'DD/MM/YYYY').format('YYYY-MM-DD')+" "+lmb_waktu_akhir.val()+":00",
             };
 
-            lmbd_data.push(lmbd_detail_data);
+            const lmb_url       = base_url + "/pengajuan/lembur/simpan/"+jenisSimpan;
+            const lmb_msg       = Swal.fire({ title : 'Data Sedang Diproses..' }); Swal.showLoading();
+            const lmb_type      = "POST";
+
+            doTrans(lmb_url, lmb_type, lmb_sendData, lmb_msg, true)
+                .then((success) => {
+                    Swal.fire({
+                        icon    : success.alert.icon,
+                        title   : success.alert.message.title,
+                        text    : success.alert.message.text,
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            closeModal('modal_buat_lemburan');
+                            showTable('table_list_lembur');
+                        }
+                    })
+                })
+                .catch((err)    => {
+                    console.log(err)
+                })
         }
+    }
+}
 
-        const lmb_sendData     = {
-            "header"    : {
-                "lmb_id"            : lmb_id,
-                "lmb_user_id"       : lmb_id_user,
-                "lmb_user_name"     : lmb_name,
-                "lmb_user_division" : lmb_divisi,
-                "lmb_description"   : lmb_desc,
-            },
-            "detail"    : lmbd_data,
-        };
-        const lmb_type          = "POST";
-        const lmb_url           = base_url + "/pengajuan/lembur/simpan/"+jenisSimpan;
-        const lmb_message       = Swal.fire({ title : "Data Sedang Diproses" }); Swal.showLoading();
+// ADDITIONAL
+function textToUppercase(idForm, value)
+{
+    if(idForm == 'lmb_keterangan') {
+        $("#"+idForm).val(value.toUpperCase());
 
-        doTrans(lmb_url, lmb_type, lmb_sendData, lmb_message, true)
-            .then((success) => {
-                Swal.fire({
-                    icon    : success.alert.icon,
-                    title   : success.alert.message.title,
-                    text    : success.alert.message.text,
-                }).then((results)   => {
-                    if(results.isConfirmed) {
-                        closeModal('modal_buat_lemburan');
-                        showTable('table_list_lembur', '');
-                    }
-                })
-            })
-            .catch((err)    => {
-                Swal.fire({
-                    icon    : err.responseJSON.alert.icon,
-                    title   : err.responseJSON.alert.message.title,
-                    text    : err.responseJSON.alert.message.text,
-                })
-            })
+        $("#lmb_keterangan_length").html(value.length+"/100");
+
+        $("#"+idForm).val().length > 100 ? $("#"+idForm).addClass('is-invalid') : $("#"+idForm).removeClass('is-invalid');
     }
 }
 
