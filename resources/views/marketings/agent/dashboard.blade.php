@@ -404,7 +404,7 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" id="modal_data_agent_batal" onclick="closeModal('modal_data_agent')" title="Tutup Tampilan">Batal</button>
-                    <button class="btn btn-primary" id="modal_data_agent_simpan" title="Simpan Data" onclick="doSimpanData('modal_data_agent', this.value)">Simpan</button>
+                    <button class="btn btn-primary" id="modal_data_agent_simpan" title="Simpan Data" onclick="doSimpanData('modal_data_agent', this.value, '')">Simpan</button>
                 </div>
             </div>
         </div>
@@ -431,24 +431,19 @@
                         </div>
                     </div>
                     <hr>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            &nbsp;
-                            <div class="table-responsive">
-                                <table class="table table-sm table-striped table-bordered table-hover" id="table_pengaturan_agen" style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center align-middle">No</th>
-                                            <th class="text-center align-middle">Tanggal</th>
-                                            <th class="text-center align-middle">Tour Code</th>
-                                            <th class="text-center align-middle">Banyaknya</th>
-                                            <th class="text-center align-middle">Jenis</th>
-                                            <th class="text-center align-middle">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped table-bordered table-hover" id="table_pengaturan_agen" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th class="text-center align-middle">No</th>
+                                    <th class="text-center align-middle">Tanggal</th>
+                                    <th class="text-center align-middle">Tour Code</th>
+                                    <th class="text-center align-middle">Banyaknya</th>
+                                    <th class="text-center align-middle">Jenis</th>
+                                    <th class="text-center align-middle">Aksi</th>
+                                </tr>
+                            </thead>
+                        </table>
                     </div>
                 </div>
                 <div class="modal-footer align-items-center">

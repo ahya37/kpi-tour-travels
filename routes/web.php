@@ -186,6 +186,8 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/simpan_data/{jenis}', [MarketingController::class, 'marketing_agent_simpan_data']);
             Route::get('/ambil_data/{idAgent}', [MarketingController::class, 'marketing_agent_ambil_data']);
             Route::get('/ambil_data_tour_code/{tahun}', [MarketingController::class, 'marketing_agent_ambil_data_tour_code_by_tahun']);
+            Route::post('/simpan_data/type_agent/{jenis}', [MarketingController::class, 'marketing_agent_simpan_data_type_agent']);
+            Route::get('/ambil_data_act_agent/{idAgent}', [MarketingController::class, 'marketing_agent_ambil_data_act_agent']);
         });
         
     });

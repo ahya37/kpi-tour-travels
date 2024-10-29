@@ -2367,4 +2367,69 @@ class MarketingController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 28 OKTOBER 2024
+    // NOTE : AMBIL DATA ACT AGENT
+    public function marketing_agent_ambil_data_act_agent($id_agent)
+    {
+        $get_data   = MarketingService::get_data_act_agent($id_agent);
+        
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Aktivitas Agent : ".$id_agent,
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Tidak Ada Data Aktivitas Agent : ".$id_agent,
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+    // NOTE : SIMPAN DATA TYPE AGENT
+    public function marketing_agent_simpan_data_type_agent($jenis, Request $request)
+    {
+        $send_data  = [
+            "user_id"   => Auth::user()->id,
+            "ip"        => $request->ip(),
+            "data"      => $request->all(),
+            "type"      => $jenis
+        ];
+
+        $do_simpan  = MarketingService::do_simpan_type_agent($send_data);
+
+        if($do_simpan['status'] == "berhasil") {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => $jenis == "add" ? "Berhasil Menyimpan Data Jenis Agen Baru" : "Berhasil Merubah Data Jenis Agen",
+                    ],
+                ]
+            ];
+        } else {
+            $output     = [
+                "status"    => 500,
+                "success"   => false,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => $jenis == "add" ? "Gagal Menyimpan Data Jenis Agen Baru" : "Gagal Merubah Data Jenis Agen",
+                    ],
+                ]
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

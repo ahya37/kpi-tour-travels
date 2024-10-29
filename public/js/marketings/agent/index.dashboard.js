@@ -136,48 +136,45 @@ function showModal(idModal, data, action)
                 })
         }
     } else if(idModal == 'modal_pengaturan_agen') {
-        // GET DATA DULU
         if(dataAgent.length == 0) {
-            const agentUrl  = "marketings/agent/tarik_data_agent_local";
-
-            const doTrans   = [
-                doTransaction(agentUrl, 'GET', [], "", true)
+            // GET DATA AGENT
+            let agentUrl    = "marketings/agent/tarik_data_agent_local";
+            
+            let doTrans     = [
+                doTransaction(agentUrl, "GET", [], "", true)
             ];
 
-            Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+            Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
             Promise.allSettled(doTrans)
-                .then((success)     => {
-                    // FOR DATA AGENT
-                    const agentGetData  = success[0].value.data;
-                    for(const agtItem of agentGetData)
+                .then((success) => {
+                    // SHOW MODAL
+                    $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                    // SHOW SELECT
+                    for(const agtItem of success[0].value.data)
                     {
+                        let agent_id    = agtItem['agt_id'];
+                        let agent_name  = agtItem['agt_name'];
+
                         dataAgent.push({
-                            "agent_id"  : agtItem.agt_id,
-                            "agent_name": agtItem.agt_name,
+                            "agent_id"      : agent_id,
+                            "agent_name"    : agent_name, 
                         })
                     }
-                    Swal.close();
-                    $("#"+idModal).modal({backdrop: 'static', keyboard: false});
                     showSelect('sl_agt_id', dataAgent, '', '');
-                    showTable('table_pengaturan_agen', '');
+                    // CLOSE SWAL
+                    Swal.close();
                 })
-                .catch((err)        => {
-                    console.log(err);
-                    Swal.fire({
-                        icon    : 'erorr',
-                        title   : 'Terjadi Kesalahan',
-                        text    : 'Tidak Ada Data Yang Bisa Dimuat..'
-                    })
+                .catch((err)    => {
+                    $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                    console.log({err})
+                    Swal.close();
                 })
-        } else {
-            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-            showSelect('sl_agt_id', dataAgent, '', '');
-            showTable('table_pengaturan_agen', '');
-        }
 
-        $("#"+idModal).on('shown.bs.modal',  () => {
-            $("#table_pengaturan_agen").DataTable().columns.adjust().draw(false);
-        })
+        } else {
+            $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
+            showSelect('sl_agt_id', dataAgent, '', '');
+        }
+        showTable('table_pengaturan_agen', []);
     }
 }
 
@@ -282,7 +279,7 @@ function showSelect(idSelect, data, value, seq)
         $("#"+idSelect+seq).html(html);
 
         if(value != '') {
-            $("#"+idSelect+seq).val(val);
+            $("#"+idSelect+seq).val(value);
         }
     }
 }
@@ -293,7 +290,20 @@ function showSelectDetail(idSelect, data)
     {
         $("#btn_tambah_data_modal_pengaturan_agen").prop('disabled', false);
         // HARUSNYA GET DATA
-        showTable('table_pengaturan_agen', []);
+        const actAgentUrl   = "marketings/agent/ambil_data_act_agent/"+data;
+        const actAgentType  = "GET";
+        const actAgentMsg   = Swal.fire({ title : "Data Sedang Dimuat..", allowOutsideClick: false }); Swal.showLoading();
+        
+        doTransaction(actAgentUrl, actAgentType, [], actAgentMsg, true)
+            .then((success)     => {
+                Swal.close();
+                showTable('table_pengaturan_agen', success.data);
+            })
+            .catch((err)        => {
+                Swal.close();
+                console.log(err);
+                showTable('table_pengaturan_agen', []);
+            })
         
     }
 }
@@ -364,29 +374,35 @@ function showTable(idTable, data)
         $("#"+idTable).DataTable().clear().destroy();
         $("#"+idTable).DataTable({
             language    : {
-                emptyTable  : "Pilih Agent Terlebih Dahulu",
+                "emptyTable"    : "Pilih Agent Untuk Menampilkan Data",
+                "zeroRecords"   : "Data Yang Dicari Tidak Ditemukan",
             },
-            scrollY     : true,
-            pageLength  : -1,
-            paging      : false,
             searching   : false,
             bInfo       : false,
-            columnDefs   : [
+            paging      : false,
+            pageLength  : -1,
+            autoWidth   : true,
+            ordering    : false,
+            columnDefs  : [
                 { "targets" : [0], "className" : "text-center", "width" : "8%" },
                 { "targets" : [1], "width" : "15%" },
                 { "targets" : [3], "width" : "13%" },
-                { "targets" : [4], "width" : "10%" },
-                { "targets" : [5], "className" : "text-center align-middle", "width" : "10%" },
-            ],
-            ordering    : false,
+                { "targets" : [4], "width" : "14%" },
+                { "targets" : [5], "className" : "align-middle", "width" : "15%" },
+            ]
         })
 
         const agent     = $("#sl_agt_id").val();
         if(agent !== null) {
+            console.log(data);
             if(data.length > 0) {
-                addColumnTable(idTable, data.length, data);
+                for(let i = 0; i < data.length; i++)
+                {
+                    addColumnTable(idTable, i, data[i]);
+                }
+                addColumnTable(idTable, data.length, '');
             } else {
-                addColumnTable(idTable, 0, []);
+                addColumnTable(idTable, 0, '');
             }
         }
 
@@ -451,15 +467,16 @@ function addColumnTable(idTable, seq, data)
         let inputTourCode   = "<select class='form-control' style='width: 100%;' id='agt_tourCode"+ke+"'></select>";
         let inputBanyaknya  = "<input type='number' inputmode='numeric' class='form-control' id='agt_banyaknya"+ke+"' placeholder='Banyaknya' min='0' max='999' step='1' style='height: 38px;'>";
         let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"'></select>";
-        let inputAksi       = "<button class='btn btn-sm btn-primary' title='Ubah Data'><i class='fa fa-edit'></i></button>";
-        let inputDelete     = "<button class='btn btn-sm btn-danger' title='Hapus Data' id='btn_delete_agen"+ke+"' onclick='deleteColumnTable("+idTable+","+ke+")'><i class='fa fa-trash'></i></button>";
+        let inputAksi       = `<button class="btn btn-sm btn-primary" title="Simpan Data" value='add' onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_agen${ke}"><i class="fa fa-check"></i></button>`
+        let inputDelete     = `<button class="btn btn-sm btn-danger" title="Hapus Baris" value="${ke}" onclick="deleteColumnTable('${idTable}', '${ke}')" id="btn_delete_agen${ke}"><i class="fa fa-trash"></i></button>`;
+        let inputPaid       = `<button class="btn btn-sm btn-primary" title="Konfirmasi Pembayaran" value="unpaid" onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_paid${ke}"><i class="fa fa-dollar-sign"></i></button>`;
         $("#"+idTable).DataTable().row.add([
             inputNo,
             inputTanggal,
             inputTourCode,
             inputBanyaknya,
             inputJenis,
-            inputAksi+" "+inputDelete
+            inputAksi+" "+inputDelete+" "+inputPaid
         ]).draw(false);
 
         $("#agt_no"+ke).val(ke);
@@ -486,8 +503,40 @@ function addColumnTable(idTable, seq, data)
 
         $("#agt_banyaknya"+(ke)).focus();
 
-        showSelect('agt_tourCode', dataTourCode[0], '', ke);
-        showSelect('agt_jenis', dataJenis, '', ke);
+        if(data.length != '')
+        {
+            let actAgent_date   = moment(data['agt_act_date'], 'YYYY-MM-DD').format('DD/MM/YYYY');
+            let actAgent_qty    = parseInt(data['agt_act_qty']);
+            let actAgent_tourCode   = data['agt_act_tour_code'];
+            let actAgent_type   = data['agt_act_status'];
+            let actAgent_paidStatus     = data['agt_act_is_paid'];
+
+            $("#btn_act_agen"+ke).val('edit');
+            $("#btn_act_agen"+ke).html("<i class='fa fa-edit'></i>");
+            $("#btn_act_agen"+ke).prop('title', 'Ubah Data');
+            
+            $("#agt_tourCode"+ke).prop('disabled', true);
+            
+            // FILL FORM
+            $("#agt_tgl"+ke).data('daterangepicker').setStartDate(actAgent_date);
+            $("#agt_tgl"+ke).data('daterangepicker').setEndDate(actAgent_date);
+
+            $("#agt_banyaknya"+ke).val(actAgent_qty);
+
+            showSelect('agt_tourCode', dataTourCode[0], actAgent_tourCode, ke);
+            showSelect('agt_jenis', dataJenis, actAgent_type, ke);
+
+            if(actAgent_paidStatus == "1") {
+                $("#btn_act_paid"+ke).val('paid');
+                $("#btn_act_paid"+ke).prop('disabled', true);
+                $("#btn_act_paid"+ke).removeClass('btn-primary');
+                $("#btn_act_paid"+ke).addClass('btn-secondary');
+                $("#btn_act_paid"+ke).prop('title', 'Sudah Dibayarkan');
+            }
+        } else {
+            showSelect('agt_tourCode', dataTourCode[0], '', ke);
+            showSelect('agt_jenis', dataJenis, '', ke);
+        }
 
         if(ke > 1) {
             $("#btn_delete_agen"+(ke - 1)).prop('disabled', true);
@@ -516,6 +565,62 @@ function deleteColumnTable(idTable, seq)
             if(parseInt($("#btn_table_simulasi").val()) < 4) {
                 $("#btn_table_simulasi").prop('disabled', false);
                 $("#btn_table_simulasi").css('cursor', 'pointer');
+            }
+        }
+    } else if(idTable == 'table_pengaturan_agen') {
+        let currentSeq  = parseInt($("#btn_tambah_data_modal_pengaturan_agen").val());
+        let selectedSeq = parseInt(seq);
+        let diffSeq     = currentSeq - selectedSeq;
+
+        if(selectedSeq == 1) {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Baris Pertama Tidak Bisa Dihapus',
+            })
+        } else if(diffSeq > 1) {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Hanya Bisa Menghapus Data Terakhir',
+            })
+        } else {
+            // CHECK BUTTON VALUE
+            if($("#btn_act_agen"+seq).val() == 'edit')
+            {
+                // HAPUS JUGA DI DATABASE
+                let actAgent_url    = "marketings/agent/simpan_data/type_agent/delete";
+                let actAgent_data   = {
+                    "agt_id"                : $("#sl_agt_id").val(),
+                    "agt_detail_tourCode"   : $("#agt_tourCode"+seq).val(),
+                    "agt_detail_date"       : $("#agt_tgl"+seq).val(),
+                    "agt_detail_qty"        : $("#agt_banyaknya"+seq).val(),
+                    "agt_detail_type"       : $("#agt_jenis"+seq).val(),
+                };
+                let actAgent_type   = "POST";
+                let actAgent_msg    = Swal.fire({ title : "Data Sedang Diproses" }); Swal.showLoading();
+
+                doTransaction(actAgent_url, actAgent_type, actAgent_data, actAgent_msg, true)
+                    .then((success)     => {
+                        Swal.close();
+                        $("#"+idTable).DataTable().row(selectedSeq - 1).remove().draw(false);
+                        $("#btn_tambah_data_modal_pengaturan_agen").val(currentSeq - 1);
+                        $("#btn_delete_agen"+(currentSeq-1)).prop('disabled', false);
+                        $("#agt_banyaknya"+(currentSeq-1)).focus();
+                    })
+                    .catch((err)        => {
+                        Swal.fire({
+                            icon    : 'error',
+                            title   : 'Terjadi Kesalahan',
+                            text    : 'Tidak Bisa Menghapus Baris'
+                        })
+                        console.log(err)
+                    })
+            } else {
+                $("#"+idTable).DataTable().row(selectedSeq - 1).remove().draw(false);
+                $("#btn_tambah_data_modal_pengaturan_agen").val(currentSeq - 1);
+                $("#btn_delete_agen"+(currentSeq-1)).prop('disabled', false);
+                $("#agt_banyaknya"+(currentSeq-1)).focus();
             }
         }
     }
@@ -897,7 +1002,7 @@ function simulasiHitung(idTable, column, seq)
     }
 }
 
-function doSimpanData(idForm, jenis)
+function doSimpanData(idForm, jenis, data)
 {
     if(idForm == 'modal_data_agent')
     {
@@ -975,6 +1080,66 @@ function doSimpanData(idForm, jenis)
                         icon    : err.responseJSON.alert.icon,
                         title   : err.responseJSON.alert.message.title,
                         text    : err.responseJSON.alert.message.text,
+                    })
+                })
+        }
+    } else if(idForm == 'table_pengaturan_agen') {
+        let seq                 = data;
+        let agt_id              = $("#sl_agt_id");
+        let agt_detail_date     = $("#agt_tgl"+seq);
+        let agt_detail_tourCode = $("#agt_tourCode"+seq);
+        let agt_detail_qty      = $("#agt_banyaknya"+seq);
+        let agt_detail_type     = $("#agt_jenis"+seq);
+
+        if(agt_detail_tourCode.val() == null) {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Pilih Tour Code Terlebih Dahulu',
+                didClose    : () => {
+                    agt_detail_tourCode.select2('open');
+                }
+            })
+        } else if(agt_detail_type.val() == null) {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Jenis Agen Harus Dipilih',
+                didClose    : () => {
+                    agt_detail_type.select2('open')
+                }
+            })
+        } else {
+            const agt_option_data   = {
+                "agt_id"                : agt_id.val(),
+                "agt_detail_date"       : moment(agt_detail_date.val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
+                "agt_detail_tourCode"   : agt_detail_tourCode.val(),
+                "agt_detail_qty"        : agt_detail_qty.val(),
+                "agt_detail_type"       : agt_detail_type.val(),
+            };
+
+            const agt_type          = "POST";
+            const agt_url           = "marketings/agent/simpan_data/type_agent/"+jenis;
+            const agt_msg           = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+
+            doTransaction(agt_url, agt_type, agt_option_data, agt_msg, true)
+                .then((success)     => {
+                    Swal.fire({
+                        icon    : success.alert.icon,
+                        title   : success.alert.message.title,
+                        text    : success.alert.message.text,
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            // CARI DATA
+                            showSelectDetail('sl_agt_id', agt_id.val());
+                        }
+                    });
+                })
+                .catch((err)        => {
+                    Swal.fire({
+                        icon    : err.responseJSON.alert.icon,
+                        title   : err.responseJSON.alert.message.title,
+                        icon    : err.responseJSON.alert.icon,
                     })
                 })
         }

@@ -1664,4 +1664,133 @@ class MarketingService
                     ->where('agt_id', $id_agent)
                     ->get();
     }
+
+    // 29 OKTOBER 2024
+    // NOTE : AMBIL DATA AKTIVITAS AGENT
+    public static function get_data_act_agent($id_agent)
+    {
+        $get_data   = DB::table('agent_activity')
+                        ->where('agt_id', '=', $id_agent)
+                        ->orderBy('created_at', 'asc');
+        return $get_data->get();
+    }
+    // NOTE : SIMPAN PENGATURAN AGENT
+    public static function do_simpan_type_agent($data)
+    {
+        DB::beginTransaction();
+        if($data['type'] == 'add')
+        {
+            $data_simpan    = [
+                "agt_id"            => $data['data']['agt_id'],
+                "agt_act_date"      => $data['data']['agt_detail_date'],
+                "agt_act_tour_code" => $data['data']['agt_detail_tourCode'],
+                "agt_act_qty"       => $data['data']['agt_detail_qty'],
+                "agt_act_status"    => $data['data']['agt_detail_type'],
+                "created_by"        => $data['user_id'],
+                "created_at"        => date('Y-m-d H:i:s'),
+                "updated_by"        => $data['user_id'],
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('agent_activity')->insert($data_simpan);
+        } else if($data['type'] == 'edit') {
+            $data_where     = [
+                "agt_id"            => $data['data']['agt_id'],
+                "agt_act_tour_code" => $data['data']['agt_detail_tourCode'],
+            ];
+
+            $data_update    = [
+                "agt_act_date"      => $data['data']['agt_detail_date'],
+                "agt_act_qty"       => $data['data']['agt_detail_qty'],
+                "agt_act_status"    => $data['data']['agt_detail_type'],
+                "updated_by"        => $data['user_id'],
+                "updated_at"        => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('agent_activity')->where($data_where)->update($data_update);
+        } else if($data['type'] == 'delete') {
+            $data_where     = [
+                "agt_id"            => $data['data']['agt_id'],
+                "agt_act_tour_code" => $data['data']['agt_detail_tourCode'],
+                "agt_act_status"    => $data['data']['agt_detail_type'],
+            ];
+
+            DB::table('agent_activity')->where($data_where)->delete();
+
+            try {
+                DB::commit();
+                LogHelper::create('delete', 'Berhasil Menghapus Aktivitas Agent ID : ' . $data['data']['agt_id'] . ' dengan Tour Code : ' . $data['data']['agt_detail_tourCode'], $data['ip']);
+
+                $output     = [
+                    'status'    => 'berhasil',
+                    'errMsg'    => ''
+                ];
+            } catch(\Exception $e) {
+                DB::rollBack();
+                LogHelper::create('error_system', $e->getMessage(), $data['ip']);
+
+                $output     = [
+                    'status'    => 'gagal',
+                    'errMsg'    => '',
+                ];
+            }
+
+            return $output;
+        } else if($data['type'] == 'unpaid') {
+            $data_where     = [
+                "agt_id"            => $data['data']['agt_id'],
+                "agt_act_tour_code" => $data['data']['agt_detail_tourCode'],
+                "agt_act_status"    => $data['data']['agt_detail_type'],
+                "agt_act_qty"       => $data['data']['agt_detail_qty'],
+            ];
+
+            $data_update    = [
+                "agt_act_is_paid"   => "1",
+            ];
+
+            DB::table('agent_activity')->where($data_where)->update($data_update);
+
+            try {
+                DB::commit();
+                LogHelper::create('edit', 'Aktivitas Agent ID : ' . $data['data']['agt_id'] . ' dengan Tour Code : ' . $data['data']['agt_detail_tourCode']. ' Berhasil Dibayar', $data['ip']);
+
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => ""
+                ];
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', $e->getMessage(), $data['ip']);
+
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                ];
+            }
+
+            return $output;
+        }
+
+        try {
+            DB::commit();
+            $data['type'] == 'add' ? LogHelper::create('add', 'Berhasil Menambahkan Aktivitas Agent ID : ' . $data['data']['agt_id'] . ' dengan Tour Code : ' . $data['data']['agt_detail_tourCode'], $data['ip']) : LogHelper::create('edit', 'Berhasil Merubah Aktivitas Agent ID : ' . $data['data']['agt_id'] .  ' dengan Tour Code : ' . $data['data']['agt_detail_tourCode'], $data['ip']);
+
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => ""
+            ];
+        } catch(\Exception $e) {
+            DB::rollBack();
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', $e->getMessage(), $data['ip']);
+
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
 }
