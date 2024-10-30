@@ -2238,7 +2238,18 @@ class MarketingController extends Controller
                         ],
                     ];
                 }
-                
+            } else {
+                $output     = [
+                    "success"   => false,
+                    "status"    => 500,
+                    "alert"     => [
+                        "icon"      => "error",
+                        "message"   => [
+                            "title"     => "Terjadi Kesalahan",
+                            "text"      => "Gagal Menyimpan Agent Baru",
+                        ],
+                    ],
+                ]; 
             }
         } else if($jenis == 'edit') {
             $data_kirim     = [
@@ -2301,6 +2312,18 @@ class MarketingController extends Controller
                         ],
                     ];
                 }
+            } else {
+                $output     = [
+                    "success"       => false,
+                    "status"        => 500,
+                    "alert"         => [
+                        "icon"      => "error",
+                        "message"   => [
+                            "title"     => "Terjadi Kesalahan",
+                            "text"      => "Gagal Menyimpan Data Agent"
+                        ],
+                    ],
+                ];
             }
         }
 

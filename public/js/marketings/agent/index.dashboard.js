@@ -2,6 +2,7 @@ var dataAgent       = [];
 var dataTourCode    = [];
 var today           = moment().format('YYYY-MM-DD');
 $(document).ready(()    => {
+    showTable('table_list_agent', []);
     clearUrl();
     // GET DATA FOR DASHBOARD
     const agentURL  = "marketings/agent/tarik_data_agent_local";
@@ -20,9 +21,6 @@ $(document).ready(()    => {
 
     Promise.allSettled(getData)
         .then((success)     => {
-            const agentGetData  = success[0].value.data;
-            $("#agent_text").html("<label class='font-weight-bold no-margins'>" + agentGetData.length + "</label>");
-
             if(dataTourCode.length == 0) {
                 dataTourCode.push(success[1].value.data);
             }
@@ -307,7 +305,7 @@ function showTable(idTable, data)
     {
         $("#"+idTable).DataTable({
             language    : {
-                emptyTable  : "Tidak Ada Data Yang Bisa Dimuat",
+                emptyTable  : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
                 zeroRecords : "Data Yang Dicari Tidak Ditemukan"
             },
             autoWidth   : false,
@@ -338,6 +336,7 @@ function showTable(idTable, data)
                 ]).draw(false);
             }
         }
+        $("#"+idTable+"_wrapper").css('padding-bottom', '20px');
     } else if(idTable == 'table_list_agent_umhaj') {
         $("#"+idTable).DataTable({
             language    : {
@@ -1082,6 +1081,21 @@ function doSimpanData(idForm, jenis, data)
                     }).then((results)   => {
                         if(results.isConfirmed) {
                             closeModal('modal_data_agent');
+                            // GET DATA AGENT
+                            dataAgent    = [];
+                            showTable('table_list_agent', dataAgent);
+                            const agentURL  = "marketings/agent/tarik_data_agent_local";
+                            const agentType = "GET";
+
+                            doTransaction(agentURL, agentType, [], "", true)
+                                .then((success)     => {
+                                    dataAgent.push(success.data);
+                                    showTable('table_list_agent', dataAgent[0]);
+                                })
+                                .catch((err)        => {
+                                    console.log(err);
+                                    showTable('table_list_agent', dataAgent[0]);
+                                })
                         }
                     })
                 })

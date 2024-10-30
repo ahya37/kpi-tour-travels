@@ -49,23 +49,6 @@
         <div class="wrapper wrapper-content animated fadeInRight">
             <div class="row align-items-center">
                 <div class="col-sm-3 mb-2">
-                    <div class="card" id="card_agent">
-                        <div class="card-header bg-primary">
-                            <h4 class="no-margins font-weight-bold">
-                                <label class="no-margins">List Agent</label>
-                            </h4>
-                        </div>
-                        <div class="card-body text-right">
-                            <h2 class="no-margins font-weight-normal" id="agent_text">
-                                <div class="spinner-border"></div>
-                            </h2>
-                        </div>
-                        <a href="#show_modal_agent" class="card-footer" title="Lihat Detail" onclick="showModal('modal_agent', '', 'view')">
-                            Lihat Detail
-                        </a>
-                    </div>
-                </div>
-                <div class="col-sm-3 mb-2">
                     <div class="card" id="card_simulasi">
                         <div class="card-header bg-primary">
                             <h4 class="no-margins font-weight-bold">
@@ -111,7 +94,7 @@
                             @if ($user_roles == 'admin')
                                 <button class="btn btn-primary" title="Ambil Data Umhaj">Tarik Data</button>
                             @endif
-                            <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_data_agent')">Tambah Data</button>
+                            <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_data_agent', '', 'add')">Tambah Data</button>
                         </div>
                     </div>
                 </div>
