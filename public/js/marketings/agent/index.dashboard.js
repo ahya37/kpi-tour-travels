@@ -1,4 +1,5 @@
 var dataAgent       = [];
+var dataAgentSelect = [];
 var dataTourCode    = [];
 var today           = moment().format('YYYY-MM-DD');
 $(document).ready(()    => {
@@ -123,43 +124,45 @@ function showModal(idModal, data, action)
                 })
         }
     } else if(idModal == 'modal_pengaturan_agen') {
-        if(dataAgent.length == 0) {
-            // GET DATA AGENT
-            let agentUrl    = "marketings/agent/tarik_data_agent_local";
-            
-            let doTrans     = [
-                doTransaction(agentUrl, "GET", [], "", true)
-            ];
+        dataAgent[0] = [];
+        if(dataAgent[0].length > 0) {
+            $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
+            for(const agtItem of dataAgent[0])
+            {
+                dataAgentSelect.push({
+                    "agent_id"  : agtItem['agent_id'],
+                    "agent_name": agtItem['agent_name'],
+                })
+            }
 
-            Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
-            Promise.allSettled(doTrans)
-                .then((success) => {
-                    // SHOW MODAL
-                    $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-                    // SHOW SELECT
-                    for(const agtItem of success[0].value.data)
+            showSelect('sl_agt_id', dataAgentSelect, '', '');
+        } else {
+            // GET DATA
+            const agtURL    = "marketings/agent/tarik_data_agent_local";
+            const agtMsg    = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
+
+            doTransaction(agtURL, "GET", [], agtMsg, true)
+                .then((success)     => {
+                    for(const agtItem of success.data)
                     {
-                        let agent_id    = agtItem['agt_id'];
-                        let agent_name  = agtItem['agt_name'];
-
-                        dataAgent.push({
-                            "agent_id"      : agent_id,
-                            "agent_name"    : agent_name, 
+                        dataAgentSelect.push({
+                            "agent_id"  : agtItem['agent_id'],
+                            "agent_name": agtItem['agent_name'],
                         })
                     }
-                    showSelect('sl_agt_id', dataAgent, '', '');
-                    // CLOSE SWAL
-                    Swal.close();
-                })
-                .catch((err)    => {
-                    $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-                    console.log({err})
-                    Swal.close();
-                })
 
-        } else {
-            $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
-            showSelect('sl_agt_id', dataAgent, '', '');
+                    showSelect('sl_agt_id', dataAgentSelect, '', '');
+                    Swal.close();
+                    $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
+                })
+                .catch((err)        => {
+                    console.log(err);
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : 'Tidak ada data agent yang bisa dimuat'
+                    })
+                })
         }
         showTable('table_pengaturan_agen', []);
     }
@@ -229,9 +232,9 @@ function showSelect(idSelect, data, value, seq)
     if(idSelect == 'sl_agt_id') {
         let html    = "<option selected disabled>List Agen</option>";
 
-        console.table(data[0]);
+        console.table(data);
 
-        if(data[0].length > 0) {
+        if(data.length > 0) {
             for(const item of data) {
                 html += `<option value='${item.agent_id}'>${item.agent_name}</option>`;
             }
