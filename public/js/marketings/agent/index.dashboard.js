@@ -41,21 +41,14 @@ $(document).ready(()    => {
 function showModal(idModal, data, action)
 {
     if(idModal == 'modal_tarik_data_agent') {
-        closeModal('modal_agent');
-        // GET DATA
         let agentURL    = "marketings/agent/tarik_data_agent";
         Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
         doTransaction(agentURL, 'GET', [], '', true)
             .then((success)     => {
-                console.log(success)
                 Swal.fire({
                     icon    : 'success',
                     title   : 'Berhasil',
                     text    : success.message,
-                }).then((res)   => {
-                    if(res.isConfirmed) {
-                        showModal('modal_agent', '', '')
-                    }
                 })
             })
             .catch((err)        => {
@@ -63,10 +56,6 @@ function showModal(idModal, data, action)
                     icon    : 'error',
                     title   : 'Terjadi Kesalahan',
                     text    : err.responseJSON.message,
-                }).then((res)   => {
-                    if(res.isConfirmed) {
-                        showModal('modal_agent', '', '');
-                    }
                 })
             })
     } else if(idModal == 'modal_simulasi') {
@@ -124,7 +113,6 @@ function showModal(idModal, data, action)
                 })
         }
     } else if(idModal == 'modal_pengaturan_agen') {
-        dataAgent[0] = [];
         if(dataAgent[0].length > 0) {
             $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
             for(const agtItem of dataAgent[0])
@@ -527,13 +515,13 @@ function addColumnTable(idTable, seq, data)
             showSelect('agt_tourCode', dataTourCode[0], actAgent_tourCode, ke);
             showSelect('agt_jenis', dataJenis, actAgent_type, ke);
 
+            $("#btn_act_paid"+ke).removeClass('d-none');
             if(actAgent_paidStatus == "1") {
                 $("#btn_act_paid"+ke).val('paid');
                 $("#btn_act_paid"+ke).prop('disabled', true);
                 $("#btn_act_paid"+ke).removeClass('btn-primary');
                 $("#btn_act_paid"+ke).addClass('btn-secondary');
                 $("#btn_act_paid"+ke).prop('title', 'Sudah Dibayarkan');
-                $("#btn_act_paid"+ke).removeClass('d-none');
             }
         } else {
             $("#btn_act_paid"+ke).addClass('d-none');

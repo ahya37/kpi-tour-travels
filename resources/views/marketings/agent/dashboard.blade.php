@@ -48,36 +48,28 @@
     <div class="container-fluid">
         <div class="wrapper wrapper-content animated fadeInRight">
             <div class="row align-items-center">
-                <div class="col-sm-3 mb-2">
-                    <div class="card" id="card_simulasi">
-                        <div class="card-header bg-primary">
-                            <h4 class="no-margins font-weight-bold">
-                                <label class="no-margins">Simulasi Point Agent</label>
-                            </h4>
+                <div class="col-lg-3 mb-2">
+                    <div class="widget style1 navy-bg" title="Lakukan Simulasi Perhitungan Agent" onclick="showModal('modal_simulasi', '', 'view')">
+                        <div class="row align-items-center"  style="cursor: pointer;">
+                            <div class="col-4">
+                                <i class="fa fa-calculator fa-3x"></i>
+                            </div>
+                            <div class="col-sm-8 text-right">
+                                <h3 class="font-bold no-margins">Simulasi</h3>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <h2 class="no-margins font-weight-normal" id="simulasi_text">Lakukan Simulasi</h2>
-                        </div>
-                        <a href="#show_modal_simulasi" class="card-footer" title="Lihat Detail" onclick="showModal('modal_simulasi', '', 'view')">
-                            Lihat Detail
-                        </a>
                     </div>
                 </div>
                 <div class="col-sm-3 mb-2">
-                    <div class="card" id="card_pengaturan_agen">
-                        <dic class="card-header bg-primary">
-                            <h4 class="no-margins font-weight-bold">
-                                <label class="no-margins">Pengaturan Agen</label>
-                            </h4>
-                        </dic>
-                        <div class="card-body">
-                            <h2 class="no-margins font-weight-normal" id="pengaturan_agen_text">
-                                Pengaturan Agen
-                            </h2>
+                    <div class="widget style1 navy-bg" title="Pengaturan Agent" onclick="showModal('modal_pengaturan_agen', '', 'view')" style="cursor: pointer;">
+                        <div class="row align-items-center">
+                            <div class="col-sm-4">
+                                <i class="fa fa-cog fa-3x"></i>
+                            </div>
+                            <div class="col-sm-8 text-right">
+                                <h3 class="font-bold no-margins">Pengaturan Agent</h3>
+                            </div>
                         </div>
-                        <a href="#show_modal_pengaturan_agen" class="card-footer" title="Lihat Detail" onclick="showModal('modal_pengaturan_agen', '', 'view')">
-                            Lihat Detail
-                        </a>
                     </div>
                 </div>
             </div>
@@ -90,9 +82,9 @@
                             <label class="no-margins font-weight-bold">List Agent</label>
                             </h4>
                         </div>
-                        <div>
+                        <div class="text-right">
                             @if ($user_roles == 'admin')
-                                <button class="btn btn-primary" title="Ambil Data Umhaj">Tarik Data</button>
+                                <button class="btn btn-primary" title="Ambil Data Umhaj" onclick="showModal('modal_tarik_data_agent', '', '')">Tarik Data</button>
                             @endif
                             <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_data_agent', '', 'add')">Tambah Data</button>
                         </div>

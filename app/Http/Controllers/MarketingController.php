@@ -2118,7 +2118,7 @@ class MarketingController extends Controller
             $output     = [
                 "status"    => 404,
                 "success"   => false,
-                "message"   => "TIdak Ada Data Agent Baru",
+                "message"   => "Tidak Ada Data Agent Baru",
             ];
         }
 
