@@ -48,7 +48,7 @@
     <div class="container-fluid">
         <div class="wrapper wrapper-content animated fadeInRight">
             <div class="row align-items-center">
-                <div class="col-lg-3 mb-2">
+                <div class="col-lg-3 col-md-6 col-sm-12 mb-2">
                     <div class="widget style1 navy-bg" title="Lakukan Simulasi Perhitungan Agent" onclick="showModal('modal_simulasi', '', 'view')">
                         <div class="row align-items-center"  style="cursor: pointer;">
                             <div class="col-4">
@@ -60,13 +60,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-3 mb-2">
+                <div class="col-lg-3 col-md-6 col-sm-12 mb-2">
                     <div class="widget style1 navy-bg" title="Pengaturan Agent" onclick="showModal('modal_pengaturan_agen', '', 'view')" style="cursor: pointer;">
                         <div class="row align-items-center">
-                            <div class="col-sm-4">
+                            <div class="col-sm-12 col-md-4 col-lg-4">
                                 <i class="fa fa-cog fa-3x"></i>
                             </div>
-                            <div class="col-sm-8 text-right">
+                            <div class="col-md-8 text-right">
                                 <h3 class="font-bold no-margins">Pengaturan Agent</h3>
                             </div>
                         </div>
@@ -94,10 +94,11 @@
                     <div class="row align-items-center">
                         <div class="col-sm-12">
                             <div class="table-responsive">
-                                <table class="table table-striped table-hover" id="table_list_agent">
+                                <table class="table table-sm" id="table_list_agent">
                                     <thead>
                                         <tr>
                                             <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Kode</th>
                                             <th class="text-center align-middle">Nama</th>
                                             <th class="text-center align-middle">PIC</th>
                                             <th class="text-center align-middle">Kontak</th>

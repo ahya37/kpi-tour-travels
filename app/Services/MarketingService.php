@@ -1576,6 +1576,7 @@ class MarketingService
         if($jenis == 'add') {
             $data   = [
                 "agt_id"            => $get_data['data']['agt_id'],
+                "agt_unique_id"     => $get_data['data']['agt_unique_id'],
                 "agt_name"          => $get_data['data']['agt_name'],
                 "agt_pic"           => $get_data['data']['agt_pic'],
                 "agt_address"       => $get_data['data']['agt_address'],

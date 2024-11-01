@@ -301,8 +301,9 @@ function showTable(idTable, data)
             },
             autoWidth   : false,
             columnDefs  : [
-                { "targets" : [0, 4], "className" : "text-center", "width" : "5%" },
-                { "targets" : [1, 2], "className" : "text-left", "width" : "30%" },
+                { "targets" : [0, 5], "className" : "text-center", "width" : "5%" },
+                { "targets" : [1], "className" : "text-center", "width" : "5%"},
+                { "targets" : [2, 3], "className" : "text-left", "width" : "30%" },
             ],
         })
 
@@ -310,9 +311,10 @@ function showTable(idTable, data)
             let seq  = 1;
             for(const item of data)
             {
-                let agentID     = item['agent_id'];
-                let agentName   = item['agent_name'];
-                let agentPIC    = item['agent_pic'];
+                let agentID         = item['agent_id'];
+                let agentUniqueID   = item['agent_id_2'];
+                let agentName       = item['agent_name'];
+                let agentPIC        = item['agent_pic'];
                 let agentContact1   = item['agent_contact1'];
                 let agentContact2   = item['agent_contact2'];
                 let agentContact    = agentContact1 != '-' || agentContact1 != '' ? agentContact1 + " / " + agentContact2 : agentContact1;
@@ -320,6 +322,7 @@ function showTable(idTable, data)
 
                 $("#"+idTable).DataTable().row.add([
                     `<label class="no-margins font-weight-normal">${seq++}</label>`,
+                    `<label class="no-margins font-weight-normal">${agentUniqueID}</label>`,
                     `<label class="no-margins font-weight-normal">${agentName}</label>`,
                     `<label class="no-margins font-weight-normal">${agentPIC}</label>`,
                     `<label class="no-margins font-weight-normal">${agentContact}</label>`,
