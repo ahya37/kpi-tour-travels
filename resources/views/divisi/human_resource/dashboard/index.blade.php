@@ -29,7 +29,7 @@
 @section('content')
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row mb-3">
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6 col-sm-12">
                 <div class="ibox w-100">
                     <div class="ibox-title">
                         <h5>Karwayan</h5>
@@ -50,10 +50,10 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6 col-sm-12">
                 <div class="ibox w-100">
                     <div class="ibox-title">
-                        <h5>Pengajuan</h5>
+                        <h5>Pengajuan Cuti / Izin / Dll</h5>
                     </div>
                     <div class="ibox-content">
                         <h1 class="no-margins">
@@ -71,7 +71,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6 col-sm-12">
                 <div class="ibox w-100">
                     <div class="ibox-title">
                         <div class="ibox-tools">
@@ -94,7 +94,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6 col-sm-12">
                 <div class="ibox w-100">
                     <div class="ibox-title">
                         <h5>Pengajuan Lembur</h5>
@@ -128,6 +128,15 @@
                     </div>
                 </div>
                 <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-3 col sm-12 col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-bold no-margins">Pilih Bulan</label>
+                                <select name="pgj_select_month" id="pgj_select_month" class="form-control form-control-sm" style="width: 100%;" onchange="showSelectDetail(this.id, this.value)"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
                     <div class="table-responsive">
                         <table class="table table-sm table-striped table-borderless" style="width: 100%;" id="table_list_pengajuan">
                             <thead>

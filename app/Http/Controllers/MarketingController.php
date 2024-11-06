@@ -2118,7 +2118,7 @@ class MarketingController extends Controller
             $output     = [
                 "status"    => 404,
                 "success"   => false,
-                "message"   => "TIdak Ada Data Agent Baru",
+                "message"   => "Tidak Ada Data Agent Baru",
             ];
         }
 
@@ -2134,6 +2134,7 @@ class MarketingController extends Controller
             for($i = 0; $i < count($get_data); $i++) {
                 $data[]     = [
                     "agent_id"      => $get_data[$i]->agt_id,
+                    "agent_id_2"    => $get_data[$i]->agt_unique_id,
                     "agent_name"    => $get_data[$i]->agt_name,
                     "agent_pic"     => $get_data[$i]->agt_pic,
                     "agent_contact1"=> $get_data[$i]->agt_contact_1,
@@ -2181,6 +2182,8 @@ class MarketingController extends Controller
                 "type"  => $jenis,
                 "data"  => [
                     "agt_id"            => $req->all()['agent_id'] == "" ? $new_id : $req->all()['agent_id'],
+                    "agt_mkk_code"      => $req->all()['agent_mkk_code'],
+                    "agt_unique_id"     => strtoupper(str()->random(6)),
                     "agt_name"          => $req->all()['agent_name'],
                     "agt_pic"           => $req->all()['agent_pic'],
                     "agt_address"       => $req->all()['agent_address'],
@@ -2197,6 +2200,18 @@ class MarketingController extends Controller
             $do_simpan  = MarketingService::doSimpanAgent($data_kirim);
             
             if($do_simpan['status'] == 'berhasil') {
+                // $output     = [
+                //     "success"   => true, 
+                //     "status"    => 200,
+                //     "alert"     => [
+                //         "icon"      => "success",
+                //         "message"   => [
+                //             "title"     => "Berhasil",
+                //             "text"      => "Berhasil Menambahkan Agent Baru",
+                //         ],
+                //     ],
+                // ];
+                
                 $post_data_api  = Http::asForm()->post($host."/api/umhaj/agent/add", [
                     'agt_id'        => $data_kirim['data']['agt_id'],
                     'agt_name'      => $data_kirim['data']['agt_name'],
@@ -2238,7 +2253,18 @@ class MarketingController extends Controller
                         ],
                     ];
                 }
-                
+            } else {
+                $output     = [
+                    "success"   => false,
+                    "status"    => 500,
+                    "alert"     => [
+                        "icon"      => "error",
+                        "message"   => [
+                            "title"     => "Terjadi Kesalahan",
+                            "text"      => "Gagal Menyimpan Agent Baru",
+                        ],
+                    ],
+                ]; 
             }
         } else if($jenis == 'edit') {
             $data_kirim     = [
@@ -2301,6 +2327,18 @@ class MarketingController extends Controller
                         ],
                     ];
                 }
+            } else {
+                $output     = [
+                    "success"       => false,
+                    "status"        => 500,
+                    "alert"         => [
+                        "icon"      => "error",
+                        "message"   => [
+                            "title"     => "Terjadi Kesalahan",
+                            "text"      => "Gagal Menyimpan Data Agent"
+                        ],
+                    ],
+                ];
             }
         }
 

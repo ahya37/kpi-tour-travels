@@ -1,7 +1,9 @@
 var dataAgent       = [];
+var dataAgentSelect = [];
 var dataTourCode    = [];
 var today           = moment().format('YYYY-MM-DD');
 $(document).ready(()    => {
+    showTable('table_list_agent', []);
     clearUrl();
     // GET DATA FOR DASHBOARD
     const agentURL  = "marketings/agent/tarik_data_agent_local";
@@ -20,9 +22,6 @@ $(document).ready(()    => {
 
     Promise.allSettled(getData)
         .then((success)     => {
-            const agentGetData  = success[0].value.data;
-            $("#agent_text").html("<label class='font-weight-bold no-margins'>" + agentGetData.length + "</label>");
-
             if(dataTourCode.length == 0) {
                 dataTourCode.push(success[1].value.data);
             }
@@ -42,21 +41,14 @@ $(document).ready(()    => {
 function showModal(idModal, data, action)
 {
     if(idModal == 'modal_tarik_data_agent') {
-        closeModal('modal_agent');
-        // GET DATA
         let agentURL    = "marketings/agent/tarik_data_agent";
         Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
         doTransaction(agentURL, 'GET', [], '', true)
             .then((success)     => {
-                console.log(success)
                 Swal.fire({
                     icon    : 'success',
                     title   : 'Berhasil',
                     text    : success.message,
-                }).then((res)   => {
-                    if(res.isConfirmed) {
-                        showModal('modal_agent', '', '')
-                    }
                 })
             })
             .catch((err)        => {
@@ -64,10 +56,6 @@ function showModal(idModal, data, action)
                     icon    : 'error',
                     title   : 'Terjadi Kesalahan',
                     text    : err.responseJSON.message,
-                }).then((res)   => {
-                    if(res.isConfirmed) {
-                        showModal('modal_agent', '', '');
-                    }
                 })
             })
     } else if(idModal == 'modal_simulasi') {
@@ -82,7 +70,7 @@ function showModal(idModal, data, action)
             $("#modal_data_agent_title").html('Tambah Data Agent Baru');
             
             $("#"+idModal).on('shown.bs.modal', () => {
-                $("#agt_name").focus();
+                $("#agt_mkk_code").focus();
                 $("#modal_data_agent_simpan").val(action);
             })
         } else if(action == 'edit') {
@@ -97,6 +85,7 @@ function showModal(idModal, data, action)
                     
                     // FILL FORM
                     $("#agt_id").val(agentGetData.agt_id);
+                    $("#agt_mkk_code").val(agentGetData.agt_mkk_id);
                     $("#agt_name").val(agentGetData.agt_name);
                     $("#agt_pic").val(agentGetData.agt_pic);
                     $("#agt_address").val(agentGetData.agt_address);
@@ -108,6 +97,7 @@ function showModal(idModal, data, action)
 
                     $("#"+idModal).on('shown.bs.modal', () => {
                         $("#modal_data_agent_simpan").val(action);
+                        $("#agt_mkk_code").prop('readonly', true);
                     })
                     
                     Swal.close();
@@ -125,43 +115,44 @@ function showModal(idModal, data, action)
                 })
         }
     } else if(idModal == 'modal_pengaturan_agen') {
-        if(dataAgent.length == 0) {
-            // GET DATA AGENT
-            let agentUrl    = "marketings/agent/tarik_data_agent_local";
-            
-            let doTrans     = [
-                doTransaction(agentUrl, "GET", [], "", true)
-            ];
+        if(dataAgent[0].length > 0) {
+            $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
+            for(const agtItem of dataAgent[0])
+            {
+                dataAgentSelect.push({
+                    "agent_id"  : agtItem['agent_id'],
+                    "agent_name": agtItem['agent_name'],
+                })
+            }
 
-            Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
-            Promise.allSettled(doTrans)
-                .then((success) => {
-                    // SHOW MODAL
-                    $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-                    // SHOW SELECT
-                    for(const agtItem of success[0].value.data)
+            showSelect('sl_agt_id', dataAgentSelect, '', '');
+        } else {
+            // GET DATA
+            const agtURL    = "marketings/agent/tarik_data_agent_local";
+            const agtMsg    = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
+
+            doTransaction(agtURL, "GET", [], agtMsg, true)
+                .then((success)     => {
+                    for(const agtItem of success.data)
                     {
-                        let agent_id    = agtItem['agt_id'];
-                        let agent_name  = agtItem['agt_name'];
-
-                        dataAgent.push({
-                            "agent_id"      : agent_id,
-                            "agent_name"    : agent_name, 
+                        dataAgentSelect.push({
+                            "agent_id"  : agtItem['agent_id'],
+                            "agent_name": agtItem['agent_name'],
                         })
                     }
-                    showSelect('sl_agt_id', dataAgent, '', '');
-                    // CLOSE SWAL
-                    Swal.close();
-                })
-                .catch((err)    => {
-                    $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-                    console.log({err})
-                    Swal.close();
-                })
 
-        } else {
-            $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
-            showSelect('sl_agt_id', dataAgent, '', '');
+                    showSelect('sl_agt_id', dataAgentSelect, '', '');
+                    Swal.close();
+                    $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
+                })
+                .catch((err)        => {
+                    console.log(err);
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : 'Tidak ada data agent yang bisa dimuat'
+                    })
+                })
         }
         showTable('table_pengaturan_agen', []);
     }
@@ -212,6 +203,7 @@ function closeModal(idModal)
             $("#agt_fax").val("");
             $("#agt_email").val("");
             $("#agt_note").val("");
+            $("#agt_mkk_code").val("");
         })
         showModal('modal_agent', '', 'view');
     } else if(idModal == 'modal_pengaturan_agen') {
@@ -231,9 +223,9 @@ function showSelect(idSelect, data, value, seq)
     if(idSelect == 'sl_agt_id') {
         let html    = "<option selected disabled>List Agen</option>";
 
-        console.table(data[0]);
+        console.table(data);
 
-        if(data[0].length > 0) {
+        if(data.length > 0) {
             for(const item of data) {
                 html += `<option value='${item.agent_id}'>${item.agent_name}</option>`;
             }
@@ -307,13 +299,14 @@ function showTable(idTable, data)
     {
         $("#"+idTable).DataTable({
             language    : {
-                emptyTable  : "Tidak Ada Data Yang Bisa Dimuat",
+                emptyTable  : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
                 zeroRecords : "Data Yang Dicari Tidak Ditemukan"
             },
             autoWidth   : false,
             columnDefs  : [
-                { "targets" : [0, 4], "className" : "text-center", "width" : "5%" },
-                { "targets" : [1, 2], "className" : "text-left", "width" : "30%" },
+                { "targets" : [0, 5], "className" : "text-center", "width" : "5%" },
+                { "targets" : [1], "className" : "text-center", "width" : "5%"},
+                { "targets" : [2, 3], "className" : "text-left", "width" : "30%" },
             ],
         })
 
@@ -321,9 +314,10 @@ function showTable(idTable, data)
             let seq  = 1;
             for(const item of data)
             {
-                let agentID     = item['agent_id'];
-                let agentName   = item['agent_name'];
-                let agentPIC    = item['agent_pic'];
+                let agentID         = item['agent_id'];
+                let agentUniqueID   = item['agent_id_2'];
+                let agentName       = item['agent_name'];
+                let agentPIC        = item['agent_pic'];
                 let agentContact1   = item['agent_contact1'];
                 let agentContact2   = item['agent_contact2'];
                 let agentContact    = agentContact1 != '-' || agentContact1 != '' ? agentContact1 + " / " + agentContact2 : agentContact1;
@@ -331,6 +325,7 @@ function showTable(idTable, data)
 
                 $("#"+idTable).DataTable().row.add([
                     `<label class="no-margins font-weight-normal">${seq++}</label>`,
+                    `<label class="no-margins font-weight-normal">${agentUniqueID}</label>`,
                     `<label class="no-margins font-weight-normal">${agentName}</label>`,
                     `<label class="no-margins font-weight-normal">${agentPIC}</label>`,
                     `<label class="no-margins font-weight-normal">${agentContact}</label>`,
@@ -338,6 +333,7 @@ function showTable(idTable, data)
                 ]).draw(false);
             }
         }
+        $("#"+idTable+"_wrapper").css('padding-bottom', '20px');
     } else if(idTable == 'table_list_agent_umhaj') {
         $("#"+idTable).DataTable({
             language    : {
@@ -525,13 +521,13 @@ function addColumnTable(idTable, seq, data)
             showSelect('agt_tourCode', dataTourCode[0], actAgent_tourCode, ke);
             showSelect('agt_jenis', dataJenis, actAgent_type, ke);
 
+            $("#btn_act_paid"+ke).removeClass('d-none');
             if(actAgent_paidStatus == "1") {
                 $("#btn_act_paid"+ke).val('paid');
                 $("#btn_act_paid"+ke).prop('disabled', true);
                 $("#btn_act_paid"+ke).removeClass('btn-primary');
                 $("#btn_act_paid"+ke).addClass('btn-secondary');
                 $("#btn_act_paid"+ke).prop('title', 'Sudah Dibayarkan');
-                $("#btn_act_paid"+ke).removeClass('d-none');
             }
         } else {
             $("#btn_act_paid"+ke).addClass('d-none');
@@ -882,46 +878,72 @@ function simulasiHitung(idTable, column, seq)
         $("#point_"+seq).html(hitungPoint);
         $("#total_"+seq).html(hitungTotal);
 
+        let total_1         = parseInt($("#total_1").text());
+        let total_2         = parseInt($("#total_2").text());
+        let total_3         = parseInt($("#total_3").text());
+        let grandTotal      = 0;
+
+        let sisa_1          = 0;
+        let sisa_2          = 0;
+        let sisa_3          = 0;
+
+        let bonus_1         = 0;
+        let bonus_2         = 0;
+        let bonus_3         = 0;
+        let totalBonus      = 0;
+
+        let rupiah          = 0;
+
         if(seq == 1) {
-            let total_1     = parseInt($("#total_1").text());
-            let total_2     = parseInt($("#total_2").text());
-            let total_3     = parseInt($("#total_3").text());
+            // HITUNG TOTAL SEMUA
+            grandTotal  = total_1 + total_2 + total_3;
+            
+            if(total_1 >= 50) {
+                bonus_1     = Math.floor((total_1 / 50));
+                totalBonus  = bonus_1 + bonus_2 + bonus_3;
+                sisa_1      = total_1 - (50 * Math.floor(total_1 / 50));
 
-            let reward_1    = 0;
-            let reward_2    = Math.floor(total_2 / 50);
-            let reward_3    = Math.floor(total_3 / 50);
-
-            if(hitungTotal >= 50) {
-                reward_1    = Math.floor(total_1 / 50);
-                
-                let newReward   = reward_1 + reward_2 + reward_3;
-                let sisanya     = total_1 - ((reward_1) * 50);
-
-                $("#total_reward").html(newReward);
-                $("#sisa_1").html(sisanya);
+                $("#total_reward").html(totalBonus);
+                $("#sisa_1").html(sisa_1)
             } else {
-                let newReward   = reward_1 + reward_2 + reward_3;
-                $("#total_reward").html(newReward);
-                $("#sisa_1").html(total_1);
+                sisa_1  = total_1;
+                $("#total_reward").html(0);
+                $("#sisa_1").html(sisa_1);
             }
 
             // HITUNG FEE
             let point_1     = parseInt($("#point_1").text());
             let fee_1       = fee * point_1;
-            let formatRp    = new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR"}).format(fee_1);
-            $("#total_pendapatan_tahun_pertama").html(formatRp);
+            rupiah          = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(fee_1);
+            $("#total_pendapatan_tahun_pertama").html(rupiah);
+
+            // if(hitungTotal >= 50) {
+            //     reward_1    = Math.floor(total_1 / 50);
+
+            //     let newReward   = reward_1 + reward_2 + reward_3;
+            //     let sisanya     = total_1 - ((reward_1) * 50);
+
+            //     $("#total_reward").html(newReward);
+            //     $("#sisa_1").html(sisanya);
+            // } else {
+            //     let newReward   = reward_1 + reward_2 + reward_3;
+            //     $("#total_reward").html(newReward);
+            //     $("#sisa_1").html(total_1);
+            // }
+
+            // HITUNG FEE
+            // let point_1     = parseInt($("#point_1").text());
+            // let fee_1       = fee * point_1;
+            // let formatRp    = new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR"}).format(fee_1);
+            // $("#total_pendapatan_tahun_pertama").html(formatRp);
         } else if(seq == 2) {
-            let total_1     = parseInt($("#total_1").text());
-            let total_2     = parseInt($("#total_2").text());
-            let total_3     = parseInt($("#total_3").text());
-            
             let sisa_1      = parseInt($("#sisa_1").text());
 
             // GET REWARD DARI DATA SEBELUMNYA
             let reward_1    = Math.floor(total_1 / 50);
             let reward_2    = 0;
             let reward_3    = Math.floor(total_3 / 50);
-            
+ 
             if(total_2 >= 50) {
                 // HITUNG REWARD 2
                 reward_2    = Math.floor(total_2 / 50);
@@ -945,8 +967,8 @@ function simulasiHitung(idTable, column, seq)
 
                     let newReward   = reward_1 + reward_2 + reward_3;
 
-                    $("#total_reward").html(newReward);
-                    $("#sisa_2").html(0);
+                    $("#total_reward").html(newReward)
+                    $("#sisa_2").html(hitungSisa - 80);
                 } else {
                     let newReward   = reward_1 + reward_2 + reward_3;
                     $("#total_reward").html(newReward);
@@ -961,10 +983,6 @@ function simulasiHitung(idTable, column, seq)
             $("#total_pendapatan_tahun_kedua").html(formatRp);
 
         } else if(seq == 3) {
-            let total_1     = parseInt($("#total_1").text());
-            let total_2     = parseInt($("#total_2").text());
-            let total_3     = parseInt($("#total_3").text());
-
             let sisa_1      = parseInt($("#sisa_1").text());
             let sisa_2      = parseInt($("#sisa_2").text());
             let sisa_3      = 0;
@@ -996,10 +1014,17 @@ function simulasiHitung(idTable, column, seq)
                     $("#total_reward").html(newReward);
                     $("#sisa_3").html(total_3)
                 } else {
-                    let newReward   = reward_1 + reward_2 + reward_3;
-                    newReward   = sisa_1 + sisa_2 >= 80 ? newReward + Math.floor((sisa_1 + sisa_1) / 80) : newReward;
+                    // HITUNG DULU REWARD SEBELUMNYA
+                    if(total_1 + total_2 >= 80) {
+                        reward_2    = Math.floor((total_1 + total_2) / 80);
+                        if(((total_1 + total_2) - 80) + total_3 >= 110) {
+                            let sisa    = (total_1 + total_2) - 80;
+                            reward_3    = Math.floor((sisa + total_3) / 110);
+                        }
+                    }
+
+                    let newReward    = reward_1 + reward_2 + reward_3;
                     $("#total_reward").html(newReward);
-                    $("#sisa_3").html(total_3);
                 }
             }
 
@@ -1025,8 +1050,18 @@ function doSimpanData(idForm, jenis, data)
         const agtFax        = $("#agt_fax");
         const agtEmail      = $("#agt_email");
         const agtNote       = $("#agt_note");
+        const agtMkkCode    = $("#agt_mkk_code");
 
-        if(agtName.val() == "") {
+        if(agtMkkCode.val() == "") {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Kode MKK Harus Diisi',
+                didClose    : () => {
+                    agtMkkCode.focus();
+                }
+            })
+        } else if(agtName.val() == "") {
             Swal.fire({
                 icon    : 'error',
                 title   : 'Terjadi Kesalahan',
@@ -1059,6 +1094,7 @@ function doSimpanData(idForm, jenis, data)
         } else {
             const agtSendData   = {
                 "agent_id"      : agtID.val(),
+                "agent_mkk_code": agtMkkCode.val(),
                 "agent_name"    : agtName.val(),
                 "agent_pic"     : agtPIC.val(),
                 "agent_address" : agtAddress.val(),
@@ -1082,6 +1118,21 @@ function doSimpanData(idForm, jenis, data)
                     }).then((results)   => {
                         if(results.isConfirmed) {
                             closeModal('modal_data_agent');
+                            // GET DATA AGENT
+                            dataAgent    = [];
+                            showTable('table_list_agent', dataAgent);
+                            const agentURL  = "marketings/agent/tarik_data_agent_local";
+                            const agentType = "GET";
+
+                            doTransaction(agentURL, agentType, [], "", true)
+                                .then((success)     => {
+                                    dataAgent.push(success.data);
+                                    showTable('table_list_agent', dataAgent[0]);
+                                })
+                                .catch((err)        => {
+                                    console.log(err);
+                                    showTable('table_list_agent', dataAgent[0]);
+                                })
                         }
                     })
                 })

@@ -1438,7 +1438,7 @@ class DivisiController extends Controller
             "sub_title" => "Dashboard - Divisi Human Resource",
         ];
 
-        return view(".divisi.human_resource.dashboard.index", $data);
+        return view("divisi.human_resource.dashboard.index", $data);
     }
 
     // 22 AGUSTUS 2024

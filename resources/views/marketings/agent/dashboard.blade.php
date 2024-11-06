@@ -48,53 +48,20 @@
     <div class="container-fluid">
         <div class="wrapper wrapper-content animated fadeInRight">
             <div class="row align-items-center">
-                <div class="col-sm-3 mb-2">
-                    <div class="card" id="card_agent">
-                        <div class="card-header bg-primary">
-                            <h4 class="no-margins font-weight-bold">
-                                <label class="no-margins">List Agent</label>
-                            </h4>
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="widget style1 navy-bg" title="Lakukan Simulasi Perhitungan Agent" onclick="showModal('modal_simulasi', '', 'view')" style="cursor: pointer;">
+                        <div class="d-flex flex-row align-items-center justify-content-between">
+                            <i class="fa fa-calculator fa-3x"></i>
+                            <h3 class="font-bold no-margins">Simulasi</h3>
                         </div>
-                        <div class="card-body text-right">
-                            <h2 class="no-margins font-weight-normal" id="agent_text">
-                                <div class="spinner-border"></div>
-                            </h2>
-                        </div>
-                        <a href="#show_modal_agent" class="card-footer" title="Lihat Detail" onclick="showModal('modal_agent', '', 'view')">
-                            Lihat Detail
-                        </a>
                     </div>
                 </div>
-                <div class="col-sm-3 mb-2">
-                    <div class="card" id="card_simulasi">
-                        <div class="card-header bg-primary">
-                            <h4 class="no-margins font-weight-bold">
-                                <label class="no-margins">Simulasi Point Agent</label>
-                            </h4>
+                <div class="col-lg-6 col-md-6 col-sm-6">
+                    <div class="widget style1 navy-bg" title="Pengaturan Agent" onclick="showModal('modal_pengaturan_agen', '', 'view')" style="cursor: pointer;">
+                        <div class="d-flex flex-row align-items-center justify-content-between">
+                            <i class="fa fa-cog fa-3x"></i>
+                            <h3 class="font-bold no-margins">Pengaturan Agent</h3> 
                         </div>
-                        <div class="card-body">
-                            <h2 class="no-margins font-weight-normal" id="simulasi_text">Lakukan Simulasi</h2>
-                        </div>
-                        <a href="#show_modal_simulasi" class="card-footer" title="Lihat Detail" onclick="showModal('modal_simulasi', '', 'view')">
-                            Lihat Detail
-                        </a>
-                    </div>
-                </div>
-                <div class="col-sm-3 mb-2">
-                    <div class="card" id="card_pengaturan_agen">
-                        <dic class="card-header bg-primary">
-                            <h4 class="no-margins font-weight-bold">
-                                <label class="no-margins">Pengaturan Agen</label>
-                            </h4>
-                        </dic>
-                        <div class="card-body">
-                            <h2 class="no-margins font-weight-normal" id="pengaturan_agen_text">
-                                Pengaturan Agen
-                            </h2>
-                        </div>
-                        <a href="#show_modal_pengaturan_agen" class="card-footer" title="Lihat Detail" onclick="showModal('modal_pengaturan_agen', '', 'view')">
-                            Lihat Detail
-                        </a>
                     </div>
                 </div>
             </div>
@@ -107,11 +74,11 @@
                             <label class="no-margins font-weight-bold">List Agent</label>
                             </h4>
                         </div>
-                        <div>
+                        <div class="text-right">
                             @if ($user_roles == 'admin')
-                                <button class="btn btn-primary" title="Ambil Data Umhaj">Tarik Data</button>
+                                <button class="btn btn-primary" title="Ambil Data Umhaj" onclick="showModal('modal_tarik_data_agent', '', '')">Tarik Data</button>
                             @endif
-                            <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_data_agent')">Tambah Data</button>
+                            <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_data_agent', '', 'add')">Tambah Data</button>
                         </div>
                     </div>
                 </div>
@@ -119,10 +86,11 @@
                     <div class="row align-items-center">
                         <div class="col-sm-12">
                             <div class="table-responsive">
-                                <table class="table table-striped table-hover" id="table_list_agent">
+                                <table class="table table-sm datatable" id="table_list_agent">
                                     <thead>
                                         <tr>
                                             <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Kode</th>
                                             <th class="text-center align-middle">Nama</th>
                                             <th class="text-center align-middle">PIC</th>
                                             <th class="text-center align-middle">Kontak</th>
@@ -334,6 +302,14 @@
                 <div class="modal-body">
                     <div class="row mb-2 align-items-center">
                         <div class="col-sm-3">
+                            <label class="no-margins">Kode MKK</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control form-control-sm" id="agt_mkk_code" name="agt_mkk_code" placeholder="Kode MKK" onkeyup="uppercase(this.id, this.value), removeInvalid(this.id)" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-sm-3">
                             <label class="no-margins">Nama</label>
                         </div>
                         <div class="col-sm-9">
@@ -428,7 +404,7 @@
                     </div>
                     <hr>
                     <div class="table-responsive">
-                        <table class="table table-sm table-striped table-bordered table-hover" id="table_pengaturan_agen" style="width: 100%;">
+                    <table class="table table-sm table-striped table-bordered table-hover" id="table_pengaturan_agen" style="width: 100%;">
                             <thead>
                                 <tr>
                                     <th class="text-center align-middle">No</th>
