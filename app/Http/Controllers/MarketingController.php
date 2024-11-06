@@ -2210,47 +2210,48 @@ class MarketingController extends Controller
                         ],
                     ],
                 ];
-                // $post_data_api  = Http::asForm()->post($host."/api/umhaj/agent/add", [
-                //     'agt_id'        => $data_kirim['data']['agt_id'],
-                //     'agt_name'      => $data_kirim['data']['agt_name'],
-                //     'agt_pic'       => $data_kirim['data']['agt_pic'],
-                //     'agt_address'   => $data_kirim['data']['agt_address'],
-                //     'agt_contact_1' => $data_kirim['data']['agt_contact_1'],
-                //     'agt_contact_2' => $data_kirim['data']['agt_contact_2'],
-                //     'agt_fax'       => $data_kirim['data']['agt_fax'],
-                //     'agt_email'     => $data_kirim['data']['agt_email'],
-                //     'agt_note'      => $data_kirim['data']['agt_note'],
-                //     'created_date'  => date('Y-m-d H:i:s'),
-                //     'created_by'    => Auth::user()->name,
-                //     'updated_date'  => date('Y-m-d H:i:s'),
-                //     'updated_by'    => Auth::user()->name,
-                // ]);
+                
+                $post_data_api  = Http::asForm()->post($host."/api/umhaj/agent/add", [
+                    'agt_id'        => $data_kirim['data']['agt_id'],
+                    'agt_name'      => $data_kirim['data']['agt_name'],
+                    'agt_pic'       => $data_kirim['data']['agt_pic'],
+                    'agt_address'   => $data_kirim['data']['agt_address'],
+                    'agt_contact_1' => $data_kirim['data']['agt_contact_1'],
+                    'agt_contact_2' => $data_kirim['data']['agt_contact_2'],
+                    'agt_fax'       => $data_kirim['data']['agt_fax'],
+                    'agt_email'     => $data_kirim['data']['agt_email'],
+                    'agt_note'      => $data_kirim['data']['agt_note'],
+                    'created_date'  => date('Y-m-d H:i:s'),
+                    'created_by'    => Auth::user()->name,
+                    'updated_date'  => date('Y-m-d H:i:s'),
+                    'updated_by'    => Auth::user()->name,
+                ]);
 
-                // if($post_data_api->status() >= 200 && $post_data_api->status() < 300) {
-                //     $output     = [
-                //         "success"   => true,
-                //         "status"    => $post_data_api->status(),
-                //         "alert"     => [
-                //             "icon"      => "success",
-                //             "message"   => [
-                //                 "title"     => "Berhasil",
-                //                 "text"      => "Berhasil Menambahkan Data Agent Baru"
-                //             ],
-                //         ],
-                //     ];
-                // } else {
-                //     $output     = [
-                //         "success"   => false,
-                //         "status"    => $post_data_api->status(),
-                //         "alert"     => [
-                //             "icon"      => "error",
-                //             "message"   => [
-                //                 "title"     => "Terjadi Kesalahan",
-                //                 "text"      => $post_data_api->json()['message'],
-                //             ],
-                //         ],
-                //     ];
-                // }
+                if($post_data_api->status() >= 200 && $post_data_api->status() < 300) {
+                    $output     = [
+                        "success"   => true,
+                        "status"    => $post_data_api->status(),
+                        "alert"     => [
+                            "icon"      => "success",
+                            "message"   => [
+                                "title"     => "Berhasil",
+                                "text"      => "Berhasil Menambahkan Data Agent Baru"
+                            ],
+                        ],
+                    ];
+                } else {
+                    $output     = [
+                        "success"   => false,
+                        "status"    => $post_data_api->status(),
+                        "alert"     => [
+                            "icon"      => "error",
+                            "message"   => [
+                                "title"     => "Terjadi Kesalahan",
+                                "text"      => $post_data_api->json()['message'],
+                            ],
+                        ],
+                    ];
+                }
             } else {
                 $output     = [
                     "success"   => false,

@@ -48,27 +48,19 @@
     <div class="container-fluid">
         <div class="wrapper wrapper-content animated fadeInRight">
             <div class="row align-items-center">
-                <div class="col-lg-3 col-md-6 col-sm-12 mb-2">
+                <div class="col-lg-6 col-md-6 col-sm-6">
                     <div class="widget style1 navy-bg" title="Lakukan Simulasi Perhitungan Agent" onclick="showModal('modal_simulasi', '', 'view')">
-                        <div class="row align-items-center"  style="cursor: pointer;">
-                            <div class="col-4">
-                                <i class="fa fa-calculator fa-3x"></i>
-                            </div>
-                            <div class="col-sm-8 text-right">
-                                <h3 class="font-bold no-margins">Simulasi</h3>
-                            </div>
+                        <div class="d-flex flex-row align-items-center justify-content-between">
+                            <i class="fa fa-calculator fa-3x"></i>
+                            <h3 class="font-bold no-margins">Simulasi</h3>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6 col-sm-12 mb-2">
+                <div class="col-lg-6 col-md-6 col-sm-6">
                     <div class="widget style1 navy-bg" title="Pengaturan Agent" onclick="showModal('modal_pengaturan_agen', '', 'view')" style="cursor: pointer;">
-                        <div class="row align-items-center">
-                            <div class="col-sm-12 col-md-4 col-lg-4">
-                                <i class="fa fa-cog fa-3x"></i>
-                            </div>
-                            <div class="col-md-8 text-right">
-                                <h3 class="font-bold no-margins">Pengaturan Agent</h3>
-                            </div>
+                        <div class="d-flex flex-row align-items-center justify-content-between">
+                            <i class="fa fa-cog fa-3x"></i>
+                            <h3 class="font-bold no-margins">Pengaturan Agent</h3> 
                         </div>
                     </div>
                 </div>
@@ -94,7 +86,7 @@
                     <div class="row align-items-center">
                         <div class="col-sm-12">
                             <div class="table-responsive">
-                                <table class="table table-sm" id="table_list_agent">
+                                <table class="table table-sm datatable" id="table_list_agent">
                                     <thead>
                                         <tr>
                                             <th class="text-center align-middle">No</th>
@@ -404,7 +396,7 @@
                     </div>
                     <hr>
                     <div class="table-responsive">
-                        <table class="table table-sm table-striped table-bordered table-hover" id="table_pengaturan_agen" style="width: 100%;">
+                    <table class="table table-sm table-striped table-bordered table-hover" id="table_pengaturan_agen" style="width: 100%;">
                             <thead>
                                 <tr>
                                     <th class="text-center align-middle">No</th>
