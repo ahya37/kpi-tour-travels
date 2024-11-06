@@ -111,7 +111,16 @@ function showModal(idModal, jenis, data)
     {
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
-        showTable('table_list_pengajuan', '');
+        var dataBulan       = [];
+        var BulanSekarang   = moment().format('M');
+        for(let i = 0; i < 12; i++) {
+            dataBulan.push({
+                "bulan_ke"  : i + 1,
+            });
+        }
+
+        showSelect('pgj_select_month', dataBulan, BulanSekarang, '');
+        showTable('table_list_pengajuan', BulanSekarang);
     } else if(idModal == 'modal_abs') {
         // GET DATA
         const emp_url   = "/divisi/master/getDataEmployees";
@@ -264,7 +273,7 @@ function showTable(idTable, data)
         const pgj_url   = "/pengajuan/listCuti";
         const pgj_type  = "GET";
         const pgj_data  = {
-            "bulan"     : moment(today, 'YYYY-MM-DD').format('MM'),
+            "bulan"     : data < 10 ? `0${data}` : data,
         };
         const pgj_msg   = "";
 
@@ -559,6 +568,29 @@ function showSelect(idSelect, data, selectedData, seq)
         } else {
             $("#"+idSelect).html(html);
         }
+    } else if(idSelect == 'pgj_select_month') {
+        let html    = "<option selected disabled>Pilih Bulan</option>";
+        let bulanSelect = selectedData < 10 ? `0${selectedData}` : selectedData;
+        for(const item of data)
+        {
+            let bulan       = item['bulan_ke'] < 10 ? `0${item['bulan_ke']}` : item['bulan_ke'];
+            let bulanName   = moment(item['bulan_ke'], 'M').format('MMMM');
+            
+            html    += `<option value="${bulan}">${bulanName}</option>`;
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != "") {
+            $("#"+idSelect).val(bulanSelect);
+        }
+    }
+}
+
+function showSelectDetail(idSelect, value, seq = null)
+{
+    if(idSelect == 'pgj_select_month') {
+        showTable('table_list_pengajuan', value);
     }
 }
 
