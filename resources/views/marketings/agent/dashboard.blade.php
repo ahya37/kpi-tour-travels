@@ -302,6 +302,14 @@
                 <div class="modal-body">
                     <div class="row mb-2 align-items-center">
                         <div class="col-sm-3">
+                            <label class="no-margins">Kode MKK</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control form-control-sm" id="agt_mkk_code" name="agt_mkk_code" placeholder="Kode MKK" onkeyup="uppercase(this.id, this.value), removeInvalid(this.id)" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-sm-3">
                             <label class="no-margins">Nama</label>
                         </div>
                         <div class="col-sm-9">

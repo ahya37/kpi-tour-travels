@@ -2182,6 +2182,7 @@ class MarketingController extends Controller
                 "type"  => $jenis,
                 "data"  => [
                     "agt_id"            => $req->all()['agent_id'] == "" ? $new_id : $req->all()['agent_id'],
+                    "agt_mkk_code"      => $req->all()['agent_mkk_code'],
                     "agt_unique_id"     => strtoupper(str()->random(6)),
                     "agt_name"          => $req->all()['agent_name'],
                     "agt_pic"           => $req->all()['agent_pic'],
@@ -2199,17 +2200,17 @@ class MarketingController extends Controller
             $do_simpan  = MarketingService::doSimpanAgent($data_kirim);
             
             if($do_simpan['status'] == 'berhasil') {
-                $output     = [
-                    "success"   => true, 
-                    "status"    => 200,
-                    "alert"     => [
-                        "icon"      => "success",
-                        "message"   => [
-                            "title"     => "Berhasil",
-                            "text"      => "Berhasil Menambahkan Agent Baru",
-                        ],
-                    ],
-                ];
+                // $output     = [
+                //     "success"   => true, 
+                //     "status"    => 200,
+                //     "alert"     => [
+                //         "icon"      => "success",
+                //         "message"   => [
+                //             "title"     => "Berhasil",
+                //             "text"      => "Berhasil Menambahkan Agent Baru",
+                //         ],
+                //     ],
+                // ];
                 
                 $post_data_api  = Http::asForm()->post($host."/api/umhaj/agent/add", [
                     'agt_id'        => $data_kirim['data']['agt_id'],

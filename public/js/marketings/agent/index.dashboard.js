@@ -70,7 +70,7 @@ function showModal(idModal, data, action)
             $("#modal_data_agent_title").html('Tambah Data Agent Baru');
             
             $("#"+idModal).on('shown.bs.modal', () => {
-                $("#agt_name").focus();
+                $("#agt_mkk_code").focus();
                 $("#modal_data_agent_simpan").val(action);
             })
         } else if(action == 'edit') {
@@ -85,6 +85,7 @@ function showModal(idModal, data, action)
                     
                     // FILL FORM
                     $("#agt_id").val(agentGetData.agt_id);
+                    $("#agt_mkk_code").val(agentGetData.agt_mkk_id);
                     $("#agt_name").val(agentGetData.agt_name);
                     $("#agt_pic").val(agentGetData.agt_pic);
                     $("#agt_address").val(agentGetData.agt_address);
@@ -96,6 +97,7 @@ function showModal(idModal, data, action)
 
                     $("#"+idModal).on('shown.bs.modal', () => {
                         $("#modal_data_agent_simpan").val(action);
+                        $("#agt_mkk_code").prop('readonly', true);
                     })
                     
                     Swal.close();
@@ -201,6 +203,7 @@ function closeModal(idModal)
             $("#agt_fax").val("");
             $("#agt_email").val("");
             $("#agt_note").val("");
+            $("#agt_mkk_code").val("");
         })
         showModal('modal_agent', '', 'view');
     } else if(idModal == 'modal_pengaturan_agen') {
@@ -1018,8 +1021,18 @@ function doSimpanData(idForm, jenis, data)
         const agtFax        = $("#agt_fax");
         const agtEmail      = $("#agt_email");
         const agtNote       = $("#agt_note");
+        const agtMkkCode    = $("#agt_mkk_code");
 
-        if(agtName.val() == "") {
+        if(agtMkkCode.val() == "") {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Kode MKK Harus Diisi',
+                didClose    : () => {
+                    agtMkkCode.focus();
+                }
+            })
+        } else if(agtName.val() == "") {
             Swal.fire({
                 icon    : 'error',
                 title   : 'Terjadi Kesalahan',
@@ -1052,6 +1065,7 @@ function doSimpanData(idForm, jenis, data)
         } else {
             const agtSendData   = {
                 "agent_id"      : agtID.val(),
+                "agent_mkk_code": agtMkkCode.val(),
                 "agent_name"    : agtName.val(),
                 "agent_pic"     : agtPIC.val(),
                 "agent_address" : agtAddress.val(),
