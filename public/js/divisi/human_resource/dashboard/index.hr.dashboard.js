@@ -3,6 +3,16 @@ moment().locale('id');
 var today               = moment().format('YYYY-MM-DD');
 var abs_data_global     = [];
 var base_url            = window.location.origin;
+var dataBulan           = [];
+
+for(let i = 0; i < 12; i++) {
+    dataBulan.push({
+        "bulan_ke"  : moment(i + 1, 'M').format('MM'),
+        "bulan_name": moment(i + 1, 'M').format('MMMM'),
+    })
+}
+
+console.log(dataBulan);
 
 $(document).ready(() => {
     // GET DATA PENGAJUAN
@@ -31,13 +41,16 @@ $(document).ready(() => {
 
     const pgj_lmb_url   = base_url + "/pengajuan/lembur/list_lembur";
     const pgj_lmb_type  = "GET";
+    const pgj_lmb_data  = {
+        "bulan" : moment(today, 'YYYY-MM-DD').format('MM')
+    };
     
 
     const sendData  = [
         doTrans(pgj_url, pgj_type, pgj_data, "", true),
         doTrans(emp_url, emp_type, emp_data, "", true),
         doTrans(abs_url, abs_type, abs_data, "", true),
-        doTrans(pgj_lmb_url, pgj_lmb_type, "", "", true)
+        doTrans(pgj_lmb_url, pgj_lmb_type, pgj_lmb_data, "", true)
     ];
 
     Promise.allSettled(sendData)
@@ -111,15 +124,10 @@ function showModal(idModal, jenis, data)
     {
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
-        var dataBulan       = [];
+        // SHOW SELECT
         var BulanSekarang   = moment().format('M');
-        for(let i = 0; i < 12; i++) {
-            dataBulan.push({
-                "bulan_ke"  : i + 1,
-            });
-        }
-
         showSelect('pgj_select_month', dataBulan, BulanSekarang, '');
+        // SHOW TABLE
         showTable('table_list_pengajuan', BulanSekarang);
     } else if(idModal == 'modal_abs') {
         // GET DATA
@@ -170,6 +178,10 @@ function showModal(idModal, jenis, data)
     } else if(idModal == 'modal_pgj_lmb') {
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
         
+        // SHOW SELECT
+        let bulanSekarang   = moment(today, 'YYYY-MM-DD').format('MM');
+        showSelect('select_pgj_month', dataBulan, bulanSekarang, '');
+        // SHOW TABLE
         showTable('table_pgj_lmb', '');
     } else if(idModal == 'modal_pgj_lmb_preview') {
 
@@ -458,6 +470,7 @@ function showTable(idTable, data)
                 console.log(err);
             })
     } else if(idTable == 'table_pgj_lmb') {
+        console.log(data)
         $("#"+idTable).DataTable({
             language    : {
                 emptyTable  : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat...",
@@ -474,7 +487,9 @@ function showTable(idTable, data)
         // GET DATA
         const pgj_lmb_url   = base_url + "/pengajuan/lembur/list_lembur";
         const pgj_lmb_type  = "GET";
-        const pgj_lmb_data  = "";
+        const pgj_lmb_data  = {
+            "bulan"     : data
+        };
 
         doTrans(pgj_lmb_url, pgj_lmb_type, pgj_lmb_data, '', true)
             .then((success)     => {
@@ -570,19 +585,28 @@ function showSelect(idSelect, data, selectedData, seq)
         }
     } else if(idSelect == 'pgj_select_month') {
         let html    = "<option selected disabled>Pilih Bulan</option>";
-        let bulanSelect = selectedData < 10 ? `0${selectedData}` : selectedData;
+        
         for(const item of data)
         {
-            let bulan       = item['bulan_ke'] < 10 ? `0${item['bulan_ke']}` : item['bulan_ke'];
-            let bulanName   = moment(item['bulan_ke'], 'M').format('MMMM');
-            
-            html    += `<option value="${bulan}">${bulanName}</option>`;
+            html    += `<option value="${item['bulan_ke']}">${item['bulan_name']}</option>`;
+        }
+        $("#"+idSelect).html(html);
+        
+        if(selectedData != "") {
+            $("#"+idSelect).val(selectedData);
+        }
+    } else if(idSelect == 'select_pgj_month') {
+        let html    = "<option selected disabled>Pilih Bulan</option>";
+        
+        for(const item of data)
+        {
+            html    += `<option value="${item['bulan_ke']}">${item['bulan_name']}</option>`;
         }
 
         $("#"+idSelect).html(html);
 
         if(selectedData != "") {
-            $("#"+idSelect).val(bulanSelect);
+            $("#"+idSelect).val(selectedData);
         }
     }
 }
@@ -591,6 +615,8 @@ function showSelectDetail(idSelect, value, seq = null)
 {
     if(idSelect == 'pgj_select_month') {
         showTable('table_list_pengajuan', value);
+    } else if(idSelect == 'select_pgj_month') {
+        showTable('table_pgj_lmb', value);
     }
 }
 

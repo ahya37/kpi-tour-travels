@@ -1959,9 +1959,14 @@ class DivisiController extends Controller
         return view('activities.pengajuan.lembur.index', $data);
     }
 
-    public function list_lembur()
+    public function list_lembur(Request $req)
     {
-        $get_data   = DivisiService::get_list_lembur();
+        $data       = [
+            "user_id"   => Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id,
+            "bulan"     => $req->all()['bulan'],
+        ];
+        
+        $get_data   = DivisiService::get_list_lembur($data);
 
         $output     = [
             "success"   => true,
@@ -1975,17 +1980,6 @@ class DivisiController extends Controller
 
     public function simpan_pengajuan_lembur($jenis, Request $request)
     {
-        // $data   = [
-        //     "user_id"   => Auth::user()->id, 
-        //     "user_name" => Auth::user()->name,
-        //     "data"      => [
-        //         "header"    => $request->all()['header'],
-        //         "detail"    => $request->all()['detail'],
-        //     ],
-        //     "jenis"     => $jenis,
-        //     "ip"        => $request->ip(),
-        // ];
-
         $data       = [
             "user_id"       => Auth::user()->id,
             "user_name"     => Auth::user()->name,

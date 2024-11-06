@@ -2432,9 +2432,10 @@ class DivisiService
         return $output;
     }
 
-    public static function get_list_lembur()
+    public static function get_list_lembur($data)
     {
-        $user_id    = Auth::user()->getRoleNames()[0] == 'admin' ? '%' : Auth::user()->id;
+        $user_id    = $data['user_id'];
+        $bulan      = $data['bulan'];
         $query  = DB::table('employees_activity as a')
                     ->join('users as b', 'a.emp_act_user_id', '=', 'b.id')
                     ->join('employees_activity_detail as c', 'a.id', '=', 'c.emp_act_id')
@@ -2442,6 +2443,7 @@ class DivisiService
                     ->where('emp_act_type', '=', 'Lembur')
                     ->where('emp_act_user_id', 'LIKE', '%'.$user_id.'%')
                     ->where('c.empd_seq', '=', '1')
+                    ->where(DB::raw('EXTRACT(MONTH FROM a.emp_act_start_date)'), '=', "$bulan")
                     ->orderBy('emp_act_start_date', 'desc')
                     ->get();
         return $query;

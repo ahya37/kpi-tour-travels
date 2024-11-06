@@ -136,22 +136,25 @@
                             </div>
                         </div>
                     </div>
-                    <br>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped table-borderless" style="width: 100%;" id="table_list_pengajuan">
-                            <thead>
-                                <tr>
-                                    <th class="text-center align-middle" style="width: 5%;">No</th>
-                                    <th class="text-center align-middle" style="width: 15%;">Nama Pengaju</th>
-                                    <th class="text-center align-middle" style="width: 20%;">Tgl. Pengajuan</th>
-                                    <th class="text-center align-middle">Uraian</th>
-                                    <th class="text-center align-middle" style="width: 5%;">Jenis</th>
-                                    <th class="text-center align-middle" style="width: 5%;">Status</th>
-                                    <th class="text-center align-middle" style="width: 10%;">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped table-borderless" style="width: 100%;" id="table_list_pengajuan">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" style="width: 5%;">No</th>
+                                            <th class="text-center align-middle" style="width: 15%;">Nama Pengaju</th>
+                                            <th class="text-center align-middle" style="width: 20%;">Tgl. Pengajuan</th>
+                                            <th class="text-center align-middle">Uraian</th>
+                                            <th class="text-center align-middle" style="width: 5%;">Jenis</th>
+                                            <th class="text-center align-middle" style="width: 5%;">Status</th>
+                                            <th class="text-center align-middle" style="width: 10%;">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -269,6 +272,14 @@
                     </div>
                 </div>
                 <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-3 col sm-12 col-md-6">
+                            <div class="form-group">
+                                <label class="font-bold no-margins">Pilih Bulan</label>
+                                <select id="select_pgj_month" style="width: 100%;" class="form-control" onchange="showSelectDetail(this.id, this.value)"></select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="table-responsive">

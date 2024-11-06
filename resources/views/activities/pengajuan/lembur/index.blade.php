@@ -21,12 +21,18 @@
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="card shadow mb-5">
             <div class="card-header">
-                <h4 class="no-margins">List Pengajuan Lembur</h4>
+                <div class="d-flex flex-row align-items-center justify-content-between">
+                    <h4 class="no-margins">List Pengajuan Lembur</h4>
+                    <button class="btn btn-primary font-weight-bold" onclick="showModal('modal_buat_lemburan','')" title="Buat Pengajuan Lembur">Buat Pengajuan Lembur</button>
+                </div>
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-sm-12">
-                        <button class="btn btn-primary" onclick="showModal('modal_buat_lemburan','')">Buat Pengajuan Lembur</button>
+                    <div class="col-sm-12 col-lg-3 col-md-6">
+                        <div class="form-group">
+                            <label class="no-margins font-weight-bold">Pilih Bulan</label>
+                            <select id="pgj_lmb_select_month" style="width: 100%;" class="form-control form-select" onchange="showSelectDetail(this.id, this.value)"></select>
+                        </div>
                     </div>
                 </div>
                 <hr>

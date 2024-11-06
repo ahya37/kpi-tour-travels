@@ -1,12 +1,27 @@
 var base_url    = window.location.origin;
 var today       = moment().format('YYYY-MM-DD');
+var dataBulan   = [];
+
+if(dataBulan.length == 0) {
+    for(let i = 0; i < 12; i++) {
+        dataBulan.push({
+            "bulan_ke"  : moment(i + 1, 'M').format('MM'),
+            "bulan_name": moment(i + 1, 'M').format('MMMM')
+        })
+    }
+}
+
 $(document).ready(()    => {
     console.log('test');
 
     showTable('table_list_lembur');
+
+    // SHOW SELECT
+    let selectedBulan   = moment(today, 'YYYY-MM-DD').format('MM');
+    showSelect('pgj_lmb_select_month', dataBulan, selectedBulan, '')
 })
 
-function showTable(idTable)
+function showTable(idTable, data)
 {
     $("#"+idTable).DataTable().clear().destroy();
     if(idTable == 'table_list_lembur')
@@ -27,7 +42,9 @@ function showTable(idTable)
         // GET DATA
         const lmb_url   = base_url + "/pengajuan/lembur/list_lembur";
         const lmb_type  = "GET";
-        const lmb_data  = "";
+        const lmb_data  = {
+            "bulan"     : moment(today, 'YYYY-MM-DD').format('MM'),
+        };
         const lmb_msg   = "";
         
         doTrans(lmb_url, lmb_type, lmb_data, lmb_msg, true)
@@ -71,6 +88,37 @@ function showTable(idTable)
             .catch((err)        => {
                 console.log(err);
             })
+    }
+}
+
+function showSelect(idSelect, data, selectedData, seq)
+{
+    // DEFAULT SETTING
+    $("#"+idSelect).select2({
+        theme   : 'bootstrap4'
+    })
+
+    if(idSelect == 'pgj_lmb_select_month') {
+        let html    = "<option selected disabled>Pilih Bulan</option>";
+
+        for(const item of data)
+        {
+            html    += `<option value="${item['bulan_ke']}">${item['bulan_name']}</option>`;
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
+    }
+}
+
+function showSelectDetail(idSelect, value)
+{
+    
+    if(idSelect == "pgj_lmb_select_month") {
+        showTable('table_list_lembur', value);
     }
 }
 
