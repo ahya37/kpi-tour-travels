@@ -12,9 +12,8 @@ if(dataBulan.length == 0) {
 }
 
 $(document).ready(()    => {
-    console.log('test');
-
-    showTable('table_list_lembur');
+    let currMonth   = moment(today, 'YYYY-MM-DD').format('MM');
+    showTable('table_list_lembur', currMonth);
 
     // SHOW SELECT
     let selectedBulan   = moment(today, 'YYYY-MM-DD').format('MM');
@@ -34,7 +33,7 @@ function showTable(idTable, data)
             columnDefs  : [
                 { "targets" : [0, 4], "className" : "text-center align-middle", "width" : "5%" },
                 { "targets" : [1], "className" : "text-center align-middle", "width" : "20%" },
-                { "targets" : [2], "className" : "text-left align-middle" },
+                { "targets" : [2], "className" : "txt-left align-middle" },
                 { "targets" : [3], "className" : "text-center align-middle", "width" : "15%" },
             ],
         });
@@ -43,7 +42,7 @@ function showTable(idTable, data)
         const lmb_url   = base_url + "/pengajuan/lembur/list_lembur";
         const lmb_type  = "GET";
         const lmb_data  = {
-            "bulan"     : moment(today, 'YYYY-MM-DD').format('MM'),
+            "bulan"     : data,
         };
         const lmb_msg   = "";
         
@@ -67,7 +66,7 @@ function showTable(idTable, data)
                             break;
                             case '3' :
                                 var emp_status  = "<span class='badge badge-pills badge-warning'>Menunggu Konfirmasi</span>"; 
-                            break;
+                            break;r
                         }
 
                         let startTime   = moment(emp_item['emp_start_time'], 'YYYY-MM-DD HH:mm:ss').format('HH:mm');

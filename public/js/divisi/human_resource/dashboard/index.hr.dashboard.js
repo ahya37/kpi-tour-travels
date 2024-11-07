@@ -12,8 +12,6 @@ for(let i = 0; i < 12; i++) {
     })
 }
 
-console.log(dataBulan);
-
 $(document).ready(() => {
     // GET DATA PENGAJUAN
     const pgj_url   = "/pengajuan/listCuti";
