@@ -22,15 +22,15 @@ $(document).ready(()    => {
 
     Promise.allSettled(getData)
         .then((success)     => {
-            if(dataTourCode.length == 0) {
-                dataTourCode.push(success[1].value.data);
-            }
-
+            console.log(success);
             if(dataAgent.length == 0) {
                 dataAgent.push(success[0].value.data);
             }
-
             showTable('table_list_agent', dataAgent[0]);
+
+            if(dataTourCode.length == 0) {
+                dataTourCode.push(success[1].value.data);
+            }
         })
         .catch((err)        => {
             $("#agent_text").html("<label class='font-weight-bold no-margins'>0</label>");
@@ -64,13 +64,13 @@ function showModal(idModal, data, action)
         showTable('table_simulasi');
         addColumnTable('table_simulasi', 1, []);
     } else if(idModal == 'modal_data_agent') {
-        closeModal('modal_agent');
         if(action == 'add') {            
             $("#"+idModal).modal({backdrop: 'static', keyboard: false});
             $("#modal_data_agent_title").html('Tambah Data Agent Baru');
             
             $("#"+idModal).on('shown.bs.modal', () => {
                 $("#agt_mkk_code").focus();
+                $("#agt_mkk_code").prop('readonly', false);
                 $("#modal_data_agent_simpan").val(action);
             })
         } else if(action == 'edit') {
@@ -113,6 +113,7 @@ function showModal(idModal, data, action)
                         }
                     })
                 })
+                
         }
     } else if(idModal == 'modal_pengaturan_agen') {
         if(dataAgent[0].length > 0) {
@@ -160,10 +161,7 @@ function showModal(idModal, data, action)
 
 function closeModal(idModal)
 {
-    if(idModal == 'modal_agent') {
-        $("#"+idModal).modal('hide');
-        clearUrl();
-    } else if(idModal == 'modal_simulasi') {
+    if(idModal == 'modal_simulasi') {
         $("#"+idModal).modal('hide');
 
         $("#"+idModal).on('hidden.bs.modal', () => {
@@ -204,8 +202,8 @@ function closeModal(idModal)
             $("#agt_email").val("");
             $("#agt_note").val("");
             $("#agt_mkk_code").val("");
+            $("#agt_mkk_code").prop('readonly', false);
         })
-        showModal('modal_agent', '', 'view');
     } else if(idModal == 'modal_pengaturan_agen') {
         $("#"+idModal).modal('hide');
         clearUrl();
