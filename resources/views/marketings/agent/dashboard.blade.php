@@ -130,8 +130,8 @@
                                 <div class="col-sm-4">&nbsp;</div>
                                 <div class="col-sm-2 text-center"><label class="no-margins">Point</label></div>
                                 <div class="col-sm-2 text-center"><label class="no-margins">Bonus</label></div>
-                                <div class="col-sm-2 text-center"><label class="no-margins">Total</label></div>
-                                <div class="col-sm-2 text-center"><label class="no-margins">Sisa</label></div>
+                                <div class="col-sm-2 text-center"><label class="no-margins">PU</label></div>
+                                <div class="col-sm-2 text-center"><label class="no-margins">PA</label></div>
                             </div>
                             <div class="row ml-2 mr-2 text-left border align-items-center">
                                 <div class="col-sm-4">
