@@ -22,7 +22,6 @@ $(document).ready(()    => {
 
     Promise.allSettled(getData)
         .then((success)     => {
-            console.log(success);
             if(dataAgent.length == 0) {
                 dataAgent.push(success[0].value.data);
             }
@@ -34,7 +33,7 @@ $(document).ready(()    => {
         })
         .catch((err)        => {
             $("#agent_text").html("<label class='font-weight-bold no-margins'>0</label>");
-            console.log({err})
+            console.error(err);
         })
 })
 
@@ -85,6 +84,7 @@ function showModal(idModal, data, action)
                     
                     // FILL FORM
                     $("#agt_id").val(agentGetData.agt_id);
+                    $("#agt_mkk_code").prop('readonly', true);
                     $("#agt_mkk_code").val(agentGetData.agt_mkk_id);
                     $("#agt_name").val(agentGetData.agt_name);
                     $("#agt_pic").val(agentGetData.agt_pic);
@@ -97,7 +97,6 @@ function showModal(idModal, data, action)
 
                     $("#"+idModal).on('shown.bs.modal', () => {
                         $("#modal_data_agent_simpan").val(action);
-                        $("#agt_mkk_code").prop('readonly', true);
                     })
                     
                     Swal.close();
@@ -330,7 +329,10 @@ function showTable(idTable, data)
                     buttonAct,
                 ]).draw(false);
             }
+        } else {
+            // $("#table_list_agent .dataTables_empty").html('Tidak Ada Data Yang Bisa Ditampilkan');
         }
+        
         $("#"+idTable+"_wrapper").css('padding-bottom', '20px');
     } else if(idTable == 'table_list_agent_umhaj') {
         $("#"+idTable).DataTable({
@@ -387,7 +389,6 @@ function showTable(idTable, data)
 
         const agent     = $("#sl_agt_id").val();
         if(agent !== null) {
-            console.log(data);
             if(data.length > 0) {
                 for(let i = 0; i < data.length; i++)
                 {

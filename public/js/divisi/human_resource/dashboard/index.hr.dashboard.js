@@ -367,11 +367,24 @@ function showTable(idTable, data)
                     $(".dataTables_empty").html("Data Berhasil Dimuat");
                     
                     const abs_getData       = success.data;
-                    const abs_waktu_masuk   = "08:00:00";
-                    const abs_waktu_pulang  = "16:00:00";
+                    // const abs_waktu_masuk   = "08:00:00";
+                    // const abs_waktu_pulang  = "16:00:00";
+                    let abs_waktu_masuk;
+                    let abs_waktu_pulang;
 
                     for(const abs_item of abs_getData)
                     {
+                        let abs_hari    = abs_item.tanggal_absen;
+                        if(moment(abs_hari, 'YYYY-MM-DD').format('dddd') == 'Sabtu') {
+                            abs_waktu_masuk = "08:00:00";
+                            abs_waktu_pulang= "13:30:00";
+                        } else if(moment(abs_hari, 'YYYY-MM-DD').format('dddd') == 'Minggu') {
+                            abs_waktu_masuk = "00:00:00";
+                            abs_waktu_pulang= "00:00:00";
+                        } else {
+                            abs_waktu_masuk = "08:00:00";
+                            abs_waktu_pulang= "16:00:00";
+                        }
                         // MASUK
                         if(moment(abs_item.jam_masuk, 'HH:mm:ss') > moment(abs_waktu_masuk, 'HH:mm:ss'))
                         {

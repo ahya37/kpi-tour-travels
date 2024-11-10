@@ -46,7 +46,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-sm-3 mb-3">
+                <div class="col-md-6 col-lg-6 col-xl-3 mb-sm-3 mb-3 mb-md-0">
                     <div class="card">
                         <div class="card-header bg-primary">
                             <h4 class="no-margins font-weight-bold card-title">Kehadiran</h4>
@@ -59,7 +59,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="col-sm-3">
+                <div class="col-md-6 col-lg-6 col-xl-3 mb-sm-3 mb-3 mb-md-0">
                     <div class="card">
                         <div class="card-header bg-primary">
                             <h4 class="no-margins font-weight-bold card-title">Izin / Sakit / Cuti</h4>

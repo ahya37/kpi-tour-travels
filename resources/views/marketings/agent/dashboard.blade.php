@@ -48,7 +48,7 @@
     <div class="container-fluid">
         <div class="wrapper wrapper-content animated fadeInRight">
             <div class="row align-items-center">
-                <div class="col-lg-6 col-md-6 col-sm-6">
+                <div class="col-xl-3 col-lg-6">
                     <div class="widget style1 navy-bg" title="Lakukan Simulasi Perhitungan Agent" onclick="showModal('modal_simulasi', '', 'view')" style="cursor: pointer;">
                         <div class="d-flex flex-row align-items-center justify-content-between">
                             <i class="fa fa-calculator fa-3x"></i>
@@ -56,7 +56,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6 col-md-6 col-sm-6">
+                <div class="col-xl-3 col-lg-6">
                     <div class="widget style1 navy-bg" title="Pengaturan Agent" onclick="showModal('modal_pengaturan_agen', '', 'view')" style="cursor: pointer;">
                         <div class="d-flex flex-row align-items-center justify-content-between">
                             <i class="fa fa-cog fa-3x"></i>
