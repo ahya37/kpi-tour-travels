@@ -72,7 +72,7 @@
                         class="nav-label">Aktivitas Harian</span></a>
             </li> --}}
 
-            <li class="{{ request()->is('accounts/*') ? 'active' : '' }}">
+            {{-- <li class="{{ request()->is('accounts/*') ? 'active' : '' }}">
                 <a href="#">
                     <i class="fa fa-users"></i>
                     <span class="nav-label">Accounts</span>
@@ -83,7 +83,7 @@
                     <li class="{{ request()->is('accounts/users') || request()->is('accounts/users/*') ? 'active' : '' }}"><a href="{{ route('users.index') }}">Users</a></li>
                     <li class="{{ request()->is('accounts/roles') || request()->is('accounts/roles/*') ? 'active' : '' }}"><a href="{{ route('roles.index') }}">Roles</a></li>
                 </ul>
-            </li>
+            </li> --}}
 
             <li class="{{ request()->is('divisi/*') ? 'active' : '' }}">
                 <a href="#">
@@ -191,14 +191,14 @@
            
            {{-- U/ ROLE UMUM --}}
             @if(Auth::user()->hasRole('umum'))
-            <li class="{{ request()->is('master/*') ? 'active' : '' }}">
+            {{-- <li class="{{ request()->is('master/*') ? 'active' : '' }}">
                 <a href="#">
                     <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span class="fa arrow"></span>
                 </a>
                 <ul class="nav nav-second-level collapse">
                     <li class="{{ (request()->is('master/programkerja') || request()->is('master/programkerja/*')) ? 'active' : '' }}"><a href={{ route('programKerja.index') }}>Program Kerja</a></li>
                 </ul>
-            </li>
+            </li> --}}
             @endif
 
             {{-- U/ ROLE FINANCE --}}

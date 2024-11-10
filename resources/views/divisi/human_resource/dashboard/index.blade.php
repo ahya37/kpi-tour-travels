@@ -53,7 +53,7 @@
             <div class="col-lg-3 col-md-6 col-sm-12">
                 <div class="ibox w-100">
                     <div class="ibox-title">
-                        <h5>Pengajuan Cuti / Izin / Dll</h5>
+                        <h5>Pengajuan Cuti</h5>
                     </div>
                     <div class="ibox-content">
                         <h1 class="no-margins">

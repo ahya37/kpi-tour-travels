@@ -22,15 +22,15 @@ $(document).ready(()    => {
 
     Promise.allSettled(getData)
         .then((success)     => {
-            if(dataTourCode.length == 0) {
-                dataTourCode.push(success[1].value.data);
-            }
-
+            console.log(success);
             if(dataAgent.length == 0) {
                 dataAgent.push(success[0].value.data);
             }
-
             showTable('table_list_agent', dataAgent[0]);
+
+            if(dataTourCode.length == 0) {
+                dataTourCode.push(success[1].value.data);
+            }
         })
         .catch((err)        => {
             $("#agent_text").html("<label class='font-weight-bold no-margins'>0</label>");
@@ -64,13 +64,13 @@ function showModal(idModal, data, action)
         showTable('table_simulasi');
         addColumnTable('table_simulasi', 1, []);
     } else if(idModal == 'modal_data_agent') {
-        closeModal('modal_agent');
         if(action == 'add') {            
             $("#"+idModal).modal({backdrop: 'static', keyboard: false});
             $("#modal_data_agent_title").html('Tambah Data Agent Baru');
             
             $("#"+idModal).on('shown.bs.modal', () => {
                 $("#agt_mkk_code").focus();
+                $("#agt_mkk_code").prop('readonly', false);
                 $("#modal_data_agent_simpan").val(action);
             })
         } else if(action == 'edit') {
@@ -113,6 +113,7 @@ function showModal(idModal, data, action)
                         }
                     })
                 })
+                
         }
     } else if(idModal == 'modal_pengaturan_agen') {
         if(dataAgent[0].length > 0) {
@@ -160,10 +161,7 @@ function showModal(idModal, data, action)
 
 function closeModal(idModal)
 {
-    if(idModal == 'modal_agent') {
-        $("#"+idModal).modal('hide');
-        clearUrl();
-    } else if(idModal == 'modal_simulasi') {
+    if(idModal == 'modal_simulasi') {
         $("#"+idModal).modal('hide');
 
         $("#"+idModal).on('hidden.bs.modal', () => {
@@ -204,8 +202,8 @@ function closeModal(idModal)
             $("#agt_email").val("");
             $("#agt_note").val("");
             $("#agt_mkk_code").val("");
+            $("#agt_mkk_code").prop('readonly', false);
         })
-        showModal('modal_agent', '', 'view');
     } else if(idModal == 'modal_pengaturan_agen') {
         $("#"+idModal).modal('hide');
         clearUrl();
@@ -894,146 +892,56 @@ function simulasiHitung(idTable, column, seq)
 
         let rupiah          = 0;
 
-        if(seq == 1) {
-            // HITUNG TOTAL SEMUA
-            grandTotal  = total_1 + total_2 + total_3;
-            
-            if(total_1 >= 50) {
-                bonus_1     = Math.floor((total_1 / 50));
-                totalBonus  = bonus_1 + bonus_2 + bonus_3;
-                sisa_1      = total_1 - (50 * Math.floor(total_1 / 50));
-
-                $("#total_reward").html(totalBonus);
-                $("#sisa_1").html(sisa_1)
-            } else {
-                sisa_1  = total_1;
-                $("#total_reward").html(0);
-                $("#sisa_1").html(sisa_1);
-            }
-
-            // HITUNG FEE
-            let point_1     = parseInt($("#point_1").text());
-            let fee_1       = fee * point_1;
-            rupiah          = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(fee_1);
-            $("#total_pendapatan_tahun_pertama").html(rupiah);
-
-            // if(hitungTotal >= 50) {
-            //     reward_1    = Math.floor(total_1 / 50);
-
-            //     let newReward   = reward_1 + reward_2 + reward_3;
-            //     let sisanya     = total_1 - ((reward_1) * 50);
-
-            //     $("#total_reward").html(newReward);
-            //     $("#sisa_1").html(sisanya);
-            // } else {
-            //     let newReward   = reward_1 + reward_2 + reward_3;
-            //     $("#total_reward").html(newReward);
-            //     $("#sisa_1").html(total_1);
-            // }
-
-            // HITUNG FEE
-            // let point_1     = parseInt($("#point_1").text());
-            // let fee_1       = fee * point_1;
-            // let formatRp    = new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR"}).format(fee_1);
-            // $("#total_pendapatan_tahun_pertama").html(formatRp);
-        } else if(seq == 2) {
-            let sisa_1      = parseInt($("#sisa_1").text());
-
-            // GET REWARD DARI DATA SEBELUMNYA
-            let reward_1    = Math.floor(total_1 / 50);
-            let reward_2    = 0;
-            let reward_3    = Math.floor(total_3 / 50);
- 
-            if(total_2 >= 50) {
-                // HITUNG REWARD 2
-                reward_2    = Math.floor(total_2 / 50);
-                
-                let newReward   = reward_1 + reward_2 + reward_3;
-                let sisanya     = total_2 - ((reward_2) * 50);
-
-                $("#total_reward").html(newReward);
-                $("#sisa_2").html(sisanya);
-                
-                if(sisanya + sisa_1 >= 80) {
-                    newReward   = newReward + Math.floor((sisanya + sisa_1) / 80);
-                    $("#total_reward").html(newReward);
-                }
-            } else {
-                // DAPATKAN TOTAL SISA SEBELUMNYA DITAMBAH TOTAL SEKARANG
-                let hitungSisa  = total_2 + sisa_1;
-                
-                if(hitungSisa >= 80) {
-                    reward_2    = Math.floor(hitungSisa / 80);
-
-                    let newReward   = reward_1 + reward_2 + reward_3;
-
-                    $("#total_reward").html(newReward)
-                    $("#sisa_2").html(hitungSisa - 80);
-                } else {
-                    let newReward   = reward_1 + reward_2 + reward_3;
-                    $("#total_reward").html(newReward);
-                    $("#sisa_2").html(total_2)
-                }
-            }
-
-            // HITUNG FEE
-            let point_2     = parseInt($("#point_2").text());
-            let fee_2       = fee * point_2;
-            let formatRp    = new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR"}).format(fee_2);
-            $("#total_pendapatan_tahun_kedua").html(formatRp);
-
-        } else if(seq == 3) {
-            let sisa_1      = parseInt($("#sisa_1").text());
-            let sisa_2      = parseInt($("#sisa_2").text());
-            let sisa_3      = 0;
-
-            // GET REWARD DARI DATA SEBELUMNYA
-            let reward_1    = Math.floor(total_1 / 50);
-            let reward_2    = Math.floor(total_2 / 50);
-            let reward_3    = 0
-
-            if(total_3 >= 50) {
-                reward_3    = Math.floor(total_3 / 50);
-
-                let newReward   = reward_1 + reward_2 + reward_3;
-                let sisanya     = total_3 - ((reward_3) * 50);
-
-                // HITUNG SISA SEBELUMNYA
-                if(sisa_1 + sisa_2 >= 80) {
-                    newReward   = newReward + Math.floor((sisa_1 + sisa_2) / 80);
-                }
-
-                $("#total_reward").html(newReward);
-                $("#sisa_3").html(sisanya);
-            } else {
-                let hitungSisa  = sisa_1 + sisa_2 == 80 ? Math.round((sisa_1 - sisa_2)) + sisa_3 : sisa_1 + sisa_2 + sisa_3;
-                if(hitungSisa >= 110) {
-                    reward_3    = Math.floor(hitungSisa / 110);
-                    let newReward  = reward_1 + reward_2 + reward_3;
-                    newReward   = sisa_1 + sisa_2 >= 80 ? newReward + Math.floor((sisa_1 + sisa_1) / 80) : newReward;
-                    $("#total_reward").html(newReward);
-                    $("#sisa_3").html(total_3)
-                } else {
-                    // HITUNG DULU REWARD SEBELUMNYA
-                    if(total_1 + total_2 >= 80) {
-                        reward_2    = Math.floor((total_1 + total_2) / 80);
-                        if(((total_1 + total_2) - 80) + total_3 >= 110) {
-                            let sisa    = (total_1 + total_2) - 80;
-                            reward_3    = Math.floor((sisa + total_3) / 110);
-                        }
-                    }
-
-                    let newReward    = reward_1 + reward_2 + reward_3;
-                    $("#total_reward").html(newReward);
-                }
-            }
-
-            // HITUNG FEE
-            let point_3     = parseInt($("#point_3").text());
-            let fee_3       = fee * point_3;
-            let formatRp    = new Intl.NumberFormat("id-ID", {style: "currency", currency: "IDR"}).format(fee_3);
-            $("#total_pendapatan_tahun_ketiga").html(formatRp);
+        // UNTUK SEQ 1
+        if(total_1 >= 50) {
+            bonus_1     = Math.floor(total_1 / 50);
+            sisa_1      = total_1 - (Math.floor(total_1 / 50) * 50);
+        } else {
+            bonus_1     = 0;
+            sisa_1      = total_1
         }
+        $("#sisa_1").html(sisa_1);
+
+        // UNTUK SEQ 2
+        if(total_2 >= 50) {
+            bonus_2     = Math.floor(total_2 / 50);
+            sisa_2      = total_2 - (Math.floor(total_2 / 50) * 50);
+        } else {
+            if(sisa_1 + total_2 >= 80) {
+                bonus_2     = Math.floor((sisa_1 + total_2) / 80);
+                sisa_2      = (sisa_1 + total_2) - (Math.floor((sisa_1 + total_2) / 80) * 80);
+            } else {
+                bonus_2     = 0;
+                sisa_2      = total_2
+            }
+        }
+        $("#sisa_2").html(sisa_2);
+
+        if(total_3 >= 50) {
+            bonus_3     = Math.floor(total_3 / 50);
+            sisa_3      = total_3 - (Math.floor(total_2 / 50) * 50);
+        } else {
+            if(sisa_2 + total_3 >= 110) {
+                bonus_3     = Math.floor((sisa_2 + total_3) / 110);
+                sisa_3      = (sisa_2 + total_3) - (Math.floor((sisa_1 + total_2) / 110) * 110);
+            } else {
+                bonus_3     = 0;
+                sisa_3      = total_3;
+            }
+        }
+        $("#sisa_3").html(sisa_3);
+
+        // HITUNG BONUS / REWARD
+        totalBonus  = bonus_1 + bonus_2 + bonus_3;
+        $("#total_reward").html(totalBonus);
+        // HITUNG FEE
+        let pendapatan_1    = new Intl.NumberFormat("id-ID", { style: "currency", currency : "IDR" }).format(total_1 * 1000000);
+        let pendapatan_2    = new Intl.NumberFormat("id-ID", { style: "currency", currency : "IDR" }).format(total_2 * 1000000);
+        let pendapatan_3    = new Intl.NumberFormat("id-ID", { style: "currency", currency : "IDR" }).format(total_3 * 1000000);
+
+        $("#total_pendapatan_tahun_pertama").html(pendapatan_1);
+        $("#total_pendapatan_tahun_kedua").html(pendapatan_2);
+        $("#total_pendapatan_tahun_ketiga").html(pendapatan_3);
     }
 }
 

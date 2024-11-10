@@ -12,8 +12,6 @@ for(let i = 0; i < 12; i++) {
     })
 }
 
-console.log(dataBulan);
-
 $(document).ready(() => {
     // GET DATA PENGAJUAN
     const pgj_url   = "/pengajuan/listCuti";
@@ -182,7 +180,7 @@ function showModal(idModal, jenis, data)
         let bulanSekarang   = moment(today, 'YYYY-MM-DD').format('MM');
         showSelect('select_pgj_month', dataBulan, bulanSekarang, '');
         // SHOW TABLE
-        showTable('table_pgj_lmb', '');
+        showTable('table_pgj_lmb', bulanSekarang);
     } else if(idModal == 'modal_pgj_lmb_preview') {
 
         // GET DATA PENGAJUAN LEMBUR DETAIL
