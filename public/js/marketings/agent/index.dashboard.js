@@ -1107,7 +1107,7 @@ function doSimpanData(idForm, jenis, data)
                     Swal.fire({
                         icon    : err.responseJSON.alert.icon,
                         title   : err.responseJSON.alert.message.title,
-                        icon    : err.responseJSON.alert.icon,
+                        text    : err.responseJSON.alert.message.text,
                     })
                 })
         }
