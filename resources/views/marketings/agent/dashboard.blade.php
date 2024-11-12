@@ -33,6 +33,17 @@
         cursor: not-allowed;
         pointer-events: all !important;
     }
+
+    input[type="text"]:read-only {
+        background-color: white;
+        cursor: pointer;
+    }
+
+    input[type="text"]:disabled {
+        background-color: #e9ecef;
+        border-color: #ccc;
+        cursor: no-drop;
+    }
     </style>
 @endpush
 

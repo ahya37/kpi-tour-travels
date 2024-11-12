@@ -219,9 +219,6 @@ function showSelect(idSelect, data, value, seq)
     })
     if(idSelect == 'sl_agt_id') {
         let html    = "<option selected disabled>List Agen</option>";
-
-        console.table(data);
-
         if(data.length > 0) {
             for(const item of data) {
                 html += `<option value='${item.agent_id}'>${item.agent_name}</option>`;
@@ -281,7 +278,6 @@ function showSelectDetail(idSelect, data)
             })
             .catch((err)        => {
                 Swal.close();
-                console.log(err);
                 showTable('table_pengaturan_agen', []);
             })
         
@@ -456,8 +452,8 @@ function addColumnTable(idTable, seq, data)
         $("#btn_table_simulasi").val(next_seq);
     } else if(idTable == 'table_pengaturan_agen') {
         let ke              = parseInt(seq) + 1;
-        let inputNo         = "<input type='text' class='form-control text-center' id='agt_no"+ke+"' readonly placeholder='No' style='height: 38px;'>";
-        let inputTanggal    = "<input type='text' class='form-control' id='agt_tgl"+ke+"' placeholder='DD/MM/YYY' readonly style='background: white; cursor: pointer; height: 38px;'>";
+        let inputNo         = "<input type='text' class='form-control text-center' id='agt_no"+ke+"' disabled placeholder='No' style='height: 38px;'>";
+        let inputTanggal    = "<input type='text' class='form-control' id='agt_tgl"+ke+"' placeholder='DD/MM/YYY' readonly style='height: 38px;'>";
         let inputTourCode   = "<select class='form-control' style='width: 100%;' id='agt_tourCode"+ke+"'></select>";
         let inputBanyaknya  = "<input type='number' inputmode='numeric' class='form-control' id='agt_banyaknya"+ke+"' placeholder='Banyaknya' min='0' max='999' step='1' style='height: 38px;'>";
         let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"'></select>";
@@ -509,7 +505,9 @@ function addColumnTable(idTable, seq, data)
             $("#btn_act_agen"+ke).html("<i class='fa fa-edit'></i>");
             $("#btn_act_agen"+ke).prop('title', 'Ubah Data');
             
+            // DISABLED DATE
             $("#agt_tourCode"+ke).prop('disabled', true);
+            $("#agt_tgl"+ke).prop('disabled', true);
             
             // FILL FORM
             $("#agt_tgl"+ke).data('daterangepicker').setStartDate(actAgent_date);
@@ -920,7 +918,7 @@ function simulasiHitung(idTable, column, seq)
 
         if(total_3 >= 50) {
             bonus_3     = Math.floor(total_3 / 50);
-            sisa_3      = total_3 - (Math.floor(total_2 / 50) * 50);
+            sisa_3      = total_3 - (Math.floor(total_3 / 50) * 50);
         } else {
             if(sisa_2 + total_3 >= 110) {
                 bonus_3     = Math.floor((sisa_2 + total_3) / 110);

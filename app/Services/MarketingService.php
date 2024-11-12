@@ -1700,10 +1700,10 @@ class MarketingService
             $data_where     = [
                 "agt_id"            => $data['data']['agt_id'],
                 "agt_act_tour_code" => $data['data']['agt_detail_tourCode'],
+                "agt_act_date"      => $data['data']['agt_detail_date'],
             ];
 
             $data_update    = [
-                "agt_act_date"      => $data['data']['agt_detail_date'],
                 "agt_act_qty"       => $data['data']['agt_detail_qty'],
                 "agt_act_status"    => $data['data']['agt_detail_type'],
                 "updated_by"        => $data['user_id'],
