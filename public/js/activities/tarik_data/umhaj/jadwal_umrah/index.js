@@ -148,6 +148,8 @@ function showTable(idTable, data)
 function doSyncData()
 {
     let tahun   = $("#filter_tahun").val();
+    
+    let
 }
 
 function doTransaction(url, type, data, message, isAsync)

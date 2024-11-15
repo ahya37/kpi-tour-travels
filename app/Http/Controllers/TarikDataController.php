@@ -134,8 +134,6 @@ class TarikDataController extends Controller
             
             $do_sync_data   = TarikDataService::sync_data_jadwal_umrah($data_umhaj, $request->all()['tahun']);
 
-            var_dump($do_sync_data);die();
-
         } else {
             $output     = [
                 "success"   => false,
