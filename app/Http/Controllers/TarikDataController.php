@@ -81,4 +81,70 @@ class TarikDataController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 15 NOVEMBER 2024
+    // PENAMABAHAN MODUL TARIK DATA UMRAH
+    public function umhaj_jadwal_umrah_index()
+    {
+        $data    = [
+            "title"     => "ERP Percik Tours | Tarik Data",
+            "sub_title" => "Tarik Data - Jadwal Umrah (Umhaj)",
+        ];
+
+        return view('activities.tarik_data.umhaj.jadwal_umrah.index', $data);
+    }
+    
+    // AMBIL DATA JADWAL UMRAH DARI UMHAJ
+    public function umhaj_jadwal_umrah_get(Request $request)
+    {
+        $base_url   = env('API_PERCIK_V2');
+
+        $url        = $base_url . "/api/umhaj/master/jadwal_umrah?tahun=".$request->all()['tahun'];
+        $get_data   = Http::get($url);
+
+        if($get_data->status() == 200) {
+            $output     = [
+                "success"   => true,
+                "status"    => $get_data->status(),
+                "message"   => $get_data->json('message'),
+                "data"      => $get_data->json('data'),
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => $get_data->status(),
+                "message"   => $get_data->json('message'),
+                "data"      => []
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function umhaj_jadwal_umrah_sync(Request $request)
+    {
+        // GET DATA FROM UMHAJ
+        $base_url   = env('API_PERCIK_V2');
+
+        $url        = $base_url + "/api/umhaj/master/jadwal_umrah?tahun=".$request->all()['tahun'];
+        $get_data   = Http::get($url);
+
+        if($get_data->status() == 200) {
+            $data_umhaj     = $get_data->json('data');
+            
+            $do_sync_data   = TarikDataService::sync_data_jadwal_umrah($data_umhaj, $request->all()['tahun']);
+
+            var_dump($do_sync_data);die();
+
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => $get_data->status(),
+                "message"   => $get_data->json('message'),
+                "data"      => []
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

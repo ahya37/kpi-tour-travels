@@ -521,6 +521,12 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/absensi', [TarikDataController::class, 'tarik_data_index'])->name('index.tarik_data.absensi');
         Route::post('/absensi', [TarikDataController::class, 'tarik_data_absensi']);
         Route::get('/get_list_absensi', [TarikDataController::class, 'tarik_data_get_absensi']);
+
+        Route::prefix('umhaj')->group(function(){
+            Route::get('jadwal_umrah', [TarikDataController::class, 'umhaj_jadwal_umrah_index'])->name('index.tarik_data.umhaj.jadwal_umrah');
+            Route::get('data_jadwal_umrah', [TarikDataController::class, 'umhaj_jadwal_umrah_get']);
+            Route::post('sync_data_local', [TarikDataController::class, 'umhaj_jadwal_umrah_sync']);
+        });
     });
 
     Route::prefix('simulasi')->group(function(){

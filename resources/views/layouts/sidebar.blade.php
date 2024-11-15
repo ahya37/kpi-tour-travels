@@ -107,6 +107,15 @@
                 </a>
                 <ul class="nav nav-second-level collapse">
                     <li class="{{ request()->is('tarik_data/absensi') || request()->is('tarik_data/absensi/*') ? 'active' : '' }}"><a href="{{ route('index.tarik_data.absensi') }}">Absensi</a></li>
+                    <li class="{{ request()->is('tarik_data/umhaj/*') ? 'active' : '' }}">
+                        <a href="#">
+                            <span class="nav-label">Umhaj</span>
+                            <span class="fa arrow"></span>
+                        </a>
+                        <ul class="nav nav-third-level collapse">
+                            <li class="{{ request()->is('tarik_data/umhaj/jadwal_umrah') ? 'active' : '' }}"><a href="{{ route('index.tarik_data.umhaj.jadwal_umrah') }}">Jadwal Umrah</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </li>
 
