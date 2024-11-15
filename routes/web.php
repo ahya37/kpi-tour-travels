@@ -454,6 +454,13 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/getDataProgramDigital', [DivisiController::class, 'digital_programKerja_listProgram']);
             Route::post('/simpanAktivitasHarian/{jenis}', [DivisiController::class, 'digital_programKerja_simpanAktivitasHarian']);
             Route::get('/listAktivitasHarian', [DivisiController::class, 'digital_programKerja_listAktivitasHarian']);
+            Route::prefix('umrah')->group(function(){
+                Route::get('/jadwal', [DivisiController:: class, 'digital_index_umrah'])->name('index.digital.jadwal_umrah');
+                Route::get('/data_jadwal_umrah', [DivisiController::class, 'digital_jadwal_umrah'])->name('digital.data.jadwal_umrah');
+                Route::prefix('trans')->group(function(){
+                    Route::post('/simpan_detail/{jenis}', [DivisiController::class, 'digital_jadwal_umrah_simpan_detail']);
+                });
+            });
         });
 
         Route::prefix('human_resource')->group(function(){

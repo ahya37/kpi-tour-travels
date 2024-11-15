@@ -20,6 +20,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+
 class DivisiController extends Controller
 {
     var $title  = "ERP Percik Tours";
@@ -2493,6 +2494,104 @@ class DivisiController extends Controller
                 "status"    => 404,
                 "message"   => "Gagal Mengambil Data Tour Code : ".$tour_code,
                 "data"      => []
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 13 NOVEMBER 2024
+    // NOTE : PEMBUATAN JADWAL UMRAH INDEX
+    public function digital_index_umrah()
+    {
+        $data   = [
+            "title"     => $this->title . " | Digital",
+            "sub_title" => "Jadwal Umrah",
+        ];
+
+        return view('divisi.digital.jadwal_umrah.index', $data);
+    }
+
+    // NOTE : AMBIL DATA UMRAH BY TAHUN
+    public function digital_jadwal_umrah(Request $request)
+    {
+        $data_cari  = [
+            "tahun"     => $request->all()['tahun'],
+            "tour_code" => $request->all()['tour_code'],
+        ];
+
+        $get_data   = DivisiService::digital_get_jadwal_umrah($data_cari);
+        
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data, Data Kosong",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 14 NOVEMBER 2024
+    // NOTE : SIMPAN DATA PROGRAM DETAIL
+    public function digital_jadwal_umrah_simpan_detail($jenis, Request $request)
+    {
+        
+        // CHECK DETAIL
+        $detail         = $request->all()['tour_detail'];
+        $data_detail    = [];
+
+        for($i = 0; $i < count($detail); $i++)
+        {
+            if(!empty($detail[$i]['detail_description']) || !empty($detail[$i]['detail_link']))
+            {
+                $data_detail[]  = $detail[$i];
+            }
+        }
+
+        $data   = [
+            "tour_code" => $request->all()['tour_code'],
+            "tour_uuid" => $request->all()['tour_uuid'],
+            "tour_data_detail"  => $request->all()['tour_detail'],
+            "user_id"   => Auth::user()->id,
+            "user_ip_address"   => $request->ip(),
+        ];
+
+        $do_simpan  = DivisiService::do_simpan_jadwal_umrah_detail_file($jenis, $data);
+
+        if($do_simpan['status'] == "berhasil")
+        {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "alert"     => [
+                    "icon"      => "success",
+                    "message"   => [
+                        "title"     => "Berhasil",
+                        "text"      => "Berhasil Menambahkan Detail Tour Code : ".$data['tour_code'],
+                    ],
+                ],
+            ];
+        } else if($do_simpan['status'] == 'gagal') {
+            $output     = [
+                "success"   => false,
+                "status"    => 500,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Gagal Menambahkan Detail Tour Code : ".$data['tour_code'],
+                    ],
+                ],
             ];
         }
 
