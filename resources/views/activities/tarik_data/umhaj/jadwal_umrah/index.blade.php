@@ -30,7 +30,6 @@
                         <h4 class="no-margins">
                             <label class="no-margins font-weight-bold">List Jadwal Umrah</label>
                         </h4>
-                        <button class="btn btn-primary btn-sm" onclick=""><i class="fa fa-sync"></i> Perbarui Data</button>
                     </div>
                     <div class="card-body">
                         <div class="row mb-2">

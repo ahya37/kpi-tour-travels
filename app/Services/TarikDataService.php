@@ -139,20 +139,6 @@ class TarikDataService {
 
         return $output;
     }
-    
-    // 15 NOVEMBER 2024
-    // NOTE : SYNC DATA LOCAL DENGAN UMHAJ
-    public static function sync_data_jadwal_umrah($data_umhaj, $tahun)
-    {
-        // GET DATA FROM LOCAL
-        $get_data_programs  = DB::table('programs')->get();
-        $get_data_jadwal_umrah  = DB::table('programs_jadwal')->where(DB::raw('EXTRACT(YEAR FROM jdw_depature)'), '=', $tahun)->get();
-        
-        $data_program       = [];
-        $data_jadwal_umrah  = [];
-
-        
-    }
 }
 
 ?>

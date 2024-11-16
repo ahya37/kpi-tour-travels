@@ -147,9 +147,23 @@ function showTable(idTable, data)
 
 function doSyncData()
 {
-    let tahun   = $("#filter_tahun").val();
-    
-    let
+    let tahun   = $("#filter_tahun_umhaj").val();
+    let url     = "tarik_data/umhaj/sync_data_local";
+    let sendData= {
+        "tahun"     : tahun,
+    };
+    let msg     = Swal.fire({ title : 'Data Sedang Diproses..' }); Swal.showLoading();
+    let type    = "POST";
+
+    // console.log({sendData, type});
+
+    doTransaction(url, type, sendData, msg, true)
+        .then((success)     => {
+            console.log(success)
+        })
+        .catch((err)        => {
+            console.log(err)
+        })
 }
 
 function doTransaction(url, type, data, message, isAsync)

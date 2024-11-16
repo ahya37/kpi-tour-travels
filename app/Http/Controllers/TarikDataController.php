@@ -120,29 +120,4 @@ class TarikDataController extends Controller
 
         return Response::json($output, $output['status']);
     }
-
-    public function umhaj_jadwal_umrah_sync(Request $request)
-    {
-        // GET DATA FROM UMHAJ
-        $base_url   = env('API_PERCIK_V2');
-
-        $url        = $base_url + "/api/umhaj/master/jadwal_umrah?tahun=".$request->all()['tahun'];
-        $get_data   = Http::get($url);
-
-        if($get_data->status() == 200) {
-            $data_umhaj     = $get_data->json('data');
-            
-            $do_sync_data   = TarikDataService::sync_data_jadwal_umrah($data_umhaj, $request->all()['tahun']);
-
-        } else {
-            $output     = [
-                "success"   => false,
-                "status"    => $get_data->status(),
-                "message"   => $get_data->json('message'),
-                "data"      => []
-            ];
-        }
-
-        return Response::json($output, $output['status']);
-    }
 }
