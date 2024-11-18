@@ -525,6 +525,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::prefix('umhaj')->group(function(){
             Route::get('jadwal_umrah', [TarikDataController::class, 'umhaj_jadwal_umrah_index'])->name('index.tarik_data.umhaj.jadwal_umrah');
             Route::get('data_jadwal_umrah', [TarikDataController::class, 'umhaj_jadwal_umrah_get']);
+            Route::post('sync_data_local', [TarikDataController::class, 'umhaj_jadwal_umrah_sync']);
         });
     });
 

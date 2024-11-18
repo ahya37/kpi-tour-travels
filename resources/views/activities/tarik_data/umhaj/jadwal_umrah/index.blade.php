@@ -30,6 +30,7 @@
                         <h4 class="no-margins">
                             <label class="no-margins font-weight-bold">List Jadwal Umrah</label>
                         </h4>
+                        <button class="btn btn-primary" title="Tarik Data Dari Umhaj" type="button" onclick="doSyncData()">Tarik Data</button>
                     </div>
                     <div class="card-body">
                         <div class="row mb-2">
@@ -37,7 +38,7 @@
                                 <div class="form-group">
                                     <label for="filter_tahun_umhaj">Pilih Tahun</label>
                                     <select name="filter_tahun_umhaj" id="filter_tahun_umhaj" style="width: 100%;" class="form-control" onchange="showSelectDetail(this.id, this.value)">
-                                        <option selected disabled>Pilih Tahun</option>
+                                        <option selected disabled>Pilih tahun Tahun</option>
                                     </select>
                                 </div>
                             </div>

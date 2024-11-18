@@ -120,4 +120,54 @@ class TarikDataController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 18 NOVEMBER 2024
+    // NOTE : SYNC DATA UMHAJ KE LOCAL
+    public function umhaj_jadwal_umrah_sync(Request $request)
+    {
+        // DATA
+        $tahun  = $request->all()['tahun'];
+        // API URL
+        $base_url   = env('API_PERCIK_V2');
+        $url        = $base_url . "/api/umhaj/master/jadwal_umrah?tahun=" . $tahun;
+        
+        // GET DATA FROM API
+        $umhaj_data = Http::get($url);
+
+        if($umhaj_data->status() >= 200 || $umhaj_data->status() < 300)
+        {
+            // POST KE MODEL
+            $data_send  = [
+                "tahun"     => $tahun,
+                "umhaj_data"=> $umhaj_data->json('data'),
+            ];
+            
+            $do_save    = TarikDataService::do_sync_jadwal_umrah_local($data_send);
+            
+            if($do_save['status'] == 'berhasil') {
+                $output     = [
+                    "success"   => true,
+                    "status"    => 200,
+                    "message"   => "Berhasil Tarik Data Jadwal Umrah Sebanyak : " . $do_save['count'],
+                    "data"      => [],
+                ];
+            } else {
+                $output     = [
+                    "success"   => false,
+                    "status"    => 500,
+                    "message"   => "Gagal Tarik Data Jadwal Umrah",
+                    "data"      => [],
+                ];
+            }
+        } else {
+            $output     = [
+                "success"       => false,
+                "status"        => $umhaj_data->status(),
+                "message"       => $umhaj_data->json('message'),
+                "data"          => []          
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }   
 }

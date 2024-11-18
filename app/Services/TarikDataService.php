@@ -139,6 +139,43 @@ class TarikDataService {
 
         return $output;
     }
+
+    // 18 NOVEMBER 2024
+    // NOTE : SYNC DATA UMHAJ KE LOCAL
+    public static function do_sync_jadwal_umrah_local($data)
+    {
+        // EXTRACT
+        $umhaj_data     = $data['umhaj_data'];
+        $tahun          = $data['tahun'];
+        
+        // CONTAINER FILTERED UMHAJ DATA
+        $temp_data_umhaj= [];
+
+        // LOOP DATA UMHAJ
+        for($i = 0; $i < count($umhaj_data); $i++)
+        {
+            // EXTRACT
+            $umhaj_tour_code    = $umhaj_data[$i]['UMRAH_TOUR_CODE'];
+            $umhaj_depature_date= date('Y-m-d', strtotime($umhaj_data[$i]['UMRAH_DEPATURE']));
+            $umhaj_arrival_date = date('Y-m-d', strtotime($umhaj_data[$i]['UMRAH_ARRIVAL']));
+            $umhaj_tour_leader  = $umhaj_data[$i]['UMRAH_MENTOR_NAME'];
+
+            // CHECK DI LOCAL ADA ATAU TIDAK
+            $check              = DB::table('programs_jadwal')->where('jdw_tour_code', '=', $umhaj_tour_code)->get();
+            
+            if(count($check) == 0) {
+                $temp_data_umhaj[]  = [
+                    "tour_code"         => $umhaj_tour_code,
+                    "depature_date"     => $umhaj_depature_date,
+                    "arrival_date"      => $umhaj_arrival_date,
+                    "tour_leader"       => $umhaj_tour_leader,
+                ];
+            }
+        }
+        
+        // SIMPAN KE LOCAL
+        
+    }
 }
 
 ?>
