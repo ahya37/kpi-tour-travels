@@ -7,6 +7,7 @@ date_default_timezone_set('Asia/Jakarta');
 use Illuminate\Http\Request;
 use App\Services\BaseService;
 use App\Services\TarikDataService;
+use Illuminate\Support\Facades\Auth;
 use Response;
 use Http;
 
@@ -140,6 +141,8 @@ class TarikDataController extends Controller
             $data_send  = [
                 "tahun"     => $tahun,
                 "umhaj_data"=> $umhaj_data->json('data'),
+                "user_id"   => Auth::user()->id,
+                "ip_address"=> $request->ip(),
             ];
             
             $do_save    = TarikDataService::do_sync_jadwal_umrah_local($data_send);

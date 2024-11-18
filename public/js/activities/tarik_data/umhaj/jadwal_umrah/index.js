@@ -159,10 +159,18 @@ function doSyncData()
 
     doTransaction(url, type, sendData, msg, true)
         .then((success)     => {
-            console.log(success)
+            Swal.fire({
+                icon    : 'success',
+                title   : 'Berhasil',
+                text    : success.message,
+            })
         })
         .catch((err)        => {
-            console.log(err)
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : err.responseJSON.message,
+            });
         })
 }
 

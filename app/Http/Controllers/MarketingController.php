@@ -2382,61 +2382,32 @@ class MarketingController extends Controller
     // GET DATA TOUR CODE BY TAHUN
     public function marketing_agent_ambil_data_tour_code_by_tahun($tahun)
     {
-        $host       = env('API_PERCIK_V2');
+        $data       = [
+            "tahun"     => $tahun,
+            "tour_code" => "",
+        ];
 
-        $get_data   = Http::get($host.'/api/umhaj/master/jadwal_umrah?tahun='.$tahun);
+        $get_data   = DivisiService::digital_get_jadwal_umrah($data);
 
-        if($get_data->status() >= 200 && $get_data->status() < 300) {
-            $data_api   = $get_data->json();
-
-            if(count($data_api['data']) > 0) {
-                for($i = 0; $i < count($data_api['data']); $i++) {
-                    $data[]     = [
-                        "tour_code" => $data_api['data'][$i]['UMRAH_TOUR_CODE'],
-                    ];
-                }
-            } else {
-                $data   = [];
+        if(count($get_data) > 0) {
+            for($i = 0; $i < count($get_data); $i++) {
+                $send_data[]    = [
+                    "tour_code"     => $get_data[$i]->umrah_tour_code,
+                ];
             }
 
-            $output = [
-                "status"    => $get_data->status(),
-                "success"   => $data_api['success'],
-                "message"   => $data_api['message'],
-                "data"      => $data,
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Memuat Data Tour Code Local",
+                "data"      => $send_data,
             ];
-        } else if($get_data->status() >= 500) {
-            // GET DATA FROM LOCAL
-            $get_data_local     = DivisiService::get_data_tour_code_umhaj($tahun);
-
-            if(count($get_data_local) > 0) {
-
-                for($i = 0; $i < count($get_data_local); $i++) {
-                    $send_data[]    = [
-                        "tour_code"     => $get_data_local[$i]->tour_code_umrah,
-                    ];
-                }
-
-                $output     = [
-                    "success"   => true,
-                    "status"    => 200,
-                    "message"   => "Berhasil Memuat Data Tour Code Local",
-                    "data"      => $send_data,
-                ];
-            } else {
-                $output     = [
-                    "success"   => false,
-                    "status"    => 404,
-                    "message"   => "Gagal Memuat Data Tour Code Local",
-                    "data"      => [],
-                ];
-            }
         } else {
             $output     = [
-                "status"    => $get_data->status(),
                 "success"   => false,
-                "message"   => "Gagal Mengambil Data Tour Code",
-                "data"      => [], 
+                "status"    => 404,
+                "message"   => "Gagal Memuat Data Tour Code Local",
+                "data"      => [],
             ];
         }
 
