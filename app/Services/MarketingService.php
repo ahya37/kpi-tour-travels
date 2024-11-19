@@ -1598,7 +1598,7 @@ class MarketingService
         } else if($jenis == 'edit') {
             $data_where      = [
                 "agt_id"        => $get_data['data']['agt_id'],
-                "agt_mkk_code"  => $get_data['data']['agt_mkk_code'],
+                "agt_mkk_id"    => $get_data['data']['agt_mkk_code'],
             ];
 
             $data_update    = [

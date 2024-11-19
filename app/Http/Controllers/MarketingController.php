@@ -2272,6 +2272,7 @@ class MarketingController extends Controller
                 "type"      => $jenis,
                 "data"      => [
                     "agt_id"            => $req->all()['agent_id'],
+                    "agt_mkk_code"      => $req->all()['agent_mkk_code'],
                     "agt_name"          => $req->all()['agent_name'],
                     "agt_pic"           => $req->all()['agent_pic'],
                     "agt_address"       => $req->all()['agent_address'],
