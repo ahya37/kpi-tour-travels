@@ -100,12 +100,13 @@
                                 <table class="table table-sm datatable" id="table_list_agent">
                                     <thead>
                                         <tr>
-                                            <th class="text-center align-middle">No</th>
-                                            <th class="text-center align-middle">Kode</th>
-                                            <th class="text-center align-middle">Nama</th>
-                                            <th class="text-center align-middle">PIC</th>
+                                            <th class="text-center align-middle" style="width: 5%">No</th>
+                                            <th class="text-center align-middle" style="width: 10%">Kode MKK</th>
+                                            <th class="text-center align-middle" style="width: 8%">Kode Akun</th>
+                                            <th class="text-center align-middle" style="width: 30%">Nama</th>
+                                            <th class="text-center align-middle" style="width: 30%">PIC</th>
                                             <th class="text-center align-middle">Kontak</th>
-                                            <th class="text-center align-middle">Aksi</th>
+                                            <th class="text-center align-middle" style="width: 5%">Aksi</th>
                                         </tr>
                                     </thead>
                                 </table>

@@ -2135,6 +2135,7 @@ class MarketingController extends Controller
                 $data[]     = [
                     "agent_id"      => $get_data[$i]->agt_id,
                     "agent_id_2"    => $get_data[$i]->agt_unique_id,
+                    "agent_mkk_kode"=> !empty($get_data[$i]->agt_mkk_id) ? $get_data[$i]->agt_mkk_id : "",
                     "agent_name"    => $get_data[$i]->agt_name,
                     "agent_pic"     => $get_data[$i]->agt_pic,
                     "agent_contact1"=> $get_data[$i]->agt_contact_1,
@@ -2284,7 +2285,11 @@ class MarketingController extends Controller
                 ],
             ];
 
-            $do_simpan  = MarketingService::doSimpanAgent($data_kirim);
+            // $do_simpan  = MarketingService::doSimpanAgent($data_kirim);
+
+            $do_simpan   = [
+                'status'    => 'berhasil'
+            ];
 
             if($do_simpan['status'] == 'berhasil') {
                 // UPDATE JUGA APINYA
