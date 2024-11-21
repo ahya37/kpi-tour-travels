@@ -476,6 +476,7 @@ function addColumnTable(idTable, seq, data)
         $("#agt_banyaknya"+ke).val(0);
 
         $("#agt_tgl"+ke).daterangepicker({
+            drops       : 'up',
             minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
             maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
             autoApply   : true,
