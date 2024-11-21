@@ -59,7 +59,7 @@
     <div class="container-fluid">
         <div class="wrapper wrapper-content animated fadeInRight">
             <div class="row align-items-center">
-                <div class="col-xl-3 col-lg-6">
+                <div class="col-xl-3 col-md-6">
                     <div class="widget style1 navy-bg" title="Lakukan Simulasi Perhitungan Agent" onclick="showModal('modal_simulasi', '', 'view')" style="cursor: pointer;">
                         <div class="d-flex flex-row align-items-center justify-content-between">
                             <i class="fa fa-calculator fa-3x"></i>
@@ -67,7 +67,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-lg-6">
+                <div class="col-xl-3 col-md-6">
                     <div class="widget style1 navy-bg" title="Pengaturan Agent" onclick="showModal('modal_pengaturan_agen', '', 'view')" style="cursor: pointer;">
                         <div class="d-flex flex-row align-items-center justify-content-between">
                             <i class="fa fa-cog fa-3x"></i>
@@ -77,11 +77,61 @@
                 </div>
             </div>
             <hr>
+            <span class="mb-4">
+                <h1 class="mb-3">
+                    Rekap Data Agen
+                </h1>
+            </span>
+            <div class="row">
+                <div class="col-xl-3 mb-xl-0 col-md-6 mb-sm-4">
+                    <div class="card">
+                        <div class="card-header d-flex flex-row justify-content-between align-items-center bg-primary">
+                            <h4 class="no-margins">
+                                <label class="no-margins font-weight-bold">Total Agent</label>
+                            </h4>
+                            <i class="fa fa-users"></i>
+                        </div>
+                        <div class="card-body text-right">
+                            <h3 class="no-margins font-weight-bold" id="dashboard_total_agent"><i class="fa fa-spinner fa-spin"></i></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 mb-xl-0 col-md-6 mb-sm-4">
+                    <div class="card">
+                        <div class="card-header d-flex flex-row justify-content-between align-items-center bg-primary">
+                            <h4 class="no-margins">
+                                <label class="no-margins font-weight-bold">Total Aktivitas</label>
+                            </h4>
+                            <i class="fa fa-sync"></i>
+                        </div>
+                        <div class="card-body text-right">
+                            <h3 class="no-margins font-weight-bold" id="dashboard_total_aktivitas"><i class="fa fa-spinner fa-spin"></i></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 mb-xl-0 col-md-6 mb-sm-4" style="cursor: pointer;" title="Lihat Detail">
+                    <div class="card">
+                        <div class="card-header d-flex flex-row justify-content-between align-items-center bg-success">
+                            <h4 class="no-margins">
+                                <label class="no-margins font-weight-bold">Reward Agent</label>
+                            </h4>
+                            <i class="fa fa-gift"></i>
+                        </div>
+                        <div class="card-body text-right">
+                            <h3 class="no-margins font-weight-bold" id="dashboard_total_reward_agent"><i class="fa fa-spinner fa-spin"></i></h3>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            <span class="d-xl-block d-sm-none">
+                <br>
+            </span>
             <div class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h4>
+                            <h4 class="no-margins">
                             <label class="no-margins font-weight-bold">List Agent</label>
                             </h4>
                         </div>
@@ -97,7 +147,7 @@
                     <div class="row align-items-center">
                         <div class="col-sm-12">
                             <div class="table-responsive">
-                                <table class="table table-sm datatable" id="table_list_agent">
+                                <table class="table table-sm table-striped" id="table_list_agent">
                                     <thead>
                                         <tr>
                                             <th class="text-center align-middle" style="width: 5%">No</th>

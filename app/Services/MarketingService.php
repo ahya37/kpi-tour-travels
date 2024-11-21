@@ -1672,9 +1672,16 @@ class MarketingService
     // NOTE : AMBIL DATA AKTIVITAS AGENT
     public static function get_data_act_agent($id_agent)
     {
-        $get_data   = DB::table('agent_activity')
+        if($id_agent != 'semua')
+        {
+            $get_data   = DB::table('agent_activity')
                         ->where('agt_id', '=', $id_agent)
                         ->orderBy('created_at', 'asc');
+        } else {
+            $get_data   = DB::table('agent_activity')
+                            ->where('agt_id', 'like', '%')
+                            ->orderBy('created_at', 'asc');
+        }
         return $get_data->get();
     }
     // NOTE : SIMPAN PENGATURAN AGENT

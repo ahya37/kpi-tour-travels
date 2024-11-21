@@ -1,5 +1,6 @@
 var dataAgent       = [];
 var dataAgentSelect = [];
+var dataAgentActivity   = [];
 var dataTourCode    = [];
 var today           = moment().format('YYYY-MM-DD');
 $(document).ready(()    => {
@@ -14,25 +15,47 @@ $(document).ready(()    => {
     const tourCode_type = "GET";
     const tourCode_data = [];
     const tourCode_msg  = "";
+
+    const agentActivityURL  = "marketings/agent/ambil_data_act_agent/semua";
+    const agentActivityType = "GET";
+    const agentActivityData = [];
+    const agentActivityMsg  = "";
     
     const getData   = [
         doTransaction(agentURL, agentType, [], "", true),
         doTransaction(tourCode_url, tourCode_type, tourCode_data, tourCode_msg, true),
+        doTransaction(agentActivityURL, agentActivityType, agentActivityData, agentActivityMsg, true)
     ];
 
     Promise.allSettled(getData)
         .then((success)     => {
+            // AGENT
             if(dataAgent.length == 0) {
-                dataAgent.push(success[0].value.data);
+                success[0].value.data.length > 0 ? dataAgent.push(success[0].value.data) : [];
             }
-            showTable('table_list_agent', dataAgent[0]);
+            // SHOW TABLE AGENT
+            showTable('table_list_agent', dataAgent.length == 0 ? [] : dataAgent[0]);
+            // SHOW TEXT TOTAL AGENT
+            $("#dashboard_total_agent").html(dataAgent.length > 0 ? dataAgent[0].length : 0);
 
+            // GET TOUR CODE
             if(dataTourCode.length == 0) {
                 dataTourCode.push(success[1].value.data);
             }
+
+            // GET AGENT ACTIVITY
+            const agentActivityData     = success[2].value.data;
+            dataAgentActivity.push(agentActivityData);
+            $("#dashboard_total_aktivitas").html(dataAgentActivity.length > 0 ? dataAgentActivity[0].length : 0);
+
+            // REWARD AGENT
+            $("#dashboard_total_reward_agent").html(0);
         })
         .catch((err)        => {
             $("#agent_text").html("<label class='font-weight-bold no-margins'>0</label>");
+            $("#dashboard_total_agent").html(0);
+            $("#dashboard_total_aktivitas").html(0);
+            $("#dashboard_total_reward_agent").html(0);
             console.error(err);
         })
 })
@@ -300,8 +323,13 @@ function showTable(idTable, data)
                 { "targets" : [0, 6], "className" : "text-center align-middle", "width" : "5%" },
                 { "targets" : [1], "className" : "align-middle", "width" : "10%" },
                 { "targets" : [2], "className" : "text-center align-middle", "width" : "8%"},
-                { "targets" : [3, 4], "className" : "text-left align-middle", "width" : "30%" },
+                { "targets" : [3, 4], "className" : "text-left align-middle", "width" : "25%" },
             ],
+            lengthMenu  : [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, 'All'],
+            ],
+            pageLength  : 5,
         })
 
         if(data.length > 0) {
