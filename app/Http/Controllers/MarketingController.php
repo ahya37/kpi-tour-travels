@@ -2285,11 +2285,7 @@ class MarketingController extends Controller
                 ],
             ];
 
-            // $do_simpan  = MarketingService::doSimpanAgent($data_kirim);
-
-            $do_simpan   = [
-                'status'    => 'berhasil'
-            ];
+            $do_simpan  = MarketingService::doSimpanAgent($data_kirim);
 
             if($do_simpan['status'] == 'berhasil') {
                 // UPDATE JUGA APINYA
