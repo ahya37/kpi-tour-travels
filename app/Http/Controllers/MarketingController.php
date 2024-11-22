@@ -2281,7 +2281,7 @@ class MarketingController extends Controller
                     "agt_contact_2"     => $req->all()['agent_contact2'],
                     "agt_fax"           => $req->all()['agent_fax'],
                     "agt_email"         => $req->all()['agent_email'],
-                    "agt_note"          => $req->all()['agent_note'],
+                    "agt_note"          => !empty($req->all()['agent_note']) ? $req->all()['agent_note'] : "",
                 ],
             ];
 
