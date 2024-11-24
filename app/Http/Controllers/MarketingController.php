@@ -2514,4 +2514,33 @@ class MarketingController extends Controller
         
         return Response::json($output, $output['status']);
     }
+
+    public function marketing_agent_simpan_data_member($jenis, Request $request)
+    {
+        $simpan_data    = [
+            "user_id"   => Auth::user()->id,
+            "ip_address"=> $request->ip(),
+            "data"      => $request->all()['data'],
+        ];
+
+        $do_simpan      = MarketingService::simpan_agt_act_jemaah($simpan_data);
+
+        if($do_simpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Update Data Agent Activity",
+                "data"      => [],
+            ];
+        } else if($do_simpan['status'] == 'gagal') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => $do_simpan['errMsg'],
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

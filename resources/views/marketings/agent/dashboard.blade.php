@@ -500,6 +500,8 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-12">
+                            <input type="hidden" id="tour_code_jemaah">
+                            <input type="hidden" id="tour_date_jemaah">
                             <div class="table-responsive">
                                 <table class="table table-sm table-striped table-bordered table-hover" id="table_list_pengaturan_agent_jemaah" style="width: 100%;">
                                     <thead>
@@ -520,7 +522,7 @@
                         <button class="btn btn-sm btn-success" type="button" title="Tambah Data" value="1" onclick="addColumnTable('table_list_pengaturan_agent_jemaah', this.value, [])" id="btn_tambah_baris_pengaturan_agent_jemaah">Tambah Baris</button>
                     </div>
                     <div>
-                        <button class="btn btn-sm btn-primary" type="button" title="Simpan Data">Simpan Data</button>
+                        <button class="btn btn-sm btn-primary" type="button" title="Simpan Data" onclick="doSimpanData('modal_pengaturan_agent_jemaah', 'add', [])">Simpan Data</button>
                     </div>
                 </div>
             </div>

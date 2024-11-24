@@ -179,10 +179,16 @@ function showModal(idModal, data, action)
         }
         showTable('table_pengaturan_agen', []);
     } else if(idModal == 'modal_pengaturan_agent_jemaah') {
+        // SHOW MODAL
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
+        // CHANGE TITLE
         $("#modal_pengaturan_agent_jemaah_tour_code").html(data.split("&")[0]);
+        // FILL FORM
+        $("#tour_code_jemaah").val(data.split('&')[0]);
+        $("#tour_date_jemaah").val(data.split('&')[1]);
 
+        // SHOW TABLE
         showTable('table_list_pengaturan_agent_jemaah', []);
     }
 }
@@ -1264,6 +1270,54 @@ function doSimpanData(idForm, jenis, data)
                     })
                 })
         }
+    } else if(idForm == 'modal_pengaturan_agent_jemaah') {
+        let jemaahData  = [];
+        let tableLength = $("#table_list_pengaturan_agent_jemaah").DataTable().rows().count();
+        // GET DATA FORM
+        let tourCode    = $("#tour_code_jemaah").val();
+        let tourDate    = $("#tour_date_jemaah").val();
+
+        for(let i = 0; i < tableLength; i++)
+        {
+            let seq         = i + 1;
+            let jemaahID    = $("#namaJemaah"+seq).val();
+            let jemaahName  = $("#namaJemaah"+seq+" option:selected").text();
+
+            jemaahData.push({
+                "tour_code"     : tourCode,
+                "tour_date"     : moment(tourDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+                "jemaah_id"     : parseInt(jemaahID),
+                "jemaah_name"   : jemaahName,
+            })
+        }
+
+        // DO SIMPAN
+        let simpanJemaahURL     = "marketings/agent/simpan_member_umhaj/"+jenis;
+        let simpanJemaahData    = {
+            "data"  : jemaahData,
+        };
+        let simpanJemaahType    = "POST";
+        let simpanJemaahMsg     = Swal.fire({ title : "Data Sedang Diproses" }); Swal.showLoading();
+
+        doTransaction(simpanJemaahURL, simpanJemaahType, simpanJemaahData, simpanJemaahMsg, true)
+            .then((success)     => {
+                Swal.fire({
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : success.messsage,
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        closeModal(idForm);
+                    }
+                })
+            })
+            .catch((err)        => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Gagal Menyimpan Data',
+                })
+            })
     }
 }
 

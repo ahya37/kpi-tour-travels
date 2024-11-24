@@ -1816,4 +1816,84 @@ class MarketingService
 
         return $output;
     }
+
+    // 25 NOVEMBER 2024
+    // NOTE : SIMPAN AGENT ACTIVITY JEMAAH
+    public static function simpan_agt_act_jemaah($data)
+    {
+        DB::beginTransaction();
+        $ip_address     = $data['ip_address'];
+        $user_id        = $data['user_id'];
+        $data_simpan    = $data['data'];
+
+        // CHECK DULU APAKAH ADA DATA PADA DATABASE ATAS KONDISI TSB?
+        $tour_code_check= $data_simpan[0]['tour_code'];
+        $tgl_check      = $data_simpan[0]['tour_date'];
+        
+        $check          = DB::table('agent_activity_jemaah')
+                                ->select('agt_act_tour_code', 'agt_act_date')
+                                ->where('agt_act_tour_code', '=', $tour_code_check)
+                                ->where('agt_act_date', '=', $tgl_check)
+                                ->limit(1)
+                                ->get();
+        if(count($check) < 1) {
+            // SIMPAN DATA LANGSUNG
+            for($i = 0; $i < count($data_simpan); $i++)
+            {
+                $do_simpan  = [
+                    "agt_act_tour_code"     => $data_simpan[$i]['tour_code'],
+                    "agt_act_date"          => $data_simpan[$i]['tour_date'],
+                    "agt_act_prs_seq"       => $i + 1,
+                    "agt_act_prs_id"        => $data_simpan[$i]['jemaah_id'],
+                    "agt_act_prs_name"      => $data_simpan[$i]['jemaah_name'],
+                    "created_by"            => $user_id,
+                    "created_at"            => date('Y-m-d H:i:s'),
+                ];
+
+                DB::table('agent_activity_jemaah')->insert($do_simpan);
+            }
+        } else {
+            // HAPUS DULU DATA SEBELUMNYA
+            DB::table('agent_activity_jemaah')
+                    ->where('agt_act_tour_code', '=', $tour_code_check)
+                    ->where('agt_act_date', '=', $tgl_check)
+                    ->delete();
+            // SIMPAN DATA BARU
+            for($i = 0; $i < count($data_simpan); $i++)
+            {
+                $do_simpan  = [
+                    "agt_act_tour_code"     => $data_simpan[$i]['tour_code'],
+                    "agt_act_date"          => $data_simpan[$i]['tour_date'],
+                    "agt_act_prs_seq"       => $i + 1,
+                    "agt_act_prs_id"        => $data_simpan[$i]['jemaah_id'],
+                    "agt_act_prs_name"      => $data_simpan[$i]['jemaah_name'],
+                    "created_by"            => $user_id,
+                    "created_at"            => date('Y-m-d H:i:s'),
+                ];
+
+                DB::table('agent_activity_jemaah')->insert($do_simpan);
+            }
+        }
+
+        try {
+            DB::commit();
+            LogHelper::create('add', 'Berhasil Menyimpan Agent Activity Jemaah Tour Code : '.$tour_code_check, $ip_address);
+
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => "",
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            LogHelper::create('error_system', 'Gagal Menyimpan Agent Activity Jemaah', $ip_address);
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
 }

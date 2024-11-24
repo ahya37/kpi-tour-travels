@@ -189,6 +189,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/simpan_data/type_agent/{jenis}', [MarketingController::class, 'marketing_agent_simpan_data_type_agent']);
             Route::get('/ambil_data_act_agent/{idAgent}', [MarketingController::class, 'marketing_agent_ambil_data_act_agent']);
             Route::get('/ambil_member_umhaj', [MarketingController::class, 'marketing_agent_ambil_data_member']);
+            Route::post('/simpan_member_umhaj/{jenis}', [MarketingController::class, 'marketing_agent_simpan_data_member']);
         });
         
     });
