@@ -652,7 +652,7 @@ function addColumnTable(idTable, seq, data)
         let ke  = seq;
         let inputSeq    = `<input type="text" class="form-control text-center" disabled id="seqJemaah${ke}" style="height: 38px;">`;
         let inputJemaah = `<select class="form-control" id="namaJemaah${ke}" style="width: 100%;" data-placeholder='Nama Jemaah'></select>`;
-        let buttonDelete= `<button type="button" class="btn btn-sm btn-danger" title="Hapus Baris"><i class="fa fa-trash"></i></button>`;
+        let buttonDelete= `<button type="button" class="btn btn-sm btn-danger" title="Hapus Baris" onclick="deleteColumnTable('${idTable}', '${seq}')"><i class="fa fa-trash"></i></button>`;
 
         $("#"+idTable).DataTable().row.add([
             inputSeq,
@@ -663,6 +663,7 @@ function addColumnTable(idTable, seq, data)
         // FILL FORM
         $(`#seqJemaah${ke}`).val(parseInt(ke));
         showSelect('namaJemaah', [], '', seq);
+        $("#namaJemaah"+seq).focus();
         // GET NEXT SEQ FOR BUTTON
         let nextKe  = parseInt(seq) + 1;
         $("#btn_tambah_baris_pengaturan_agent_jemaah").val(nextKe);
@@ -744,6 +745,29 @@ function deleteColumnTable(idTable, seq)
                 $("#btn_tambah_data_modal_pengaturan_agen").val(currentSeq - 1);
                 $("#btn_delete_agen"+(currentSeq-1)).prop('disabled', false);
                 $("#agt_banyaknya"+(currentSeq-1)).focus();
+            }
+        }
+    } else if(idTable == 'table_list_pengaturan_agent_jemaah') {
+        let currentSeq  = parseInt($("#btn_tambah_baris_pengaturan_agent_jemaah").val());
+        let selectedSeq = parseInt(seq);
+        let diffSeq     = currentSeq - selectedSeq;
+
+        if(selectedSeq == 1) {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Baris Pertama Tidak Bisa Dihapus',
+            })
+        } else {
+            if(diffSeq != 1) {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Hanya Bisa Menghapus Baris Terakhir',
+                })
+            } else {
+                $("#"+idTable).DataTable().row(selectedSeq - 1).remove().draw(false);
+                $("#btn_tambah_baris_pengaturan_agent_jemaah").val(currentSeq - 1);
             }
         }
     }
