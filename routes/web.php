@@ -188,6 +188,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/ambil_data_tour_code/{tahun}', [MarketingController::class, 'marketing_agent_ambil_data_tour_code_by_tahun']);
             Route::post('/simpan_data/type_agent/{jenis}', [MarketingController::class, 'marketing_agent_simpan_data_type_agent']);
             Route::get('/ambil_data_act_agent/{idAgent}', [MarketingController::class, 'marketing_agent_ambil_data_act_agent']);
+            Route::get('/ambil_member_umhaj', [MarketingController::class, 'marketing_agent_ambil_data_member']);
         });
         
     });
@@ -454,6 +455,13 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/getDataProgramDigital', [DivisiController::class, 'digital_programKerja_listProgram']);
             Route::post('/simpanAktivitasHarian/{jenis}', [DivisiController::class, 'digital_programKerja_simpanAktivitasHarian']);
             Route::get('/listAktivitasHarian', [DivisiController::class, 'digital_programKerja_listAktivitasHarian']);
+            Route::prefix('umrah')->group(function(){
+                Route::get('/jadwal', [DivisiController:: class, 'digital_index_umrah'])->name('index.digital.jadwal_umrah');
+                Route::get('/data_jadwal_umrah', [DivisiController::class, 'digital_jadwal_umrah'])->name('digital.data.jadwal_umrah');
+                Route::prefix('trans')->group(function(){
+                    Route::post('/simpan_detail/{jenis}', [DivisiController::class, 'digital_jadwal_umrah_simpan_detail']);
+                });
+            });
         });
 
         Route::prefix('human_resource')->group(function(){
@@ -514,6 +522,12 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/absensi', [TarikDataController::class, 'tarik_data_index'])->name('index.tarik_data.absensi');
         Route::post('/absensi', [TarikDataController::class, 'tarik_data_absensi']);
         Route::get('/get_list_absensi', [TarikDataController::class, 'tarik_data_get_absensi']);
+
+        Route::prefix('umhaj')->group(function(){
+            Route::get('jadwal_umrah', [TarikDataController::class, 'umhaj_jadwal_umrah_index'])->name('index.tarik_data.umhaj.jadwal_umrah');
+            Route::get('data_jadwal_umrah', [TarikDataController::class, 'umhaj_jadwal_umrah_get']);
+            Route::post('sync_data_local', [TarikDataController::class, 'umhaj_jadwal_umrah_sync']);
+        });
     });
 
     Route::prefix('simulasi')->group(function(){

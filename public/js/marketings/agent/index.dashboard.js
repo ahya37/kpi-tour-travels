@@ -1,5 +1,6 @@
 var dataAgent       = [];
 var dataAgentSelect = [];
+var dataAgentActivity   = [];
 var dataTourCode    = [];
 var today           = moment().format('YYYY-MM-DD');
 $(document).ready(()    => {
@@ -14,25 +15,47 @@ $(document).ready(()    => {
     const tourCode_type = "GET";
     const tourCode_data = [];
     const tourCode_msg  = "";
+
+    const agentActivityURL  = "marketings/agent/ambil_data_act_agent/semua";
+    const agentActivityType = "GET";
+    const agentActivityData = [];
+    const agentActivityMsg  = "";
     
     const getData   = [
         doTransaction(agentURL, agentType, [], "", true),
         doTransaction(tourCode_url, tourCode_type, tourCode_data, tourCode_msg, true),
+        doTransaction(agentActivityURL, agentActivityType, agentActivityData, agentActivityMsg, true)
     ];
 
     Promise.allSettled(getData)
         .then((success)     => {
+            // AGENT
             if(dataAgent.length == 0) {
-                dataAgent.push(success[0].value.data);
+                success[0].value.data.length > 0 ? dataAgent.push(success[0].value.data) : [];
             }
-            showTable('table_list_agent', dataAgent[0]);
+            // SHOW TABLE AGENT
+            showTable('table_list_agent', dataAgent.length == 0 ? [] : dataAgent[0]);
+            // SHOW TEXT TOTAL AGENT
+            $("#dashboard_total_agent").html(dataAgent.length > 0 ? dataAgent[0].length : 0);
 
+            // GET TOUR CODE
             if(dataTourCode.length == 0) {
                 dataTourCode.push(success[1].value.data);
             }
+
+            // GET AGENT ACTIVITY
+            const agentActivityData     = success[2].value.data;
+            dataAgentActivity.push(agentActivityData);
+            $("#dashboard_total_aktivitas").html(dataAgentActivity.length > 0 ? dataAgentActivity[0].length : 0);
+
+            // REWARD AGENT
+            $("#dashboard_total_reward_agent").html(0);
         })
         .catch((err)        => {
             $("#agent_text").html("<label class='font-weight-bold no-margins'>0</label>");
+            $("#dashboard_total_agent").html(0);
+            $("#dashboard_total_aktivitas").html(0);
+            $("#dashboard_total_reward_agent").html(0);
             console.error(err);
         })
 })
@@ -155,6 +178,12 @@ function showModal(idModal, data, action)
                 })
         }
         showTable('table_pengaturan_agen', []);
+    } else if(idModal == 'modal_pengaturan_agent_jemaah') {
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+
+        $("#modal_pengaturan_agent_jemaah_tour_code").html(data.split("&")[0]);
+
+        showTable('table_list_pengaturan_agent_jemaah', []);
     }
 }
 
@@ -209,6 +238,12 @@ function closeModal(idModal)
         $("#"+idModal).on('hidden.bs.modal', () => {
             $("#btn_tambah_data_modal_pengaturan_agen").prop('disabled', true);
         })
+    } else if(idModal == 'modal_pengaturan_agent_jemaah') {
+        $("#"+idModal).modal('hide');
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#modal_pengaturan_agent_jemaah_tour_code").html("");
+        })
     }
 }
 
@@ -219,9 +254,6 @@ function showSelect(idSelect, data, value, seq)
     })
     if(idSelect == 'sl_agt_id') {
         let html    = "<option selected disabled>List Agen</option>";
-
-        console.table(data);
-
         if(data.length > 0) {
             for(const item of data) {
                 html += `<option value='${item.agent_id}'>${item.agent_name}</option>`;
@@ -261,6 +293,45 @@ function showSelect(idSelect, data, value, seq)
         if(value != '') {
             $("#"+idSelect+seq).val(value);
         }
+    } else if(idSelect == 'namaJemaah') {
+        $("#"+idSelect+""+seq).select2({
+            theme   : 'bootstrap4',
+            ajax : {
+                url     : base_url + "/marketings/agent/ambil_member_umhaj",
+                delay   : 250,
+                data    : (params) => {
+                    return {
+                        search  : params.term || '',
+                    }
+                },
+                processResults  : (data)    => {
+                    return {
+                        results     : data.data.map((item)  => {
+                            return {
+                                id      : item.member_id,
+                                text    : item.member_name 
+                            }
+                        })
+                    }
+                },
+                error           : (err) => {
+                    console.log(err);
+                }
+            },
+            minimumInputLength  : 3, 
+            language    : {
+                errorLoading    : () => {
+                    return 'Tidak Ditemukan Hasil Pencarian';
+                },
+                searching       : () => {
+                    return 'Data Sedang Dicari';
+                },
+                inputTooShort   : (args)    => {
+                    let remainingChars  = args.minimum - args.input.length;
+                    return `Ketik ${remainingChars} Kata Lagi Untuk Mencari Data`;
+                }
+            }
+        })
     }
 }
 
@@ -281,7 +352,6 @@ function showSelectDetail(idSelect, data)
             })
             .catch((err)        => {
                 Swal.close();
-                console.log(err);
                 showTable('table_pengaturan_agen', []);
             })
         
@@ -301,10 +371,16 @@ function showTable(idTable, data)
             },
             autoWidth   : false,
             columnDefs  : [
-                { "targets" : [0, 5], "className" : "text-center", "width" : "5%" },
-                { "targets" : [1], "className" : "text-center", "width" : "5%"},
-                { "targets" : [2, 3], "className" : "text-left", "width" : "30%" },
+                { "targets" : [0, 6], "className" : "text-center align-middle", "width" : "5%" },
+                { "targets" : [1], "className" : "align-middle", "width" : "10%" },
+                { "targets" : [2], "className" : "text-center align-middle", "width" : "8%"},
+                { "targets" : [3, 4], "className" : "text-left align-middle", "width" : "25%" },
             ],
+            lengthMenu  : [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, 'All'],
+            ],
+            pageLength  : 5,
         })
 
         if(data.length > 0) {
@@ -313,6 +389,7 @@ function showTable(idTable, data)
             {
                 let agentID         = item['agent_id'];
                 let agentUniqueID   = item['agent_id_2'];
+                let agentMKKID      = item['agent_mkk_kode'];
                 let agentName       = item['agent_name'];
                 let agentPIC        = item['agent_pic'];
                 let agentContact1   = item['agent_contact1'];
@@ -322,6 +399,7 @@ function showTable(idTable, data)
 
                 $("#"+idTable).DataTable().row.add([
                     `<label class="no-margins font-weight-normal">${seq++}</label>`,
+                    `<label class="no-margins font-weight-normal">${agentMKKID}</label>`,
                     `<label class="no-margins font-weight-normal">${agentUniqueID}</label>`,
                     `<label class="no-margins font-weight-normal">${agentName}</label>`,
                     `<label class="no-margins font-weight-normal">${agentPIC}</label>`,
@@ -401,6 +479,29 @@ function showTable(idTable, data)
         }
 
         $("#"+idTable+"_wrapper").css("padding-bottom", "0px");
+    } else if(idTable == 'table_list_pengaturan_agent_jemaah') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : "Tidak Ada Data Yang Bisa Dimuat.."
+            },
+            pageLength  : -1,
+            ordering    : false,
+            paging      : false,
+            searching   : false,
+            bInfo       : false,
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "10%", },
+                { "targets" : [1], "className" : "text-left align-middle" },
+                { "targets" : [2], "className" : "text-center align-middle", "width" : "8%" },
+            ],
+        });
+
+        $("#table_list_pengaturan_agent_jemaah_wrapper").css('padding-bottom', '0px');
+        $("#table_list_pengaturan_agent_jemaah_wrapper").css('padding-top', '12px');
+
+        addColumnTable(idTable, 1, []);
     }
 }
 
@@ -456,27 +557,29 @@ function addColumnTable(idTable, seq, data)
         $("#btn_table_simulasi").val(next_seq);
     } else if(idTable == 'table_pengaturan_agen') {
         let ke              = parseInt(seq) + 1;
-        let inputNo         = "<input type='text' class='form-control text-center' id='agt_no"+ke+"' readonly placeholder='No' style='height: 38px;'>";
-        let inputTanggal    = "<input type='text' class='form-control' id='agt_tgl"+ke+"' placeholder='DD/MM/YYY' readonly style='background: white; cursor: pointer; height: 38px;'>";
+        let inputNo         = "<input type='text' class='form-control text-center' id='agt_no"+ke+"' disabled placeholder='No' style='height: 38px;'>";
+        let inputTanggal    = "<input type='text' class='form-control' id='agt_tgl"+ke+"' placeholder='DD/MM/YYY' readonly style='height: 38px;'>";
         let inputTourCode   = "<select class='form-control' style='width: 100%;' id='agt_tourCode"+ke+"'></select>";
         let inputBanyaknya  = "<input type='number' inputmode='numeric' class='form-control' id='agt_banyaknya"+ke+"' placeholder='Banyaknya' min='0' max='999' step='1' style='height: 38px;'>";
         let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"'></select>";
         let inputAksi       = `<button class="btn btn-sm btn-primary" title="Simpan Data" value='add' onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_agen${ke}"><i class="fa fa-check"></i></button>`
         let inputDelete     = `<button class="btn btn-sm btn-danger" title="Hapus Baris" value="${ke}" onclick="deleteColumnTable('${idTable}', '${ke}')" id="btn_delete_agen${ke}"><i class="fa fa-trash"></i></button>`;
         let inputPaid       = `<button class="btn btn-sm btn-primary d-none" title="Konfirmasi Pembayaran" value="unpaid" onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_paid${ke}"><i class="fa fa-dollar-sign"></i></button>`;
+        let inputPerson     = `<button class="btn btn-sm btn-primary d-none" type="button" id="btn_act_person${ke}" title="Masukkan Nama Jemaah" onclick="showModal('modal_pengaturan_agent_jemaah', this.value, '')"><i class="fa fa-user"></i></button>`
         $("#"+idTable).DataTable().row.add([
             inputNo,
             inputTanggal,
             inputTourCode,
             inputBanyaknya,
             inputJenis,
-            inputAksi+" "+inputDelete+" "+inputPaid
+            inputAksi+" "+inputDelete+" "+inputPaid+" "+inputPerson
         ]).draw(false);
 
         $("#agt_no"+ke).val(ke);
         $("#agt_banyaknya"+ke).val(0);
 
         $("#agt_tgl"+ke).daterangepicker({
+            drops       : 'up',
             minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
             maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
             autoApply   : true,
@@ -499,17 +602,19 @@ function addColumnTable(idTable, seq, data)
 
         if(data.length != '')
         {
-            let actAgent_date   = moment(data['agt_act_date'], 'YYYY-MM-DD').format('DD/MM/YYYY');
-            let actAgent_qty    = parseInt(data['agt_act_qty']);
+            let actAgent_date       = moment(data['agt_act_date'], 'YYYY-MM-DD').format('DD/MM/YYYY');
+            let actAgent_qty        = parseInt(data['agt_act_qty']);
             let actAgent_tourCode   = data['agt_act_tour_code'];
-            let actAgent_type   = data['agt_act_status'];
-            let actAgent_paidStatus     = data['agt_act_is_paid'];
+            let actAgent_type       = data['agt_act_status'];
+            let actAgent_paidStatus = data['agt_act_is_paid'];
 
             $("#btn_act_agen"+ke).val('edit');
             $("#btn_act_agen"+ke).html("<i class='fa fa-edit'></i>");
             $("#btn_act_agen"+ke).prop('title', 'Ubah Data');
             
+            // DISABLED DATE
             $("#agt_tourCode"+ke).prop('disabled', true);
+            $("#agt_tgl"+ke).prop('disabled', true);
             
             // FILL FORM
             $("#agt_tgl"+ke).data('daterangepicker').setStartDate(actAgent_date);
@@ -520,7 +625,11 @@ function addColumnTable(idTable, seq, data)
             showSelect('agt_tourCode', dataTourCode[0], actAgent_tourCode, ke);
             showSelect('agt_jenis', dataJenis, actAgent_type, ke);
 
+            // SHOW BUTTON
             $("#btn_act_paid"+ke).removeClass('d-none');
+            $("#btn_act_person"+ke).removeClass('d-none');
+            $("#btn_act_person"+ke).val(actAgent_tourCode+"&"+actAgent_date);
+
             if(actAgent_paidStatus == "1") {
                 $("#btn_act_paid"+ke).val('paid');
                 $("#btn_act_paid"+ke).prop('disabled', true);
@@ -539,6 +648,24 @@ function addColumnTable(idTable, seq, data)
         }
 
         $("#btn_tambah_data_modal_pengaturan_agen").val(ke);
+    } else if(idTable == 'table_list_pengaturan_agent_jemaah') {
+        let ke  = seq;
+        let inputSeq    = `<input type="text" class="form-control text-center" disabled id="seqJemaah${ke}" style="height: 38px;">`;
+        let inputJemaah = `<select class="form-control" id="namaJemaah${ke}" style="width: 100%;" data-placeholder='Nama Jemaah'></select>`;
+        let buttonDelete= `<button type="button" class="btn btn-sm btn-danger" title="Hapus Baris"><i class="fa fa-trash"></i></button>`;
+
+        $("#"+idTable).DataTable().row.add([
+            inputSeq,
+            inputJemaah,
+            buttonDelete
+        ]).draw(false);
+
+        // FILL FORM
+        $(`#seqJemaah${ke}`).val(parseInt(ke));
+        showSelect('namaJemaah', [], '', seq);
+        // GET NEXT SEQ FOR BUTTON
+        let nextKe  = parseInt(seq) + 1;
+        $("#btn_tambah_baris_pengaturan_agent_jemaah").val(nextKe);
     }
 }
 
@@ -920,7 +1047,7 @@ function simulasiHitung(idTable, column, seq)
 
         if(total_3 >= 50) {
             bonus_3     = Math.floor(total_3 / 50);
-            sisa_3      = total_3 - (Math.floor(total_2 / 50) * 50);
+            sisa_3      = total_3 - (Math.floor(total_3 / 50) * 50);
         } else {
             if(sisa_2 + total_3 >= 110) {
                 bonus_3     = Math.floor((sisa_2 + total_3) / 110);
@@ -1109,7 +1236,7 @@ function doSimpanData(idForm, jenis, data)
                     Swal.fire({
                         icon    : err.responseJSON.alert.icon,
                         title   : err.responseJSON.alert.message.title,
-                        icon    : err.responseJSON.alert.icon,
+                        text    : err.responseJSON.alert.message.text,
                     })
                 })
         }

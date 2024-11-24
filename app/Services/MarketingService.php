@@ -1598,7 +1598,7 @@ class MarketingService
         } else if($jenis == 'edit') {
             $data_where      = [
                 "agt_id"        => $get_data['data']['agt_id'],
-                "agt_mkk_code"  => $get_data['data']['agt_mkk_code'],
+                "agt_mkk_id"    => $get_data['data']['agt_mkk_code'],
             ];
 
             $data_update    = [
@@ -1672,9 +1672,16 @@ class MarketingService
     // NOTE : AMBIL DATA AKTIVITAS AGENT
     public static function get_data_act_agent($id_agent)
     {
-        $get_data   = DB::table('agent_activity')
+        if($id_agent != 'semua')
+        {
+            $get_data   = DB::table('agent_activity')
                         ->where('agt_id', '=', $id_agent)
                         ->orderBy('created_at', 'asc');
+        } else {
+            $get_data   = DB::table('agent_activity')
+                            ->where('agt_id', 'like', '%')
+                            ->orderBy('created_at', 'asc');
+        }
         return $get_data->get();
     }
     // NOTE : SIMPAN PENGATURAN AGENT
@@ -1697,20 +1704,33 @@ class MarketingService
 
             DB::table('agent_activity')->insert($data_simpan);
         } else if($data['type'] == 'edit') {
+            // CHECK APAKAH SUDAH DIBAYAR ATAU BELOM
             $data_where     = [
                 "agt_id"            => $data['data']['agt_id'],
                 "agt_act_tour_code" => $data['data']['agt_detail_tourCode'],
-            ];
-
-            $data_update    = [
                 "agt_act_date"      => $data['data']['agt_detail_date'],
-                "agt_act_qty"       => $data['data']['agt_detail_qty'],
-                "agt_act_status"    => $data['data']['agt_detail_type'],
-                "updated_by"        => $data['user_id'],
-                "updated_at"        => date('Y-m-d H:i:s'),
             ];
+            
+            $check  = DB::table('agent_activity')->select('agt_act_is_paid')->where($data_where)->get();
 
-            DB::table('agent_activity')->where($data_where)->update($data_update);
+            if($check[0]->agt_act_is_paid == "0") {
+                $data_update    = [
+                    "agt_act_qty"       => $data['data']['agt_detail_qty'],
+                    "agt_act_status"    => $data['data']['agt_detail_type'],
+                    "updated_by"        => $data['user_id'],
+                    "updated_at"        => date('Y-m-d H:i:s'),
+                ];
+    
+                DB::table('agent_activity')->where($data_where)->update($data_update);
+            } else {
+                DB::rollBack();
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => "Aktivitas Agent Sudah Dibayarkan, Tidak Bisa Diubah..",
+                ];
+
+                return $output;
+            }
         } else if($data['type'] == 'delete') {
             $data_where     = [
                 "agt_id"            => $data['data']['agt_id'],

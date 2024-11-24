@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Route;
 use Str;
 
+use function PHPUnit\Framework\isNull;
 use function Psy\debug;
 
 date_default_timezone_set('Asia/Jakarta');
@@ -2764,5 +2765,124 @@ class DivisiService
                     ->where('a.KODE', '=', $tour_code)
                     ->get();
         return $query;
+    }
+
+    // 12 NOVEMBER 2024
+    // NOTE : AMBIL DATA JADWAL UMRAH
+    public static function digital_get_jadwal_umrah($data)
+    {
+        $tahun      = $data['tahun'];
+        $tour_code  = $data['tour_code'];
+
+        if(empty($tour_code)) {
+            $query  = DB::table('programs_jadwal')
+                        ->select('jdw_uuid as umrah_uuid', 'jdw_tour_code as umrah_tour_code', 'jdw_mentor_name as umrah_tour_leader', 'jdw_depature_date as umrah_depature_date', 'jdw_arrival_date as umrah_arrival_date')
+                        ->where(DB::raw('EXTRACT(YEAR FROM jdw_depature_date)'), '=', $data['tahun'])
+                        ->orderBy('jdw_depature_date', 'desc')
+                        ->get();
+        } else {
+            $query_header   = DB::table('programs_jadwal')
+                                ->select('jdw_uuid as umrah_uuid', 'jdw_tour_code as umrah_tour_code', 'jdw_mentor_name as umrah_tour_leader', 'jdw_depature_date as umrah_depature_date', 'jdw_arrival_date as umrah_arrival_date')
+                                ->where(DB::raw('EXTRACT(YEAR FROM jdw_depature_date)'), '=', $data['tahun'])
+                                ->where('jdw_uuid', '=', $data['tour_code'])
+                                ->get();
+
+            $query_detail   = DB::table('programs_jadwal as a')
+                                ->join('programs_jadwal_file as b', 'a.jdw_tour_code', '=', 'b.jdw_det_tour_code')
+                                ->select('b.*')
+                                ->where('a.jdw_uuid', '=', $data['tour_code'])
+                                ->get();
+            $query          = [
+                "header"    => $query_header,
+                "detail"    => $query_detail,
+            ];
+        }
+
+        return $query;
+    }
+
+    // 14 NOVEMBER 2024
+    // NOTE : UPDATE DETAIL FILE TOUR CODE
+    public static function do_simpan_jadwal_umrah_detail_file($jenis, $data)
+    {
+        DB::beginTransaction();
+
+        if($jenis == 'edit')
+        {
+            // CHECK DULU APAKAH ADA ATAU TIDAK?
+            $check  = DB::table('programs_jadwal_file')
+                            ->where('jdw_det_tour_code', '=', $data['tour_code'])
+                            ->get();
+            if(count($check) <= 0) {
+                // INSERT TO PROGRAMS JADWAL FILE
+                for($i = 0; $i < count($data['tour_data_detail']); $i++) {
+                    $data_insert    = [
+                        "jdw_det_tour_code" => $data['tour_code'],
+                        "jdw_det_seq"       => $i + 1,
+                        "jdw_det_description"   => $data['tour_data_detail'][$i]['detail_description'],
+                        "jdw_det_link"      => $data['tour_data_detail'][$i]['detail_link'],
+                        "created_by"        => $data['user_id'],
+                        "created_date"      => date('Y-m-d H:i:s'),
+                    ];
+
+                    DB::table('programs_jadwal_file')->insert($data_insert);
+                }
+
+                try {
+                    DB::commit();
+                    LogHelper::create('add', 'Berhasil Menambahkan Data File Detail Tour Code '.$data['tour_code'], $data['user_ip_address']);
+                    $output     = [
+                        "status"    => "berhasil",
+                        "errMsg"    => "",
+                    ];
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::channel('daily')->error($e->getMessage());
+                    LogHelper::create('error_system', 'Gagal Menambahkan Data File Detail Tour Code', $data['user_ip_address']);
+                    $output     = [
+                        "status"    => "gagal",
+                        "errMsg"    => $e->getMessage(),
+                    ];
+                }
+            } else {
+                // DELETE DATA SEBELUMNYA
+                DB::table('programs_jadwal_file')->where('jdw_det_tour_code', '=', $data['tour_code'])->delete();
+
+                // INSERT YANG BARU
+                for($i = 0; $i < count($data['tour_data_detail']); $i++)
+                {
+                    $data_insert    = [
+                        "jdw_det_tour_code" => $data['tour_code'],
+                        "jdw_det_seq"       => $i + 1,
+                        "jdw_det_description"   => $data['tour_data_detail'][$i]['detail_description'],
+                        "jdw_det_link"      => $data['tour_data_detail'][$i]['detail_link'],
+                        "created_by"        => $data['user_id'],
+                        "created_date"      => date('Y-m-d H:i:s'),
+                    ];
+                    DB::table('programs_jadwal_file')->insert($data_insert);
+                }
+
+                try {
+                    DB::commit();
+                    LogHelper::create('edit', 'Berhasil Update Data File Tour Code : '.$data['tour_code'], $data['user_ip_address']);
+
+                    $output     = [
+                        "status"    => "berhasil",
+                        "errMsg"    => ""
+                    ];
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::channel('daily')->error($e->getMessage());
+                    LogHelper::create('error_system', 'Gagal Update Data File Tour Code : '.$data['tour_code'], $data['user_ip_address']);
+
+                    $output     = [
+                        "status"    => "gagal", 
+                        "errMsg"    => $e->getMessage(),
+                    ];
+                }
+            }
+
+            return $output;
+        }
     }
 }

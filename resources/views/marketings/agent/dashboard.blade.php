@@ -33,6 +33,17 @@
         cursor: not-allowed;
         pointer-events: all !important;
     }
+
+    input[type="text"]:read-only {
+        background-color: white;
+        cursor: pointer;
+    }
+
+    input[type="text"]:disabled {
+        background-color: #e9ecef;
+        border-color: #ccc;
+        cursor: no-drop;
+    }
     </style>
 @endpush
 
@@ -48,7 +59,7 @@
     <div class="container-fluid">
         <div class="wrapper wrapper-content animated fadeInRight">
             <div class="row align-items-center">
-                <div class="col-xl-3 col-lg-6">
+                <div class="col-xl-3 col-md-6">
                     <div class="widget style1 navy-bg" title="Lakukan Simulasi Perhitungan Agent" onclick="showModal('modal_simulasi', '', 'view')" style="cursor: pointer;">
                         <div class="d-flex flex-row align-items-center justify-content-between">
                             <i class="fa fa-calculator fa-3x"></i>
@@ -56,7 +67,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-lg-6">
+                <div class="col-xl-3 col-md-6">
                     <div class="widget style1 navy-bg" title="Pengaturan Agent" onclick="showModal('modal_pengaturan_agen', '', 'view')" style="cursor: pointer;">
                         <div class="d-flex flex-row align-items-center justify-content-between">
                             <i class="fa fa-cog fa-3x"></i>
@@ -66,11 +77,61 @@
                 </div>
             </div>
             <hr>
+            <span class="mb-4">
+                <h1 class="mb-3">
+                    Rekap Data Agen
+                </h1>
+            </span>
+            <div class="row">
+                <div class="col-xl-3 mb-xl-0 col-md-6 mb-sm-4">
+                    <div class="card">
+                        <div class="card-header d-flex flex-row justify-content-between align-items-center bg-primary">
+                            <h4 class="no-margins">
+                                <label class="no-margins font-weight-bold">Total Agent</label>
+                            </h4>
+                            <i class="fa fa-users"></i>
+                        </div>
+                        <div class="card-body text-right">
+                            <h3 class="no-margins font-weight-bold" id="dashboard_total_agent"><i class="fa fa-spinner fa-spin"></i></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 mb-xl-0 col-md-6 mb-sm-4">
+                    <div class="card">
+                        <div class="card-header d-flex flex-row justify-content-between align-items-center bg-primary">
+                            <h4 class="no-margins">
+                                <label class="no-margins font-weight-bold">Total Aktivitas</label>
+                            </h4>
+                            <i class="fa fa-sync"></i>
+                        </div>
+                        <div class="card-body text-right">
+                            <h3 class="no-margins font-weight-bold" id="dashboard_total_aktivitas"><i class="fa fa-spinner fa-spin"></i></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 mb-xl-0 col-md-6 mb-sm-4" style="cursor: pointer;" title="Lihat Detail">
+                    <div class="card">
+                        <div class="card-header d-flex flex-row justify-content-between align-items-center bg-success">
+                            <h4 class="no-margins">
+                                <label class="no-margins font-weight-bold">Reward Agent</label>
+                            </h4>
+                            <i class="fa fa-gift"></i>
+                        </div>
+                        <div class="card-body text-right">
+                            <h3 class="no-margins font-weight-bold" id="dashboard_total_reward_agent"><i class="fa fa-spinner fa-spin"></i></h3>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            <span class="d-xl-block d-sm-none">
+                <br>
+            </span>
             <div class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h4>
+                            <h4 class="no-margins">
                             <label class="no-margins font-weight-bold">List Agent</label>
                             </h4>
                         </div>
@@ -86,15 +147,16 @@
                     <div class="row align-items-center">
                         <div class="col-sm-12">
                             <div class="table-responsive">
-                                <table class="table table-sm datatable" id="table_list_agent">
+                                <table class="table table-sm table-striped" id="table_list_agent">
                                     <thead>
                                         <tr>
-                                            <th class="text-center align-middle">No</th>
-                                            <th class="text-center align-middle">Kode</th>
-                                            <th class="text-center align-middle">Nama</th>
-                                            <th class="text-center align-middle">PIC</th>
+                                            <th class="text-center align-middle" style="width: 5%">No</th>
+                                            <th class="text-center align-middle" style="width: 10%">Kode MKK</th>
+                                            <th class="text-center align-middle" style="width: 8%">Kode Akun</th>
+                                            <th class="text-center align-middle" style="width: 30%">Nama</th>
+                                            <th class="text-center align-middle" style="width: 30%">PIC</th>
                                             <th class="text-center align-middle">Kontak</th>
-                                            <th class="text-center align-middle">Aksi</th>
+                                            <th class="text-center align-middle" style="width: 5%">Aksi</th>
                                         </tr>
                                     </thead>
                                 </table>
@@ -404,7 +466,7 @@
                     </div>
                     <hr>
                     <div class="table-responsive">
-                    <table class="table table-sm table-striped table-bordered table-hover" id="table_pengaturan_agen" style="width: 100%;">
+                        <table class="table table-sm table-striped table-bordered table-hover" id="table_pengaturan_agen" style="width: 100%;">
                             <thead>
                                 <tr>
                                     <th class="text-center align-middle">No</th>
@@ -421,6 +483,45 @@
                 <div class="modal-footer align-items-center">
                     <button class="btn btn-secondary" id="btn_close_modal_pengaturan_agen" title="Tutup Tampilan" onclick="closeModal('modal_pengaturan_agen')">Tutup</button>
                     <button class="btn btn-success" id="btn_tambah_data_modal_pengaturan_agen" title="Tambah Baris" value="0" disabled onclick="addColumnTable('table_pengaturan_agen', this.value, '')">Tambah Baris</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_pengaturan_agent_jemaah">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header d-flex align-items-center justify-content-betwee">
+                    <h4 class="no-margins modal-title">
+                        <label class="no-margins">Input List Nama Jemaah Untuk Tour Code : <span id="modal_pengaturan_agent_jemaah_tour_code"></span></label>
+                    </h4>
+                    <button class="close" onclick="closeModal('modal_pengaturan_agent_jemaah')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped table-bordered table-hover" id="table_list_pengaturan_agent_jemaah" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 10%">No</th>
+                                            <th>Nama Jemaah</th>
+                                            <th style="width: 8%">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex flex-row align-items-center justify-content-between">
+                    <div>
+                        <button class="btn btn-sm btn-success" type="button" title="Tambah Data" value="1" onclick="addColumnTable('table_list_pengaturan_agent_jemaah', this.value, [])" id="btn_tambah_baris_pengaturan_agent_jemaah">Tambah Baris</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-primary" type="button" title="Simpan Data">Simpan Data</button>
+                    </div>
                 </div>
             </div>
         </div>

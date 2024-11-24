@@ -2135,6 +2135,7 @@ class MarketingController extends Controller
                 $data[]     = [
                     "agent_id"      => $get_data[$i]->agt_id,
                     "agent_id_2"    => $get_data[$i]->agt_unique_id,
+                    "agent_mkk_kode"=> !empty($get_data[$i]->agt_mkk_id) ? $get_data[$i]->agt_mkk_id : "",
                     "agent_name"    => $get_data[$i]->agt_name,
                     "agent_pic"     => $get_data[$i]->agt_pic,
                     "agent_contact1"=> $get_data[$i]->agt_contact_1,
@@ -2272,6 +2273,7 @@ class MarketingController extends Controller
                 "type"      => $jenis,
                 "data"      => [
                     "agt_id"            => $req->all()['agent_id'],
+                    "agt_mkk_code"      => $req->all()['agent_mkk_code'],
                     "agt_name"          => $req->all()['agent_name'],
                     "agt_pic"           => $req->all()['agent_pic'],
                     "agt_address"       => $req->all()['agent_address'],
@@ -2279,7 +2281,7 @@ class MarketingController extends Controller
                     "agt_contact_2"     => $req->all()['agent_contact2'],
                     "agt_fax"           => $req->all()['agent_fax'],
                     "agt_email"         => $req->all()['agent_email'],
-                    "agt_note"          => $req->all()['agent_note'],
+                    "agt_note"          => !empty($req->all()['agent_note']) ? $req->all()['agent_note'] : "",
                 ],
             ];
 
@@ -2382,35 +2384,32 @@ class MarketingController extends Controller
     // GET DATA TOUR CODE BY TAHUN
     public function marketing_agent_ambil_data_tour_code_by_tahun($tahun)
     {
-        $host       = env('API_PERCIK_V2');
+        $data       = [
+            "tahun"     => $tahun,
+            "tour_code" => "",
+        ];
 
-        $get_data   = Http::get($host.'/api/umhaj/master/jadwal_umrah?tahun='.$tahun);
-        
-        if($get_data->status() >= 200 || $get_data()->status < 300) {
-            $data_api   = $get_data->json();
+        $get_data   = DivisiService::digital_get_jadwal_umrah($data);
 
-            if(count($data_api['data']) > 0) {
-                for($i = 0; $i < count($data_api['data']); $i++) {
-                    $data[]     = [
-                        "tour_code" => $data_api['data'][$i]['UMRAH_TOUR_CODE'],
-                    ];
-                }
-            } else {
-                $data   = [];
+        if(count($get_data) > 0) {
+            for($i = 0; $i < count($get_data); $i++) {
+                $send_data[]    = [
+                    "tour_code"     => $get_data[$i]->umrah_tour_code,
+                ];
             }
 
-            $output = [
-                "status"    => $get_data->status(),
-                "success"   => $data_api['success'],
-                "message"   => $data_api['message'],
-                "data"      => $data,
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Memuat Data Tour Code Local",
+                "data"      => $send_data,
             ];
         } else {
             $output     = [
-                "status"    => $get_data->status(),
                 "success"   => false,
-                "message"   => "Gagal Mengambil Data Tour Code",
-                "data"      => [], 
+                "status"    => 404,
+                "message"   => "Gagal Memuat Data Tour Code Local",
+                "data"      => [],
             ];
         }
 
@@ -2479,6 +2478,40 @@ class MarketingController extends Controller
             ];
         }
 
+        return Response::json($output, $output['status']);
+    }
+
+    // 23 NOVEMBER 2024
+    // NOTE : AMBIL DATA AGENT
+    public static function marketing_agent_ambil_data_member(Request $request)
+    {
+        $host           = env('API_PERCIK_V2');
+        $jemaah_name    = $request->all()['search'];
+        $encode_input   = preg_replace('/ /', '\u0020', $jemaah_name);
+
+        if(!empty($jemaah_name)) {
+            $get_data       = Http::get($host . "/api/umhaj/member/list?jemaah=" . $jemaah_name);
+            if($get_data->status() >= 200 && $get_data->status() < 300) {
+                $output     = [
+                    "status"        => $get_data->status(),
+                    "message"       => $get_data->json('message'),
+                    "data"          => $get_data->json('data'),
+                ];
+            } else {
+                $output     = [
+                    "status"        => $get_data->status(),
+                    "message"       => $get_data->json('message'),
+                    "data"          => $get_data->json('data'),
+                ];
+            }
+        } else {
+            $output     = [
+                "status"    => 404,
+                "message"   => "Tidak Ada Data Yang Ditemukan",
+                "data"      => [],
+            ];
+        }
+        
         return Response::json($output, $output['status']);
     }
 }
