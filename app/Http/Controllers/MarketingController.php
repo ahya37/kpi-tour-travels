@@ -2480,4 +2480,38 @@ class MarketingController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 23 NOVEMBER 2024
+    // NOTE : AMBIL DATA AGENT
+    public static function marketing_agent_ambil_data_member(Request $request)
+    {
+        $host           = env('API_PERCIK_V2');
+        $jemaah_name    = $request->all()['search'];
+        $encode_input   = preg_replace('/ /', '\u0020', $jemaah_name);
+
+        if(!empty($jemaah_name)) {
+            $get_data       = Http::get($host . "/api/umhaj/member/list?jemaah=" . $jemaah_name);
+            if($get_data->status() >= 200 && $get_data->status() < 300) {
+                $output     = [
+                    "status"        => $get_data->status(),
+                    "message"       => $get_data->json('message'),
+                    "data"          => $get_data->json('data'),
+                ];
+            } else {
+                $output     = [
+                    "status"        => $get_data->status(),
+                    "message"       => $get_data->json('message'),
+                    "data"          => $get_data->json('data'),
+                ];
+            }
+        } else {
+            $output     = [
+                "status"    => 404,
+                "message"   => "Tidak Ada Data Yang Ditemukan",
+                "data"      => [],
+            ];
+        }
+        
+        return Response::json($output, $output['status']);
+    }
 }

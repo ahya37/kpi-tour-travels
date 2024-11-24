@@ -178,6 +178,12 @@ function showModal(idModal, data, action)
                 })
         }
         showTable('table_pengaturan_agen', []);
+    } else if(idModal == 'modal_pengaturan_agent_jemaah') {
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+
+        $("#modal_pengaturan_agent_jemaah_tour_code").html(data.split("&")[0]);
+
+        showTable('table_list_pengaturan_agent_jemaah', []);
     }
 }
 
@@ -232,6 +238,12 @@ function closeModal(idModal)
         $("#"+idModal).on('hidden.bs.modal', () => {
             $("#btn_tambah_data_modal_pengaturan_agen").prop('disabled', true);
         })
+    } else if(idModal == 'modal_pengaturan_agent_jemaah') {
+        $("#"+idModal).modal('hide');
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#modal_pengaturan_agent_jemaah_tour_code").html("");
+        })
     }
 }
 
@@ -281,6 +293,45 @@ function showSelect(idSelect, data, value, seq)
         if(value != '') {
             $("#"+idSelect+seq).val(value);
         }
+    } else if(idSelect == 'namaJemaah') {
+        $("#"+idSelect+""+seq).select2({
+            theme   : 'bootstrap4',
+            ajax : {
+                url     : base_url + "/marketings/agent/ambil_member_umhaj",
+                delay   : 250,
+                data    : (params) => {
+                    return {
+                        search  : params.term || '',
+                    }
+                },
+                processResults  : (data)    => {
+                    return {
+                        results     : data.data.map((item)  => {
+                            return {
+                                id      : item.member_id,
+                                text    : item.member_name 
+                            }
+                        })
+                    }
+                },
+                error           : (err) => {
+                    console.log(err);
+                }
+            },
+            minimumInputLength  : 3, 
+            language    : {
+                errorLoading    : () => {
+                    return 'Tidak Ditemukan Hasil Pencarian';
+                },
+                searching       : () => {
+                    return 'Data Sedang Dicari';
+                },
+                inputTooShort   : (args)    => {
+                    let remainingChars  = args.minimum - args.input.length;
+                    return `Ketik ${remainingChars} Kata Lagi Untuk Mencari Data`;
+                }
+            }
+        })
     }
 }
 
@@ -428,6 +479,29 @@ function showTable(idTable, data)
         }
 
         $("#"+idTable+"_wrapper").css("padding-bottom", "0px");
+    } else if(idTable == 'table_list_pengaturan_agent_jemaah') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : "Tidak Ada Data Yang Bisa Dimuat.."
+            },
+            pageLength  : -1,
+            ordering    : false,
+            paging      : false,
+            searching   : false,
+            bInfo       : false,
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "10%", },
+                { "targets" : [1], "className" : "text-left align-middle" },
+                { "targets" : [2], "className" : "text-center align-middle", "width" : "8%" },
+            ],
+        });
+
+        $("#table_list_pengaturan_agent_jemaah_wrapper").css('padding-bottom', '0px');
+        $("#table_list_pengaturan_agent_jemaah_wrapper").css('padding-top', '12px');
+
+        addColumnTable(idTable, 1, []);
     }
 }
 
@@ -491,13 +565,14 @@ function addColumnTable(idTable, seq, data)
         let inputAksi       = `<button class="btn btn-sm btn-primary" title="Simpan Data" value='add' onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_agen${ke}"><i class="fa fa-check"></i></button>`
         let inputDelete     = `<button class="btn btn-sm btn-danger" title="Hapus Baris" value="${ke}" onclick="deleteColumnTable('${idTable}', '${ke}')" id="btn_delete_agen${ke}"><i class="fa fa-trash"></i></button>`;
         let inputPaid       = `<button class="btn btn-sm btn-primary d-none" title="Konfirmasi Pembayaran" value="unpaid" onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_paid${ke}"><i class="fa fa-dollar-sign"></i></button>`;
+        let inputPerson     = `<button class="btn btn-sm btn-primary d-none" type="button" id="btn_act_person${ke}" title="Masukkan Nama Jemaah" onclick="showModal('modal_pengaturan_agent_jemaah', this.value, '')"><i class="fa fa-user"></i></button>`
         $("#"+idTable).DataTable().row.add([
             inputNo,
             inputTanggal,
             inputTourCode,
             inputBanyaknya,
             inputJenis,
-            inputAksi+" "+inputDelete+" "+inputPaid
+            inputAksi+" "+inputDelete+" "+inputPaid+" "+inputPerson
         ]).draw(false);
 
         $("#agt_no"+ke).val(ke);
@@ -527,11 +602,11 @@ function addColumnTable(idTable, seq, data)
 
         if(data.length != '')
         {
-            let actAgent_date   = moment(data['agt_act_date'], 'YYYY-MM-DD').format('DD/MM/YYYY');
-            let actAgent_qty    = parseInt(data['agt_act_qty']);
+            let actAgent_date       = moment(data['agt_act_date'], 'YYYY-MM-DD').format('DD/MM/YYYY');
+            let actAgent_qty        = parseInt(data['agt_act_qty']);
             let actAgent_tourCode   = data['agt_act_tour_code'];
-            let actAgent_type   = data['agt_act_status'];
-            let actAgent_paidStatus     = data['agt_act_is_paid'];
+            let actAgent_type       = data['agt_act_status'];
+            let actAgent_paidStatus = data['agt_act_is_paid'];
 
             $("#btn_act_agen"+ke).val('edit');
             $("#btn_act_agen"+ke).html("<i class='fa fa-edit'></i>");
@@ -550,7 +625,11 @@ function addColumnTable(idTable, seq, data)
             showSelect('agt_tourCode', dataTourCode[0], actAgent_tourCode, ke);
             showSelect('agt_jenis', dataJenis, actAgent_type, ke);
 
+            // SHOW BUTTON
             $("#btn_act_paid"+ke).removeClass('d-none');
+            $("#btn_act_person"+ke).removeClass('d-none');
+            $("#btn_act_person"+ke).val(actAgent_tourCode+"&"+actAgent_date);
+
             if(actAgent_paidStatus == "1") {
                 $("#btn_act_paid"+ke).val('paid');
                 $("#btn_act_paid"+ke).prop('disabled', true);
@@ -569,6 +648,24 @@ function addColumnTable(idTable, seq, data)
         }
 
         $("#btn_tambah_data_modal_pengaturan_agen").val(ke);
+    } else if(idTable == 'table_list_pengaturan_agent_jemaah') {
+        let ke  = seq;
+        let inputSeq    = `<input type="text" class="form-control text-center" disabled id="seqJemaah${ke}" style="height: 38px;">`;
+        let inputJemaah = `<select class="form-control" id="namaJemaah${ke}" style="width: 100%;" data-placeholder='Nama Jemaah'></select>`;
+        let buttonDelete= `<button type="button" class="btn btn-sm btn-danger" title="Hapus Baris"><i class="fa fa-trash"></i></button>`;
+
+        $("#"+idTable).DataTable().row.add([
+            inputSeq,
+            inputJemaah,
+            buttonDelete
+        ]).draw(false);
+
+        // FILL FORM
+        $(`#seqJemaah${ke}`).val(parseInt(ke));
+        showSelect('namaJemaah', [], '', seq);
+        // GET NEXT SEQ FOR BUTTON
+        let nextKe  = parseInt(seq) + 1;
+        $("#btn_tambah_baris_pengaturan_agent_jemaah").val(nextKe);
     }
 }
 

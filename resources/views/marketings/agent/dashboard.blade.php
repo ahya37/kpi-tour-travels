@@ -466,7 +466,7 @@
                     </div>
                     <hr>
                     <div class="table-responsive">
-                    <table class="table table-sm table-striped table-bordered table-hover" id="table_pengaturan_agen" style="width: 100%;">
+                        <table class="table table-sm table-striped table-bordered table-hover" id="table_pengaturan_agen" style="width: 100%;">
                             <thead>
                                 <tr>
                                     <th class="text-center align-middle">No</th>
@@ -483,6 +483,45 @@
                 <div class="modal-footer align-items-center">
                     <button class="btn btn-secondary" id="btn_close_modal_pengaturan_agen" title="Tutup Tampilan" onclick="closeModal('modal_pengaturan_agen')">Tutup</button>
                     <button class="btn btn-success" id="btn_tambah_data_modal_pengaturan_agen" title="Tambah Baris" value="0" disabled onclick="addColumnTable('table_pengaturan_agen', this.value, '')">Tambah Baris</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_pengaturan_agent_jemaah">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header d-flex align-items-center justify-content-betwee">
+                    <h4 class="no-margins modal-title">
+                        <label class="no-margins">Input List Nama Jemaah Untuk Tour Code : <span id="modal_pengaturan_agent_jemaah_tour_code"></span></label>
+                    </h4>
+                    <button class="close" onclick="closeModal('modal_pengaturan_agent_jemaah')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped table-bordered table-hover" id="table_list_pengaturan_agent_jemaah" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 10%">No</th>
+                                            <th>Nama Jemaah</th>
+                                            <th style="width: 8%">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex flex-row align-items-center justify-content-between">
+                    <div>
+                        <button class="btn btn-sm btn-success" type="button" title="Tambah Data" value="1" onclick="addColumnTable('table_list_pengaturan_agent_jemaah', this.value, [])" id="btn_tambah_baris_pengaturan_agent_jemaah">Tambah Baris</button>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-primary" type="button" title="Simpan Data">Simpan Data</button>
+                    </div>
                 </div>
             </div>
         </div>
