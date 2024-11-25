@@ -607,7 +607,7 @@ function addColumnTable(idTable, seq, data)
         let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"'></select>";
         let inputAksi       = `<button class="btn btn-sm btn-primary" title="Simpan Data" value='add' onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_agen${ke}"><i class="fa fa-check"></i></button>`
         let inputDelete     = `<button class="btn btn-sm btn-danger" title="Hapus Baris" value="${ke}" onclick="deleteColumnTable('${idTable}', '${ke}')" id="btn_delete_agen${ke}"><i class="fa fa-trash"></i></button>`;
-        let inputPaid       = `<button class="btn btn-sm btn-primary d-none" title="Konfirmasi Pembayaran" value="unpaid" onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_paid${ke}"><i class="fa fa-dollar-sign"></i></button>`;
+        let inputPaid       = `<button class="btn btn-sm btn-primary d-none" title="Sudah Diajukan" value="unpaid" onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_paid${ke}" disabled><i class="fa fa-dollar-sign"></i></button>`;
         let inputPerson     = `<button class="btn btn-sm btn-primary d-none" type="button" id="btn_act_person${ke}" title="Masukkan Nama Jemaah" onclick="showModal('modal_pengaturan_agent_jemaah', this.value, '')"><i class="fa fa-user"></i></button>`
         $("#"+idTable).DataTable().row.add([
             inputNo,
