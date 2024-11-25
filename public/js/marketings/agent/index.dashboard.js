@@ -179,17 +179,35 @@ function showModal(idModal, data, action)
         }
         showTable('table_pengaturan_agen', []);
     } else if(idModal == 'modal_pengaturan_agent_jemaah') {
-        // SHOW MODAL
-        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        let tourCode    = data.split('&')[0];
+        let tourDate    = data.split('&')[1];
+        // GET DATA FROM DATABASE
+        let agtActURL   = "marketings/agent/member/ambil_agent_act_jemaah";
+        let agtActData  = {
+            "tour_code"     : tourCode,
+            "tour_date"     : moment(tourDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+        };
+        let agtActType  = "GET";
+        let agtActMsg   = Swal.fire({ title : "Data Sedang Dimuat..",  allowOutsideClick: false}); Swal.showLoading();
 
-        // CHANGE TITLE
+        doTransaction(agtActURL, agtActType, agtActData, agtActMsg, true)
+            .then((success) => {
+                Swal.close();
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                let agtActGetData   = success.data;
+                showTable('table_list_pengaturan_agent_jemaah', agtActGetData);
+
+            })
+            .catch((err)    => {
+                Swal.close();
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                showTable('table_list_pengaturan_agent_jemaah', []);
+            })
+        
+        // FILL
         $("#modal_pengaturan_agent_jemaah_tour_code").html(data.split("&")[0]);
-        // FILL FORM
         $("#tour_code_jemaah").val(data.split('&')[0]);
         $("#tour_date_jemaah").val(data.split('&')[1]);
-
-        // SHOW TABLE
-        showTable('table_list_pengaturan_agent_jemaah', []);
     }
 }
 
@@ -249,6 +267,7 @@ function closeModal(idModal)
 
         $("#"+idModal).on('hidden.bs.modal', () => {
             $("#modal_pengaturan_agent_jemaah_tour_code").html("");
+            $("#btn_tambah_baris_pengaturan_agent_jemaah").val(1);
         })
     }
 }
@@ -303,7 +322,7 @@ function showSelect(idSelect, data, value, seq)
         $("#"+idSelect+""+seq).select2({
             theme   : 'bootstrap4',
             ajax : {
-                url     : base_url + "/marketings/agent/ambil_member_umhaj",
+                url     : base_url + "/marketings/agent/member/ambil_member_umhaj",
                 delay   : 250,
                 data    : (params) => {
                     return {
@@ -486,6 +505,7 @@ function showTable(idTable, data)
 
         $("#"+idTable+"_wrapper").css("padding-bottom", "0px");
     } else if(idTable == 'table_list_pengaturan_agent_jemaah') {
+        let currentSeq  = parseInt($("#btn_tambah_baris_pengaturan_agent_jemaah").val());
         $("#"+idTable).DataTable().clear().destroy();
         $("#"+idTable).DataTable({
             language    : {
@@ -507,7 +527,24 @@ function showTable(idTable, data)
         $("#table_list_pengaturan_agent_jemaah_wrapper").css('padding-bottom', '0px');
         $("#table_list_pengaturan_agent_jemaah_wrapper").css('padding-top', '12px');
 
-        addColumnTable(idTable, 1, []);
+        if(data.length > 0) {
+            let seq      = 1;
+            for(const item of data)
+            {
+                let currSeq     = seq++;
+                let memberID    = item['member_id'];
+                let memberName  = item['member_name'];
+
+                let tempData    = {
+                    "memberID"  : memberID,
+                    "memberName": memberName,
+                };
+
+                addColumnTable(idTable, currSeq, tempData);
+            }
+        } else {
+            addColumnTable(idTable, currentSeq, "");
+        }
     }
 }
 
@@ -670,6 +707,15 @@ function addColumnTable(idTable, seq, data)
         $(`#seqJemaah${ke}`).val(parseInt(ke));
         showSelect('namaJemaah', [], '', seq);
         $("#namaJemaah"+seq).focus();
+
+        // DATA
+        if(data != '') {
+            let memberID    = data['memberID'];
+            let memberName  = data['memberName'];
+
+            $(`#namaJemaah${ke}`).html(`<option selected value="${memberID}">${memberName}</option>`);
+        }
+
         // GET NEXT SEQ FOR BUTTON
         let nextKe  = parseInt(seq) + 1;
         $("#btn_tambah_baris_pengaturan_agent_jemaah").val(nextKe);
@@ -1292,7 +1338,7 @@ function doSimpanData(idForm, jenis, data)
         }
 
         // DO SIMPAN
-        let simpanJemaahURL     = "marketings/agent/simpan_member_umhaj/"+jenis;
+        let simpanJemaahURL     = "marketings/agent/member/simpan_member_umhaj/"+jenis;
         let simpanJemaahData    = {
             "data"  : jemaahData,
         };
@@ -1304,7 +1350,7 @@ function doSimpanData(idForm, jenis, data)
                 Swal.fire({
                     icon    : 'success',
                     title   : 'Berhasil',
-                    text    : success.messsage,
+                    text    : success.message,
                 }).then((res)   => {
                     if(res.isConfirmed) {
                         closeModal(idForm);

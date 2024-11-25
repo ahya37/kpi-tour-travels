@@ -1896,4 +1896,20 @@ class MarketingService
 
         return $output;
     }
+
+    // NOTE : AMBIL JEMAAH UNTUK AGENT ACTIVITY
+    public static function get_data_agent_act_jemaah($data)
+    {
+        $tour_code  = $data['tour_code'];
+        $tour_date  = $data['tour_date'];
+
+        $query      = DB::table('agent_activity_jemaah')
+                        ->select('agt_act_prs_seq as seq', 'agt_act_prs_id as member_id', 'agt_act_prs_name as member_name')
+                        ->where('agt_act_tour_code', '=', $tour_code)
+                        ->where('agt_act_date', '=', $tour_date)
+                        ->orderBy('agt_act_prs_seq', 'asc')
+                        ->get();
+        
+        return $query;
+    }
 }

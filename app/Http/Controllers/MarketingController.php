@@ -31,6 +31,7 @@ use Illuminate\Support\Collection;
 use function Laravel\Prompts\select;
 use Illuminate\Support\Facades\Response;
 use Carbon\Carbon;
+use Dotenv\Repository\RepositoryInterface;
 
 class MarketingController extends Controller
 {
@@ -2537,6 +2538,35 @@ class MarketingController extends Controller
                 "success"   => true,
                 "status"    => 200,
                 "message"   => $do_simpan['errMsg'],
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : AMBIL DATA JEMAAH DI AGENT ACTIVITY
+    public function marketing_agent_ambil_data_agent_act_jemaah(Request $request)
+    {
+        $data_cari  = [
+            "tour_code" => $request->all()['tour_code'],
+            "tour_date" => $request->all()['tour_date'],
+        ];
+
+        $get_data   = MarketingService::get_data_agent_act_jemaah($data_cari);
+
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Agent Activity Jemaah",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data Agent Activity Jemaah",
                 "data"      => [],
             ];
         }
