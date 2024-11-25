@@ -450,6 +450,9 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/employees_fee', [DivisiController::class, 'finance_sim_employees_fee']);
                 Route::get('/employees_fee_download', [DivisiController::class, 'finance_sim_employees_fee_download']);
             });
+            Route::prefix('pengajuan')->group(function() {
+                Route::get('/pembayaran_agent', [DivisiController::class, 'finance_pgj_payment_agent']);
+            });
         });
 
         Route::prefix('digital')->group(function(){

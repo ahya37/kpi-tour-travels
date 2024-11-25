@@ -4,6 +4,8 @@ var today       = moment().format('YYYY-MM-DD');
 var isActive    = 0;
 var base_url    = window.location.origin;
 
+clearUrl();
+
 const hitungJumlahJam   = (jam_awal, jam_akhir) => {
     jam_awal  = moment(jam_awal, 'HH:mm');
     jam_akhir = moment(jam_akhir, 'HH:mm');
@@ -30,10 +32,15 @@ $(document).ready(() => {
     const gpkEmployee_url   = base_url + "/divisi/finance/master/gaji_pokok_employee";
     const gpkEmployee_data  = "";
 
+    const pgjPaymentURL     = base_url + "/divisi/finance/pengajuan/pembayaran_agent";
+    const pgjPaymentType    = "GET";
+    const pgjPaymentData    = [];
+
     const getDatadDashboard     = [
         doTrans(actUser_url, 'GET', actUser_data, '', true),
         doTrans(financeRKAP_url, 'GET', financeRKAP_data, '', true),
-        doTransV2(gpkEmployee_url, 'GET', gpkEmployee_data, '', true)
+        doTransV2(gpkEmployee_url, 'GET', gpkEmployee_data, '', true),
+        doTrans(pgjPaymentURL, pgjPaymentType, pgjPaymentData, '', true)
     ];
 
     Promise.all(getDatadDashboard)
@@ -41,7 +48,8 @@ $(document).ready(() => {
             const actUser_getData       = success[0].data;
             const financeRKAP_getData   = success[1].data;
             const gpkEmployee_getData   = success[2].total_data;
-            
+            const pgjPayment_getData    = success[3].data;
+
             // HIDE LOADING ACT USER
             $("#act_user_loading").addClass('d-none');
             $("#act_user_text").removeClass('d-none');
@@ -58,6 +66,22 @@ $(document).ready(() => {
             $("#abs_text").html("<label class='no-margins font-weight-light'>"+moment().format('YYYY-MM-DD')+"</label>");
             
             $("#kar_text").html("<label class='no-margins font-weight-light'>" + gpkEmployee_getData + "</label>");
+
+            // KONFIRMASI PEMBAYARAN
+            const totalPgjPayment   = pgjPayment_getData.length;
+            let totalConfirmPayment = 0;
+            if(totalPgjPayment > 0) {
+                for(const item of pgjPayment_getData)
+                {
+                    if(item.is_paid != 1) {
+                        totalConfirmPayment     += 1;
+                    }
+                } 
+            }
+
+            $("#confirm_payment_text").html(`<label class="no-margins font-weight-light">${totalPgjPayment}</label>`);
+            $("#confirm_payment_text_pending").addClass('text-warning');
+            $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> ${totalConfirmPayment} butuh konfirmasi`);
         })
         .catch((err)    => {
             // HIDE LOADING ACT USER
@@ -504,6 +528,47 @@ function showTable(idTable, data)
             $("#sml_emp_ot2").html(totalOvertimeTwo + " (" + formatRupiah(amountOverTimeTwo) + " )");
             $("#sml_emp_ot3").html(totalOvertimeThree + " (" + formatRupiah(amountOverTimeThree) + " )");
         }
+    } else if(idTable == 'table_list_confirm_payment_agent') {
+        $("#"+idTable).DataTable().clear().destroy();
+
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : 'Tidak Ada Data Yang Bisa Dimuat..',
+            },
+            lengthMenu  : [
+                [ 10, 20, 50, 100, -1 ],
+                [ 10, 20, 50, 100, "Semua"],
+            ],
+            pageLength  : 10,
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [1], "className" : "align-middle" },
+                { "targets" : [2], "className" : "align-middle", "width" : "25%" },
+                { "targets" : [3], "className" : "text-center align-middle", "width" : "15%" },
+                { "targets" : [4], "className" : "text-center align-middle", "width" : "10%" },
+            ],
+        });
+        
+        if(data.length > 0) {
+            let seq = 1;
+            for(const item of data)
+            {
+                let tourCode        = `<label class="font-weight-normal no-margins">${item['tour_code']}</label>`;
+                let totalPengajuan  = `<label class="font-weight-normal no-margins">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item['total_payment'])}</label>`;
+                let isPaid          = item['is_paid'] == "1" ? `<span class="badge badge-sm badge-primary"><label class="font-weight-bold no-margins">Disetujui</label></span>` : `<span class="badge badge-sm badge-warning"><label class="font-weight-bold no-margins">Pending</label></span>`;
+                $("#"+idTable).DataTable().row.add([
+                    seq++,
+                    tourCode,
+                    totalPengajuan,
+                    isPaid,
+                    `<button class="btn btn-sm btn-primary" title="Lihat Detail"><i class="fa fa-eye"></i></button>`
+                ]).draw(false);
+            }
+        }
+
+        // REMOVE FOOTER
+        $("#table_list_confirm_payment_agent_wrapper").css('padding-bottom', '0px');
     }
 }
 
@@ -870,6 +935,27 @@ function showModal(idModal, value, jenis)
                     text    : 'Data Tidak Ditemukan'
                 })
             })
+    } else if(idModal == 'modal_confirm_payment_agent') {
+        $("#"+idModal).modal({ backdrop : 'static', keyboard : false });
+
+        let pgjConfirmPaymentURL    = base_url + "/divisi/finance/pengajuan/pembayaran_agent";
+        let pgjConfirmPaymentMsg    = Swal.fire({ title : 'Data Sedang Dimuat..' }); Swal.showLoading();
+
+        doTrans(pgjConfirmPaymentURL, "GET", [], pgjConfirmPaymentMsg, true)
+            .then((success)     => {
+                Swal.close();
+                let pgjConfirmPaymentData   = success.data;
+
+                showTable('table_list_confirm_payment_agent', pgjConfirmPaymentData);
+            })
+            .catch((err)        => {
+                console.log(err);
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Data Pembayaran Agent Kosong',
+                });
+            })
     }
 }
 
@@ -964,6 +1050,8 @@ function closeModal(idModal) {
         })
 
         clearUrl();
+    } else if(idModal == 'modal_confirm_payment_agent') {
+        $("#"+idModal).modal('hide');
     }
 }
 

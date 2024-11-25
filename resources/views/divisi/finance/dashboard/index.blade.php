@@ -32,16 +32,14 @@
 @section('content')
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
-            <div class="col-sm-3">
+            <div class="col-xl-3 col-lg-6 mb-sm-2">
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h4 style="margin: 0px;">RKAP</h4>
                     </div>
                     <div class="card-body text-right">
                         <h2 style="margin: 0px;">
-                            <span id="act_rkap_loading">
-                                <div class="spinner-border"></div>
-                            </span>
+                            <span id="act_rkap_loading"><i class="fa fa-spinner fa-spin"></i></span>
                             <span id="act_rkap_text" class="d-none"></span>
                         </h2>
                     </div>
@@ -50,14 +48,14 @@
                     </a>
                 </div>
             </div>
-            <div class="col-sm-3">
+            <div class="col-xl-3 col-lg-6 mb-sm-2">
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h4 style="margin: 0px;">Aktivitas User</h4>
                     </div>
                     <div class="card-body text-right">
                         <h2 style="margin: 0px;">
-                            <span id="act_user_loading"><div class="spinner-border"></div></span>
+                            <span id="act_user_loading"><i class="fa fa-spinner fa-spin"></i></span>
                             <span id="act_user_text" class="d-none"></span>
                         </h2>
                     </div>
@@ -66,14 +64,14 @@
                     </a>
                 </div>
             </div>
-            <div class="col-sm-3">
+            <div class="col-xl-3 col-lg-6 mb-sm-2">
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h4 class="no-margins">Absensi</h4>
                     </div>
                     <div class="card-body text-right">
                         <h2 class="no-margins">
-                            <span id="abs_loading"><div class="spinner-border"></div></span>
+                            <span id="abs_loading"><i class="fa fa-spinner fa-spin"></i></span>
                             <span id="abs_text" class="d-none"></span>
                         </h2>
                     </div>
@@ -82,15 +80,15 @@
                     </a>
                 </div>
             </div>
-            @if ($role_name == 'finance' && $user_id != '43' && $user_id != '44' || $role_name == 'admin')
-                <div class="col-sm-3">
+            @if ($role_name == 'finance' && $user_id != '43' && $user_id != '44' && $user_id != '18' || $role_name == 'admin')
+                <div class="col-xl-3 col-lg-6 mb-sm-2">
                     <div class="card">
                         <div class="card-header bg-primary">
                             <h4 class="no-margins">Perhitungan Lemburan</h4>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body text-center">
                             <h2 class="no-margins">
-                                Lakukan Simulasi
+                                Simulasikan
                             </h2>
                         </div>
                         <a href="#SimulasiLemburanKaryawan" class="card-footer" onclick="showModal('modal_simulasi_lemburan', '', '')">
@@ -100,27 +98,37 @@
                 </div>
             @endif
         </div>
-        @if ($role_name == 'finance' || $role_name == 'admin')
-            @if ($user_id != '43' && $user_id != '44')
-                <div class="row mt-2">
-                    <div class="col-sm-3">
-                        <div class="card">
-                            <div class="card-header bg-primary">
-                                <h4 class="no-margins">Update Gaji Pokok Karyawan</h4>
-                            </div>
-                            <div class="card-body text-right">
-                                <h2 class="no-margins">
-                                    <span id="kar_text">0</span>
-                                </h2>
-                                <small>Total Karyawan</small>
-                            </div>
-                            <a href="#UpdateGajiPokokKaryawan" class="card-footer" onclick="showModal('modal_update_gapok_karyawan', '', '')">
-                                Lihat Detail
-                            </a>
+        @if ($role_name == 'finance' && $user_id != '43' && $user_id != '44' && $user_id != '18' || $role_name == 'admin')
+            <div class="row mt-2">
+                <div class="col-xl-3 col-lg-6 mb-sm-2">
+                    <div class="card">
+                        <div class="card-header bg-primary">
+                            <h4 class="no-margins">Gaji Pokok</h4>
+                        </div>
+                        <div class="card-body text-right">
+                            <h2 class="no-margins" id="kar_text"><i class="fa fa-spinner fa-spin"></i></h2>
+                            <small><label class="font-weight-normal no-margins">Jumlah Karyawan</label></small>
+                        </div>
+                        <a href="#UpdateGajiPokokKaryawan" class="card-footer" onclick="showModal('modal_update_gapok_karyawan', '', '')" title="Lihat Detail">
+                            Lihat Detail
+                        </a>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-6 mb-sm-2">
+                    <div class="card">
+                        <div class="card-header bg-primary">
+                            <h4 class="no-margins">Konfirmasi Pembayaran</h4>
+                        </div>
+                        <div class="card-body text-right">
+                            <h2 class="no-margins" id="confirm_payment_text"><i class="fa fa-spinner fa-spin"></i></h2>
+                            <small id="confirm_payment_text_pending">&nbsp;</small>
+                        </div>
+                        <div class="card-footer" onclick="showModal('modal_confirm_payment_agent', '', '')" title="Lihat List Table Konfirmasi Pembayaran" style="cursor:pointer; color: #007bff;" onclick="showModal('modal_confirm_payment_agent', '', '')">
+                            Lihat Detail
                         </div>
                     </div>
                 </div>
-            @endif
+            </div>
         @endif
     </div>
 
@@ -581,6 +589,45 @@
                     <button class="btn btn-primary" title="Download File" onclick="downloadLemburan()">
                         <i class="fa fa-download"></i> Download File
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_confirm_payment_agent">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header d-flex flex-row align-items-center justify-content-between">
+                    <h4 class="modal-title no-margins font-weight-bold">List Pembayaran untuk Agent</h4>
+                    <button class="close" onclick="closeModal('modal_confirm_payment_agent')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    {{-- FILTER --}}
+                    <div class="row">
+                        <div class="col-xl-3 col-sm-12">
+                        </div>
+                    </div>
+                    <hr>
+                    {{-- TABLE --}}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped table-hover" id="table_list_confirm_payment_agent" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Tour Code</th>
+                                            <th class="text-center align-middle">Agent Name</th>
+                                            <th class="text-center align-middle">Total Pengajuan</th>
+                                            <th class="text-center align-middle">Status</th>
+                                            <th class="text-center align-middle">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

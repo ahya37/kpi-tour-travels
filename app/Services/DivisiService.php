@@ -2885,4 +2885,16 @@ class DivisiService
             return $output;
         }
     }
+
+    // 15 NOVEMBER 2024
+    // NOTE : AMBIL PENGAJUAN PEMBAYARAN AGENT
+    public static function get_data_finance_pgj_payment_agent()
+    {
+        $query  = DB::table('agent_activity as a')
+                    ->join('agent as b', 'a.agt_id', '=', 'b.agt_id')
+                    ->select('a.*', 'b.agt_name')
+                    ->orderBy('a.agt_act_date', 'desc')
+                    ->get();
+        return $query;
+    }
 }

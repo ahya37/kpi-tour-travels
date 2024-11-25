@@ -2597,4 +2597,65 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    public function finance_pgj_payment_agent()
+    {
+        $get_data   = DivisiService::get_data_finance_pgj_payment_agent();
+
+        if(count($get_data) > 0) {
+            $temp       = [];
+            $total_qty  = 0;
+            $total_payment = 0;
+            $send_data  = [];
+
+            foreach($get_data as $item)
+            {
+                $tour_code  = $item->agt_act_tour_code;
+                $qty        = $item->agt_act_qty;
+                $payment    = $item->agt_act_status == "act" ? 1000000 * $item->agt_act_qty : ($item->agt_act_status == "dsc" ? 0 * $item->agt_act_qty : 500000 * $item->agt_act_qty);
+                $is_paid    = $item->agt_act_is_paid;
+
+                if(isset($temp[$tour_code])) {
+                    $total_qty  += $qty;
+                    $total_payment  += $payment;
+                    $temp[$tour_code]    = [
+                        "agent_id"      => $item->agt_id,
+                        "agent_name"    => $item->agt_name,
+                        "tour_code"     => $tour_code,
+                        "total_qty"     => $total_qty,
+                        "total_payment" => $total_payment,
+                        "is_paid"       => $is_paid,
+                    ];
+                } else {
+                    $total_qty  = $qty;
+                    $total_payment  = $payment;
+                    $temp[$tour_code]   = [
+                        "agent_id"      => $item->agt_id,
+                        "agent_name"    => $item->agt_name,
+                        "tour_code"     => $tour_code,
+                        "total_qty"     => $total_qty,
+                        "total_payment" => $total_payment,
+                        "is_paid"       => $is_paid,
+                    ];
+                }
+            }
+
+            $send_data  = array_values($temp);
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Pembayaran Agent",
+                "data"      => $send_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data Pembayaran Agent",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }
