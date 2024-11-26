@@ -632,6 +632,62 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modal_detail_confirm_payment_agent">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header d-flex flex-row align-items-center justify-content-between w-100">
+                    <h4 class="no-margins font-weight-bold">Detail List Pembayaran Agent</h4>
+                    <button class="close" onclick="closeModal('modal_detail_confirm_payment_agent')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="no-margins font-weight-bold">Tour Code</label>
+                                <input type="text" class="form-control" placeholder="Tour Code" id="payment_agent_tour_code" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="no-margins font-weight-bold">Nama Agen</label>
+                                <input type="hidden" class="form-control" placeholder="ID Agen" id="payment_agent_id" readonly>
+                                <input type="text" class="form-control" placeholder="Nama Agen" id="payment_agent_name" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                <table class="table-sm table-striped" id="table_detail_payment_agent" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Tgl. Pengajuan</th>
+                                            <th class="text-center align-middle">Pengajuan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th class="text-right align-middle" colspan="2">Total : </th>
+                                            <th class="align-middle" id="total_pengajuan_detail_payment_agent"></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" title="Konfirmasi Pembayaran Agent" onclick="doUpdate('payment_agent', '', '')">Konfirmasi</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 

@@ -533,7 +533,7 @@ function showTable(idTable, data)
 
         $("#"+idTable).DataTable({
             language    : {
-                emptyTable  : 'Tidak Ada Data Yang Bisa Dimuat..',
+                emptyTable  : '<i class="fa fa-spinner fa-spin"></i> Data Sedang Dimuat..',
             },
             lengthMenu  : [
                 [ 10, 20, 50, 100, -1 ],
@@ -545,8 +545,9 @@ function showTable(idTable, data)
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
                 { "targets" : [1], "className" : "align-middle" },
                 { "targets" : [2], "className" : "align-middle", "width" : "25%" },
-                { "targets" : [3], "className" : "text-center align-middle", "width" : "15%" },
-                { "targets" : [4], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [3], "className" : "align-middle", "width" : "15%" },
+                { "targets" : [4], "className" : "text-center align-middle", "width" : "15%" },
+                { "targets" : [5], "className" : "text-center align-middle", "width" : "10%" },
             ],
         });
         
@@ -555,20 +556,61 @@ function showTable(idTable, data)
             for(const item of data)
             {
                 let tourCode        = `<label class="font-weight-normal no-margins">${item['tour_code']}</label>`;
+                let agentName       = `<label class="font-weight-normal no-margins">${item['agent_name']}</label>`
                 let totalPengajuan  = `<label class="font-weight-normal no-margins">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item['total_payment'])}</label>`;
                 let isPaid          = item['is_paid'] == "1" ? `<span class="badge badge-sm badge-primary"><label class="font-weight-bold no-margins">Disetujui</label></span>` : `<span class="badge badge-sm badge-warning"><label class="font-weight-bold no-margins">Pending</label></span>`;
+                let button          = item['is_paid'] ==  "1" ? `<button type="button" class="btn btn-sm btn-secondary" disabled style="cursor:no-drop" title="Sudah Dibayarkan"><i class="fa fa-check"></i></button>` : `<button type="button" class="btn btn-sm btn-primary" value="${item['tour_code']}&${item['agent_id']}" title="Konfirmasi Pembayaran" onclick="showModal('modal_detail_confirm_payment_agent', this.value, 'update')"><i class="fa fa-check"></i></button>`;
                 $("#"+idTable).DataTable().row.add([
                     seq++,
                     tourCode,
+                    agentName,
                     totalPengajuan,
                     isPaid,
-                    `<button class="btn btn-sm btn-primary" title="Lihat Detail"><i class="fa fa-eye"></i></button>`
+                    button
                 ]).draw(false);
             }
         }
 
         // REMOVE FOOTER
         $("#table_list_confirm_payment_agent_wrapper").css('padding-bottom', '0px');
+    } else if(idTable == 'table_detail_payment_agent') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+            },
+            searching   : false,
+            pageLength  : -1,
+            paging      : false,
+            autoWidth   : false,
+            bInfo       : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [1], "className" : "text-center align-middle", "width" : "45%" },
+                { "targets" : [2], "className" : "align-middle" },
+            ],
+        })
+
+        $("#"+idTable+"_wrapper").css('padding-bottom', '0px');
+
+        if(data.length > 0) {
+            let seq     = 1;
+            let totalPengajuan  = 0;
+            for(const item of data)
+            {
+                $("#"+idTable).DataTable().row.add([
+                    `<label class="font-weight-normal no-margins">${seq++}</label>`,
+                    `<label class="font-weight-normal no-margins">${moment(item['act_date'], 'YYYY-MM-DD').format('DD-MM-YYYY')}</label>`,
+                    `<label class="font-weight-normal no-margins">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item['amount'])}</label>`
+                ]).draw(false);
+
+                totalPengajuan  += item['amount'];
+            }
+
+            $("#total_pengajuan_detail_payment_agent").html(new Intl.NumberFormat('id-ID', { style: "currency", currency: 'IDR' }).format(totalPengajuan));
+        } else {
+            $("#total_pengajuan_detail_payment_agent").html("Rp 0,00");
+        }
     }
 }
 
@@ -947,6 +989,7 @@ function showModal(idModal, value, jenis)
                 let pgjConfirmPaymentData   = success.data;
 
                 showTable('table_list_confirm_payment_agent', pgjConfirmPaymentData);
+                $("#table_list_confirm_payment_agent .dataTables_empty").html('Data Berhasil Dimuat');
             })
             .catch((err)        => {
                 console.log(err);
@@ -954,6 +997,37 @@ function showModal(idModal, value, jenis)
                     icon    : 'error',
                     title   : 'Terjadi Kesalahan',
                     text    : 'Data Pembayaran Agent Kosong',
+                });
+            })
+    } else if(idModal == 'modal_detail_confirm_payment_agent') {
+        let pgjPaymentDetail_URL    = base_url + "/divisi/finance/pengajuan/pembayaran_agent_detail";
+        let pgjPaymentDetail_Type   = "GET";
+        let pgjPaymentDetail_data   = {
+            "tour_code" : value.split('&')[0],
+            "agent_id"  : value.split('&')[1],
+        };
+        let pgjPaymentDetail_msg    = Swal.fire({ title : "Data Sedang Dimuat..", allowOutsideClick: false }); Swal.showLoading();
+
+        doTrans(pgjPaymentDetail_URL, pgjPaymentDetail_Type, pgjPaymentDetail_data, pgjPaymentDetail_msg, true)
+            .then((success)     => {
+                closeModal('modal_confirm_payment_agent');
+                Swal.close();
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                // HEADER
+                $("#payment_agent_tour_code").val(success.data.header['tour_code']);
+                $("#payment_agent_id").val(success.data.header['agent_id']);
+                $("#payment_agent_name").val(success.data.header['agent_name']);
+
+                // DETAIL
+                showTable('table_detail_payment_agent', success.data.detail);
+                $("#table_detail_payment_agent .dataTables_empty").html('Data Ditemukan');
+            })
+            .catch((error)      => {
+                console.log(error);
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Tidak Ada Detail Pembayaran Untuk Data Ini',
                 });
             })
     }
@@ -1052,6 +1126,10 @@ function closeModal(idModal) {
         clearUrl();
     } else if(idModal == 'modal_confirm_payment_agent') {
         $("#"+idModal).modal('hide');
+        showTable('table_list_confirm_payment_agent', []);
+    } else if(idModal == 'modal_detail_confirm_payment_agent') {
+        $("#"+idModal).modal('hide');
+        showModal('modal_confirm_payment_agent', '', '');
     }
 }
 
@@ -1356,6 +1434,39 @@ function doUpdate(idForm, data, seq)
                     title   : err.responseJSON.alert.message.title,
                     text    : err.responseJSON.alert.message.text,
                 });
+            })
+    } else if(idForm == 'payment_agent') {
+        let tourCode    = $("#payment_agent_tour_code").val();
+        let agentID     = $("#payment_agent_id").val();
+        let agentName   = $("#payment_agent_name").val();
+
+        let agtPayment_URL  = base_url + "/divisi/finance/pengajuan/pembayaran_agent_konfirmasi";
+        let agtPayment_type = "POST";
+        let agtPayment_data = {
+            "agent_id"      : agentID,
+            "tour_code"     : tourCode,
+        };
+        let agtPayment_msg  = Swal.fire({ title : 'Data Sedang Diproses..', allowOutsideClick: false }); Swal.showLoading();
+
+        doTrans(agtPayment_URL, agtPayment_type, agtPayment_data, agtPayment_msg)
+            .then((success)     => {
+                Swal.fire({
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : 'Berhasil Konfirmasi Pembayaran Agent'
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        closeModal('modal_detail_confirm_payment_agent');
+                    }
+                })
+            })
+            .catch((err)        => {
+                console.log(err);
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Gagal Menyimpan Data'
+                })
             })
     }
 }

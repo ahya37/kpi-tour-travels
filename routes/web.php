@@ -452,6 +452,8 @@ Route::group(['middleware' => ['auth']], function () {
             });
             Route::prefix('pengajuan')->group(function() {
                 Route::get('/pembayaran_agent', [DivisiController::class, 'finance_pgj_payment_agent']);
+                Route::get('/pembayaran_agent_detail', [DivisiController::class, 'finance_pgj_payment_agent_detail']);
+                Route::post('/pembayaran_agent_konfirmasi', [DivisiController::class, 'finance_pgj_payment_agent_confirm']);
             });
         });
 

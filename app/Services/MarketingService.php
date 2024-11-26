@@ -1696,6 +1696,7 @@ class MarketingService
                 "agt_act_tour_code" => $data['data']['agt_detail_tourCode'],
                 "agt_act_qty"       => $data['data']['agt_detail_qty'],
                 "agt_act_status"    => $data['data']['agt_detail_type'],
+                "agt_act_discount_amount"   => 0,
                 "created_by"        => $data['user_id'],
                 "created_at"        => date('Y-m-d H:i:s'),
                 "updated_by"        => $data['user_id'],
@@ -1716,7 +1717,8 @@ class MarketingService
             if($check[0]->agt_act_is_paid == "0") {
                 $data_update    = [
                     "agt_act_qty"       => $data['data']['agt_detail_qty'],
-                    "agt_act_status"    => $data['data']['agt_detail_type'],
+                    "agt_act_status"    => $data['data']['agt_detail_type'],                    
+                    "agt_act_discount_amount"   => 0,
                     "updated_by"        => $data['user_id'],
                     "updated_at"        => date('Y-m-d H:i:s'),
                 ];

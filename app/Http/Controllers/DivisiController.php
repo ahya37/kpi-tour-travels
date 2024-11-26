@@ -2614,11 +2614,12 @@ class DivisiController extends Controller
                 $qty        = $item->agt_act_qty;
                 $payment    = $item->agt_act_status == "act" ? 1000000 * $item->agt_act_qty : ($item->agt_act_status == "dsc" ? 0 * $item->agt_act_qty : 500000 * $item->agt_act_qty);
                 $is_paid    = $item->agt_act_is_paid;
+                $agent_name = $item->agt_name;
 
-                if(isset($temp[$tour_code])) {
+                if(isset($temp[$tour_code."&".$agent_name])) {
                     $total_qty  += $qty;
                     $total_payment  += $payment;
-                    $temp[$tour_code]    = [
+                    $temp[$tour_code."&".$agent_name]    = [
                         "agent_id"      => $item->agt_id,
                         "agent_name"    => $item->agt_name,
                         "tour_code"     => $tour_code,
@@ -2629,7 +2630,7 @@ class DivisiController extends Controller
                 } else {
                     $total_qty  = $qty;
                     $total_payment  = $payment;
-                    $temp[$tour_code]   = [
+                    $temp[$tour_code."&".$agent_name]   = [
                         "agent_id"      => $item->agt_id,
                         "agent_name"    => $item->agt_name,
                         "tour_code"     => $tour_code,
@@ -2652,6 +2653,88 @@ class DivisiController extends Controller
                 "success"   => false,
                 "status"    => 404,
                 "message"   => "Gagal Mengambil Data Pembayaran Agent",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 26 NOVEMBER 2024
+    // NOTE : AMBIL LIST PEMBAYARAN DETAIL
+    public function finance_pgj_payment_agent_detail(Request $request)
+    {
+        $data_simpan = [
+            "tour_code"     => $request->all()['sendData']['tour_code'],
+            "agent_id"      => $request->all()['sendData']['agent_id'],
+        ];
+
+        $get_data   = DivisiService::get_payment_agent_detail($data_simpan);
+
+        if(count($get_data) > 0) {
+            // HEADER
+            $header     = [
+                "tour_code"     => $get_data[0]->agt_act_tour_code,
+                "agent_id"      => $get_data[0]->agt_id,
+                "agent_name"    => $get_data[0]->agt_name,
+            ];
+            // DETAIL
+            $detail     = [];
+            for($i = 0; $i < count($get_data); $i++) {
+                $detail[]   = [
+                    "tour_code"     => $get_data[$i]->agt_act_tour_code,
+                    "act_date"      => $get_data[$i]->agt_act_date,
+                    "qty"           => $get_data[$i]->agt_act_qty,
+                    "amount"        => $get_data[$i]->agt_act_status == "act" ? $get_data[$i]->agt_act_qty * 1000000 : ($get_data[$i]->agt_act_status == "ref" ? $get_data[$i]->agt_act_qty * 500000 : $get_data[$i]->agt_act_qty),
+                    "discount"      => $get_data[$i]->agt_act_discount_amount,
+                ];
+            }
+
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Detail Pembayaran Tour Code " .$data_simpan['tour_code'],
+                "data"      => [
+                    "header"    => $header,
+                    "detail"    => $detail,
+                ],
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data Detail Pembayaran Tour Code " . $data_simpan['tour_code'],
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : KONFIRMASI PEMBAYARAN AGENT
+    public function finance_pgj_payment_agent_confirm(Request $request)
+    {
+        $data_simpan    = [
+            "user_id"       => Auth::user()->id,
+            "ip_address"    => $request->ip(),
+            "tour_code"     => $request->all()['sendData']['tour_code'],
+            "agent_id"      => $request->all()['sendData']['agent_id'],
+        ];
+        
+        $do_simpan      = DivisiService::do_confirm_payment_agent($data_simpan);
+
+        if($do_simpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Konfirmasi Pembayaran Agent",
+                "data"      => []
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Konfirmasi Pembayaran Agent",
                 "data"      => [],
             ];
         }

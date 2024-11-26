@@ -2897,4 +2897,66 @@ class DivisiService
                     ->get();
         return $query;
     }
+
+    public static function get_payment_agent_detail($data)
+    {
+        $tour_code  = $data['tour_code'];
+        $agent_id   = $data['agent_id'];
+
+        $query      = DB::table('agent_activity as a')
+                        ->join('agent as b', 'a.agt_id', '=', 'b.agt_id')
+                        ->select('a.*', 'b.agt_name')
+                        ->where('a.agt_act_tour_code', '=', $tour_code)
+                        ->where('a.agt_id', '=', $agent_id)
+                        ->where('a.agt_act_is_paid', '=', 0)
+                        ->orderBy('a.agt_act_date', 'asc')
+                        ->get();
+        return $query;
+    }
+
+    // NOTE : KONFIRMASI PEMBAYARAN AGENT
+    public static function do_confirm_payment_agent($data)
+    {
+        $user_id    = $data['user_id'];
+        $ip_address = $data['ip_address'];
+        $tour_code  = $data['tour_code'];
+        $agent_id   = $data['agent_id'];
+
+        DB::beginTransaction();
+
+        $data_where     = [
+            "agt_id"            => $agent_id,
+            "agt_act_tour_code" => $tour_code,
+            "agt_act_is_paid"   => "0",
+        ];
+
+        $data_update    = [
+            "agt_act_is_paid"   => "1",
+            "updated_by"        => $user_id,
+            "updated_at"        => date('Y-m-d H:i:s'),
+        ];
+
+        DB::table('agent_activity')->where($data_where)->update($data_update);
+
+        try {
+            DB::commit();
+            LogHelper::create('edit', 'Berhasil Konfirmasi Fee Agent Tour Code : ' . $tour_code, $ip_address);
+            
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => [],
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Konfirmasi Pembayaran Fee Agent', $ip_address);
+
+            $output  = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
 }
