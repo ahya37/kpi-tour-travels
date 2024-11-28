@@ -59,13 +59,13 @@ function showTable(idTable, data)
                         switch(emp_item['emp_trans_status'])
                         {
                             case '1' :
-                                var emp_status  = "<span class='badge badge-pills badge-primary'>Diterima</span>";
+                                var emp_status  = `<span class="badge badge-pills badge-primary"><label class="no-margins font-weight-bold">Diterima</label></span>`;
                             break;
                             case '2' : 
-                                var emp_status  = "<span class='badge badge-pills badge-danger'>Ditolak</span>";
+                                var emp_status  = `<span class="badge badge-pills badge-danger"><label class="no-margins font-weight-bold">Ditolak</label></span>`;
                             break;
                             case '3' :
-                                var emp_status  = "<span class='badge badge-pills badge-warning'>Menunggu Konfirmasi</span>"; 
+                                var emp_status  = `<span class="badge badge-pills badge-warning"><label class="no-margins font-weight-bold text-dark">Menunggu Konfirmasi</label></span>`;
                             break;r
                         }
 
@@ -202,7 +202,11 @@ function showModal(idModal, data)
 
                     $("#lmb_keterangan_length").html(success.data.header[0].emp_act_description.length+"/100");
 
-
+                    if(success.data.header[0].emp_act_status == "1") {
+                        $("#btn_save_modal_buat_pengajuan").prop('disabled', true);
+                    } else {
+                        $("#btn_save_modal_buat_pengajuan").prop('disabled', false);
+                    }
                 })
                 .catch((err)        => {
                     console.log(err);
@@ -232,6 +236,7 @@ function closeModal(idModal)
             $("#lmb_date").data('daterangepicker').setEndDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
             $("#lmb_start_time").val('00:00');
             $("#lmb_end_time").val('00:00');
+            $("#btn_save_modal_buat_pengajuan").prop('disabled', false);
         })
     }
 }
@@ -285,12 +290,17 @@ function simpanData(idForm, jenisSimpan)
                     }).then((res)   => {
                         if(res.isConfirmed) {
                             closeModal('modal_buat_lemburan');
-                            showTable('table_list_lembur');
+                            let bulan   = moment(today, 'YYYY-MM-DD').format('MM');
+                            showTable('table_list_lembur', bulan);
                         }
                     })
                 })
                 .catch((err)    => {
-                    console.log(err)
+                    Swal.fire({
+                        icon    : err.responseJSON.alert.icon,
+                        title   : err.responseJSON.alert.message.title,
+                        text    : err.responseJSON.alert.message.text,
+                    })
                 })
         }
     }

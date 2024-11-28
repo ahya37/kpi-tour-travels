@@ -2003,7 +2003,7 @@ class DivisiController extends Controller
                     ],
                 ],
             ];
-        } else {
+        } else if($doSimpan['status'] == "gagal") {
             $output     = [
                 "success"   => false,
                 "status"    => 401,
@@ -2012,6 +2012,18 @@ class DivisiController extends Controller
                     "message"   => [
                         "title"     => "Terjadi Kesalahan",
                         "text"      => $jenis == 'add' ? "Gagal Menambahkan Pengajuan Lembur" : "Gagal Mengubah Pengajuan Lembur",
+                    ],
+                ],
+            ];
+        } else if($doSimpan['status'] == "dupe") {
+            $output     = [
+                "success"   => false,
+                "status"    => 409,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => $doSimpan['errMsg'],
                     ],
                 ],
             ];

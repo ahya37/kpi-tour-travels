@@ -2465,36 +2465,56 @@ class DivisiService
 
         if($jenis == 'add')
         {
-            // INSERT TO HEADER
-            $data_header =  [
-                "emp_act_uuid"      => Str::uuid(),
-                "emp_act_user_id"   => $user_id,
-                "emp_act_title"     => $data_lemburan['lmb_keterangan'],
-                "emp_act_start_date"=> $data_lemburan['lmb_tanggal'],
-                "emp_act_end_date"  => $data_lemburan['lmb_tanggal'],
-                "emp_act_type"      => "Lembur",
-                "emp_act_status"    => 3,
-                "created_by"        => $user_id,
-                "created_at"        => date('Y-m-d H:i:s'),
-                "updated_by"        => $user_id,
-                "updated_at"        => date('Y-m-d H:i:s'),
+            // CHECK DULU APAKAH TANGGAL SEGITU ADA?
+            $check_where    = [
+                "emp_act_start_date"    => $data_lemburan['lmb_tanggal'],
+                "emp_act_end_date"      => $data_lemburan['lmb_tanggal'],
+                "emp_act_status"        => 3,
+                "created_by"            => $user_id,
             ];
             
-            DB::table('employees_activity')->insert($data_header);
-            $emp_act_id     = DB::getPdo()->lastInsertId();
+            $check          = DB::table('employees_activity')->where($check_where)->get();
 
-            // INSERT DETAIL
-            $data_detail    = [
-                "emp_act_id"        => $emp_act_id,
-                "empd_seq"          => 1,
-                "empd_description"  => $data_lemburan['lmb_keterangan'],
-                "empd_date"         => $data_lemburan['lmb_tanggal'],
-                "empd_start_time"   => $data_lemburan['lmb_t_start'],
-                "empd_end_time"     => $data_lemburan['lmb_t_end'],
-                "empd_status"       => 0,
-            ];
+            if(count($check) < 1) {
+                // INSERT TO HEADER
+                $data_header =  [
+                    "emp_act_uuid"      => Str::uuid(),
+                    "emp_act_user_id"   => $user_id,
+                    "emp_act_title"     => $data_lemburan['lmb_keterangan'],
+                    "emp_act_start_date"=> $data_lemburan['lmb_tanggal'],
+                    "emp_act_end_date"  => $data_lemburan['lmb_tanggal'],
+                    "emp_act_type"      => "Lembur",
+                    "emp_act_status"    => 3,
+                    "created_by"        => $user_id,
+                    "created_at"        => date('Y-m-d H:i:s'),
+                    "updated_by"        => $user_id,
+                    "updated_at"        => date('Y-m-d H:i:s'),
+                ];
+                
+                DB::table('employees_activity')->insert($data_header);
+                $emp_act_id     = DB::getPdo()->lastInsertId();
 
-            DB::table('employees_activity_detail')->insert($data_detail);
+                // INSERT DETAIL
+                $data_detail    = [
+                    "emp_act_id"        => $emp_act_id,
+                    "empd_seq"          => 1,
+                    "empd_description"  => $data_lemburan['lmb_keterangan'],
+                    "empd_date"         => $data_lemburan['lmb_tanggal'],
+                    "empd_start_time"   => $data_lemburan['lmb_t_start'],
+                    "empd_end_time"     => $data_lemburan['lmb_t_end'],
+                    "empd_status"       => 0,
+                ];
+
+                DB::table('employees_activity_detail')->insert($data_detail);
+            } else {
+                DB::rollBack();
+                $output     = [
+                    "status"    => "dupe",
+                    "errMsg"    => "Data Lemburan Pada Tanggal ".$data_lemburan['lmb_tanggal']." Sudah Dibuat",
+                ];
+
+                return $output;
+            }
         } else if($jenis == 'edit') {
             // GET ID
             $emp_act_id     = DB::table('employees_activity')
