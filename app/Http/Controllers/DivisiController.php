@@ -2050,6 +2050,7 @@ class DivisiController extends Controller
         $data   = [
             "emp_act_id"    => $request->all()['emp_act_id'],
             "emp_act_status"=> $request->all()['emp_act_status'],
+            "emp_act_note"  => $request->all()['emp_act_note'] ?? '',
             "emp_user_id"   => Auth::user()->id,
             "ip"            => $request->ip(),
         ];

@@ -2196,6 +2196,7 @@ class DivisiService
         $pgj_end_date   = $data['data']['pgj_date_end'];
         $pgj_type       = $data['data']['pgj_type'];
         $pgj_status     = $data['data']['pgj_status'];
+        $pgj_note       = $data['data']['pgj_note'];
         $ip             = $data['ip'];
         
         if($pgj_status == "3")
@@ -2208,6 +2209,7 @@ class DivisiService
                 "emp_act_end_date"  => $pgj_end_date,
                 "emp_act_type"      => $pgj_type,
                 "emp_act_status"    => $pgj_status,
+                "emp_act_status_note"   => $pgj_note,
                 "created_by"        => $user_id,
                 "created_at"        => date('Y-m-d H:i:s'),
                 "updated_by"        => $user_id,
@@ -2596,6 +2598,7 @@ class DivisiService
         $emp_user_id    = $data['emp_user_id'];
         $emp_act_id     = $data['emp_act_id'];
         $emp_act_status = $data['emp_act_status'];
+        $emp_act_status_note    = $data['emp_act_note'];
 
         $ip             = $data['ip'];
 
@@ -2604,9 +2607,10 @@ class DivisiService
         ];
         
         $data_update    = [
-            "emp_act_status"=> $emp_act_status,
-            "updated_by"    => $emp_user_id,
-            "updated_at"    => date('Y-m-d H:i:s'),
+            "emp_act_status"        => $emp_act_status,
+            "emp_act_status_note"   => $emp_act_status_note,
+            "updated_by"            => $emp_user_id,
+            "updated_at"            => date('Y-m-d H:i:s'),
         ];
 
         DB::table('employees_activity')->where($data_where)->update($data_update);
