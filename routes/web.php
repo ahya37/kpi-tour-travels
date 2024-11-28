@@ -455,6 +455,10 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/pembayaran_agent_detail', [DivisiController::class, 'finance_pgj_payment_agent_detail']);
                 Route::post('/pembayaran_agent_konfirmasi', [DivisiController::class, 'finance_pgj_payment_agent_confirm']);
             });
+
+            Route::prefix('aktivitas')->group(function(){
+                Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('finance.index.aktivitas.harian');
+            });
         });
 
         Route::prefix('digital')->group(function(){

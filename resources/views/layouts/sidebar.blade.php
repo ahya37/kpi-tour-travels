@@ -232,6 +232,7 @@
                 </a>
                 <ul class="nav nav-second-level collapse">
                     <li class="{{ request()->is('divisi/finance') ? 'active' : '' }}"><a href="{{ route('index.finance') }}">Dashboard</a></li>
+                    <li class="{{ request()->is('divisi/finance/aktivitas') ? 'active' : '' }}"><a href="{{ route('finance.index.aktivitas.harian') }}">Aktivitas Harian</a></li>
                 </ul>
                 {{-- <ul class="nav nav-second-level">
                     <li class="{{ request()->is('divisi/operasional/program') ? 'active' : '' }}"><a href="{{ route('index.operasional.program') }}">Jadwal Umrah</a></li>
@@ -240,12 +241,6 @@
                 <ul class="nav nav-second-level">
                     <li class="{{ request()->is('divisi/operasional/rules') ? 'active' : '' }}"><a href="{{ route('index.operasional.rulesprokerbulanan') }}">Aturan Program Kerja</a></li>
                 </ul> --}}
-            </li>
-            <li class="{{ request()->is('aktivitas') ? 'active' : '' }}">
-                <a href="{{ route('aktivitas.harian.index') }}">
-                    <i class="fa fa-pencil"></i> 
-                    <span class="nav-label">Aktivitas Harian</span>
-                </a>
             </li>
             <li class="{{ request()->is('presensi/*') ? 'active' : '' }}">
                 <a href="#">
