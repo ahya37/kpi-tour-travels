@@ -360,7 +360,7 @@ function showSelect(idSelect, data, value, seq)
     }
 }
 
-function showSelectDetail(idSelect, data)
+function showSelectDetail(idSelect, data, seq)
 {
     if(idSelect == 'sl_agt_id')
     {
@@ -380,6 +380,13 @@ function showSelectDetail(idSelect, data)
                 showTable('table_pengaturan_agen', []);
             })
         
+    } else if(idSelect == 'agt_jenis') {
+        if(data == 'dsc') {
+            $("#agt_discount"+seq).removeClass('d-none');
+        } else {
+            $("#agt_discount"+seq).addClass('d-none');
+            $("#agt_discount"+seq).val(0);
+        }
     }
 }
 
@@ -604,17 +611,18 @@ function addColumnTable(idTable, seq, data)
         let inputTanggal    = "<input type='text' class='form-control' id='agt_tgl"+ke+"' placeholder='DD/MM/YYY' readonly style='height: 38px;'>";
         let inputTourCode   = "<select class='form-control' style='width: 100%;' id='agt_tourCode"+ke+"'></select>";
         let inputBanyaknya  = "<input type='number' inputmode='numeric' class='form-control' id='agt_banyaknya"+ke+"' placeholder='Banyaknya' min='0' max='999' step='1' style='height: 38px;'>";
-        let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"'></select>";
+        let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"' onchange='showSelectDetail(`agt_jenis`, this.value, `"+ke+"`)'></select>";
         let inputAksi       = `<button class="btn btn-sm btn-primary" title="Simpan Data" value='add' onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_agen${ke}"><i class="fa fa-check"></i></button>`
         let inputDelete     = `<button class="btn btn-sm btn-danger" title="Hapus Baris" value="${ke}" onclick="deleteColumnTable('${idTable}', '${ke}')" id="btn_delete_agen${ke}"><i class="fa fa-trash"></i></button>`;
         let inputPaid       = `<button class="btn btn-sm btn-primary d-none" title="Sudah Diajukan" value="unpaid" onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_paid${ke}" disabled><i class="fa fa-dollar-sign"></i></button>`;
-        let inputPerson     = `<button class="btn btn-sm btn-primary d-none" type="button" id="btn_act_person${ke}" title="Masukkan Nama Jemaah" onclick="showModal('modal_pengaturan_agent_jemaah', this.value, '')"><i class="fa fa-user"></i></button>`
+        let inputPerson     = `<button class="btn btn-sm btn-primary d-none" type="button" id="btn_act_person${ke}" title="Masukkan Nama Jemaah" onclick="showModal('modal_pengaturan_agent_jemaah', this.value, '')"><i class="fa fa-user"></i></button>`;
+        let inputDiscount   = `<input type="text" class="form-control d-none" placeholder="Diskon" inputmode="numeric" id="agt_discount${ke}" value="0">`
         $("#"+idTable).DataTable().row.add([
             inputNo,
             inputTanggal,
             inputTourCode,
             inputBanyaknya,
-            inputJenis,
+            inputJenis+" "+inputDiscount,
             inputAksi+" "+inputDelete+" "+inputPaid+" "+inputPerson
         ]).draw(false);
 
@@ -638,7 +646,7 @@ function addColumnTable(idTable, seq, data)
         const dataJenis     = [
             { "id" : "act", "name" : "Aktif" },
             { "id" : "ref", "name" : "Referral" },
-            { "id" : "psv", "name" : "Passif" },
+            { "id" : "dsc", "name" : "Diskon" },
         ];
 
         $("#agt_banyaknya"+(ke)).focus();
@@ -650,6 +658,7 @@ function addColumnTable(idTable, seq, data)
             let actAgent_tourCode   = data['agt_act_tour_code'];
             let actAgent_type       = data['agt_act_status'];
             let actAgent_paidStatus = data['agt_act_is_paid'];
+            let actAgent_discount   = data['agt_act_discount_amount'];
 
             $("#btn_act_agen"+ke).val('edit');
             $("#btn_act_agen"+ke).html("<i class='fa fa-edit'></i>");
@@ -664,6 +673,7 @@ function addColumnTable(idTable, seq, data)
             $("#agt_tgl"+ke).data('daterangepicker').setEndDate(actAgent_date);
 
             $("#agt_banyaknya"+ke).val(actAgent_qty);
+            $("#agt_discount"+ke).val(actAgent_discount);
 
             showSelect('agt_tourCode', dataTourCode[0], actAgent_tourCode, ke);
             showSelect('agt_jenis', dataJenis, actAgent_type, ke);
@@ -1263,6 +1273,7 @@ function doSimpanData(idForm, jenis, data)
         let agt_detail_tourCode = $("#agt_tourCode"+seq);
         let agt_detail_qty      = $("#agt_banyaknya"+seq);
         let agt_detail_type     = $("#agt_jenis"+seq);
+        let agt_detail_discount = $("#agt_discount"+seq);
 
         if(agt_detail_tourCode.val() == null) {
             Swal.fire({
@@ -1289,6 +1300,7 @@ function doSimpanData(idForm, jenis, data)
                 "agt_detail_tourCode"   : agt_detail_tourCode.val(),
                 "agt_detail_qty"        : agt_detail_qty.val(),
                 "agt_detail_type"       : agt_detail_type.val(),
+                "agt_detail_discount"   : agt_detail_discount.val(),
             };
 
             const agt_type          = "POST";
@@ -1304,7 +1316,7 @@ function doSimpanData(idForm, jenis, data)
                     }).then((res)   => {
                         if(res.isConfirmed) {
                             // CARI DATA
-                            showSelectDetail('sl_agt_id', agt_id.val());
+                            showSelectDetail('sl_agt_id', agt_id.val(), '');
                         }
                     });
                 })
@@ -1314,8 +1326,7 @@ function doSimpanData(idForm, jenis, data)
                         title   : err.responseJSON.alert.message.title,
                         text    : err.responseJSON.alert.message.text,
                     })
-                })
-        }
+                })}
     } else if(idForm == 'modal_pengaturan_agent_jemaah') {
         let jemaahData  = [];
         let tableLength = $("#table_list_pengaturan_agent_jemaah").DataTable().rows().count();

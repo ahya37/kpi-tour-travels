@@ -461,7 +461,7 @@
                     </div>
                     <div class="row">
                         <div class="col-xxl-4 col-lg-4 col-md-12">
-                            <select class="form-control form-control-sm" name="sl_agt_id" id="sl_agt_id" style="width: 100%;" onchange="showSelectDetail(this.id, this.value)"></select>
+                            <select class="form-control form-control-sm" name="sl_agt_id" id="sl_agt_id" style="width: 100%;" onchange="showSelectDetail(this.id, this.value, '')"></select>
                         </div>
                     </div>
                     <hr>
