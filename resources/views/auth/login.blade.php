@@ -34,11 +34,12 @@
         <div class="row align-items-center justify-content-center">
           <div class="col-md-7">
             <div class="mb-4 text-center">
+				<img src="{{ asset('favicon.ico') }}" width="80px" height="80px" title="Logo Percik">
               <h2>
                 <label>ERP Percik Tours Login</label>
               </h2>
             </div>
-            <form  method="POST" action="{{ route('login.store') }}">
+            <form  method="POST" action="{{ route('login.store') }}" id="form_login">
                 @csrf
                 <div class="form-group first">
                     <label for="username">Email</label>
@@ -58,7 +59,7 @@
             </form>
             <div class="row align-items-center justify-content-center mt-2">
               <div class="col-sm-12">
-                <label class="font-weight-bold text-danger">
+                <label class="font-weight-bold text-danger" id="error_msg">
                   {{ session('error') }}
                 </label>
               </div>
@@ -70,15 +71,9 @@
 
     
   </div>
-    
-    
-
     <script src="{{asset('/assets/login/js/jquery-3.3.1.min.js')}}"></script>
     <script src="{{asset('/assets/login/js/popper.min.js')}}"></script>
     <script src="{{asset('/assets/login/js/bootstrap.min.js')}}"></script>
     <script src="{{asset('/assets/login/js/main.js')}}"></script>
-
-    <script type="text/javascript">
-    </script>
   </body>
 </html>
