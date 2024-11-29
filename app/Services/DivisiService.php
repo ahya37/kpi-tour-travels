@@ -2695,14 +2695,25 @@ class DivisiService
             foreach($emp_detail as $item) :
                 for($i = 0; $i < count($emp_ovt_detail); $i++) {
                     if($emp_ovt_detail[$i]->emp_ovt_date == $item->emp_prs_date) {
-                        if($emp_ovt_detail[$i]->emp_ovt_status == '1') {
-                            $status     = "t";
-                        } else {
-                            $status     = "f";
+
+                        switch ($emp_ovt_detail[$i]->emp_ovt_status) {
+                            case '1' :
+                                $status     = "t";
+                                $reason     = "Disetujui";
+                            break;
+                            case '2' : 
+                                $status     = "f";
+                                $reason     = "Ditolak";
+                            break;
+                            case '3' : 
+                                $status     = "f";
+                                $reason     = "Menunggu Konfirmasi";
+                            break;
                         }
                         break;
                     } else {
                         $status     = "f";
+                        $reason     = "Belum Diajukan"; 
                     }
                 }
 
@@ -2712,7 +2723,8 @@ class DivisiService
                     "emp_prs_date"      => $item->emp_prs_date,
                     "emp_prs_in_time"   => $item->emp_prs_in_time,
                     "emp_prs_out_time"  => $item->emp_prs_out_time,
-                    "emp_status"        => $item->emp_prs_date < "2024-10-01" ? "t" : $status
+                    "emp_status"        => $item->emp_prs_date < "2024-10-01" ? "t" : $status,
+                    "emp_status_note"   => $reason
                 ];
             endforeach;
         } else {
@@ -2723,7 +2735,8 @@ class DivisiService
                     "emp_prs_date"      => $item->emp_prs_date,
                     "emp_prs_in_time"   => $item->emp_prs_in_time,
                     "emp_prs_out_time"  => $item->emp_prs_out_time,
-                    "emp_status"        => $item->emp_prs_date < "2024-10-01" ? "t" : "f"
+                    "emp_status"        => $item->emp_prs_date < "2024-10-01" ? "t" : "f",
+                    "emp_reason"        => "Belum Diajukan",
                 ];
             endforeach;
         }

@@ -36,19 +36,20 @@ $(document).ready(() => {
     const pgjPaymentType    = "GET";
     const pgjPaymentData    = [];
 
-    const getDatadDashboard     = [
+    const getDataDashboard     = [
         doTrans(actUser_url, 'GET', actUser_data, '', true),
         doTrans(financeRKAP_url, 'GET', financeRKAP_data, '', true),
         doTransV2(gpkEmployee_url, 'GET', gpkEmployee_data, '', true),
         doTrans(pgjPaymentURL, pgjPaymentType, pgjPaymentData, '', true)
     ];
 
-    Promise.all(getDatadDashboard)
+    Promise.allSettled(getDataDashboard)
         .then((success) => {
-            const actUser_getData       = success[0].data;
-            const financeRKAP_getData   = success[1].data;
-            const gpkEmployee_getData   = success[2].total_data;
-            const pgjPayment_getData    = success[3].data;
+
+            const actUser_getData       = success[0].status == 'fulfilled' ? success[0].value.data : [];
+            const financeRKAP_getData   = success[1].status == 'fullfilled' ? success[1].value.data : [];
+            const gpkEmployee_getData   = success[2].status == 'fulfilled' ? success[2].value.total_data : [];
+            const pgjPayment_getData    = success[3].status == 'fulfilled' ? success[3].value.data : [];
 
             // HIDE LOADING ACT USER
             $("#act_user_loading").addClass('d-none');
@@ -81,7 +82,7 @@ $(document).ready(() => {
 
             $("#confirm_payment_text").html(`<label class="no-margins font-weight-light">${totalPgjPayment}</label>`);
             $("#confirm_payment_text_pending").addClass('text-warning');
-            $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> ${totalConfirmPayment} butuh konfirmasi`);
+            totalConfirmPayment > 0 ? $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> ${totalConfirmPayment} butuh konfirmasi`) : $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> Tidak Ada Konfirmasi Pembayaran`);
         })
         .catch((err)    => {
             // HIDE LOADING ACT USER
@@ -422,7 +423,8 @@ function showTable(idTable, data)
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
                 { "targets" : [1], "className" : 'text-left align-middle', "width" : "25%" },
                 { "targets" : [2, 3, 4], "className" : "text-center align-middle", "width" : "10%"},
-                { "targets" : [5], "className" : "text-center align-middle", "width" : "8%" }
+                { "targets" : [5], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [6], "className" : "text-left align-middle", "width" : "10%" },
             ],
         });
 
@@ -443,15 +445,16 @@ function showTable(idTable, data)
 
             for(const item of data)
             {
-                var prs_date    = item.emp_prs_date;
-                var prs_in      = item.emp_prs_in_time;
-                var prs_out     = item.emp_prs_out_time;
-                var prs_status  = item.emp_status;
+                let prs_date    = item.emp_prs_date;
+                let prs_in      = item.emp_prs_in_time;
+                let prs_out     = item.emp_prs_out_time;
+                let prs_status  = item.emp_status;
+                let prs_status_note     = item.emp_status_note;
 
                 // SHOW TIME ONLY
-                var prs_in_time     = moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
-                var prs_out_time    = moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
-                var prs_late_time   = moment("08:10", "HH:mm").format('HH:mm');
+                let prs_in_time     = moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
+                let prs_out_time    = moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
+                let prs_late_time   = moment("08:10", "HH:mm").format('HH:mm');
                                 
                 // FORMATED TANGGAL
                 var prs_date_formatted  = prs_out != null ? moment(prs_date, 'YYYY-MM-DD').format('DD/MMM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+" - "+moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")" : moment(prs_date, 'YYYY-MM-DD').format('DD/MMM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")";
@@ -464,7 +467,7 @@ function showTable(idTable, data)
                     var prs_out_time_new    = prs_out_time;
                 }
 
-                const isApproved    = prs_status == "t" ? "<i class='fa fa-check'></i>" : "<i class='fa fa-times'></i>";
+                let isApproved      = prs_status == "t" ? "<i class='fa fa-check'></i>" : "<i class='fa fa-times'></i>";
 
                 if(prs_out != null && prs_out_time_new > "16:59" && moment(prs_date, 'YYYY-MM-DD').format('dddd') != 'Sabtu') {
                     prs_out_time_new >= "17:00" && prs_status == "t" ? overtimeOne = 1 : "";
@@ -482,7 +485,8 @@ function showTable(idTable, data)
                         overtimeOne,
                         overtimeTwo,
                         overtimeThree,
-                        isApproved
+                        isApproved,
+                        prs_status_note,
                     ]).draw(false);
                     $(".dataTables_empty").html("Data Sedang Ditampilkan");
                 } else if(prs_out != null && prs_out_time_new > "14:29" && moment(prs_date, 'YYYY-MM-DD').format('dddd') == 'Sabtu') {
@@ -501,7 +505,8 @@ function showTable(idTable, data)
                         overtimeOne,
                         overtimeTwo,
                         overtimeThree,
-                        isApproved
+                        isApproved,
+                        prs_status_note,
                     ]).draw(false);
                     $(".dataTables_empty").html("Data Sedang Ditampilkan");   
                 } else {
@@ -978,14 +983,14 @@ function showModal(idModal, value, jenis)
                 })
             })
     } else if(idModal == 'modal_confirm_payment_agent') {
-        $("#"+idModal).modal({ backdrop : 'static', keyboard : false });
-
         let pgjConfirmPaymentURL    = base_url + "/divisi/finance/pengajuan/pembayaran_agent";
         let pgjConfirmPaymentMsg    = Swal.fire({ title : 'Data Sedang Dimuat..' }); Swal.showLoading();
 
+        showTable('table_list_confirm_payment_agent', []);
         doTrans(pgjConfirmPaymentURL, "GET", [], pgjConfirmPaymentMsg, true)
             .then((success)     => {
-                Swal.close();
+                Swal.close();                
+                $("#"+idModal).modal({ backdrop : 'static', keyboard : false });
                 let pgjConfirmPaymentData   = success.data;
 
                 showTable('table_list_confirm_payment_agent', pgjConfirmPaymentData);

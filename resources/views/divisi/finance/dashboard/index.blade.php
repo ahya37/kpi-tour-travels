@@ -568,6 +568,7 @@
                                             <th class="text-center align-middle" style="width: 10%">OT 2 <i class="fa fa-info-circle" title="Senin s/d Jumat : 17:00 - 18:00 | Sabtu : 14:30 - 23:59" style="color: #1ab394; cursor: pointer;"></i></th>
                                             <th class="text-center align-middle" style="width: 10%">OT 3 <i class="fa fa-info-circle" title="Senin s/d Jumat : 23:59 Ke Atas | Sabtu : 23:59 Ke Atas" style="color: #1ab394; cursor: pointer;"></i></th>
                                             <th class="text-center align-middle" style="width: 8%">Pengajuan</th>
+                                            <th class="text-center align-middle" style="width: 10%">Keterangan</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -577,7 +578,7 @@
                                             <th class="text-right" id="table_emp_ovt_total_ot1">0</th>
                                             <th class="text-right" id="table_emp_ovt_total_ot2">0</th>
                                             <th class="text-right" id="table_emp_ovt_total_ot3">0</th>
-                                            <th></th>
+                                            <th colspan="2"></th>
                                         </tr>
                                     </tfoot>
                                 </table>
