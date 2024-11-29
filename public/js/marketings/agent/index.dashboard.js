@@ -181,11 +181,13 @@ function showModal(idModal, data, action)
     } else if(idModal == 'modal_pengaturan_agent_jemaah') {
         let tourCode    = data.split('&')[0];
         let tourDate    = data.split('&')[1];
+        let agentID     = $("#sl_agt_id").val();
         // GET DATA FROM DATABASE
         let agtActURL   = "marketings/agent/member/ambil_agent_act_jemaah";
         let agtActData  = {
             "tour_code"     : tourCode,
             "tour_date"     : moment(tourDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+            "agent_id"      : agentID,
         };
         let agtActType  = "GET";
         let agtActMsg   = Swal.fire({ title : "Data Sedang Dimuat..",  allowOutsideClick: false}); Swal.showLoading();
@@ -614,7 +616,7 @@ function addColumnTable(idTable, seq, data)
         let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"' onchange='showSelectDetail(`agt_jenis`, this.value, `"+ke+"`)'></select>";
         let inputAksi       = `<button class="btn btn-sm btn-primary" title="Simpan Data" value='add' onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_agen${ke}"><i class="fa fa-check"></i></button>`
         let inputDelete     = `<button class="btn btn-sm btn-danger" title="Hapus Baris" value="${ke}" onclick="deleteColumnTable('${idTable}', '${ke}')" id="btn_delete_agen${ke}"><i class="fa fa-trash"></i></button>`;
-        let inputPaid       = `<button class="btn btn-sm btn-primary d-none" title="Sudah Diajukan" value="unpaid" onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_paid${ke}" disabled><i class="fa fa-dollar-sign"></i></button>`;
+        let inputPaid       = `<button class="btn btn-sm btn-primary d-none" title="Sudah Diajukan" value="unpaid" id="btn_act_paid${ke}" disabled><i class="fa fa-dollar-sign"></i></button>`;
         let inputPerson     = `<button class="btn btn-sm btn-primary d-none" type="button" id="btn_act_person${ke}" title="Masukkan Nama Jemaah" onclick="showModal('modal_pengaturan_agent_jemaah', this.value, '')"><i class="fa fa-user"></i></button>`;
         let inputDiscount   = `<input type="text" class="form-control d-none" placeholder="Diskon" inputmode="numeric" id="agt_discount${ke}" value="0">`
         $("#"+idTable).DataTable().row.add([
@@ -782,6 +784,7 @@ function deleteColumnTable(idTable, seq)
                     "agt_detail_date"       : $("#agt_tgl"+seq).val(),
                     "agt_detail_qty"        : $("#agt_banyaknya"+seq).val(),
                     "agt_detail_type"       : $("#agt_jenis"+seq).val(),
+                    "agt_detail_discount"   : $("#agt_discount"+seq).val(),
                 };
                 let actAgent_type   = "POST";
                 let actAgent_msg    = Swal.fire({ title : "Data Sedang Diproses" }); Swal.showLoading();
@@ -830,6 +833,7 @@ function deleteColumnTable(idTable, seq)
             } else {
                 $("#"+idTable).DataTable().row(selectedSeq - 1).remove().draw(false);
                 $("#btn_tambah_baris_pengaturan_agent_jemaah").val(currentSeq - 1);
+                $("#namaJemaah"+(selectedSeq - 1)).focus();
             }
         }
     }
@@ -1333,6 +1337,7 @@ function doSimpanData(idForm, jenis, data)
         // GET DATA FORM
         let tourCode    = $("#tour_code_jemaah").val();
         let tourDate    = $("#tour_date_jemaah").val();
+        let agentID     = $("#sl_agt_id").val();
 
         for(let i = 0; i < tableLength; i++)
         {
@@ -1345,6 +1350,7 @@ function doSimpanData(idForm, jenis, data)
                 "tour_date"     : moment(tourDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
                 "jemaah_id"     : parseInt(jemaahID),
                 "jemaah_name"   : jemaahName,
+                "agent_id"      : agentID,
             })
         }
 

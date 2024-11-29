@@ -1688,39 +1688,49 @@ class MarketingService
     public static function do_simpan_type_agent($data)
     {
         DB::beginTransaction();
+        $ip_address                 = $data['ip'];
+        $user_id                    = $data['user_id'];
+        $today                      = date('Y-m-d H:i:s');
+
+        $agent_id                   = $data['data']['agt_id'];
+        $agent_act_date             = $data['data']['agt_detail_date'];
+        $agent_act_tour_code        = $data['data']['agt_detail_tourCode'];
+        $agent_act_qty_prs          = $data['data']['agt_detail_qty'];
+        $agent_act_status           = $data['data']['agt_detail_type'];
+        $agent_act_amount_discount  = $data['data']['agt_detail_discount'];
+
         if($data['type'] == 'add')
         {
             $data_simpan    = [
-                "agt_id"            => $data['data']['agt_id'],
-                "agt_act_date"      => $data['data']['agt_detail_date'],
-                "agt_act_tour_code" => $data['data']['agt_detail_tourCode'],
-                "agt_act_qty"       => $data['data']['agt_detail_qty'],
-                "agt_act_status"    => $data['data']['agt_detail_type'],
-                "agt_act_discount_amount"   => $data['data']['agt_detail_discount'],
-                "created_by"        => $data['user_id'],
-                "created_at"        => date('Y-m-d H:i:s'),
-                "updated_by"        => $data['user_id'],
-                "updated_at"        => date('Y-m-d H:i:s'),
+                "agt_id"                    => $agent_id,
+                "agt_act_date"              => $agent_act_date,
+                "agt_act_tour_code"         => $agent_act_tour_code,
+                "agt_act_qty"               => $agent_act_qty_prs,
+                "agt_act_status"            => $agent_act_status,
+                "agt_act_discount_amount"   => $agent_act_amount_discount,
+                "created_by"                => $user_id,
+                "created_at"                => $today,
+                "updated_by"                => $user_id,
+                "updated_at"                => $today,
             ];
-
             DB::table('agent_activity')->insert($data_simpan);
         } else if($data['type'] == 'edit') {
             // CHECK APAKAH SUDAH DIBAYAR ATAU BELOM
             $data_where     = [
-                "agt_id"            => $data['data']['agt_id'],
-                "agt_act_tour_code" => $data['data']['agt_detail_tourCode'],
-                "agt_act_date"      => $data['data']['agt_detail_date'],
+                "agt_id"            => $agent_id,
+                "agt_act_tour_code" => $agent_act_tour_code,
+                "agt_act_date"      => $agent_act_date,
             ];
             
             $check  = DB::table('agent_activity')->select('agt_act_is_paid')->where($data_where)->get();
 
             if($check[0]->agt_act_is_paid == "0") {
                 $data_update    = [
-                    "agt_act_qty"       => $data['data']['agt_detail_qty'],
-                    "agt_act_status"    => $data['data']['agt_detail_type'],                    
-                    "agt_act_discount_amount"   => $data['data']['agt_detail_discount'],
-                    "updated_by"        => $data['user_id'],
-                    "updated_at"        => date('Y-m-d H:i:s'),
+                    "agt_act_qty"               => $agent_act_qty_prs,
+                    "agt_act_status"            => $agent_act_status,
+                    "agt_act_discount_amount"   => $agent_act_amount_discount,
+                    "updated_by"                => $user_id,
+                    "updated_at"                => $today,
                 ];
     
                 DB::table('agent_activity')->where($data_where)->update($data_update);
@@ -1735,16 +1745,16 @@ class MarketingService
             }
         } else if($data['type'] == 'delete') {
             $data_where     = [
-                "agt_id"            => $data['data']['agt_id'],
-                "agt_act_tour_code" => $data['data']['agt_detail_tourCode'],
-                "agt_act_status"    => $data['data']['agt_detail_type'],
+                "agt_id"            => $agent_id,
+                "agt_act_tour_code" => $agent_act_tour_code,
+                "agt_act_status"    => $agent_act_status,
             ];
 
             DB::table('agent_activity')->where($data_where)->delete();
 
             try {
                 DB::commit();
-                LogHelper::create('delete', 'Berhasil Menghapus Aktivitas Agent ID : ' . $data['data']['agt_id'] . ' dengan Tour Code : ' . $data['data']['agt_detail_tourCode'], $data['ip']);
+                LogHelper::create('delete', 'Berhasil Menghapus Aktivitas Agent ID : ' . $agent_id . ' dengan Tour Code : ' . $agent_act_tour_code, $ip_address);
 
                 $output     = [
                     'status'    => 'berhasil',
@@ -1752,7 +1762,7 @@ class MarketingService
                 ];
             } catch(\Exception $e) {
                 DB::rollBack();
-                LogHelper::create('error_system', $e->getMessage(), $data['ip']);
+                LogHelper::create('error_system', $e->getMessage(), $ip_address);
 
                 $output     = [
                     'status'    => 'gagal',
@@ -1761,45 +1771,11 @@ class MarketingService
             }
 
             return $output;
-        } else if($data['type'] == 'unpaid') {
-            $data_where     = [
-                "agt_id"            => $data['data']['agt_id'],
-                "agt_act_tour_code" => $data['data']['agt_detail_tourCode'],
-                "agt_act_status"    => $data['data']['agt_detail_type'],
-                "agt_act_qty"       => $data['data']['agt_detail_qty'],
-            ];
-
-            $data_update    = [
-                "agt_act_is_paid"   => "1",
-            ];
-
-            DB::table('agent_activity')->where($data_where)->update($data_update);
-
-            try {
-                DB::commit();
-                LogHelper::create('edit', 'Aktivitas Agent ID : ' . $data['data']['agt_id'] . ' dengan Tour Code : ' . $data['data']['agt_detail_tourCode']. ' Berhasil Dibayar', $data['ip']);
-
-                $output     = [
-                    "status"    => "berhasil",
-                    "errMsg"    => ""
-                ];
-            } catch (\Exception $e) {
-                DB::rollBack();
-                Log::channel('daily')->error($e->getMessage());
-                LogHelper::create('error_system', $e->getMessage(), $data['ip']);
-
-                $output     = [
-                    "status"    => "gagal",
-                    "errMsg"    => $e->getMessage(),
-                ];
-            }
-
-            return $output;
         }
 
         try {
             DB::commit();
-            $data['type'] == 'add' ? LogHelper::create('add', 'Berhasil Menambahkan Aktivitas Agent ID : ' . $data['data']['agt_id'] . ' dengan Tour Code : ' . $data['data']['agt_detail_tourCode'], $data['ip']) : LogHelper::create('edit', 'Berhasil Merubah Aktivitas Agent ID : ' . $data['data']['agt_id'] .  ' dengan Tour Code : ' . $data['data']['agt_detail_tourCode'], $data['ip']);
+            $data['type'] == 'add' ? LogHelper::create('add', 'Berhasil Menambahkan Aktivitas Agent ID : ' . $agent_id . ' dengan Tour Code : ' . $agent_act_tour_code, $ip_address) : LogHelper::create('edit', 'Berhasil Merubah Aktivitas Agent ID : ' . $agent_id .  ' dengan Tour Code : ' . $agent_act_tour_code, $ip_address);
 
             $output     = [
                 "status"    => "berhasil",
@@ -1808,7 +1784,7 @@ class MarketingService
         } catch(\Exception $e) {
             DB::rollBack();
             Log::channel('daily')->error($e->getMessage());
-            LogHelper::create('error_system', $e->getMessage(), $data['ip']);
+            LogHelper::create('error_system', $e->getMessage(), $ip_address);
 
             $output     = [
                 "status"    => "gagal",
@@ -1831,11 +1807,13 @@ class MarketingService
         // CHECK DULU APAKAH ADA DATA PADA DATABASE ATAS KONDISI TSB?
         $tour_code_check= $data_simpan[0]['tour_code'];
         $tgl_check      = $data_simpan[0]['tour_date'];
+        $agent_check    = $data_simpan[0]['agent_id'];
         
         $check          = DB::table('agent_activity_jemaah')
                                 ->select('agt_act_tour_code', 'agt_act_date')
                                 ->where('agt_act_tour_code', '=', $tour_code_check)
                                 ->where('agt_act_date', '=', $tgl_check)
+                                ->where('agt_id', '=', $agent_check)
                                 ->limit(1)
                                 ->get();
         if(count($check) < 1) {
@@ -1843,6 +1821,7 @@ class MarketingService
             for($i = 0; $i < count($data_simpan); $i++)
             {
                 $do_simpan  = [
+                    "agt_id"                => $agent_check,
                     "agt_act_tour_code"     => $data_simpan[$i]['tour_code'],
                     "agt_act_date"          => $data_simpan[$i]['tour_date'],
                     "agt_act_prs_seq"       => $i + 1,
@@ -1859,11 +1838,13 @@ class MarketingService
             DB::table('agent_activity_jemaah')
                     ->where('agt_act_tour_code', '=', $tour_code_check)
                     ->where('agt_act_date', '=', $tgl_check)
+                    ->where('agt_id', '=', $agent_check)
                     ->delete();
             // SIMPAN DATA BARU
             for($i = 0; $i < count($data_simpan); $i++)
             {
                 $do_simpan  = [
+                    "agt_id"                => $data_simpan[$i]['agent_id'],
                     "agt_act_tour_code"     => $data_simpan[$i]['tour_code'],
                     "agt_act_date"          => $data_simpan[$i]['tour_date'],
                     "agt_act_prs_seq"       => $i + 1,
@@ -1904,11 +1885,13 @@ class MarketingService
     {
         $tour_code  = $data['tour_code'];
         $tour_date  = $data['tour_date'];
+        $agent_id   = $data['agent_id'];
 
         $query      = DB::table('agent_activity_jemaah')
                         ->select('agt_act_prs_seq as seq', 'agt_act_prs_id as member_id', 'agt_act_prs_name as member_name')
                         ->where('agt_act_tour_code', '=', $tour_code)
                         ->where('agt_act_date', '=', $tour_date)
+                        ->where('agt_id', '=', $agent_id)
                         ->orderBy('agt_act_prs_seq', 'asc')
                         ->get();
         

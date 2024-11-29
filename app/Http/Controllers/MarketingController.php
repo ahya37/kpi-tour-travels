@@ -2491,7 +2491,7 @@ class MarketingController extends Controller
         $encode_input   = preg_replace('/ /', '\u0020', $jemaah_name);
 
         if(!empty($jemaah_name)) {
-            $get_data       = Http::get($host . "/api/umhaj/member/list?jemaah=" . $jemaah_name);
+            $get_data       = Http::get($host . "/api/umhaj/member/list?jemaah=" . $encode_input);
             if($get_data->status() >= 200 && $get_data->status() < 300) {
                 $output     = [
                     "status"        => $get_data->status(),
@@ -2551,6 +2551,7 @@ class MarketingController extends Controller
         $data_cari  = [
             "tour_code" => $request->all()['tour_code'],
             "tour_date" => $request->all()['tour_date'],
+            "agent_id"  => $request->all()['agent_id'],
         ];
 
         $get_data   = MarketingService::get_data_agent_act_jemaah($data_cari);
