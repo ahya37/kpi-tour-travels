@@ -180,13 +180,13 @@ function showModal(idModal, data, action)
         showTable('table_pengaturan_agen', []);
     } else if(idModal == 'modal_pengaturan_agent_jemaah') {
         let tourCode    = data.split('&')[0];
-        let tourDate    = data.split('&')[1];
+        let tourSeq     = data.split('&')[1];
+
         let agentID     = $("#sl_agt_id").val();
         // GET DATA FROM DATABASE
         let agtActURL   = "marketings/agent/member/ambil_agent_act_jemaah";
         let agtActData  = {
-            "tour_code"     : tourCode,
-            "tour_date"     : moment(tourDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+            "tour_code"     : tourCode+" | "+tourSeq,
             "agent_id"      : agentID,
         };
         let agtActType  = "GET";
@@ -208,8 +208,7 @@ function showModal(idModal, data, action)
         
         // FILL
         $("#modal_pengaturan_agent_jemaah_tour_code").html(data.split("&")[0]);
-        $("#tour_code_jemaah").val(data.split('&')[0]);
-        $("#tour_date_jemaah").val(data.split('&')[1]);
+        $("#tour_code_jemaah").val(`${tourCode} | ${tourSeq}`);
     }
 }
 
@@ -683,7 +682,7 @@ function addColumnTable(idTable, seq, data)
             // SHOW BUTTON
             $("#btn_act_paid"+ke).removeClass('d-none');
             $("#btn_act_person"+ke).removeClass('d-none');
-            $("#btn_act_person"+ke).val(actAgent_tourCode+"&"+actAgent_date);
+            $("#btn_act_person"+ke).val(actAgent_tourCode+"&"+ke);
 
             if(actAgent_paidStatus == "1") {
                 $("#btn_act_paid"+ke).val('paid');
@@ -780,6 +779,7 @@ function deleteColumnTable(idTable, seq)
                 let actAgent_url    = "marketings/agent/simpan_data/type_agent/delete";
                 let actAgent_data   = {
                     "agt_id"                : $("#sl_agt_id").val(),
+                    "agt_detail_seq"        : seq,
                     "agt_detail_tourCode"   : $("#agt_tourCode"+seq).val(),
                     "agt_detail_date"       : $("#agt_tgl"+seq).val(),
                     "agt_detail_qty"        : $("#agt_banyaknya"+seq).val(),
@@ -1300,6 +1300,7 @@ function doSimpanData(idForm, jenis, data)
         } else {
             const agt_option_data   = {
                 "agt_id"                : agt_id.val(),
+                "agt_detail_seq"        : seq,
                 "agt_detail_date"       : moment(agt_detail_date.val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
                 "agt_detail_tourCode"   : agt_detail_tourCode.val(),
                 "agt_detail_qty"        : agt_detail_qty.val(),
@@ -1336,51 +1337,50 @@ function doSimpanData(idForm, jenis, data)
         let tableLength = $("#table_list_pengaturan_agent_jemaah").DataTable().rows().count();
         // GET DATA FORM
         let tourCode    = $("#tour_code_jemaah").val();
-        let tourDate    = $("#tour_date_jemaah").val();
         let agentID     = $("#sl_agt_id").val();
-
-        for(let i = 0; i < tableLength; i++)
-        {
+        
+        for(let i = 0; i < tableLength; i++) {
             let seq         = i + 1;
             let jemaahID    = $("#namaJemaah"+seq).val();
             let jemaahName  = $("#namaJemaah"+seq+" option:selected").text();
 
             jemaahData.push({
                 "tour_code"     : tourCode,
-                "tour_date"     : moment(tourDate, 'DD/MM/YYYY').format('YYYY-MM-DD'),
                 "jemaah_id"     : parseInt(jemaahID),
                 "jemaah_name"   : jemaahName,
                 "agent_id"      : agentID,
             })
         }
 
-        // DO SIMPAN
-        let simpanJemaahURL     = "marketings/agent/member/simpan_member_umhaj/"+jenis;
-        let simpanJemaahData    = {
-            "data"  : jemaahData,
-        };
-        let simpanJemaahType    = "POST";
-        let simpanJemaahMsg     = Swal.fire({ title : "Data Sedang Diproses" }); Swal.showLoading();
+        if(jemaahData.length > 0) {
+            // DO SIMPAN
+            let simpanJemaahURL     = "marketings/agent/member/simpan_member_umhaj/"+jenis;
+            let simpanJemaahData    = {
+                "data"  : jemaahData,
+            };
+            let simpanJemaahType    = "POST";
+            let simpanJemaahMsg     = Swal.fire({ title : "Data Sedang Diproses" }); Swal.showLoading();
 
-        doTransaction(simpanJemaahURL, simpanJemaahType, simpanJemaahData, simpanJemaahMsg, true)
-            .then((success)     => {
-                Swal.fire({
-                    icon    : 'success',
-                    title   : 'Berhasil',
-                    text    : success.message,
-                }).then((res)   => {
-                    if(res.isConfirmed) {
-                        closeModal(idForm);
-                    }
+            doTransaction(simpanJemaahURL, simpanJemaahType, simpanJemaahData, simpanJemaahMsg, true)
+                .then((success)     => {
+                    Swal.fire({
+                        icon    : 'success',
+                        title   : 'Berhasil',
+                        text    : success.message,
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            closeModal(idForm);
+                        }
+                    })
                 })
-            })
-            .catch((err)        => {
-                Swal.fire({
-                    icon    : 'error',
-                    title   : 'Terjadi Kesalahan',
-                    text    : 'Gagal Menyimpan Data',
-                })
-            })
+                .catch((err)        => {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : err.responseJSON.message,
+                    })
+                })    
+        }
     }
 }
 

@@ -1694,6 +1694,7 @@ class MarketingService
 
         $agent_id                   = $data['data']['agt_id'];
         $agent_act_date             = $data['data']['agt_detail_date'];
+        $agent_act_seq              = $data['data']['agt_detail_seq'];
         $agent_act_tour_code        = $data['data']['agt_detail_tourCode'];
         $agent_act_qty_prs          = $data['data']['agt_detail_qty'];
         $agent_act_status           = $data['data']['agt_detail_type'];
@@ -1704,6 +1705,7 @@ class MarketingService
             $data_simpan    = [
                 "agt_id"                    => $agent_id,
                 "agt_act_date"              => $agent_act_date,
+                "agt_act_seq"               => $agent_act_seq,
                 "agt_act_tour_code"         => $agent_act_tour_code,
                 "agt_act_qty"               => $agent_act_qty_prs,
                 "agt_act_status"            => $agent_act_status,
@@ -1720,6 +1722,7 @@ class MarketingService
                 "agt_id"            => $agent_id,
                 "agt_act_tour_code" => $agent_act_tour_code,
                 "agt_act_date"      => $agent_act_date,
+                "agt_act_seq"       => $agent_act_seq
             ];
             
             $check  = DB::table('agent_activity')->select('agt_act_is_paid')->where($data_where)->get();
@@ -1744,6 +1747,13 @@ class MarketingService
                 return $output;
             }
         } else if($data['type'] == 'delete') {
+            // DELETE DATA AGENT ACTIVITY JEMAAH
+            $data_where_delete  = [
+                "agt_act_tour_code"     => $agent_act_tour_code . " | " . $agent_act_seq,
+            ];
+
+            DB::table('agent_activity_jemaah')->where($data_where_delete)->delete();
+            
             $data_where     = [
                 "agt_id"            => $agent_id,
                 "agt_act_tour_code" => $agent_act_tour_code,
@@ -1806,13 +1816,11 @@ class MarketingService
 
         // CHECK DULU APAKAH ADA DATA PADA DATABASE ATAS KONDISI TSB?
         $tour_code_check= $data_simpan[0]['tour_code'];
-        $tgl_check      = $data_simpan[0]['tour_date'];
         $agent_check    = $data_simpan[0]['agent_id'];
         
         $check          = DB::table('agent_activity_jemaah')
-                                ->select('agt_act_tour_code', 'agt_act_date')
+                                ->select('agt_act_tour_code')
                                 ->where('agt_act_tour_code', '=', $tour_code_check)
-                                ->where('agt_act_date', '=', $tgl_check)
                                 ->where('agt_id', '=', $agent_check)
                                 ->limit(1)
                                 ->get();
@@ -1823,7 +1831,6 @@ class MarketingService
                 $do_simpan  = [
                     "agt_id"                => $agent_check,
                     "agt_act_tour_code"     => $data_simpan[$i]['tour_code'],
-                    "agt_act_date"          => $data_simpan[$i]['tour_date'],
                     "agt_act_prs_seq"       => $i + 1,
                     "agt_act_prs_id"        => $data_simpan[$i]['jemaah_id'],
                     "agt_act_prs_name"      => $data_simpan[$i]['jemaah_name'],
@@ -1837,7 +1844,6 @@ class MarketingService
             // HAPUS DULU DATA SEBELUMNYA
             DB::table('agent_activity_jemaah')
                     ->where('agt_act_tour_code', '=', $tour_code_check)
-                    ->where('agt_act_date', '=', $tgl_check)
                     ->where('agt_id', '=', $agent_check)
                     ->delete();
             // SIMPAN DATA BARU
@@ -1846,7 +1852,6 @@ class MarketingService
                 $do_simpan  = [
                     "agt_id"                => $data_simpan[$i]['agent_id'],
                     "agt_act_tour_code"     => $data_simpan[$i]['tour_code'],
-                    "agt_act_date"          => $data_simpan[$i]['tour_date'],
                     "agt_act_prs_seq"       => $i + 1,
                     "agt_act_prs_id"        => $data_simpan[$i]['jemaah_id'],
                     "agt_act_prs_name"      => $data_simpan[$i]['jemaah_name'],
@@ -1884,13 +1889,11 @@ class MarketingService
     public static function get_data_agent_act_jemaah($data)
     {
         $tour_code  = $data['tour_code'];
-        $tour_date  = $data['tour_date'];
         $agent_id   = $data['agent_id'];
 
         $query      = DB::table('agent_activity_jemaah')
                         ->select('agt_act_prs_seq as seq', 'agt_act_prs_id as member_id', 'agt_act_prs_name as member_name')
                         ->where('agt_act_tour_code', '=', $tour_code)
-                        ->where('agt_act_date', '=', $tour_date)
                         ->where('agt_id', '=', $agent_id)
                         ->orderBy('agt_act_prs_seq', 'asc')
                         ->get();

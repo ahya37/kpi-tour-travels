@@ -501,7 +501,6 @@
                     <div class="row">
                         <div class="col-12">
                             <input type="hidden" id="tour_code_jemaah">
-                            <input type="hidden" id="tour_date_jemaah">
                             <div class="table-responsive">
                                 <table class="table table-sm table-striped table-bordered table-hover" id="table_list_pengaturan_agent_jemaah" style="width: 100%;">
                                     <thead>

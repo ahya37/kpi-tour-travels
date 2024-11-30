@@ -2530,7 +2530,7 @@ class MarketingController extends Controller
             $output     = [
                 "success"   => true,
                 "status"    => 200,
-                "message"   => "Berhasil Update Data Agent Activity",
+                "message"   => "Berhasil Merubah Data Jemaah",
                 "data"      => [],
             ];
         } else if($do_simpan['status'] == 'gagal') {
@@ -2550,7 +2550,6 @@ class MarketingController extends Controller
     {
         $data_cari  = [
             "tour_code" => $request->all()['tour_code'],
-            "tour_date" => $request->all()['tour_date'],
             "agent_id"  => $request->all()['agent_id'],
         ];
 
