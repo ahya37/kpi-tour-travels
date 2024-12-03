@@ -3,6 +3,7 @@ var dataAgentSelect = [];
 var dataAgentActivity   = [];
 var dataTourCode    = [];
 var today           = moment().format('YYYY-MM-DD');
+var dataPeriodeYear = [2022, 2023, 2024];
 $(document).ready(()    => {
     showTable('table_list_agent', []);
     clearUrl();
@@ -317,7 +318,7 @@ function showSelect(idSelect, data, value, seq)
         $("#"+idSelect+seq).html(html);
 
         if(value != '') {
-            $("#"+idSelect+seq).val(value);
+            $("#"+idSelect+seq).val(value).trigger('change');
         }
     } else if(idSelect == 'namaJemaah') {
         $("#"+idSelect+""+seq).select2({
@@ -358,6 +359,26 @@ function showSelect(idSelect, data, value, seq)
                 }
             }
         })
+    } else if(idSelect == 'agt_periode') {
+        $("#"+idSelect+""+seq).select2({
+            minimumResultsForSearch   : -1,
+            theme   : 'bootstrap4',
+        });
+
+        let html    = "<option selected disabled>Periode</option>";
+
+        if(data.length > 0) {
+            for(const item of data)
+            {
+                html    += `<option value="${item}">${item}</option>`;
+            }
+        }
+
+        $("#"+idSelect+""+seq).html(html);
+
+        if(value != "") {
+            $("#"+idSelect+""+seq).val(value);
+        }
     }
 }
 
@@ -492,9 +513,10 @@ function showTable(idTable, data)
             columnDefs  : [
                 { "targets" : [0], "className" : "text-center", "width" : "8%" },
                 { "targets" : [1], "width" : "15%" },
-                { "targets" : [3], "width" : "13%" },
-                { "targets" : [4], "width" : "14%" },
-                { "targets" : [5], "className" : "align-middle", "width" : "15%" },
+                { "targets" : [2], "width" : "10%" },
+                { "targets" : [4], "width" : "13%" },
+                { "targets" : [5], "width" : "14%" },
+                { "targets" : [6], "width" : "15%", "createdCell" : (td, cellData, rowData, row, col) => { $(td).css({ 'padding-top' : '13px', 'padding-bottom' : '13px', }) } },
             ]
         })
 
@@ -609,7 +631,8 @@ function addColumnTable(idTable, seq, data)
     } else if(idTable == 'table_pengaturan_agen') {
         let ke              = parseInt(seq) + 1;
         let inputNo         = "<input type='text' class='form-control text-center' id='agt_no"+ke+"' disabled placeholder='No' style='height: 38px;'>";
-        let inputTanggal    = "<input type='text' class='form-control' id='agt_tgl"+ke+"' placeholder='DD/MM/YYY' readonly style='height: 38px;'>";
+        let inputPeriode    = `<select class="form-control" id="agt_periode${ke}" style="width: 100%;"></select>`;
+        let inputTanggal    = "<input type='text' class='form-control' id='agt_tgl"+ke+"' placeholder='DD/MM/YYY' readonly style='height: 38px;' title='Hanya 2 Tahun'>";
         let inputTourCode   = "<select class='form-control' style='width: 100%;' id='agt_tourCode"+ke+"'></select>";
         let inputBanyaknya  = "<input type='number' inputmode='numeric' class='form-control' id='agt_banyaknya"+ke+"' placeholder='Banyaknya' min='0' max='999' step='1' style='height: 38px;'>";
         let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"' onchange='showSelectDetail(`agt_jenis`, this.value, `"+ke+"`)'></select>";
@@ -621,6 +644,7 @@ function addColumnTable(idTable, seq, data)
         $("#"+idTable).DataTable().row.add([
             inputNo,
             inputTanggal,
+            inputPeriode,
             inputTourCode,
             inputBanyaknya,
             inputJenis+" "+inputDiscount,
@@ -632,8 +656,8 @@ function addColumnTable(idTable, seq, data)
 
         $("#agt_tgl"+ke).daterangepicker({
             drops       : 'up',
-            minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
-            maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
+            minDate     : moment(today, 'YYYY-MM-DD').subtract(2, 'year'),
+            maxDate     : moment(today, 'YYYY-MM-DD').add(2, 'year'),
             autoApply   : true,
             format      : 'DD/MM/YYYY',
             setStartDate    : moment(today, 'YYYY-MM-DD'),
@@ -643,6 +667,11 @@ function addColumnTable(idTable, seq, data)
                 applyLabel  : 'Simpan',
             },
         });
+        
+        $("#agt_tgl"+ke).on('apply.daterangepicker', (ev, picker)   => {
+            let selectedPeriode     = picker.startDate._a[0];
+            showSelect('agt_periode', dataPeriodeYear, selectedPeriode, ke);
+        });
 
         const dataJenis     = [
             { "id" : "act", "name" : "Aktif" },
@@ -650,10 +679,18 @@ function addColumnTable(idTable, seq, data)
             { "id" : "dsc", "name" : "Diskon" },
         ];
 
-        $("#agt_banyaknya"+(ke)).focus();
+        $("#agt_banyaknya"+ke).focus();
+        $("#agt_banyaknya"+ke).on('click', ()   => {
+            $("#agt_banyaknya"+ke).select();            
+        })
+
+        $("#agt_discount"+ke).on('click', () => {
+            $("#agt_discount"+ke).select();
+        })
 
         if(data.length != '')
         {
+            let actAgent_periode    = moment(data['agt_act_periode'], 'YYYY').format('YYYY');
             let actAgent_date       = moment(data['agt_act_date'], 'YYYY-MM-DD').format('DD/MM/YYYY');
             let actAgent_qty        = parseInt(data['agt_act_qty']);
             let actAgent_tourCode   = data['agt_act_tour_code'];
@@ -668,6 +705,7 @@ function addColumnTable(idTable, seq, data)
             // DISABLED DATE
             $("#agt_tourCode"+ke).prop('disabled', true);
             $("#agt_tgl"+ke).prop('disabled', true);
+            $("#agt_periode"+ke).prop('disabled', true);
             
             // FILL FORM
             $("#agt_tgl"+ke).data('daterangepicker').setStartDate(actAgent_date);
@@ -678,6 +716,7 @@ function addColumnTable(idTable, seq, data)
 
             showSelect('agt_tourCode', dataTourCode[0], actAgent_tourCode, ke);
             showSelect('agt_jenis', dataJenis, actAgent_type, ke);
+            showSelect('agt_periode', dataPeriodeYear, actAgent_periode, ke);
 
             // SHOW BUTTON
             $("#btn_act_paid"+ke).removeClass('d-none');
@@ -695,6 +734,7 @@ function addColumnTable(idTable, seq, data)
             $("#btn_act_paid"+ke).addClass('d-none');
             showSelect('agt_tourCode', dataTourCode[0], '', ke);
             showSelect('agt_jenis', dataJenis, '', ke);
+            showSelect('agt_periode', dataPeriodeYear, moment(today).year(), ke);
         }
 
         if(ke > 1) {
@@ -1273,6 +1313,7 @@ function doSimpanData(idForm, jenis, data)
     } else if(idForm == 'table_pengaturan_agen') {
         let seq                 = data;
         let agt_id              = $("#sl_agt_id");
+        let agt_detail_periode  = $("#agt_periode"+seq);
         let agt_detail_date     = $("#agt_tgl"+seq);
         let agt_detail_tourCode = $("#agt_tourCode"+seq);
         let agt_detail_qty      = $("#agt_banyaknya"+seq);
@@ -1288,6 +1329,15 @@ function doSimpanData(idForm, jenis, data)
                     agt_detail_tourCode.select2('open');
                 }
             })
+        } else if(agt_detail_periode.val() == null) {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Periode Harus Dipilih',
+                didClose    : () => {
+                    agt_detail_periode.select2('open');
+                }
+            })
         } else if(agt_detail_type.val() == null) {
             Swal.fire({
                 icon    : 'error',
@@ -1301,6 +1351,7 @@ function doSimpanData(idForm, jenis, data)
             const agt_option_data   = {
                 "agt_id"                : agt_id.val(),
                 "agt_detail_seq"        : seq,
+                "agt_detail_periode"    : agt_detail_periode.val(),
                 "agt_detail_date"       : moment(agt_detail_date.val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
                 "agt_detail_tourCode"   : agt_detail_tourCode.val(),
                 "agt_detail_qty"        : agt_detail_qty.val(),

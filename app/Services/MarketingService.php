@@ -1693,6 +1693,7 @@ class MarketingService
         $today                      = date('Y-m-d H:i:s');
 
         $agent_id                   = $data['data']['agt_id'];
+        $agent_act_periode          = $data['data']['agt_detail_periode'];
         $agent_act_date             = $data['data']['agt_detail_date'];
         $agent_act_seq              = $data['data']['agt_detail_seq'];
         $agent_act_tour_code        = $data['data']['agt_detail_tourCode'];
@@ -1704,6 +1705,7 @@ class MarketingService
         {
             $data_simpan    = [
                 "agt_id"                    => $agent_id,
+                "agt_act_periode"           => $agent_act_periode,
                 "agt_act_date"              => $agent_act_date,
                 "agt_act_seq"               => $agent_act_seq,
                 "agt_act_tour_code"         => $agent_act_tour_code,
@@ -1721,6 +1723,7 @@ class MarketingService
             $data_where     = [
                 "agt_id"            => $agent_id,
                 "agt_act_tour_code" => $agent_act_tour_code,
+                "agt_act_periode"   => $agent_act_periode,
                 "agt_act_date"      => $agent_act_date,
                 "agt_act_seq"       => $agent_act_seq
             ];

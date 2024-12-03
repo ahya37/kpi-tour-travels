@@ -2814,20 +2814,20 @@ class DivisiService
         if(empty($tour_code)) {
             $query  = DB::table('programs_jadwal')
                         ->select('jdw_uuid as umrah_uuid', 'jdw_tour_code as umrah_tour_code', 'jdw_mentor_name as umrah_tour_leader', 'jdw_depature_date as umrah_depature_date', 'jdw_arrival_date as umrah_arrival_date')
-                        ->where(DB::raw('EXTRACT(YEAR FROM jdw_depature_date)'), '=', $data['tahun'])
+                        ->where(DB::raw('EXTRACT(YEAR FROM jdw_depature_date)'), '=', $tahun)
                         ->orderBy('jdw_depature_date', 'desc')
                         ->get();
         } else {
             $query_header   = DB::table('programs_jadwal')
                                 ->select('jdw_uuid as umrah_uuid', 'jdw_tour_code as umrah_tour_code', 'jdw_mentor_name as umrah_tour_leader', 'jdw_depature_date as umrah_depature_date', 'jdw_arrival_date as umrah_arrival_date')
-                                ->where(DB::raw('EXTRACT(YEAR FROM jdw_depature_date)'), '=', $data['tahun'])
-                                ->where('jdw_uuid', '=', $data['tour_code'])
+                                ->where(DB::raw('EXTRACT(YEAR FROM jdw_depature_date)'), '=', $tahun)
+                                ->where('jdw_uuid', '=', $tour_code)
                                 ->get();
 
             $query_detail   = DB::table('programs_jadwal as a')
                                 ->join('programs_jadwal_file as b', 'a.jdw_tour_code', '=', 'b.jdw_det_tour_code')
                                 ->select('b.*')
-                                ->where('a.jdw_uuid', '=', $data['tour_code'])
+                                ->where('a.jdw_uuid', '=', $tour_code)
                                 ->get();
             $query          = [
                 "header"    => $query_header,
