@@ -2196,6 +2196,7 @@ class DivisiService
         $pgj_end_date   = $data['data']['pgj_date_end'];
         $pgj_type       = $data['data']['pgj_type'];
         $pgj_status     = $data['data']['pgj_status'];
+        $pgj_note       = $data['data']['pgj_note'];
         $ip             = $data['ip'];
         
         if($pgj_status == "3")
@@ -2208,6 +2209,7 @@ class DivisiService
                 "emp_act_end_date"  => $pgj_end_date,
                 "emp_act_type"      => $pgj_type,
                 "emp_act_status"    => $pgj_status,
+                "emp_act_status_note"   => $pgj_note,
                 "created_by"        => $user_id,
                 "created_at"        => date('Y-m-d H:i:s'),
                 "updated_by"        => $user_id,
@@ -2463,36 +2465,56 @@ class DivisiService
 
         if($jenis == 'add')
         {
-            // INSERT TO HEADER
-            $data_header =  [
-                "emp_act_uuid"      => Str::uuid(),
-                "emp_act_user_id"   => $user_id,
-                "emp_act_title"     => $data_lemburan['lmb_keterangan'],
-                "emp_act_start_date"=> $data_lemburan['lmb_tanggal'],
-                "emp_act_end_date"  => $data_lemburan['lmb_tanggal'],
-                "emp_act_type"      => "Lembur",
-                "emp_act_status"    => 3,
-                "created_by"        => $user_id,
-                "created_at"        => date('Y-m-d H:i:s'),
-                "updated_by"        => $user_id,
-                "updated_at"        => date('Y-m-d H:i:s'),
+            // CHECK DULU APAKAH TANGGAL SEGITU ADA?
+            $check_where    = [
+                "emp_act_start_date"    => $data_lemburan['lmb_tanggal'],
+                "emp_act_end_date"      => $data_lemburan['lmb_tanggal'],
+                "emp_act_status"        => 3,
+                "created_by"            => $user_id,
             ];
             
-            DB::table('employees_activity')->insert($data_header);
-            $emp_act_id     = DB::getPdo()->lastInsertId();
+            $check          = DB::table('employees_activity')->where($check_where)->get();
 
-            // INSERT DETAIL
-            $data_detail    = [
-                "emp_act_id"        => $emp_act_id,
-                "empd_seq"          => 1,
-                "empd_description"  => $data_lemburan['lmb_keterangan'],
-                "empd_date"         => $data_lemburan['lmb_tanggal'],
-                "empd_start_time"   => $data_lemburan['lmb_t_start'],
-                "empd_end_time"     => $data_lemburan['lmb_t_end'],
-                "empd_status"       => 0,
-            ];
+            if(count($check) < 1) {
+                // INSERT TO HEADER
+                $data_header =  [
+                    "emp_act_uuid"      => Str::uuid(),
+                    "emp_act_user_id"   => $user_id,
+                    "emp_act_title"     => $data_lemburan['lmb_keterangan'],
+                    "emp_act_start_date"=> $data_lemburan['lmb_tanggal'],
+                    "emp_act_end_date"  => $data_lemburan['lmb_tanggal'],
+                    "emp_act_type"      => "Lembur",
+                    "emp_act_status"    => 3,
+                    "created_by"        => $user_id,
+                    "created_at"        => date('Y-m-d H:i:s'),
+                    "updated_by"        => $user_id,
+                    "updated_at"        => date('Y-m-d H:i:s'),
+                ];
+                
+                DB::table('employees_activity')->insert($data_header);
+                $emp_act_id     = DB::getPdo()->lastInsertId();
 
-            DB::table('employees_activity_detail')->insert($data_detail);
+                // INSERT DETAIL
+                $data_detail    = [
+                    "emp_act_id"        => $emp_act_id,
+                    "empd_seq"          => 1,
+                    "empd_description"  => $data_lemburan['lmb_keterangan'],
+                    "empd_date"         => $data_lemburan['lmb_tanggal'],
+                    "empd_start_time"   => $data_lemburan['lmb_t_start'],
+                    "empd_end_time"     => $data_lemburan['lmb_t_end'],
+                    "empd_status"       => 0,
+                ];
+
+                DB::table('employees_activity_detail')->insert($data_detail);
+            } else {
+                DB::rollBack();
+                $output     = [
+                    "status"    => "dupe",
+                    "errMsg"    => "Data Lemburan Pada Tanggal ".$data_lemburan['lmb_tanggal']." Sudah Dibuat",
+                ];
+
+                return $output;
+            }
         } else if($jenis == 'edit') {
             // GET ID
             $emp_act_id     = DB::table('employees_activity')
@@ -2596,6 +2618,7 @@ class DivisiService
         $emp_user_id    = $data['emp_user_id'];
         $emp_act_id     = $data['emp_act_id'];
         $emp_act_status = $data['emp_act_status'];
+        $emp_act_status_note    = $data['emp_act_note'];
 
         $ip             = $data['ip'];
 
@@ -2604,9 +2627,10 @@ class DivisiService
         ];
         
         $data_update    = [
-            "emp_act_status"=> $emp_act_status,
-            "updated_by"    => $emp_user_id,
-            "updated_at"    => date('Y-m-d H:i:s'),
+            "emp_act_status"        => $emp_act_status,
+            "emp_act_status_note"   => $emp_act_status_note,
+            "updated_by"            => $emp_user_id,
+            "updated_at"            => date('Y-m-d H:i:s'),
         ];
 
         DB::table('employees_activity')->where($data_where)->update($data_update);
@@ -2671,14 +2695,25 @@ class DivisiService
             foreach($emp_detail as $item) :
                 for($i = 0; $i < count($emp_ovt_detail); $i++) {
                     if($emp_ovt_detail[$i]->emp_ovt_date == $item->emp_prs_date) {
-                        if($emp_ovt_detail[$i]->emp_ovt_status == '1') {
-                            $status     = "t";
-                        } else {
-                            $status     = "f";
+
+                        switch ($emp_ovt_detail[$i]->emp_ovt_status) {
+                            case '1' :
+                                $status     = "t";
+                                $reason     = "Disetujui";
+                            break;
+                            case '2' : 
+                                $status     = "f";
+                                $reason     = "Ditolak";
+                            break;
+                            case '3' : 
+                                $status     = "f";
+                                $reason     = "Menunggu Konfirmasi";
+                            break;
                         }
                         break;
                     } else {
                         $status     = "f";
+                        $reason     = "Belum Diajukan"; 
                     }
                 }
 
@@ -2688,7 +2723,8 @@ class DivisiService
                     "emp_prs_date"      => $item->emp_prs_date,
                     "emp_prs_in_time"   => $item->emp_prs_in_time,
                     "emp_prs_out_time"  => $item->emp_prs_out_time,
-                    "emp_status"        => $item->emp_prs_date < "2024-10-01" ? "t" : $status
+                    "emp_status"        => $item->emp_prs_date < "2024-10-01" ? "t" : $status,
+                    "emp_status_note"   => $reason
                 ];
             endforeach;
         } else {
@@ -2699,7 +2735,8 @@ class DivisiService
                     "emp_prs_date"      => $item->emp_prs_date,
                     "emp_prs_in_time"   => $item->emp_prs_in_time,
                     "emp_prs_out_time"  => $item->emp_prs_out_time,
-                    "emp_status"        => $item->emp_prs_date < "2024-10-01" ? "t" : "f"
+                    "emp_status"        => $item->emp_prs_date < "2024-10-01" ? "t" : "f",
+                    "emp_reason"        => "Belum Diajukan",
                 ];
             endforeach;
         }
@@ -2777,20 +2814,20 @@ class DivisiService
         if(empty($tour_code)) {
             $query  = DB::table('programs_jadwal')
                         ->select('jdw_uuid as umrah_uuid', 'jdw_tour_code as umrah_tour_code', 'jdw_mentor_name as umrah_tour_leader', 'jdw_depature_date as umrah_depature_date', 'jdw_arrival_date as umrah_arrival_date')
-                        ->where(DB::raw('EXTRACT(YEAR FROM jdw_depature_date)'), '=', $data['tahun'])
+                        ->where(DB::raw('EXTRACT(YEAR FROM jdw_depature_date)'), '=', $tahun)
                         ->orderBy('jdw_depature_date', 'desc')
                         ->get();
         } else {
             $query_header   = DB::table('programs_jadwal')
                                 ->select('jdw_uuid as umrah_uuid', 'jdw_tour_code as umrah_tour_code', 'jdw_mentor_name as umrah_tour_leader', 'jdw_depature_date as umrah_depature_date', 'jdw_arrival_date as umrah_arrival_date')
-                                ->where(DB::raw('EXTRACT(YEAR FROM jdw_depature_date)'), '=', $data['tahun'])
-                                ->where('jdw_uuid', '=', $data['tour_code'])
+                                ->where(DB::raw('EXTRACT(YEAR FROM jdw_depature_date)'), '=', $tahun)
+                                ->where('jdw_uuid', '=', $tour_code)
                                 ->get();
 
             $query_detail   = DB::table('programs_jadwal as a')
                                 ->join('programs_jadwal_file as b', 'a.jdw_tour_code', '=', 'b.jdw_det_tour_code')
                                 ->select('b.*')
-                                ->where('a.jdw_uuid', '=', $data['tour_code'])
+                                ->where('a.jdw_uuid', '=', $tour_code)
                                 ->get();
             $query          = [
                 "header"    => $query_header,
@@ -2884,5 +2921,79 @@ class DivisiService
 
             return $output;
         }
+    }
+
+    // 15 NOVEMBER 2024
+    // NOTE : AMBIL PENGAJUAN PEMBAYARAN AGENT
+    public static function get_data_finance_pgj_payment_agent()
+    {
+        $query  = DB::table('agent_activity as a')
+                    ->join('agent as b', 'a.agt_id', '=', 'b.agt_id')
+                    ->select('a.*', 'b.agt_name')
+                    ->orderBy('a.agt_act_date', 'desc')
+                    ->get();
+        return $query;
+    }
+
+    public static function get_payment_agent_detail($data)
+    {
+        $tour_code  = $data['tour_code'];
+        $agent_id   = $data['agent_id'];
+
+        $query      = DB::table('agent_activity as a')
+                        ->join('agent as b', 'a.agt_id', '=', 'b.agt_id')
+                        ->select('a.*', 'b.agt_name')
+                        ->where('a.agt_act_tour_code', '=', $tour_code)
+                        ->where('a.agt_id', '=', $agent_id)
+                        ->where('a.agt_act_is_paid', '=', 0)
+                        ->orderBy('a.agt_act_date', 'asc')
+                        ->get();
+        return $query;
+    }
+
+    // NOTE : KONFIRMASI PEMBAYARAN AGENT
+    public static function do_confirm_payment_agent($data)
+    {
+        $user_id    = $data['user_id'];
+        $ip_address = $data['ip_address'];
+        $tour_code  = $data['tour_code'];
+        $agent_id   = $data['agent_id'];
+
+        DB::beginTransaction();
+
+        $data_where     = [
+            "agt_id"            => $agent_id,
+            "agt_act_tour_code" => $tour_code,
+            "agt_act_is_paid"   => "0",
+        ];
+
+        $data_update    = [
+            "agt_act_is_paid"   => "1",
+            "updated_by"        => $user_id,
+            "updated_at"        => date('Y-m-d H:i:s'),
+        ];
+
+        DB::table('agent_activity')->where($data_where)->update($data_update);
+
+        try {
+            DB::commit();
+            LogHelper::create('edit', 'Berhasil Konfirmasi Fee Agent Tour Code : ' . $tour_code, $ip_address);
+            
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => [],
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Konfirmasi Pembayaran Fee Agent', $ip_address);
+
+            $output  = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
     }
 }

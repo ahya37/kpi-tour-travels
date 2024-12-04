@@ -4,6 +4,8 @@ var today       = moment().format('YYYY-MM-DD');
 var isActive    = 0;
 var base_url    = window.location.origin;
 
+clearUrl();
+
 const hitungJumlahJam   = (jam_awal, jam_akhir) => {
     jam_awal  = moment(jam_awal, 'HH:mm');
     jam_akhir = moment(jam_akhir, 'HH:mm');
@@ -30,18 +32,25 @@ $(document).ready(() => {
     const gpkEmployee_url   = base_url + "/divisi/finance/master/gaji_pokok_employee";
     const gpkEmployee_data  = "";
 
-    const getDatadDashboard     = [
+    const pgjPaymentURL     = base_url + "/divisi/finance/pengajuan/pembayaran_agent";
+    const pgjPaymentType    = "GET";
+    const pgjPaymentData    = [];
+
+    const getDataDashboard     = [
         doTrans(actUser_url, 'GET', actUser_data, '', true),
         doTrans(financeRKAP_url, 'GET', financeRKAP_data, '', true),
-        doTransV2(gpkEmployee_url, 'GET', gpkEmployee_data, '', true)
+        doTransV2(gpkEmployee_url, 'GET', gpkEmployee_data, '', true),
+        doTrans(pgjPaymentURL, pgjPaymentType, pgjPaymentData, '', true)
     ];
 
-    Promise.all(getDatadDashboard)
+    Promise.allSettled(getDataDashboard)
         .then((success) => {
-            const actUser_getData       = success[0].data;
-            const financeRKAP_getData   = success[1].data;
-            const gpkEmployee_getData   = success[2].total_data;
-            
+
+            const actUser_getData       = success[0].status == 'fulfilled' ? success[0].value.data : [];
+            const financeRKAP_getData   = success[1].status == 'fullfilled' ? success[1].value.data : [];
+            const gpkEmployee_getData   = success[2].status == 'fulfilled' ? success[2].value.total_data : [];
+            const pgjPayment_getData    = success[3].status == 'fulfilled' ? success[3].value.data : [];
+
             // HIDE LOADING ACT USER
             $("#act_user_loading").addClass('d-none');
             $("#act_user_text").removeClass('d-none');
@@ -58,6 +67,22 @@ $(document).ready(() => {
             $("#abs_text").html("<label class='no-margins font-weight-light'>"+moment().format('YYYY-MM-DD')+"</label>");
             
             $("#kar_text").html("<label class='no-margins font-weight-light'>" + gpkEmployee_getData + "</label>");
+
+            // KONFIRMASI PEMBAYARAN
+            const totalPgjPayment   = pgjPayment_getData.length;
+            let totalConfirmPayment = 0;
+            if(totalPgjPayment > 0) {
+                for(const item of pgjPayment_getData)
+                {
+                    if(item.is_paid != 1) {
+                        totalConfirmPayment     += 1;
+                    }
+                } 
+            }
+
+            $("#confirm_payment_text").html(`<label class="no-margins font-weight-light">${totalPgjPayment}</label>`);
+            $("#confirm_payment_text_pending").addClass('text-warning');
+            totalConfirmPayment > 0 ? $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> ${totalConfirmPayment} butuh konfirmasi`) : $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> Tidak Ada Konfirmasi Pembayaran`);
         })
         .catch((err)    => {
             // HIDE LOADING ACT USER
@@ -398,7 +423,8 @@ function showTable(idTable, data)
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
                 { "targets" : [1], "className" : 'text-left align-middle', "width" : "25%" },
                 { "targets" : [2, 3, 4], "className" : "text-center align-middle", "width" : "10%"},
-                { "targets" : [5], "className" : "text-center align-middle", "width" : "8%" }
+                { "targets" : [5], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [6], "className" : "text-left align-middle", "width" : "10%" },
             ],
         });
 
@@ -419,15 +445,16 @@ function showTable(idTable, data)
 
             for(const item of data)
             {
-                var prs_date    = item.emp_prs_date;
-                var prs_in      = item.emp_prs_in_time;
-                var prs_out     = item.emp_prs_out_time;
-                var prs_status  = item.emp_status;
+                let prs_date    = item.emp_prs_date;
+                let prs_in      = item.emp_prs_in_time;
+                let prs_out     = item.emp_prs_out_time;
+                let prs_status  = item.emp_status;
+                let prs_status_note     = item.emp_status_note;
 
                 // SHOW TIME ONLY
-                var prs_in_time     = moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
-                var prs_out_time    = moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
-                var prs_late_time   = moment("08:10", "HH:mm").format('HH:mm');
+                let prs_in_time     = moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
+                let prs_out_time    = moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
+                let prs_late_time   = moment("08:10", "HH:mm").format('HH:mm');
                                 
                 // FORMATED TANGGAL
                 var prs_date_formatted  = prs_out != null ? moment(prs_date, 'YYYY-MM-DD').format('DD/MMM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+" - "+moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")" : moment(prs_date, 'YYYY-MM-DD').format('DD/MMM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")";
@@ -440,7 +467,7 @@ function showTable(idTable, data)
                     var prs_out_time_new    = prs_out_time;
                 }
 
-                const isApproved    = prs_status == "t" ? "<i class='fa fa-check'></i>" : "<i class='fa fa-times'></i>";
+                let isApproved      = prs_status == "t" ? "<i class='fa fa-check'></i>" : "<i class='fa fa-times'></i>";
 
                 if(prs_out != null && prs_out_time_new > "16:59" && moment(prs_date, 'YYYY-MM-DD').format('dddd') != 'Sabtu') {
                     prs_out_time_new >= "17:00" && prs_status == "t" ? overtimeOne = 1 : "";
@@ -458,7 +485,8 @@ function showTable(idTable, data)
                         overtimeOne,
                         overtimeTwo,
                         overtimeThree,
-                        isApproved
+                        isApproved,
+                        prs_status_note,
                     ]).draw(false);
                     $(".dataTables_empty").html("Data Sedang Ditampilkan");
                 } else if(prs_out != null && prs_out_time_new > "14:29" && moment(prs_date, 'YYYY-MM-DD').format('dddd') == 'Sabtu') {
@@ -477,7 +505,8 @@ function showTable(idTable, data)
                         overtimeOne,
                         overtimeTwo,
                         overtimeThree,
-                        isApproved
+                        isApproved,
+                        prs_status_note,
                     ]).draw(false);
                     $(".dataTables_empty").html("Data Sedang Ditampilkan");   
                 } else {
@@ -503,6 +532,89 @@ function showTable(idTable, data)
             $("#sml_emp_ot1").html(totalOvertimeOne+" (" + formatRupiah(amountOverTimeOne) + ")");
             $("#sml_emp_ot2").html(totalOvertimeTwo + " (" + formatRupiah(amountOverTimeTwo) + " )");
             $("#sml_emp_ot3").html(totalOvertimeThree + " (" + formatRupiah(amountOverTimeThree) + " )");
+        }
+    } else if(idTable == 'table_list_confirm_payment_agent') {
+        $("#"+idTable).DataTable().clear().destroy();
+
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : '<i class="fa fa-spinner fa-spin"></i> Data Sedang Dimuat..',
+            },
+            lengthMenu  : [
+                [ 10, 20, 50, 100, -1 ],
+                [ 10, 20, 50, 100, "Semua"],
+            ],
+            pageLength  : 10,
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [1], "className" : "align-middle" },
+                { "targets" : [2], "className" : "align-middle", "width" : "25%" },
+                { "targets" : [3], "className" : "align-middle", "width" : "15%" },
+                { "targets" : [4], "className" : "text-center align-middle", "width" : "15%" },
+                { "targets" : [5], "className" : "text-center align-middle", "width" : "10%" },
+            ],
+        });
+        
+        if(data.length > 0) {
+            let seq = 1;
+            for(const item of data)
+            {
+                let tourCode        = `<label class="font-weight-normal no-margins">${item['tour_code']}</label>`;
+                let agentName       = `<label class="font-weight-normal no-margins">${item['agent_name']}</label>`
+                let totalPengajuan  = `<label class="font-weight-normal no-margins">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item['total_payment'])}</label>`;
+                let isPaid          = item['is_paid'] == "1" ? `<span class="badge badge-sm badge-primary"><label class="font-weight-bold no-margins">Disetujui</label></span>` : `<span class="badge badge-sm badge-warning"><label class="font-weight-bold no-margins">Pending</label></span>`;
+                let button          = item['is_paid'] ==  "1" ? `<button type="button" class="btn btn-sm btn-secondary" disabled style="cursor:no-drop" title="Sudah Dibayarkan"><i class="fa fa-check"></i></button>` : `<button type="button" class="btn btn-sm btn-primary" value="${item['tour_code']}&${item['agent_id']}" title="Konfirmasi Pembayaran" onclick="showModal('modal_detail_confirm_payment_agent', this.value, 'update')"><i class="fa fa-check"></i></button>`;
+                $("#"+idTable).DataTable().row.add([
+                    seq++,
+                    tourCode,
+                    agentName,
+                    totalPengajuan,
+                    isPaid,
+                    button
+                ]).draw(false);
+            }
+        }
+
+        // REMOVE FOOTER
+        $("#table_list_confirm_payment_agent_wrapper").css('padding-bottom', '0px');
+    } else if(idTable == 'table_detail_payment_agent') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+            },
+            searching   : false,
+            pageLength  : -1,
+            paging      : false,
+            autoWidth   : false,
+            bInfo       : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [1], "className" : "text-center align-middle", "width" : "45%" },
+                { "targets" : [2], "className" : "align-middle" },
+            ],
+        })
+
+        $("#"+idTable+"_wrapper").css('padding-bottom', '0px');
+
+        if(data.length > 0) {
+            let seq     = 1;
+            let totalPengajuan  = 0;
+            for(const item of data)
+            {
+                $("#"+idTable).DataTable().row.add([
+                    `<label class="font-weight-normal no-margins">${seq++}</label>`,
+                    `<label class="font-weight-normal no-margins">${moment(item['act_date'], 'YYYY-MM-DD').format('DD-MM-YYYY')}</label>`,
+                    `<label class="font-weight-normal no-margins">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item['amount'])}</label>`
+                ]).draw(false);
+
+                totalPengajuan  += item['amount'];
+            }
+
+            $("#total_pengajuan_detail_payment_agent").html(new Intl.NumberFormat('id-ID', { style: "currency", currency: 'IDR' }).format(totalPengajuan));
+        } else {
+            $("#total_pengajuan_detail_payment_agent").html("Rp 0,00");
         }
     }
 }
@@ -870,6 +982,59 @@ function showModal(idModal, value, jenis)
                     text    : 'Data Tidak Ditemukan'
                 })
             })
+    } else if(idModal == 'modal_confirm_payment_agent') {
+        let pgjConfirmPaymentURL    = base_url + "/divisi/finance/pengajuan/pembayaran_agent";
+        let pgjConfirmPaymentMsg    = Swal.fire({ title : 'Data Sedang Dimuat..' }); Swal.showLoading();
+
+        showTable('table_list_confirm_payment_agent', []);
+        doTrans(pgjConfirmPaymentURL, "GET", [], pgjConfirmPaymentMsg, true)
+            .then((success)     => {
+                Swal.close();                
+                $("#"+idModal).modal({ backdrop : 'static', keyboard : false });
+                let pgjConfirmPaymentData   = success.data;
+
+                showTable('table_list_confirm_payment_agent', pgjConfirmPaymentData);
+                $("#table_list_confirm_payment_agent .dataTables_empty").html('Data Berhasil Dimuat');
+            })
+            .catch((err)        => {
+                console.log(err);
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Data Pembayaran Agent Kosong',
+                });
+            })
+    } else if(idModal == 'modal_detail_confirm_payment_agent') {
+        let pgjPaymentDetail_URL    = base_url + "/divisi/finance/pengajuan/pembayaran_agent_detail";
+        let pgjPaymentDetail_Type   = "GET";
+        let pgjPaymentDetail_data   = {
+            "tour_code" : value.split('&')[0],
+            "agent_id"  : value.split('&')[1],
+        };
+        let pgjPaymentDetail_msg    = Swal.fire({ title : "Data Sedang Dimuat..", allowOutsideClick: false }); Swal.showLoading();
+
+        doTrans(pgjPaymentDetail_URL, pgjPaymentDetail_Type, pgjPaymentDetail_data, pgjPaymentDetail_msg, true)
+            .then((success)     => {
+                closeModal('modal_confirm_payment_agent');
+                Swal.close();
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                // HEADER
+                $("#payment_agent_tour_code").val(success.data.header['tour_code']);
+                $("#payment_agent_id").val(success.data.header['agent_id']);
+                $("#payment_agent_name").val(success.data.header['agent_name']);
+
+                // DETAIL
+                showTable('table_detail_payment_agent', success.data.detail);
+                $("#table_detail_payment_agent .dataTables_empty").html('Data Ditemukan');
+            })
+            .catch((error)      => {
+                console.log(error);
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Tidak Ada Detail Pembayaran Untuk Data Ini',
+                });
+            })
     }
 }
 
@@ -964,6 +1129,12 @@ function closeModal(idModal) {
         })
 
         clearUrl();
+    } else if(idModal == 'modal_confirm_payment_agent') {
+        $("#"+idModal).modal('hide');
+        showTable('table_list_confirm_payment_agent', []);
+    } else if(idModal == 'modal_detail_confirm_payment_agent') {
+        $("#"+idModal).modal('hide');
+        showModal('modal_confirm_payment_agent', '', '');
     }
 }
 
@@ -1268,6 +1439,39 @@ function doUpdate(idForm, data, seq)
                     title   : err.responseJSON.alert.message.title,
                     text    : err.responseJSON.alert.message.text,
                 });
+            })
+    } else if(idForm == 'payment_agent') {
+        let tourCode    = $("#payment_agent_tour_code").val();
+        let agentID     = $("#payment_agent_id").val();
+        let agentName   = $("#payment_agent_name").val();
+
+        let agtPayment_URL  = base_url + "/divisi/finance/pengajuan/pembayaran_agent_konfirmasi";
+        let agtPayment_type = "POST";
+        let agtPayment_data = {
+            "agent_id"      : agentID,
+            "tour_code"     : tourCode,
+        };
+        let agtPayment_msg  = Swal.fire({ title : 'Data Sedang Diproses..', allowOutsideClick: false }); Swal.showLoading();
+
+        doTrans(agtPayment_URL, agtPayment_type, agtPayment_data, agtPayment_msg)
+            .then((success)     => {
+                Swal.fire({
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : 'Berhasil Konfirmasi Pembayaran Agent'
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        closeModal('modal_detail_confirm_payment_agent');
+                    }
+                })
+            })
+            .catch((err)        => {
+                console.log(err);
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Gagal Menyimpan Data'
+                })
             })
     }
 }

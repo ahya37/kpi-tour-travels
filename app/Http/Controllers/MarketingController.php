@@ -31,6 +31,7 @@ use Illuminate\Support\Collection;
 use function Laravel\Prompts\select;
 use Illuminate\Support\Facades\Response;
 use Carbon\Carbon;
+use Dotenv\Repository\RepositoryInterface;
 
 class MarketingController extends Controller
 {
@@ -2490,7 +2491,7 @@ class MarketingController extends Controller
         $encode_input   = preg_replace('/ /', '\u0020', $jemaah_name);
 
         if(!empty($jemaah_name)) {
-            $get_data       = Http::get($host . "/api/umhaj/member/list?jemaah=" . $jemaah_name);
+            $get_data       = Http::get($host . "/api/umhaj/member/list?jemaah=" . $encode_input);
             if($get_data->status() >= 200 && $get_data->status() < 300) {
                 $output     = [
                     "status"        => $get_data->status(),
@@ -2529,7 +2530,7 @@ class MarketingController extends Controller
             $output     = [
                 "success"   => true,
                 "status"    => 200,
-                "message"   => "Berhasil Update Data Agent Activity",
+                "message"   => "Berhasil Merubah Data Jemaah",
                 "data"      => [],
             ];
         } else if($do_simpan['status'] == 'gagal') {
@@ -2537,6 +2538,35 @@ class MarketingController extends Controller
                 "success"   => true,
                 "status"    => 200,
                 "message"   => $do_simpan['errMsg'],
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : AMBIL DATA JEMAAH DI AGENT ACTIVITY
+    public function marketing_agent_ambil_data_agent_act_jemaah(Request $request)
+    {
+        $data_cari  = [
+            "tour_code" => $request->all()['tour_code'],
+            "agent_id"  => $request->all()['agent_id'],
+        ];
+
+        $get_data   = MarketingService::get_data_agent_act_jemaah($data_cari);
+
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Agent Activity Jemaah",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal Mengambil Data Agent Activity Jemaah",
                 "data"      => [],
             ];
         }

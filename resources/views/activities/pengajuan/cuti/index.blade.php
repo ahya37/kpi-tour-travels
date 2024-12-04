@@ -17,16 +17,11 @@
 @section('content')
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="card shadow mb-5">
-            <div class="card-header">
-                <h4 class="no-margins">Table List Pengajuan Cuti / Izin / Tidak Masuk Kerja</h4>
+            <div class="card-header d-flex flex-row align-items-center justify-content-between">
+                <h4 class="no-margins"><label class="no-margins">Table List Pengajuan Cuti / Izin / Tidak Masuk Kerja</label></h4>
+                <button class="btn btn-primary" onclick="showModal('modal_pengajuan', 'add')"><i class="fa fa-plus"></i> Buat Pengajuan</button>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-12">
-                        <button class="btn btn-primary" onclick="showModal('modal_pengajuan', 'add')">Buat Pengajuan</button>
-                    </div>
-                </div>
-                <hr>
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="table-responsive">

@@ -23,7 +23,9 @@
             <div class="card-header">
                 <div class="d-flex flex-row align-items-center justify-content-between">
                     <h4 class="no-margins">List Pengajuan Lembur</h4>
-                    <button class="btn btn-primary font-weight-bold" onclick="showModal('modal_buat_lemburan','')" title="Buat Pengajuan Lembur">Buat Pengajuan Lembur</button>
+                    <button class="btn btn-primary" onclick="showModal('modal_buat_lemburan','')" title="Buat Pengajuan Lembur">
+                        <i class="fa fa-plus"></i> Buat Lemburan
+                    </button>
                 </div>
             </div>
             <div class="card-body">
@@ -49,8 +51,7 @@
                                         <th class="text-center align-middle" style="width: 5%">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>

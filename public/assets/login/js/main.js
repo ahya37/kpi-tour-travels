@@ -11,8 +11,15 @@ $(function() {
 // 	  }
 // 	});
 
-	var email 	= $("#email").val();
-	var pass 	= $("#password").val();
+	console.log('Hey, You Found Me!');
+	let email 	= $("#email").val();
+	let pass 	= $("#password").val();
+
+	$("#email").focus();
+
+	setTimeout(()	=> {
+		$(".first").addClass('field--not-empty');
+	}, 10);
 
 	if(email != '') {
 		$(".first").addClass('field--not-empty');
@@ -53,6 +60,21 @@ $(function() {
 	$("#password").on('blur', () => {
 		if($("#password").val() == '') {
 			$(".last").removeClass('field--not-empty');
+		}
+	});
+
+	$("#form_login").on('submit', () => {
+		if($("#email").val() == '') {
+			$("#error_msg").html('Email Tidak Boleh Kosong');
+			$("#email").focus();
+			return false;
+		} else if($("#password").val() == '') {
+			$("#error_msg").html('Password Tidak Boleh Kosong');
+			$("#password").focus();
+			return false;
+		} else {
+			$("#error_msg").html('');
+			return true;
 		}
 	})
 });

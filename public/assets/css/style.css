@@ -9844,3 +9844,7 @@ body.md-skin {
     margin: 0;
   }
 }
+
+*:disabled {
+  cursor: no-drop;
+}
