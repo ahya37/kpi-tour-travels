@@ -1903,4 +1903,14 @@ class MarketingService
         
         return $query;
     }
+
+    // 4 DESEMBER 2024
+    // NOTE : AMBIL TOUR CODE
+    public static function cari_data_tour_code($keyword)
+    {
+        $query      = DB::table('programs_jadwal')
+                        ->where('jdw_tour_code', 'like', '%'.$keyword.'%')
+                        ->get();
+        return $query;
+    }
 }

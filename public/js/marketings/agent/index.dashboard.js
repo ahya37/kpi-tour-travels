@@ -293,15 +293,42 @@ function showSelect(idSelect, data, value, seq)
 
         $("#"+idSelect).html(html);
     } else if(idSelect == 'agt_tourCode') {
-        let html    = "<option selected disabled>Pilih Tour Code</option>";
-
-        if(data.length > 0) {
-            $.each(data, (i, item)  => {
-                html    += `<option value=${item['tour_code']}>${item['tour_code']}</option>`
-            })
-        }
-
-        $("#"+idSelect+seq).html(html);
+        let base_url    = window.location.origin;
+        $("#"+idSelect+""+seq).select2({
+            theme   : 'bootstrap4',
+            minimumInputLength  : 3,
+            ajax    : {
+                url     : base_url + "/marketings/agent/tour_code",
+                delay   : 250,
+                data    : (params)  => {
+                    return {
+                        search  : params.term || '',
+                    }
+                },
+                processResults  : (data) => {
+                    return {
+                        results     : data.data.map((item)  => {
+                            return {
+                                id      : item.jdw_tour_code,
+                                text    : item.jdw_tour_code
+                            }
+                        })
+                    }
+                },
+                error   : (err) => {
+                    console.log(err);
+                }
+            }
+        });
+        
+        // CODE LAMA
+        // let html    = "<option selected disabled>Pilih Tour Code</option>";
+        // if(data.length > 0) {
+        //     $.each(data, (i, item)  => {
+        //         html    += `<option value=${item['tour_code']}>${item['tour_code']}</option>`
+        //     })
+        // }
+        // $("#"+idSelect+seq).html(html);
 
         if(value != '') {
             $("#"+idSelect+seq).val(value);
@@ -633,7 +660,7 @@ function addColumnTable(idTable, seq, data)
         let inputNo         = "<input type='text' class='form-control text-center' id='agt_no"+ke+"' disabled placeholder='No' style='height: 38px;'>";
         let inputPeriode    = `<select class="form-control" id="agt_periode${ke}" style="width: 100%;"></select>`;
         let inputTanggal    = "<input type='text' class='form-control' id='agt_tgl"+ke+"' placeholder='DD/MM/YYY' readonly style='height: 38px;' title='Hanya 2 Tahun'>";
-        let inputTourCode   = "<select class='form-control' style='width: 100%;' id='agt_tourCode"+ke+"'></select>";
+        let inputTourCode   = "<select class='form-control' style='width: 100%;' id='agt_tourCode"+ke+"' data-placeholder='Pilih Tour Code'></select>";
         let inputBanyaknya  = "<input type='number' inputmode='numeric' class='form-control' id='agt_banyaknya"+ke+"' placeholder='Banyaknya' min='0' max='999' step='1' style='height: 38px;'>";
         let inputJenis      = "<select class='form-control' style='width: 100%;' id='agt_jenis"+ke+"' onchange='showSelectDetail(`agt_jenis`, this.value, `"+ke+"`)'></select>";
         let inputAksi       = `<button class="btn btn-sm btn-primary" title="Simpan Data" value='add' onclick="doSimpanData('${idTable}', this.value, '${ke}')" id="btn_act_agen${ke}"><i class="fa fa-check"></i></button>`

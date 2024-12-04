@@ -2573,4 +2573,31 @@ class MarketingController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 14 DESEMBER 2024
+    // NOTE : CARI TOUR CODE BERDASARKAN KEYWORD
+    public function marketing_agent_cari_tour_code(Request $request)
+    {
+        $keyword    = strtoupper($request->all()['search']);
+        
+        $get_data   = MarketingService::cari_data_tour_code($keyword);
+
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   =>  "Keyword " . $keyword . " Ditemukan",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Keyword " . $keyword . " Tidak Ditemukan",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }
