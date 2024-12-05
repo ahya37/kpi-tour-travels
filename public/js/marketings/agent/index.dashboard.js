@@ -245,6 +245,13 @@ function showModal(idModal, data, action)
     } else if(idModal == 'modal_pengaturan_periode_form') {
         $("#"+idModal).collapse('toggle');
 
+        $("#"+idModal).on('hidden.bs.collapse', () => {
+            $("#btn_pengaturan_agent_form_tambah").val(1);
+            $("#btn_pengaturan_agent_form_simpan").val('');
+            $("#periode_id").val(null);
+            $("#btn_pengaturan_agent_form_buka").prop('disabled', false);
+        })
+
         $("#btn_pengaturan_agent_form_simpan").val(action);
         if(action == 'edit') {
             $("#btn_pengaturan_agent_form_buka").prop('disabled', true);
