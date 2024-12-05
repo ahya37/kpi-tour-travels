@@ -2,15 +2,23 @@ var today       = moment().format('YYYY-MM-DD');
 var baseURL     = window.location.origin;
 var dataTahun   = [] 
 
-for(let i = 0; i < 10; i++)
+for(let i = 0; i < 5; i++)
 {
     let tahun   = moment(today, 'YYYY-MM-DD').subtract(i, 'years').year();
     dataTahun.push(tahun);
 }
 
+for(let i = 0; i < 5; i++) {
+    let tahun   = moment(today, 'YYYY-MM-DD').add(i, 'years').year();
+    dataTahun.push(tahun);
+}
+
+let dataTahunFormat     = [...new Set(dataTahun)];
+var dataTahunFinal      = dataTahunFormat.sort((a, b)   => moment(b) - moment(a))
+
 $(document).ready(() => {
     // SHOW SELECT
-    showSelect('filter_tahun_umhaj', dataTahun, moment().year());
+    showSelect('filter_tahun_umhaj', dataTahunFinal, moment().year());
     // GET DATA
     let umrah_URL   = "tarik_data/umhaj/data_jadwal_umrah";
     let umrah_type  = "GET";
