@@ -1913,4 +1913,122 @@ class MarketingService
                         ->get();
         return $query;
     }
+
+    // 05 DESEMBER 2024
+    // NOTE : AMBIL DATA MASTER PERIODE AGENT
+    public static function get_master_agent_periode($periode_id)
+    {
+        $query      = DB::table('agent_master_periode')
+                        ->where('prd_id', 'like', '%'.$periode_id.'%')
+                        ->get();
+        return $query;
+    }
+
+    // NOTE : SIMPAN DATA MASTER PERIODE AGENT
+    public static function do_simpan_master_agent_peridoe($data)
+    {
+        $ip_address     = $data['ip_address'];
+        $user_id        = $data['user_id'];
+        $jenis          = $data['jenis'];
+        $data_periode   = $data['data'];
+        $periode_id     = $data['data_id'];
+        $today          = date('Y-m-d H:i:s');
+
+        DB::beginTransaction();
+
+        if($jenis == "add") {
+            if(count($data_periode) > 0) {
+                // GET ID
+                $get_id_periode     = DB::table('agent_master_periode')
+                                        ->select('prd_id')
+                                        ->orderBy('prd_id', 'desc')
+                                        ->limit(1)
+                                        ->get();
+                if(count($get_id_periode) < 1) {
+                    $id_periode     = "P001";
+                } else {
+                    $last_periode_id= $get_id_periode[0]->prd_id;
+                    $last_number_id = (int)substr($last_periode_id, 1, 3);
+                    
+                    $id_periode     = "P".str_pad($last_number_id + 1, 3, 0, STR_PAD_LEFT);
+                }
+
+                // DO SIMPAN
+                for($i = 0; $i < count($data_periode); $i++) {
+                    $data_simpan  = [
+                        "prd_id"    => $id_periode,
+                        "prd_year"  => $data_periode[$i]['tahun'],
+                        "created_by"=> $user_id,
+                        "created_at"=> $today,
+                    ];
+
+                    DB::table('agent_master_periode')->insert($data_simpan);
+                }
+
+                try {
+                    DB::commit();
+                    LogHelper::create('add', 'Berhasil Menambahkan Data Master Periode id : ' . $id_periode, $ip_address);
+                    $output     = [
+                        "status"    => "berhasil",
+                        "errMsg"    => "",
+                        "message"   => "Berhasil Menambahkan Data Master Periode Baru",
+                    ];
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::channel('daily')->error($e->getMessage());
+                    LogHelper::create('error_system', 'Gagal Menambahkan Data Master Periode', $ip_address);
+
+                    $output     = [
+                        "status"    => "gagal",
+                        "errMsg"    => $e->getMessage(),
+                        "message"   => "Gagal Menambahkan Data Master Periode",
+                    ];
+                }
+            }
+        } else if($jenis == 'edit') {
+            // DELETE DATA LAMA
+            $delete_where   = [
+                'prd_id'    => $periode_id,
+            ];
+            DB::table('agent_master_periode')->where($delete_where)->delete();
+
+            // INSERT DATA BARU
+            for($i = 0; $i < count($data_periode); $i++) {
+                if($data_periode[$i]['tahun'] != '') {
+                    $data_simpan    = [
+                        "prd_id"    => $periode_id,
+                        "prd_year"  => $data_periode[$i]['tahun'],
+                        "created_by"=> $user_id,
+                        "created_at"=> $today,
+                    ];
+
+                    DB::table('agent_master_periode')->insert($data_simpan);
+                }
+            }
+
+            try {
+                DB::commit();
+                LogHelper::create('add', 'Berhasil Merubah Data Master Periode id : '.$periode_id, $ip_address);
+
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => "",
+                    "message"   => "Berhasil Merubah Data Master Periode",
+                ];
+                
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', 'Gagal Mengubah Data Master Periode', $ip_address);
+
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                    "message"   => "Gagal Mengubah Data Master Periode",
+                ];
+            }
+        }
+
+        return $output;
+    }
 }

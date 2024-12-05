@@ -194,6 +194,11 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/ambil_agent_act_jemaah', [MarketingController::class, 'marketing_agent_ambil_data_agent_act_jemaah']);
                 Route::post('/simpan_member_umhaj/{jenis}', [MarketingController::class, 'marketing_agent_simpan_data_member']);
             });
+
+            Route::prefix('master')->group(function(){
+                Route::get('/periode', [MarketingController::class, 'marketing_master_agent_periode'])->name('marketing.masterAgent.periode');
+                Route::post('/simpan_periode/{jenis}', [MarketingController::class, 'marketing_master_agent_periode_trans']);
+            });
         });
         
     });

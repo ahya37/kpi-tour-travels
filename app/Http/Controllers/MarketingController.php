@@ -2574,7 +2574,7 @@ class MarketingController extends Controller
         return Response::json($output, $output['status']);
     }
 
-    // 14 DESEMBER 2024
+    // 04 DESEMBER 2024
     // NOTE : CARI TOUR CODE BERDASARKAN KEYWORD
     public function marketing_agent_cari_tour_code(Request $request)
     {
@@ -2595,6 +2595,64 @@ class MarketingController extends Controller
                 "status"    => 404,
                 "message"   => "Keyword " . $keyword . " Tidak Ditemukan",
                 "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 05 DESEMBER 2024
+    // NOTE : AMBIL LIST PERIODE MASTER
+    public function marketing_master_agent_periode(Request $request)
+    {
+        $periode_id = $request->all()['periode_id'] == "" ? "%" : $request->all()['periode_id'];
+        $get_data   = MarketingService::get_master_agent_periode($periode_id);
+        
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Memuat Data Master Periode Agent",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "mesasge"   => "Tidak Ada Data Master Periode Agent",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : SIMPAN DATA PERIODE FORM
+    public function marketing_master_agent_periode_trans($jenis, Request $request)
+    {
+        $data_kirim     = [
+            "jenis"     => $jenis,
+            "data_id"   => $request->all()['periode_id'],
+            "data"      => $request->all()['data'],
+            "user_id"   => Auth::user()->id,
+            "ip_address"=> $request->ip(),
+        ];
+
+        $do_simpan  = MarketingService::do_simpan_master_agent_peridoe($data_kirim);
+
+        if($do_simpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => $do_simpan['message'],
+                "data"      => [],
+            ];
+        } else if($do_simpan['status']  == 'gagal') {
+            $output     = [
+                "success"   => false,
+                "status"    => 501,
+                "message"   => $do_simpan['message'],
+                "data"      => []
             ];
         }
 

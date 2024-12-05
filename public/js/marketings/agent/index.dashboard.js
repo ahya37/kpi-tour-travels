@@ -51,12 +51,16 @@ $(document).ready(()    => {
 
             // REWARD AGENT
             $("#dashboard_total_reward_agent").html(0);
+
+            // SHOW PERIODE
+            $("#periode_curr").html(moment(today).year());
         })
         .catch((err)        => {
             $("#agent_text").html("<label class='font-weight-bold no-margins'>0</label>");
             $("#dashboard_total_agent").html(0);
             $("#dashboard_total_aktivitas").html(0);
             $("#dashboard_total_reward_agent").html(0);
+            $("#periode_curr").html(moment(today).year());
             console.error(err);
         })
 })
@@ -210,6 +214,67 @@ function showModal(idModal, data, action)
         // FILL
         $("#modal_pengaturan_agent_jemaah_tour_code").html(data.split("&")[0]);
         $("#tour_code_jemaah").val(`${tourCode} | ${tourSeq}`);
+    } else if(idModal == 'modal_pengaturan_periode') {
+        // SHOW TITLE
+        $("#modal_pengaturan_periode_title").html('Master Pengaturan Periode Agent');
+
+        // GET DATA
+        let periode_url     = "marketings/agent/master/periode";
+        let periode_data    = {
+            "periode_id"    : "",
+        };
+        let periode_type    = "GET";
+        let periode_msg     = Swal.fire({ title : 'Sedang Mengambil Data Periode' }); Swal.showLoading();
+
+        doTransaction(periode_url, periode_type, periode_data, periode_msg, true)
+            .then((success)     => {
+                Swal.close();
+                // GET DATA
+                let periode_getData     = success.data;
+                // SHOW MODAL
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                showTable('table_pengaturan_periode', periode_getData);
+                $("#table_pengaturan_periode").find('.dataTables_empty').text('Data Berhasil Dimuat');
+            })
+            .catch((err)        => {
+                Swal.close();
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                showTable('table_pengaturan_periode', []);
+                $("#table_pengaturan_periode").find('.dataTables_empty').text('Tidak Ada Data');
+            })
+    } else if(idModal == 'modal_pengaturan_periode_form') {
+        $("#"+idModal).collapse('toggle');
+
+        $("#btn_pengaturan_agent_form_simpan").val(action);
+        if(action == 'edit') {
+            $("#btn_pengaturan_agent_form_buka").prop('disabled', true);
+        } else {
+            $("#btn_pengaturan_agent_form_buka").prop('disabled', false);
+        }
+
+        if(data != '') {
+            $("#periode_id").val(data);
+            
+            let periode_url     = "marketings/agent/master/periode";
+            let periode_type    = "GET";
+            let periode_data    = {
+                "periode_id"    : data,
+            };
+            let periode_msg     = Swal.fire({ title : "Data Sedang Dimuat" }); Swal.showLoading();
+            
+            doTransaction(periode_url, periode_type, periode_data, periode_msg, true)
+                .then((success)     => {
+                    Swal.close();
+                    let periode_getData     = success.data;
+                    showTable('table_pengaturan_agent_form', periode_getData);
+                })
+                .catch((err)        => {
+                    Swal.close();
+                    showTable('table_pengaturan_agent_form', []);
+                })
+        } else {
+            showTable('table_pengaturan_agent_form', []);
+        }
     }
 }
 
@@ -270,6 +335,23 @@ function closeModal(idModal)
         $("#"+idModal).on('hidden.bs.modal', () => {
             $("#modal_pengaturan_agent_jemaah_tour_code").html("");
             $("#btn_tambah_baris_pengaturan_agent_jemaah").val(1);
+        })
+    } else if(idModal == 'modal_pengaturan_periode') {
+        $("#"+idModal).modal('hide');
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#table_pengaturan_periode").DataTable().clear().destroy();
+            $("#modal_pengaturan_periode_title").html("");
+            closeModal('modal_pengaturan_periode_form');
+        })
+    } else if(idModal == 'modal_pengaturan_periode_form') {
+        $("#"+idModal).collapse('hide');
+
+        $("#"+idModal).on('hidden.bs.collapse', () => {
+            $("#btn_pengaturan_agent_form_tambah").val(1);
+            $("#btn_pengaturan_agent_form_simpan").val('');
+            $("#periode_id").val(null);
+            $("#btn_pengaturan_agent_form_buka").prop('disabled', false);
         })
     }
 }
@@ -602,6 +684,89 @@ function showTable(idTable, data)
         } else {
             addColumnTable(idTable, currentSeq, "");
         }
+    } else if(idTable == 'table_pengaturan_periode') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : `<i class="fa fa-spinner fa-spin"></i> Data Sedang Dimuat`,
+                zeroRecords : `Data Yang Dicari Tidak Ditemukan`,
+            },
+            pageLength  : 5,
+            lengthMenu  : [
+                [5, 10, 25, 50, -1],
+                [5, 10, 25, 50, 'Semua'],
+            ],
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [1], "className" : "text-center align-middle", "width" : "18%" },
+                { "targets" : [2], "className" : "align-middle" },
+                { "targets" : [3], "className" : "text-center align-middle", "width" : "10%" },
+            ],
+        })
+
+        if(data.length > 0) {
+            let result  = Object.values(data.reduce((acc, curr) => {
+                if(!acc[curr.prd_id]) {
+                    acc[curr.prd_id] = { 'periode_id' : curr.prd_id, 'tahun' : curr.prd_year };
+                } else {
+                    acc[curr.prd_id].tahun += ", " + curr.prd_year;
+                }
+
+                return acc;
+            }, {}))
+
+            if(result.length > 0) {
+                let seq = 1;
+                for(const item of result) {
+                    let ke          = seq++;
+                    let periodeID   = item['periode_id'];
+                    let periodeYear = item['tahun'];
+
+                    $("#"+idTable).DataTable().row.add([
+                        `<label class="no-margins font-weight-normal">${ke}</label>`,
+                        `<label class="no-margins font-weight-normal">Periode ${parseInt(periodeID.substring(1, 4))}</label>`,
+                        `<label class="no-margins font-weight-normal">${periodeYear}</label>`,
+                        `<button class="btn btn-sm btn-primary" value="${periodeID}" onclick="showModal('modal_pengaturan_periode_form', '${periodeID}', 'edit')"><i class="fa fa-edit"></i></button>`,
+                    ]).draw(false);
+                }
+            }
+            $(".dataTables_empty").html('Berhasil Memuat Data');
+        }
+
+        $("#"+idTable+"_wrapper").css('padding-bottom', '0px');
+    } else if(idTable == 'table_pengaturan_agent_form') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : "Tidak Ada Data Yang Bisa Ditampilkan, Silahkan Klik Tombol 'Tambah Data'",
+            },
+            searching   : false,
+            pageLength  : -1,
+            paging      : false,
+            ordering    : false,
+            bInfo       : false,
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [1], "className" : "text-center align-middle", "width" : "15%" },
+                { "targets" : [2], "className" : "align-middle" },
+            ],
+        });
+
+        if(data.length > 0) {
+            let seq     = 1;
+            for(const item of data)
+            {
+                addColumnTable(idTable, parseInt(seq++), item);
+            }
+            addColumnTable(idTable, parseInt(seq), '');
+        } else {
+            let seq     = $("#btn_pengaturan_agent_form_tambah").val();
+            addColumnTable(idTable, parseInt(seq), '');
+        }
+
+        $("#table_pengaturan_agent_form_wrapper").css('padding-bottom', '0px');
     }
 }
 
@@ -797,6 +962,32 @@ function addColumnTable(idTable, seq, data)
         // GET NEXT SEQ FOR BUTTON
         let nextKe  = parseInt(seq) + 1;
         $("#btn_tambah_baris_pengaturan_agent_jemaah").val(nextKe);
+    } else if(idTable == 'table_pengaturan_agent_form') {
+        let ke  = seq;
+        let inputButtonDelete   = `<button type='button' class='btn btn-sm btn-danger' id='periodeBtnDelete${ke}' title='Hapus Baris' onclick="deleteColumnTable('${idTable}', '${ke}')"><i class='fa fa-trash'></i></button>`;
+        let inputSeq            = `<input type='text' class='form-control text-center' placeholder='Seq' id='periodeSeq${ke}' disabled>`;
+        let inputYear           = `<input type='number' class='form-control' placeholder='Tahun' id='periodeYear${ke}'>`;
+
+        $("#"+idTable).DataTable().row.add([
+            inputButtonDelete,
+            inputSeq,
+            inputYear,
+        ]).draw(false);
+
+        $("#periodeSeq"+ke).val(ke);
+        $("#periodeYear"+ke).on('keyup', (e) => {
+            if(e.key === 'Enter' || e.keyCode === 13) {
+                addColumnTable(idTable, parseInt(ke) + 1, '');
+            }
+        })
+        if(data != '') {
+            $("#periodeYear"+ke).val(data['prd_year']);
+        } else if(data == '' && parseInt(ke) > 1) {
+            $("#periodeYear"+ke).focus();
+        }
+        
+        let nextKe  = parseInt(ke) + 1;
+        $("#btn_pengaturan_agent_form_tambah").val(nextKe);
     }
 }
 
@@ -901,6 +1092,30 @@ function deleteColumnTable(idTable, seq)
                 $("#"+idTable).DataTable().row(selectedSeq - 1).remove().draw(false);
                 $("#btn_tambah_baris_pengaturan_agent_jemaah").val(currentSeq - 1);
                 $("#namaJemaah"+(selectedSeq - 1)).focus();
+            }
+        }
+    } else if(idTable == 'table_pengaturan_agent_form') {
+        let currentSeq  = parseInt($("#btn_pengaturan_agent_form_tambah").val());
+        let selectedSeq = parseInt(seq);
+        let diffSeq     = currentSeq - selectedSeq;
+
+        if(selectedSeq == 1) {
+            Swal.fire({
+                icon    : 'error',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Baris Pertama Tidak Bisa Dihapus',
+            })
+        } else {
+            if(diffSeq != 1) {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Hanya Bisa Menghapus Baris Terakhir',
+                })
+            } else {
+                $("#"+idTable).DataTable().row(selectedSeq - 1).remove().draw(false);
+                $("#btn_pengaturan_agent_form_tambah").val(currentSeq - 1);
+                $("#periodeYear"+(selectedSeq - 1)).focus();
             }
         }
     }
@@ -1459,6 +1674,66 @@ function doSimpanData(idForm, jenis, data)
                     })
                 })    
         }
+    } else if(idForm == 'modal_pengaturan_periode_form') {
+        let totalDataTable  = $("#table_pengaturan_agent_form").DataTable().rows().count();
+        let sendData        = [];
+        
+        for(let i = 0; i < totalDataTable; i++) {
+            let seq     = i + 1;
+            let periode = $("#periodeYear"+seq);
+
+            let data    = {
+                "seq"   : seq,
+                "tahun" : periode.val(),
+            }
+
+            sendData.push(data);
+        }
+
+        let periodeForm_URL     = "marketings/agent/master/simpan_periode/"+jenis;
+        let periodeForm_type    = "POST";
+        let periodeForm_data    = { "periode_id" : $("#periode_id").val(), "data" : sendData, };
+        let periodeForm_message = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+
+        doTransaction(periodeForm_URL, periodeForm_type, periodeForm_data, periodeForm_message, true)
+            .then((success)     => {
+                Swal.fire({
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : success.message,
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        closeModal('modal_pengaturan_periode_form');
+                        showTable('table_pengaturan_periode', []);
+                        // GET DATA PERIODE
+                        let periode_url     = "marketings/agent/master/periode";
+                        let periode_type    = "GET";
+                        let periode_data    = {
+                            "periode_id"    : "",
+                        };
+                        let periode_msg     = "";
+
+                        doTransaction(periode_url, periode_type, periode_data, periode_msg, true)
+                            .then((success)     => {
+                                let periode_getData     = success.data;
+                                showTable('table_pengaturan_periode', periode_getData);
+                                $("#table_pengaturan_periode").find('.dataTables_empty').text('Berhasil Memuat Data');
+                            })
+                            .catch((err)    => {
+                                showTable('table_pengaturan_periode', []);
+                                $("#table_pengaturan_periode").find('.dataTables_empty').text('Tidak Ada Data Yang Bisa Dimuat');
+                            })
+
+                    }
+                })
+            })
+            .catch((err)        => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : err.responseJSON.message,
+                })
+            })
     }
 }
 
