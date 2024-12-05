@@ -558,7 +558,7 @@
                     </div>
                     <div class="collapse mt-2" id="modal_pengaturan_periode_form">
                         <div class="card card-body">
-                            <input type="text" class="form-control" id="periode_id" placeholder="Periode ID" readonly>
+                            <input type="hidden" class="form-control" id="periode_id" placeholder="Periode ID" readonly>
                             <div class="table-responsive">
                                 <table class="table table-sm table-striped" id="table_pengaturan_agent_form" style="width: 100%;">
                                     <thead>
@@ -571,7 +571,7 @@
                                 </table>
                             </div>
                             <hr>
-                            <div class="row">
+                            <div class="row align-items-center">
                                 <div class="col-sm-6">
                                     <small>Note : Tombol <b>'Enter'</b> bisa untuk menambah baris</small>
                                 </div>

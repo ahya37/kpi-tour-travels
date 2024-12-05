@@ -1920,6 +1920,7 @@ class MarketingService
     {
         $query      = DB::table('agent_master_periode')
                         ->where('prd_id', 'like', '%'.$periode_id.'%')
+                        ->orderBy('prd_id', 'desc')
                         ->get();
         return $query;
     }
