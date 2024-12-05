@@ -331,7 +331,7 @@ function showSelect(idSelect, data, value, seq)
         // $("#"+idSelect+seq).html(html);
 
         if(value != '') {
-            $("#"+idSelect+seq).val(value);
+            $("#"+idSelect+seq).html(`<option value="${value}">${value}</option>`);
         }
     } else if(idSelect == 'agt_jenis') {
         let html    = "<option selected disabled>Jenis</option>";
