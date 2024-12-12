@@ -2196,7 +2196,7 @@ class DivisiService
         $pgj_end_date   = $data['data']['pgj_date_end'];
         $pgj_type       = $data['data']['pgj_type'];
         $pgj_status     = $data['data']['pgj_status'];
-        $pgj_note       = $data['data']['pgj_note'];
+        $pgj_note       = $data['data']['pgj_note'] ?? '';
         $ip             = $data['ip'];
         
         if($pgj_status == "3")
@@ -2995,5 +2995,16 @@ class DivisiService
         }
 
         return $output;
+    }
+    // 11 DESEMBER 2024
+    // NOTE : AMBIL JAM KERJA PER TODAY
+    public static function get_data_jam_kerja()
+    {
+        $query  = DB::table('v_master_hour')
+                    ->orderBy('date_start', 'desc')
+                    ->orderBy('day_num', 'asc')
+                    ->get();
+
+        return $query;
     }
 }
