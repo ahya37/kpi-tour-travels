@@ -28,7 +28,6 @@ $(document).ready(function() {
 
     Promise.allSettled(getData)
         .then((success)     => {
-            console.log(success);
             let dataJamKerja    = success[0].status == 'fulfilled' ? success[0].value.data : [];
             showTable('table_jam_kerja', dataJamKerja, '');
             
