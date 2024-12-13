@@ -28,25 +28,16 @@ $(document).ready(function() {
 
     Promise.allSettled(getData)
         .then((success)     => {
+            console.log(success);
             let dataJamKerja    = success[0].status == 'fulfilled' ? success[0].value.data : [];
             showTable('table_jam_kerja', dataJamKerja, '');
-            $("#table_jam_kerja").find('.dataTables_empty').html(`Data Berhasil Dimuat`);
-
+            
+            showCurrentJamKerja(dataJamKerja);
             // SHOW CURRENT_TIME
             $("#current_time_loading").addClass('d-none');
             $("#current_time_loading").removeClass('d-flex flex-column align-items-center');
             $("#current_time").removeClass('d-none');
             $("#current_time").addClass('d-flex flex-row align-items-center justify-content-between');
-
-            let date    = moment('2024-12-12', 'YYYY-MM-DD');
-            const getCurrentDate    = dataJamKerja.find(item => moment(item.date_start).isBefore(moment('2024-12-12')));
-            console.log(getCurrentDate.data_clock);
-            for(let i = 0; i < getCurrentDate.data_clock.length; i++)
-            {
-                let ke  = i + 1;
-                $("#day"+ke).html(`(${getCurrentDate.data_clock[i].clock_in} s/d ${getCurrentDate.data_clock[i].clock_out})`);
-                $("#day_"+ke+"_mobile").html(`${getCurrentDate.data_clock[i].clock_in} s/d ${getCurrentDate.data_clock[i].clock_out}`);
-            } 
         })
         .catch((err)        => {
             console.log(err);
@@ -155,6 +146,27 @@ function showDate(type, idForm, data)
                 $("#"+idForm).val('');
             }
         });
+    }
+}
+
+function showCurrentJamKerja(data)
+{
+    if(data.length > 0) {
+        const getCurrentDate    = data.find(item => moment(item.date_start).isBefore(moment('2024-12-12')));
+        for(let i = 0; i < getCurrentDate.data_clock.length; i++)
+        {
+            let ke  = i + 1;
+            $("#day"+ke).html(`(${getCurrentDate.data_clock[i].clock_in} s/d ${getCurrentDate.data_clock[i].clock_out})`);
+            $("#day_"+ke+"_mobile").html(`${getCurrentDate.data_clock[i].clock_in} s/d ${getCurrentDate.data_clock[i].clock_out}`);
+        }
+        $("#table_jam_kerja").find('.dataTables_empty').html(`Data Berhasil Dimuat`);
+    } else {
+        $("#table_jam_kerja").find('.dataTables_empty').html(`Tidak Ada Data Jam Kerja`);
+        for(let i = 0; i < 7; i++) {
+            let ke  = i + 1;
+            $("#day"+ke).html('Tidak Ada Jadwal');
+            $("#day_"+ke+"_mobile").html('Tidak Ada Jadwal');
+        }
     }
 }
 
@@ -292,12 +304,13 @@ function doSimpan(idForm, type)
                             doTransaction(getJamKerja.url, getJamKerja.type, getJamKerja.data, '')
                                 .then((success) => {
                                     let dataJamKerja    = success.data;
-                                    console.log(dataJamKerja);
                                     showTable('table_jam_kerja', dataJamKerja, '');
+                                    showCurrentJamKerja(dataJamKerja);
                                     $("#table_jam_kerja").find('.dataTables_empty').html(`Data Berhasil Dimuat`);
                                 })
                                 .catch((err)    => {
                                     showTable('table_jam_kerja', [], '');
+                                    showCurrentJamKerja([]);
                                     $("#table_jam_kerja").find('.dataTables_empty').html(`Data Gagal Dimuat`);
                                 })
                         }
