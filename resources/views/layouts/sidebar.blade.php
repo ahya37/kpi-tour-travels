@@ -95,7 +95,14 @@
                     <li class="{{ request()->is('divisi/digital') || request()->is('divisi/operasional/*') ? 'active' : '' }}"><a href="#">Digital</a></li>
                     <li class="{{ request()->is('divisi/operasional') || request()->is('divisi/operasional/*') ? 'active' : '' }}"><a href="{{ route('index.operasional') }}">Operasional</a></li>
                     <li class="{{ request()->is('divisi/finance') || request()->is('divisi/finance/*') ? 'active' : '' }}"><a href="{{ route('index.finance') }}">Finance</a></li>
-                    <li class="{{ request()->is('divisi/human_resource') ? 'active' : '' }}"><a href="{{ route('index.human_resouce') }}">HR</a></li>
+                    {{-- <li class="{{ request()->is('divisi/human_resource') ? 'active' : '' }}"><a href="{{ route('index.human_resouce') }}">HR</a></li> --}}
+                    <li class="{{ request()->is('divisi/human_resource') || request()->is('divisi/human_resource/*') ? 'active' : '' }}">
+                        <a href="#">HR <span class="fa arrow"></span></a>
+                        <ul class="nav nav-third-level">
+                            <li class="{{ request()->is('divisi/human_resource/dashboard') ? 'active' : '' }}"><a href="{{ route('index.human_resource.dashboard') }}">Dashboard</a></li>
+                            <li class="{{ request()->is('divisi/human_resource/jam_kerja') ? 'active' : '' }}"><a href="{{ route('index.human_resource.jam_kerja') }}">Setting Jam Kerja</a></li>
+                        </ul>
+                    </li>
                 </ul>
             </li>
 

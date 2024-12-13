@@ -203,7 +203,30 @@ function showModal(idModal, jenis, data)
                 console.log(err);
             })
     } else if(idModal == 'modal_emp') {
-        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        const openModal     = (idModal) => {
+            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        }
+        
+        // GET DATA KARYAWAN
+        let employee_URL        = base_url + "/divisi/human_resource/employee/list";
+        let employee_type       = "GET";
+        let employee_data       = {
+            "cari"  : '%',
+        };
+        let employee_msg        = Swal.fire({ title : "Data Sedang Dimuat", allowOutsideClick: false }); Swal.showLoading();
+        
+        doTrans(employee_URL, employee_type, employee_data, employee_msg, true)
+            .then((success)     => {
+                let employee_getData    = success.data;
+                Swal.close();
+                openModal(idModal);
+                showTable('table_emp', employee_getData);
+            })
+            .catch((err)        => {
+                Swal.close();
+                openModal(idModal);
+                showTable('table_emp', []);
+            })
 
         showTable('table_emp', '');
     } else if(idModal == 'modal_pgj_lmb') {
@@ -214,7 +237,7 @@ function showModal(idModal, jenis, data)
         let pgjLembur_URL   = base_url + "/pengajuan/lembur/list_lembur";
         let pgjLembur_type  = "GET";
         let pgjLembur_data  = {
-            "bulan"         : data ?? bulanSekarang,
+            "bulan"         : data || bulanSekarang,
         };
         let pgjLembur_msg   = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
 
@@ -507,31 +530,31 @@ function showTable(idTable, data)
             autoWidth   : false,
         });
 
-        // GET DATA
-        const emp_url   = base_url + "/divisi/human_resource/employee/list";
-        const emp_type  = "GET";
-        const emp_data  = {
-            "cari"  : '%',
-        };
+        if(data.length > 0) {
+            let seq = 1;
+            for(const emp of data)
+            {
+                let emp_id      = emp['emp_id'];
+                let emp_name    = emp['emp_name'];
+                let emp_division= emp['emp_division'];
+                let emp_role    = emp['emp_role'];
+                let emp_isActive= emp['emp_is_active'];
+                let emp_button  = emp_isActive == '1' ? `<button class="btn btn-sm btn-primary" value="${emp_id}" onclick="doSimpan('aktivasi', 'active', this.value)" title="Nonaktifkan akun ini?">Aktif</button>` : `<button class="btn btn-sm btn-danger" value="${emp_id}" onclick="doSimpan('aktivasi','deactive', this.value)" title="Aktifkan Akun ini?">Tidak Aktif</button>`;
 
-        doTrans(emp_url, emp_type, emp_data, "", true)
-            .then((success)     => {
-                const emp_getData   = success.data;
-                let seq = 0;
-                for(emp of emp_getData)
-                {
-                    $("#"+idTable).DataTable().row.add([
-                        seq++,
-                        emp.emp_name,
-                        emp.emp_division,
-                        emp.emp_role,
-                        emp.emp_is_active == '1' ? "<button class='btn btn-sm btn-primary' value='" + emp.emp_id + "' onclick='doSimpan(`aktivasi`, `active`, this.value)'>Aktif</button>" : "<button class='btn btn-sm btn-danger' value='" + emp.emp_id + "' onclick='doSimpan(`aktivasi`, `deactive`, this.value)'>Tidak Aktif</button>",
-                    ]).draw(false);
-                };
-            })
-            .catch((err)        => {
-                console.log(err);
-            })
+                $("#"+idTable).DataTable().row.add([
+                    `<label class="no-margins font-weight-normal">${seq++}</label>`,
+                    `<label class="no-margins font-weight-normal">${emp_name}</label>`,
+                    `<label class="no-margins font-weight-normal">${emp_division}</label>`,
+                    `<label class="no-margins font-weight-normal">${emp_role}</label>`,
+                    emp_button
+                ]).draw(false);
+            }
+            $("#"+idTable).find('.dataTables_empty').text('Ada Data');
+        } else {
+            $("#"+idTable).find('.dataTables_empty').text('Tidak Ada Data');
+        }
+
+        
     } else if(idTable == 'table_pgj_lmb') {
         $("#"+idTable).DataTable().clear().destroy();
         $("#"+idTable).DataTable({
@@ -844,49 +867,6 @@ function doSimpan(type, jenis, data)
                 case "tolak" :
                     console.log(data);
                     showModal('modal_pgj_tolak', '', data);
-                    // Swal.fire({
-                    //     icon    : 'question',
-                    //     title   : 'Tolak Pengajuan Ini?',
-                    //     showConfirmButton   : true,
-                    //     showCancelButton    : true,
-                    //     confirmButtonText   : 'Ya, Tolak',
-                    //     cancelButtonText    : 'Batal',
-                    //     confirmButtonColor  : '#ED5565',
-                    // }).then((res)   => {
-                    //     if(res.isConfirmed) {
-                    //         const pgj_sendData = {
-                    //             "pgj_id"        : data,
-                    //             "pgj_title"     : "",
-                    //             "pgj_date_start": "",
-                    //             "pgj_date_end"  : "",
-                    //             "pgj_type"      : "",
-                    //             "pgj_status"    : "2",
-                    //         };
-
-                    //         const pgj_url       = "/pengajuan/simpanCuti";
-                    //         const pgj_type      = "POST";
-                    //         const pgj_message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();                         
-                    //         doTrans(pgj_url, pgj_type, pgj_sendData, pgj_message, true)
-                    //             .then((success) => {
-                    //                 Swal.fire({
-                    //                     icon    : success.alert.icon,
-                    //                     title   : success.alert.message.title,
-                    //                     text    : success.alert.message.text,
-                    //                     didClose    : () => {
-                    //                         showTable('table_list_pengajuan', '');
-                    //                     }
-                    //                 })
-                    //             })
-                    //             .catch((err)    => {
-                    //                 console.log(err);
-                    //                 Swal.fire({
-                    //                     icon    : err.responseJSON.alert.icon,
-                    //                     title   : err.responseJSON.alert.message.title,
-                    //                     text    : err.responseJSON.alert.message.text,
-                    //                 });
-                    //             });
-                    //     }
-                    // })
                 break; 
                 case "konfirmasi_tolak" :
                     let pgjID   = $("#pgj_id").val();
@@ -942,33 +922,45 @@ function doSimpan(type, jenis, data)
             }
         break;
         case "aktivasi" :
-            const emp_url   = base_url + "/divisi/human_resource/employee/ubahStatus";
-            const emp_data  = {
-                "emp_id"    : data,
-                "emp_status": jenis,
-            };
-            const emp_type  = "POST";
-            const emp_msg   = Swal.fire({ title : 'Permintaan Sedang Diproses' });Swal.showLoading();
-            
-            doTrans(emp_url, emp_type, emp_data, emp_msg, true)
-                .then((success) => {
-                    Swal.fire({
-                        icon    : success.alert.icon,
-                        title   : success.alert.message.title,
-                        text    : success.alert.message.text,
-                    }).then((results)   => {
-                        if(results.isConfirmed) {
-                            showTable('table_emp', '');
-                        }
-                    })
-                })
-                .catch((err)    => {
-                    Swal.fire({
-                        icon    : err.responseJSON.alert.icon,
-                        title   : err.responseJSON.alert.message.title,
-                        text    : err.responseJSON.alert.message.text,
-                    })
-                });
+            Swal.fire({
+                icon    : 'question',
+                title   : jenis == 'active' ? 'Nonaktifkan Akun ini?' : 'Aktifkan Akun ini?',
+                showConfirmButton   : true,
+                showCancelButton    : true,
+                confirmButtonText   : jenis == 'active' ? 'Ya, Nonaktitkan' : 'Ya, Aktifkan',
+                confirmButtonColor  : jenis == 'active' ? "#ED5565" : "#1AB394",
+                cancelButtonText    : 'Batalkan',
+            }).then((res)   => {
+                if(res.isConfirmed) {
+                    const emp_url   = base_url + "/divisi/human_resource/employee/ubahStatus";
+                    const emp_data  = {
+                        "emp_id"    : data,
+                        "emp_status": jenis,
+                    };
+                    const emp_type  = "POST";
+                    const emp_msg   = Swal.fire({ title : 'Permintaan Sedang Diproses' });Swal.showLoading();
+                    
+                    doTrans(emp_url, emp_type, emp_data, emp_msg, true)
+                        .then((success) => {
+                            Swal.fire({
+                                icon    : success.alert.icon,
+                                title   : success.alert.message.title,
+                                text    : success.alert.message.text,
+                            }).then((results)   => {
+                                if(results.isConfirmed) {
+                                    showModal('modal_emp', '', '');
+                                }
+                            })
+                        })
+                        .catch((err)    => {
+                            Swal.fire({
+                                icon    : err.responseJSON.alert.icon,
+                                title   : err.responseJSON.alert.message.title,
+                                text    : err.responseJSON.alert.message.text,
+                            })
+                        });
+                }
+            })
         break;
         case "pengajuan_lembur" :
             switch(jenis) {
@@ -1015,45 +1007,6 @@ function doSimpan(type, jenis, data)
                 break;
                 case "tolak" :
                     showModal('modal_pgj_lmb_preview_tolak', '', '');
-                    // Swal.fire({
-                    //     icon    : 'question',
-                    //     title   : 'Konfirmasi Pengajuan?',
-                    //     showConfirmButton   : true,
-                    //     showCancelButton    : true,
-                    //     confirmButtonText   : 'Ya, Tolak',
-                    //     cancelButtonText    : 'Batal',
-                    //     confirmButtonColor  : '#ED5565',
-                    // }).then((results)   => {
-                    //     if(results.isConfirmed) {
-                    //         const pgj_lmb_url   = base_url + "/pengajuan/lembur/konfirmasi";
-                    //         const pgj_lmb_data  = {
-                    //             "emp_act_id"    : $("#pgj_lmb_act_id").val(),
-                    //             "emp_act_status": "2",
-                    //         };
-                    //         const pgj_lmb_type  = "PUT";
-                    //         const pgj_lmb_msg   = Swal.fire({ title : 'Data Sedang Diproses', allowOutsideClick: false }); Swal.showLoading();
-
-                    //         doTrans(pgj_lmb_url, pgj_lmb_type, pgj_lmb_data, pgj_lmb_msg, true)
-                    //             .then((success)     => {
-                    //                 Swal.fire({
-                    //                     icon    : success.alert.icon,
-                    //                     title   : success.alert.message.title,
-                    //                     text    : success.alert.message.text,
-                    //                 }).then((res)   => {
-                    //                     if(res.isConfirmed) {
-                    //                         closeModal('modal_pgj_lmb_preview');
-                    //                     }
-                    //                 })
-                    //             })
-                    //             .catch((err)        => {
-                    //                 Swal.fire({
-                    //                     icon    : err.responseJSON.alert.icon,
-                    //                     title   : err.responseJSON.alert.message.title,
-                    //                     text    : err.responseJSON.alert.message.text,
-                    //                 })
-                    //             })
-                    //     }
-                    // });
                 break;
                 case "konfirm_tolak" :
                     let pgjLmbID    = $("#pgj_lmb_act_id").val();

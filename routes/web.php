@@ -484,7 +484,11 @@ Route::group(['middleware' => ['auth']], function () {
         });
 
         Route::prefix('human_resource')->group(function(){
-            Route::get('/', [DivisiController::class, 'indexHR'])->name('index.human_resouce');
+            // Route::get('/', [DivisiController::class, 'indexHR'])->name('index.human_resouce');
+            Route::get('/', function(){
+                return redirect()->route('index.human_resource.dashboard');
+            });
+            Route::get('/dashboard', [DivisiController::class, 'indexHR'])->name('index.human_resource.dashboard');
             Route::prefix('/employee')->group(function(){
                 Route::get('/list', [DivisiController::class, 'hr_list_employee']);
                 Route::post('/ubahStatus', [DivisiController::class, 'hr_ubah_status_employee']);
@@ -493,6 +497,11 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/list', [DivisiController::class, 'absensi_list']);
                 Route::get('/excelDownload', [DivisiController::class, 'absensi_download_excel']);
                 Route::post('/excelDelete', [DivisiController::class, 'absensi_delete_excel']);
+            });
+            Route::prefix('jam_kerja')->group(function(){
+                Route::get('/', [DivisiController::class, 'HR_indexJamKerja'])->name('index.human_resource.jam_kerja');
+                Route::get('/data_jam_kerja', [DivisiController::class, 'HR_getDataJamKerja']);
+                Route::post('/simpan_jam_kerja/{type}', [DivisiController::class, 'HR_simpanDataJamKerja']);
             });
         });
 

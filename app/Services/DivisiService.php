@@ -4,6 +4,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\LogHelper;
+use DateInterval;
 use DateTime;
 use Illuminate\Support\Facades\Log;
 use Route;
@@ -3006,5 +3007,80 @@ class DivisiService
                     ->get();
 
         return $query;
+    }
+
+    // 12 DESEMBER 2024
+    // NOTE : SIMPAN DATA JAM KERJ
+    public static function do_simpan_data_jam_kerja($data)
+    {
+        DB::beginTransaction();
+        $tanggal_awal   = $data['data']['date_start'];
+        $tanggal_akhir  = $data['data']['date_end'];
+        $ip_address     = $data['ip_address'];
+
+        if($data['type'] == 'add') {
+            // GET DATA TERAKHIR
+            $query  = DB::table('v_master_hour')
+                        ->select('master_id')
+                        ->orderBy('master_id', 'desc')
+                        ->limit(1)
+                        ->get();
+            if(count($query) > 0) {
+                $last_master_id  = (int)$query[0]->master_id;
+                $master_id      = $last_master_id + 1;
+                
+                $date_1         = new DateTime($tanggal_awal);
+                $date_1->sub(new DateInterval('P1D'));
+                // UPDATE LAST
+                $data_where     = [
+                    "id_master" => $last_master_id,
+                ];
+                $data_update    = [
+                    "d_end"     => $date_1->format('Y-m-d')
+                ];
+
+                DB::table('hr_master_jam')->where($data_where)->update($data_update);
+            } else {
+                $master_id  = 1;
+            }
+
+            // TAMBAH DATA BARU
+            for($i = 0; $i < 7; $i++)
+            {
+                $ke     = $i + 1;
+                $simpan_data    = [
+                    "id_master"     => $master_id,
+                    "d_start"       => $tanggal_awal,
+                    "d_end"         => $tanggal_akhir,
+                    "dy_name"       => $ke,
+                    "cl_in"         => $data['data']['day_'.$ke.'_start'],
+                    "cl_out"        => $data['data']['day_'.$ke.'_end'],
+                ];
+                DB::table('hr_master_jam')->insert($simpan_data);
+            }
+
+            try {
+                DB::commit();
+                LogHelper::create('add', 'Berhasil Menambahkan Master Jam Baru', $ip_address);
+
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => "",
+                    "message"   => "Berhasil Menambahkan Master Jam Baru",
+                ];
+            } catch(\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', 'Gagal Menambahkan Master Jam Baru', $ip_address);
+
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                    "message"   => "Gagal Menambahkan Master Jam Baru",
+                ];
+            }
+        }
+
+        return $output;
     }
 }
