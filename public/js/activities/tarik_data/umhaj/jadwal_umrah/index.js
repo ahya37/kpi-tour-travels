@@ -17,6 +17,8 @@ let dataTahunFormat     = [...new Set(dataTahun)];
 var dataTahunFinal      = dataTahunFormat.sort((a, b)   => moment(b) - moment(a))
 
 $(document).ready(() => {
+    // SHOW DEFAULT
+    showTable('table_jadwal_umrah', []);
     // SHOW SELECT
     showSelect('filter_tahun_umhaj', dataTahunFinal, moment().year());
     // GET DATA
@@ -37,7 +39,7 @@ $(document).ready(() => {
         })
         .catch((err)        => {
             showTable('table_jadwal_umrah', []);
-            $("#table_jadwal_umrah .dataTables_empty").html(`Tidak Ada Data Tour Code Pada Tahun ${moment(today).year()}`);
+            $("#table_jadwal_umrah .dataTables_empty").html(`Tidak Ada Data Tour Code Pada Tahun ${moment(today, 'YYYY-MM-DD').year()}`);
         })
 })
 
@@ -96,10 +98,15 @@ function showSelectDetail(idSelect, value)
             .then((success)     => {
                 let umrah_getData   = success[0].status == 'fulfilled' ? success[0].value.data : [];
                 showTable('table_jadwal_umrah', umrah_getData);
+                if(umrah_getData.length > 0) {                    
+                    $("#table_jadwal_umrah .dataTables_empty").html('Data Berhasil Dimuat');
+                } else {
+                    $("#table_jadwal_umrah .dataTables_empty").html(`Tidak Ada Data Jadwal Umrah Tahun ${value}`);
+                }
             })
             .catch((err)        => {
                 showTable('table_jadwal_umrah', []);
-                $("#table_jadwal_umrah .dataTables_empty").html(`Tidak Ada Data Tour Code Pada Tahun ${moment(today).year()}`);
+                $("#table_jadwal_umrah").find('dataTables_empty').text(`Tidak Ada Data Tour Code Pada Tahun ${moment(today).year()}`);
             })
     }
 }
