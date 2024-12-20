@@ -46,11 +46,9 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-12">
-                                <div class="col-12 align-items-center text-center d-flex flex-column">
-                                    <label class="font-weight-bold">Selasa</label>
-                                    <label class="font-weight-normal" id="day2"></label>
-                                </div>
+                            <div class="col-12 align-items-center text-center d-flex flex-column">
+                                <label class="font-weight-bold">Selasa</label>
+                                <label class="font-weight-normal" id="day2"></label>
                             </div>
                         </div>
                         <div class="row">

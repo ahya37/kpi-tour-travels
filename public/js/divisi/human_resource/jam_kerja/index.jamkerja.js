@@ -73,13 +73,13 @@ function showTable(idTable, data, id = null)
                 let ke          = `<label class="fw-normal no-margins">${seq++}</label>`;
                 let startDate   = `<label class="fw-normal no-margins">${item['date_start']}</label>`;
                 let endDate     = `<label class="fw-normal no-margins">${item['date_end']}</label>`;
-                let day1        = `<label class="fw-normal no-margins">${item['data_clock'][0]['clock_in']+" s/d "+item['data_clock'][0]['clock_out']}</label>`;
-                let day2        = `<label class="fw-normal no-margins">${item['data_clock'][1]['clock_in']+" s/d "+item['data_clock'][1]['clock_out']}</label>`;
-                let day3        = `<label class="fw-normal no-margins">${item['data_clock'][2]['clock_in']+" s/d "+item['data_clock'][2]['clock_out']}</label>`;
-                let day4        = `<label class="fw-normal no-margins">${item['data_clock'][3]['clock_in']+" s/d "+item['data_clock'][3]['clock_out']}</label>`;
-                let day5        = `<label class="fw-normal no-margins">${item['data_clock'][4]['clock_in']+" s/d "+item['data_clock'][4]['clock_out']}</label>`;
-                let day6        = `<label class="fw-normal no-margins">${item['data_clock'][5]['clock_in']+" s/d "+item['data_clock'][5]['clock_out']}</label>`;
-                let day7        = `<label class="fw-normal no-margins">${item['data_clock'][6]['clock_in']+" s/d "+item['data_clock'][6]['clock_out']}</label>`;
+                let day1        = `<label class="fw-normal no-margins">${moment(item['data_clock'][0]['clock_in'], 'HH:mm:ss').format('HH:mm')+" s/d "+moment(item['data_clock'][0]['clock_out'], 'HH:mm:ss').format('HH:mm')}</label>`;
+                let day2        = `<label class="fw-normal no-margins">${moment(item['data_clock'][1]['clock_in'], 'HH:mm:ss').format('HH:mm')+" s/d "+moment(item['data_clock'][1]['clock_out'], 'HH:mm:ss').format('HH:mm')}</label>`;
+                let day3        = `<label class="fw-normal no-margins">${moment(item['data_clock'][2]['clock_in'], 'HH:mm:ss').format('HH:mm')+" s/d "+moment(item['data_clock'][2]['clock_out'], 'HH:mm:ss').format('HH:mm')}</label>`;
+                let day4        = `<label class="fw-normal no-margins">${moment(item['data_clock'][3]['clock_in'], 'HH:mm:ss').format('HH:mm')+" s/d "+moment(item['data_clock'][3]['clock_out'], 'HH:mm:ss').format('HH:mm')}</label>`;
+                let day5        = `<label class="fw-normal no-margins">${moment(item['data_clock'][4]['clock_in'], 'HH:mm:ss').format('HH:mm')+" s/d "+moment(item['data_clock'][4]['clock_out'], 'HH:mm:ss').format('HH:mm')}</label>`;
+                let day6        = `<label class="fw-normal no-margins">${moment(item['data_clock'][5]['clock_in'], 'HH:mm:ss').format('HH:mm')+" s/d "+moment(item['data_clock'][5]['clock_out'], 'HH:mm:ss').format('HH:mm')}</label>`;
+                let day7        = `<label class="fw-normal no-margins">${moment(item['data_clock'][6]['clock_in'], 'HH:mm:ss').format('HH:mm')+" s/d "+moment(item['data_clock'][6]['clock_out'], 'HH:mm:ss').format('HH:mm')}</label>`;
 
                 $("#"+idTable).DataTable().row.add([
                     ke,
