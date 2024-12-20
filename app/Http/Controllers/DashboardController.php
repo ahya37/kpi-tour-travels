@@ -33,6 +33,7 @@ class DashboardController extends Controller
                     'sub_title'     => 'Selamat Datang '.Auth::user()->name,
                     'user_id'       => Auth::user()->id,
                     'user_name'     => Auth::user()->name,
+                    'user_role'     => Auth::user()->getRoleNames()[0],
                 ];
         
                 return view('dashboard/index', $data);
@@ -50,6 +51,7 @@ class DashboardController extends Controller
                 'sub_title'     => 'Selamat Datang '.Auth::user()->name,
                 'user_id'       => '%',
                 'user_name'     => Auth::user()->name,
+                'user_role'     => AUth::user()->getRoleNames()[0],
             ];
     
             return view('dashboard/index', $data);

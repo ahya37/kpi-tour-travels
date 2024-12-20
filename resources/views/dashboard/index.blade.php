@@ -131,6 +131,37 @@
                         </div>
                     </div>
                     <hr>
+                    @if ($user_role == 'admin') 
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hover" style="width: 100%;" id="tbl_total_absen_admin">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle">No</th>
+                                            <th class="text-center align-middle">Nama</th>
+                                            <th class="text-center align-middle">Tgl. Absen</th>
+                                            <th class="text-center align-middle">Jam Masuk</th>
+                                            <th class="text-center align-middle">Jam Pulang</th>
+                                            <th class="text-center align-middle">Jam Kerja</th>
+                                            <th class="text-center align-middle">Jam Telat</th>
+                                            <th class="text-center align-middle">Jam Lebih</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="5" id="tbl_total_absen_title">Total Jam : </th>
+                                            <th id="tbl_total_absen_jam_kerja">&nbsp;</th>
+                                            <th id="tbl_total_absen_keterlambatan">00:00:00</th>
+                                            <th id="tbl_total_absen_lebih_jam">00:00:00</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    @else 
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="table-responsive">
@@ -159,6 +190,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>

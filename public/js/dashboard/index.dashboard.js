@@ -4,6 +4,16 @@ var base_url    = window.location.origin;
 var latitude;
 var longitude;
 var today       = moment().format('YYYY-MM-DD');
+var jamKerjaTemp;
+
+const getDiffTime   = (time_1, time_2) => {
+    const countDiff     = moment(time_2, 'HH:mm:ss').diff(moment(time_1, 'HH:mm:ss'), 'seconds');
+    const hours         = Math.floor(countDiff / 3600) < 10 ? "0"+Math.floor(countDiff / 3600) : Math.floor(countDiff / 3600);
+    const minute        = Math.floor((countDiff % 3600) / 60) < 10 ? "0"+Math.floor((countDiff % 3600) / 60) : Math.floor((countDiff % 3600) / 60);
+    const second        = countDiff % 60 < 10 ? "0"+countDiff % 60 : countDiff % 60;
+
+    return hours+":"+minute+":"+second;
+}
 
 $(document).ready(()    => {
     // GET DATA KEHADIRAN
@@ -22,10 +32,17 @@ $(document).ready(()    => {
     const ct_data   = {
         "bulan"     : moment(today, 'YYYY-MM-DD').format('MM')
     };
+
+    const jamURL    = base_url + "/divisi/human_resource/jam_kerja/data_jam_kerja";
+    const jamType   = "GET";
+    const jamData   = {
+        "today" : moment().format('YYYY-MM-DD'),
+    };
     
     const api_url   = [
         doTrans(abs_url, abs_type, abs_data, "", true),
-        doTrans(ct_url, ct_type, ct_data, "", true)
+        doTrans(ct_url, ct_type, ct_data, "", true),
+        doTrans(jamURL, jamType, jamData, "", true)
     ];
 
     Promise.allSettled(api_url)
@@ -35,6 +52,9 @@ $(document).ready(()    => {
 
             const ct_get_data   = success[1].value.data.length;
             $("#dashboard_total_isc_text").html(ct_get_data);
+
+            const jamGetData    = success[2].value.data;
+            jamKerjaTemp    = jamGetData;
         })
         .catch((error)      => {
             $("#dashboard_total_absen_text").html(0);
@@ -45,96 +65,7 @@ $(document).ready(()    => {
 function showTable(idTable, data)
 {
     $("#"+idTable).DataTable().clear().destroy();
-    if(idTable == 'table_absensi')
-    {
-        $("#"+idTable).DataTable({
-            language    : {
-                "emptyTable"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
-                "zeroRecords"   : "Data yang dicari tidak ditemukan..",
-            },
-            autoWidth   : false,
-            columnDefs  : [
-                { "targets" : [1, 2, 3, 4], "width" : "20%", "className" : "text-left align-middle" },
-            ],
-            order       : [
-                [0, 'desc'],
-            ],
-        });
-
-        if(data != '') {
-            $(".dataTables_empty").html("<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..");
-
-            // GET DATA
-            const abs_get_url   = "/divisi/human_resource/absensi/list";
-            const abs_get_data  = data;
-            const abs_get_type  = "GET";
-
-            doTrans(abs_get_url, abs_get_type, abs_get_data, "", true)
-                .then((success)     => {
-                    var total_kurang_jam = moment.duration();
-                    var total_lebih_jam = moment.duration();
-                    var tanggal_awal    = moment("2024-07-15");
-                    for(const abs_item of success.data)
-                    {
-                        // CHECK
-                        const abs_date  = abs_item.tanggal_absen;
-                        const abs_in    = abs_item.jam_masuk;
-                        const abs_out   = abs_item.jam_keluar;
-
-                        switch(moment(abs_date, 'YYYY-MM-DD').format('dddd'))
-                        {
-                            case 'Sabtu' :
-                                if(moment(abs_date).isBefore(tanggal_awal)) {
-                                    var jam_masuk   = moment(abs_date+" "+abs_in, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 08:30:00", 'YYYY-MM-DD HH:mm:ss'));
-                                    var jam_keluar  = moment(abs_date+" "+abs_out, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 12:00:00", 'YYYY-MM-DD HH:mm:ss'));
-                                } else {
-                                    var jam_masuk   = moment(abs_date+" "+abs_in, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 08:00:00", 'YYYY-MM-DD HH:mm:ss'));
-                                    var jam_keluar  = moment(abs_date+" "+abs_out, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 13:30:00", 'YYYY-MM-DD HH:mm:ss'));
-                                }
-                                var abs_date_1  = "<label class='no-margins' title='" + moment(abs_date, 'YYYY-MM-DD').format('dddd') + "'>" + abs_date + "</label>";
-                            break;
-                            case 'Minggu' :
-                                var jam_masuk   = moment(abs_date+" "+abs_in, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 00:00:00", 'YYYY-MM-DD HH:mm:ss'));
-                                var jam_keluar  = moment(abs_date+" "+abs_out, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 00:00:00", 'YYYY-MM-DD HH:mm:ss'));
-                                var abs_date_1  = "<label class='no-margins text-danger' title='" + moment(abs_date, 'YYYY-MM-DD').format('dddd') + "'>" + abs_date + "</label>";
-                            break;
-                            default :
-                                if(moment(abs_date).isBefore(tanggal_awal)) {
-                                    var jam_masuk   = moment(abs_date+" "+abs_in, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 08:30:00", 'YYYY-MM-DD HH:mm:ss'));
-                                    var jam_keluar  = moment(abs_date+" "+abs_out, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 16:30:00", 'YYYY-MM-DD HH:mm:ss'));
-                                } else {
-                                    var jam_masuk   = moment(abs_date+" "+abs_in, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 08:00:00", 'YYYY-MM-DD HH:mm:ss'));
-                                    var jam_keluar  = moment(abs_date+" "+abs_out, 'YYYY-MM-DD HH:mm:ss').diff(moment(abs_date+" 16:00:00", 'YYYY-MM-DD HH:mm:ss'));
-                                }
-                                var abs_date_1  = "<label class='no-margins' title='" + moment(abs_date, 'YYYY-MM-DD').format('dddd') + "'>" + abs_date + "</label>";
-                        }
-                        
-                        const jam_masuk_duration    = moment.duration(jam_masuk);
-                        const jam_diff_masuk        = jam_masuk > 0 ? moment.utc(jam_masuk_duration.asMilliseconds()).format('HH:mm:ss') : '00:00:00';
-                        const jam_keluar_duration   = moment.duration(jam_keluar);
-                        const jam_diff_keluar       = jam_keluar > 0 ? moment.utc(jam_keluar_duration.asMilliseconds()).format('HH:mm:ss') : '00:00:00';
-
-                        jam_masuk > 0 ? total_kurang_jam.add(jam_masuk_duration) : total_kurang_jam.add(0);
-                        jam_keluar > 0 ? total_lebih_jam.add(jam_keluar_duration) : total_kurang_jam.add(0);
-
-                        $("#"+idTable).DataTable().row.add([
-                            abs_date_1,
-                            abs_in,
-                            abs_out, 
-                            jam_diff_masuk,
-                            jam_diff_keluar
-                        ]).draw(false);
-                    }
-                    $("#table_absensi_total_kurang_jam").html(moment.utc(total_kurang_jam.asMilliseconds()).format('HH:mm:ss'));
-                    $("#table_absensi_total_lebih_jam").html(moment.utc(total_lebih_jam.asMilliseconds()).format('HH:mm:ss'));
-                })
-                .catch((err)        => {
-                    // $(".dataTables_empty").html("Tidak ada data yang bisa dimuat");
-                })
-        } else {
-            $(".dataTables_empty").html("Tidak ada data yang bisa dimuat");
-        }
-    } else if(idTable == 'tbl_total_absen') {
+    if(idTable == 'tbl_total_absen') {
         $("#"+idTable).DataTable({
             language    : {
                 emptyTable  : "Tidak Ada Data Yang Bisa Ditampilkan",
@@ -151,17 +82,6 @@ function showTable(idTable, data)
         });
         
         if(data != '') {
-
-            function getDiffTime(time_1, time_2)
-            {
-                const countDiff     = moment(time_2, 'HH:mm:ss').diff(moment(time_1, 'HH:mm:ss'), 'seconds');
-                const hours         = Math.floor(countDiff / 3600) < 10 ? "0"+Math.floor(countDiff / 3600) : Math.floor(countDiff / 3600);
-                const minute        = Math.floor((countDiff % 3600) / 60) < 10 ? "0"+Math.floor((countDiff % 3600) / 60) : Math.floor((countDiff % 3600) / 60);
-                const second        = countDiff % 60 < 10 ? "0"+countDiff % 60 : countDiff % 60;
-
-                return hours+":"+minute+":"+second;
-            }
-
             $("#"+idTable+" tbody .dataTables_empty").html("Data Ditemukan");
             let seq     = 1;
             let totalKeterlambatan  = moment.duration(0);
@@ -257,6 +177,54 @@ function showTable(idTable, data)
         } else {
             $("#tbl_total_cuti tbody .dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
         }
+    } else if(idTable == 'tbl_total_absen_admin') {
+        $("#"+idTable).DataTable().clear().destroy();
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : `<i class="fa fa-spinner fa-spin"></i> Data Sedang Dimuat`,
+                zeroRecords : `Data Yang Dicari Tidak Ditemukan`
+            },
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center", "width" : "8%" },
+                { "targets" : [1], "className" : "text-left", "width" : "20%" },
+                { "targets" : [2], "className" : "text-left", "width" : "15%" },
+                { "targets" : [3, 4, 5, 6, 7], "className" : "text-center align-middle", "width" : "13%" },
+            ],
+            autoWidth   : false,
+            pageLength  : -1,
+            paging      : false,
+            bInfo       : false,
+        });
+
+        if(data != '') {
+            for(let i = 0; i < data.length; i++) {
+                let ke  = i + 1;
+                let namaKaryawan    = data[i].prs_name;
+                let tglAbsen        = data[i].prs_date;
+                const getJamKerja   = jamKerjaTemp.find(item => {
+                    let jamKerja    = moment(tglAbsen, 'YYYY-MM-DD').format('YYYY-MM-DD') >= moment(item.date_start, 'YYYY-MM-DD').format('YYYY-MM-DD') && moment(tglAbsen, 'YYYY-MM-DD').format('YYYY-MM-DD') <= moment(item.date_end, 'YYYY-MM-DD').format('YYYY-MM-DD');
+                    return jamKerja;
+                });
+                let jamMasukMax     = getJamKerja.data_clock[moment(tglAbsen, 'YYYY-MM-DD').isoWeekday() - 1].clock_in;
+                let jamKeluarMax    = getJamKerja.data_clock[moment(tglAbsen, 'YYYY-MM-DD').isoWeekday() - 1].clock_out;
+                let jamMasuk        = data[i].prs_in_time == null ? '' : moment(data[i].prs_in_time, 'YYYY-MM-DD HH:mm:ss').format('HH:mm:ss');
+                let jamKeluar       = data[i].prs_out_time == null ? '' : moment(data[i].prs_out_time, 'YYYY-MM-DD HH:mm:ss').format('HH:mm:ss');
+                let jamKerja        = jamKeluar != '' ? getDiffTime(jamMasuk, jamKeluar) : '';
+                let jamTelat        = jamKeluar != '' ? (jamMasuk > moment(jamMasukMax, 'HH:mm:ss').add(1, 'seconds').format('HH:mm:ss') ? getDiffTime(jamMasukMax, jamMasuk) : "00:00:00") : "";
+                let jamLebih        = jamKeluar != '' ? (jamKeluar > moment(jamKeluarMax, 'HH:mm:ss').add(1, 'seconds').format('HH:mm:ss') ? getDiffTime(jamKeluarMax, jamKeluar) : "00:00:00") : "";
+
+                $("#"+idTable).DataTable().row.add([
+                    `<label class="fw-normal no-margins">${ke}</label>`,
+                    `<label class="fw-normal no-margins">${namaKaryawan}</label>`,
+                    `<label class="fw-normal no-margins">${moment(tglAbsen, 'YYYY-MM-DD').format('dddd')}, ${moment(tglAbsen, 'YYYY-MM-DD').format('DD/MM/YYYY')}</label>`,
+                    `<label class="fw-normal no-margins">${jamMasuk}</label>`,
+                    `<label class="fw-normal no-margins">${jamKeluar}</label>`,
+                    `<label class="fw-normal no-margins">${jamKerja}</label>`,
+                    `<label class="fw-normal no-margins">${jamTelat}</label>`,
+                    `<label class="fw-normal no-margins">${jamLebih}</label>`,
+                ]).draw(false);
+            }
+        }
     }
 }
 
@@ -287,10 +255,12 @@ function showModal(idModal, jenis)
                 $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
                 // SHOW TABLE
                 showTable('tbl_total_absen', success.data);
+                showTable('tbl_total_absen_admin', success.data);
                 // SHOW SELECT
                 showSelect('tbl_filter_month', '', '');
             })
             .catch((error)      => {
+                console.log(error);
                 Swal.fire({
                     icon    : 'error',
                     title   : 'Terjadi Kesalahan',
@@ -412,6 +382,7 @@ function cariData(idForm)
         doTrans(abs_url, abs_type, abs_data, abs_msg, true)
             .then((success)     => {
                 showTable('tbl_total_absen', success.data);
+                showTable('tbl_total_absen_admin', success.data);
                 Swal.close();
             })
             .catch((error)      => {
