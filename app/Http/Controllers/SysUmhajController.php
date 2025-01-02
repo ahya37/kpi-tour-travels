@@ -4,14 +4,23 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\SysUmhajService;
+use Http;
 use Illuminate\Support\Facades\Auth;
 use Response;
+use Symfony\Component\VarDumper\VarDumper;
+
+use function PHPSTORM_META\map;
 
 class SysUmhajController extends Controller
 {
     //
     protected $title    = "ERP Percik Tours | ";
     protected $mkt_view = "/marketings/umhaj";
+
+    private function link_api()
+    {
+        return env('API_PERCIK_V2');
+    }
 
     public function index_umhaj()
     {
@@ -297,5 +306,337 @@ class SysUmhajController extends Controller
         }
         
         return Response::json($output, $output['status']);
+    }
+
+    // 23 DESEMBER 2024
+    // NOTE : AMBIL DATA UMHAJ DINAMIS BY TABLE
+    public function umhaj_member_get_data_v2(Request $request)
+    {
+        $member     = [];
+
+        $limit      = $request->all()['length'];
+        $offset     = $request->all()['start'];
+        $search     = !empty($request->all()['search']['value']) ? $request->all()['search']['value'] : "%";
+
+        // GET DATA FROM API
+        $get_data   = Http::withHeaders([
+            'Content-Type'  => 'application/json',
+        ])->post($this->link_api()."/api/umhaj/member/list_v2", [
+            "limit"     => $limit,
+            "offset"    => $offset,
+            "search"    => $search,
+        ]);
+        if($get_data->status() >= 200 && $get_data->status() < 300) {
+            
+            $data_member    = $get_data->json()['data']['data_member'];
+            $total_data_member  = $get_data->json()['data']['total_data_member'][0]['TOTAL_DATA'];
+            
+            if(count($data_member) > 0) {
+                $nomor_urut     = $offset + 1;
+                for($i = 0; $i < count($data_member); $i++) {
+                    $no             = $nomor_urut++;
+                    $nama_jemaah    = $data_member[$i]['NAMA_DEPAN']." ".$data_member[$i]['NAMA_TENGAH']." ".$data_member[$i]['NAMA_BELAKANG'];
+                    $kota_jemaah    = $data_member[$i]['KOTA'];
+                    $alamat_jemaah  = $data_member[$i]['ALAMAT'];
+                    $id_jemaah      = $data_member[$i]['ID_JEMAAH'];
+                    $button_edit    = "<button class='btn btn-sm btn-primary' title='Ubah Data' value='$id_jemaah' onclick='showModal(`modal_form_member`, this.value)' disabled><i class='fa fa-pencil'></i></button>";
+                    $button_delete  = "<button class='btn btn-sm btn-danger' title='Hapus Data' value='$id_jemaah' onclick='showModal(`modal_delete_member`, this.value)' disabled><i class='fa fa-trash'></i></button>";
+                    $member[]   = [
+                        "<label class='font-weight-normal no-margins'>$no</label>",
+                        "<label class='font-weight-normal no-margins'>".$nama_jemaah."</label>",
+                        "<label class='font-weight-normal no-margins'>" . $kota_jemaah . "</label>",
+                        "<label class='font-weight-normal no-margins'>" . $alamat_jemaah . "</label>",
+                        $button_edit."&nbsp;".$button_delete,
+                    ];
+                }
+            }
+        } else {
+            $member     = [];
+            $total_data_member  = 0;
+        }
+
+        $output     = [
+            "draw"              => $request->all()['draw'],
+            "data"              => $member,
+            "recordsTotal"      => $total_data_member,
+            "recordsFiltered"   => $total_data_member
+        ];
+
+        return Response::json($output, 200);
+        // dd($request->all());
+    }
+
+    // 24 DESEMBER 2024
+    // NOTE : GET MASTER SUMBER
+    public function umhaj_master_data_sumber()
+    {
+        $get_data   = Http::get($this->link_api().'/api/umhaj/master/sumber');
+        
+        return Response::json($get_data->json(), $get_data->status());
+    }
+
+    // 27 DESEMBER 2024
+    // NOTE : AMBIL WILAYAH - PROVINSI
+    public function erp_master_wilayah_provinsi()
+    {
+        $get_data   = SysUmhajService::get_data_wilayah_provinsi();
+
+        if(count($get_data) > 0) {
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "message"   => "Berhasil Mengambil Data Wilayah (Provinsi)",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "status"    => 404,
+                "success"   => false,
+                "message"   => "Tidak Ada Data Wilayah (Provinsi)",
+                "data"      => [],   
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : AMBIL WILAYAH - KOTA BY PROVINSI ID
+    public function erp_master_wilayah_kota(Request $request)
+    {
+        $provinces_id   = $request->all()['province_id'];
+
+        if(!empty($provinces_id)) {
+            $get_data   = SysUmhajService::get_data_wilayah_kota($provinces_id);
+            
+            if(count($get_data) > 0) {
+                $output     = [
+                    "status"    => 200,
+                    "success"   => false,
+                    "message"   => "Berhasil Mengambil Data Wilayah Kota",
+                    "data"      => $get_data,
+                ];
+            } else {
+                $output     = [
+                    "status"    => 404,
+                    "success"   => false,
+                    "message"   => "Data Wilayah Kota Tidak Ditemukan",
+                    "data"      => [],
+                ];
+            }
+        } else {
+            $output     = [
+                'status'    => 404,
+                'success'   => false,
+                'message'   => '`pronvices_id` Tidak Boleh Kosong',
+                'data'      => []
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : AMBIL WILAYAH - KECAMATAN BY KOTA ID
+    public function erp_master_wilayah_kecamatan(Request $request)
+    {
+        $city_id    = $request->all()['city_id'];
+
+        if(!empty($city_id)) {
+            $get_data   = SysUmhajService::get_data_wilayah_kecamatan($city_id);
+
+            if(count($get_data) > 0) {
+                $output     = [
+                    "success"   => true,
+                    "status"    => 200,
+                    "message"   => "Berhasil Mengambil Data Wilayah Kecamatan",
+                    "data"      => $get_data,
+                ];
+            } else {
+                $output      = [
+                    "success"   => false,
+                    "status"    => 404,
+                    "message"   => "Data Wilayah Kelurahan Tidak Ditemukan",
+                    "data"      => [],
+                ];
+            }
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "`city_id` Tidak Boleh Kosong",
+                "data"      => [],
+            ];
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+    
+    // NOTE : AMBIL WILAYAH - KELURAHAN BY KECAMATAN ID
+    public function erp_master_wilayah_kelurahan(Request $request)
+    {
+        $district_id    = $request->all()['district_id'];
+
+        if(!empty($district_id)) {
+            $get_data   = SysUmhajService::get_data_wilayah_kelurahan($district_id);
+
+            if(count($get_data) > 0) {
+                $output     = [
+                    "success"   => true,
+                    "status"    => 200,
+                    "message"   => "Berhasil Mengambil Data Wilayah Kelurahan",
+                    "data"      => $get_data,
+                ];
+            } else {
+                $output      = [
+                    "success"   => false,
+                    "status"    => 404,
+                    "message"   => "Data Wilayah Kelurahan Tidak Ditemukan",
+                    "data"      => [],
+                ];
+            }
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "`district_id` Tidak Boleh Kosong",
+                "data"      => [],
+            ];
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : AMBIL DATA MEMBER / JEMAAH BY ID
+    public function umhaj_member_get_data_detail_v2(Request $request)
+    {
+        $jemaahID   = $request->all()['jemaahID'];
+
+        $get_data   = Http::get($this->link_api() . "/api/umhaj/member/detail?jemaah=".$jemaahID);
+
+        $output     = [
+            "success"   => $get_data->json()['success'],
+            "status"    => $get_data->status(),
+            "message"   => $get_data->json()['message'],
+            "data"      => $get_data->json()['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 31 DESEMBER 2024
+    // NOTE : SIMPAN DATA JEMAAH KE UMHAJ DAN ERP
+    public function umhaj_member_simpan_data(Request $request, $jenis)
+    {
+        var_dump($jenis);die();
+    }
+
+    // 2 JANUARI 2025
+    // NOTE : GET CHART DATA MEMBER
+    public function umhaj_chart_member_data(Request $request)
+    {
+        $cs_name    = $request->all()['cs_name'];
+        $tahun_cari = $request->all()['tahun_cari'];
+        $bulan_cari = $request->all()['bulan_cari'];
+
+        $get_data   = Http::withHeaders([
+            'Content-Type'  => 'application/json',
+        ])->post($this->link_api()."/api/umhaj/member/chart_data", [
+            "cs_name"   => $cs_name,
+            "tahun_cari"=> $tahun_cari,
+            "bulan_cari"=> $bulan_cari,
+        ]);
+
+        $output     = [
+            "success"   => $get_data->json()['success'],
+            "status"    => $get_data->status(),
+            "message"   => $get_data->json()['message'],
+            "data"      => $get_data->json()['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function umhaj_agent_get_data()
+    {
+        $get_data   = Http::get($this->link_api()."/api/umhaj/agent/list");
+
+        $output     = [
+            "success"   => $get_data->json()['success'],
+            "status"    => $get_data->status(),
+            "message"   => $get_data->json()['message'],
+            "data"      => $get_data->json()['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function umhaj_master_data_program_umrah()
+    {
+        $get_data   = Http::get($this->link_api() . "/api/umhaj/master/program");
+
+        $output     = [
+            "success"   => $get_data->json()['success'],
+            "status"    => $get_data->status(),
+            "message"   => $get_data->json()['message'],
+            "data"      => $get_data->json()['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : GET DATA CS FROM API
+    public function umhaj_master_data_cs()
+    {
+        $get_data   = Http::get($this->link_api() . "/api/umhaj/master/user/cs");
+        
+        $output     = [
+            "success"   => $get_data->json()['success'],
+            "status"    => $get_data->status(),
+            "message"   => $get_data->json()['message'],
+            "data"      => $get_data->json()['data'],
+        ];
+
+        return Response::json($output, $output['status']);    
+    }
+
+    // NOTE : GET DATA UMRAH CHART
+    public function umhaj_chart_umrah_data(Request $request)
+    {
+        $jenis      = $request->all()['jenis'];
+        $tahun_cari = $request->all()['tahun_cari'];
+        $bulan_cari = $request->all()['bulan_cari'];
+
+        $get_data   = Http::withHeaders([
+            'Content-Type'  => 'application/json'
+        ])->post($this->link_api() . "/api/umhaj/umrah/get_data_umrah", [
+            "jenis"     => $jenis,
+            "tahun_cari"=> $tahun_cari,
+            "bulan_cari"=> $bulan_cari,
+        ]);
+         
+        $output     = [
+            "success"   => $get_data->json()['success'],
+            "status"    => $get_data->status(),
+            "message"   => $get_data->json()['message'],
+            "data"      => $get_data->json()['data'],
+        ];
+
+        return Response::json($output, $output['status']);   
+    }
+
+    // GET DATA JADWAL UMRAH BY TAHUN
+    public function umhaj_data_jadwal_umrah(Request $request)
+    {
+        $tahun  = $request->all()['tahun'];
+
+        $get_data   = Http::get($this->link_api() . "/api/umhaj/master/jadwal_umrah?tahun=" . $tahun);
+
+        $output     = [
+            "success"   => $get_data->json()['success'],
+            "status"    => $get_data->status(),
+            "message"   => $get_data->json()['message'],
+            "data"      => $get_data->json()['data'],
+        ];
+
+        return Response::json($output, $output['status']);   
     }
 }

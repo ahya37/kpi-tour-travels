@@ -245,4 +245,49 @@ class SysUmhajService
 
         return $output;
     }
+
+    // 27 DESEMBER 2024
+    // AMBIL DATA WILAYAH - PROVINSI
+    public static function get_data_wilayah_provinsi()
+    {
+        $query  = DB::table('provinces')
+                    ->select('id as provinces_id', 'name as provinces_name')
+                    ->orderBy(DB::raw('CAST(id as UNSIGNED)'), 'asc')
+                    ->get();
+
+        return $query;
+    }
+
+    // AMBIL DATA WILAYAH - KOTA
+    public static function get_data_wilayah_kota($province_id)
+    {
+        $query  = DB::table('regencies')
+                    ->select('id as city_id', 'name as city_name')
+                    ->where('province_id', '=', $province_id)
+                    ->orderBy(DB::raw('CAST(id as UNSIGNED)'), 'asc')
+                    ->get();
+        return $query;
+    }
+
+    // AMBIL DATA WILAYAH KECAMATAN
+    public static function get_data_wilayah_kecamatan($city_id)
+    {
+        $query  = DB::table('districts')
+                    ->select('id as district_id', 'name as district_name')
+                    ->where('regency_id', '=', $city_id)
+                    ->orderBy(DB::raw('CAST(id as UNSIGNED)'), 'asc')
+                    ->get();
+        return $query;
+    }
+
+    // AMBIL DATA WILAYAH KELURAHAN
+    public static function get_data_wilayah_kelurahan($district_id)
+    {
+        $query  = DB::table('villages')
+                    ->select('id as village_id', 'name as village_name')
+                    ->where('district_id', '=', $district_id)
+                    ->orderBy(DB::raw('CAST(id as UNSIGNED)'), 'asc')
+                    ->get();
+        return $query;
+    }
 }

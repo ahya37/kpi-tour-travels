@@ -210,6 +210,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/dashboard', [SysUmhajController::class, 'index_umhaj'])->name('umhaj.dashboard');
         Route::prefix('umrah')->group(function(){
             Route::get("/get_data", [SysUmhajController::class, 'umhaj_umrah_get_data'])->name('umhaj.umrah.get_data');
+            Route::post("/get_data_chart_umrah", [SysUmhajController::class, 'umhaj_chart_umrah_data']);
             Route::get("/get_data_detail", [SysUmhajController::class, 'umhaj_umrah_get_data_detail'])->name('umhaj.umrah.get_data');
             Route::get("/list_program", [SysUmhajController::class, 'umhaj_umrah_get_list_program'])->name('umhaj.umrah.get_list_program');
             Route::get("/get_data_umrah_list/tahun/{tahun}", [SysUmhajController::class, 'umhaj_umrah_list'])->name('umhaj.umrah.list_data');
@@ -218,11 +219,30 @@ Route::group(['middleware' => ['auth']], function () {
         
         Route::prefix('member')->group(function(){
             Route::get('/get_data', [SysUmhajController::class, 'umhaj_member_get_data'])->name('umhaj.member.get_data');
-            Route::get('/get_data_detail', [SysUmhajController::class, 'umhaj_member_get_data_detail'])->name('umhaj.member.get_data.detail');
+            Route::post("/get_data_chart_member", [SysUmhajController::class, 'umhaj_chart_member_data']);
+            Route::post('/get_data_detail', [SysUmhajController::class, 'umhaj_member_get_data_detail'])->name('umhaj.member.get_data.detail');
+            Route::post('/get_data_member_v2', [SysUmhajController::class, 'umhaj_member_get_data_v2'])->name('umhaj.member.get_data.v2');
+            Route::get('/get_jemaah_2_detail', [SysUmhajController::class, 'umhaj_member_get_data_detail_v2']);
+            Route::post('/simpan_data_jemaah/{jenis}', [SysUmhajController::class, 'umhaj_member_simpan_data']);
+        });
+
+        Route::prefix('agent')->group(function() {
+            Route::post('/get_data_agent', [SysUmhajController::class, 'umhaj_agent_get_data']);
         });
 
         Route::prefix('cs')->group(function(){
             Route::get('/get_data', [SysUmhajController::class, 'umhaj_cs_get_data'])->name('umhaj.cs.get_data');
+        });
+
+        Route::prefix('master')->group(function(){
+            Route::get('/master_data_sumber', [SysUmhajController::class, 'umhaj_master_data_sumber']);
+            Route::get('/data_wilayah/provinsi', [SysUmhajController::class, 'erp_master_wilayah_provinsi']);
+            Route::get('/data_wilayah/kota', [SysUmhajController::class, 'erp_master_wilayah_kota']);
+            Route::get('/data_wilayah/kecamatan', [SysUmhajController::class, 'erp_master_wilayah_kecamatan']);
+            Route::get('/data_wilayah/kelurahan', [SysUmhajController::class, 'erp_master_wilayah_kelurahan']);
+            Route::get('/master_data_program', [SysUmhajController::class, 'umhaj_master_data_program_umrah']);
+            Route::get('/master_data_user_cs', [SysUmhajController::class, 'umhaj_master_data_cs']);
+            Route::post("/master_data_jadwal_umrah", [SysUmhajController::class, 'umhaj_data_jadwal_umrah']);
         });
     });
 
