@@ -766,7 +766,7 @@ function showModal(idModal, data)
                 const detailUmrah_getData_header    = detailUmrah_getData['header'];
                 $("#umrah_list_detail_tour_code").html(detailUmrah_getData_header['umrah_tour_code']);
                 $("#umrah_list_detail_date").html(
-                    "<i class='fa fa-plane'></i> &nbsp;"+moment(detailUmrah_getData_header['umrah_depature'], 'YYYY-MM-DD').format('DD/MM/YYYY')+"&nbsp; <i class='fa fa-plane fa-rotate-90'></i> &nbsp;"+moment(detailUmrah_getData_header['umrah_arrival'], 'YYYY-MM-DD').format('DD/MM/YYYY')+""
+                    "<i class='fa fa-plane'></i> &nbsp;"+moment(detailUmrah_getData_header['umrah_depature']).format('DD/MM/YYYY')+"&nbsp; <i class='fa fa-plane fa-rotate-90'></i> &nbsp;"+moment(detailUmrah_getData_header['umrah_arrival']).format('DD/MM/YYYY')+""
                 );
                 $("#umrah_list_detail_mentor").html(
                     "<i class='fa fa-user'></i> &nbsp;"+detailUmrah_getData_header['umrah_mentor']
@@ -1437,13 +1437,13 @@ function showTable(idTable, data)
             let grandTotalTarget        = 0;
             let grandTotalRealization   = 0;
             for(const item of data) {
-                var list_umrah_seq            = i++;
-                var list_umrah_tourCode       = item['UMRAH_TOUR_CODE'];
-                var list_umrah_tourDepature   = item['UMRAH_DEPATURE'];
-                var list_umrah_tourArrival    = item['UMRAH_ARRIVAL'];
-                var list_umrah_tourLeader     = item['UMRAH_TOUR_MENTOR'];
-                var list_umrah_tourTarget     = item['UMRAH_TARGET'];
-                var list_umrah_tourRealization= item['UMRAH_TARGET_REALIZATION'];
+                let list_umrah_seq            = i++;
+                let list_umrah_tourCode       = item['UMRAH_TOUR_CODE'];
+                let list_umrah_tourDepature   = moment(item['UMRAH_DEPATURE']).format('DD-MMM-YYYY');
+                let list_umrah_tourArrival    = moment(item['UMRAH_ARRIVAL']).format('DD-MMM-YYYY');
+                let list_umrah_tourLeader     = item['UMRAH_TOUR_MENTOR'];
+                let list_umrah_tourTarget     = item['UMRAH_TARGET'];
+                let list_umrah_tourRealization= item['UMRAH_TARGET_REALIZATION'];
 
                 $("#"+idTable).DataTable().row.add([
                     "<label class='font-weight-normal no-margins'>" + list_umrah_seq + "</label>",

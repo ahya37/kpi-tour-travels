@@ -252,29 +252,19 @@ class SysUmhajController extends Controller
     // NOTE : AMBIL LIST DATA UMRAH
     public function umhaj_umrah_list($tahun)
     {
-        $get_data   = SysUmhajService::get_data_umhaj_umrah_list($tahun);
+        // $get_data   = SysUmhajService::get_data_umhaj_umrah_list($tahun);
         
-        if(count($get_data) > 0) {
-            $output  = [
-                "success"   => true,
-                "status"    => 200,
-                "message"   => "Data Berhasil Dimuat",
-                "data"      => [
-                    "total_data"    => count($get_data),
-                    "data"          => $get_data,
-                ],
-            ];
-        } else {
-            $output  = [
-                "success"   => false,
-                "status"    => 404,
-                "message"   => "Data Gagal Dimuat",
-                "data"      => [
-                    "total_data"    => 0,
-                    "data"          => []
-                ],
-            ];
-        }
+        $get_data   = Http::get($this->link_api() . "/api/umhaj/umrah/data?tahun=" . $tahun);
+
+        $output     = [
+            "success"   => $get_data->json()['success'],
+            "status"    => $get_data->status(),
+            "message"   => $get_data->json()['message'],
+            "data"      => [
+                "total_data"    => count($get_data->json()['data']),
+                "data"          => $get_data->json()['data'],
+            ],
+        ];
 
         return Response::json($output, $output['status']);
     }
@@ -284,16 +274,23 @@ class SysUmhajController extends Controller
     public function umhaj_umrah_detail(Request $request)
     {
         $tourCode   = $request->all()['tourCode'];
-        $get_data   = SysUmhajService::get_data_umhaj_umrah_detail_byTourCode($tourCode);
 
-        if(count($get_data['header']) > 0) {
+        $get_data    = Http::withHeaders([
+            'Content-Type'  => 'application/json'
+        ])->post($this->link_api() . "/api/umhaj/umrah/detail", [
+            "tourCode"  => $tourCode,
+        ]);
+
+        // $get_data   = SysUmhajService::get_data_umhaj_umrah_detail_byTourCode($tourCode);
+
+        if(count($get_data->json()['data']['header'][0]) > 0) {
             $output     = [
                 "success"   => true,
                 "status"    => 200,
                 "message"   => "Berhasil Mengambil Data Umrah Tour Code : ".$tourCode,
                 "data"      => [
-                    "header"    => $get_data['header'][0],
-                    "detail"    => $get_data['detail'],
+                    "header"    => $get_data->json()['data']['header'][0],
+                    "detail"    => $get_data->json()['data']['detail'],
                 ],
             ];
         } else {
