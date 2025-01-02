@@ -224,7 +224,6 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/get_data_member_v2', [SysUmhajController::class, 'umhaj_member_get_data_v2'])->name('umhaj.member.get_data.v2');
             Route::get('/get_jemaah_2_detail', [SysUmhajController::class, 'umhaj_member_get_data_detail_v2']);
             Route::post('/simpan_data_jemaah/{jenis}', [SysUmhajController::class, 'umhaj_member_simpan_data']);
-            Route::get('/test');
         });
 
         Route::prefix('agent')->group(function() {
