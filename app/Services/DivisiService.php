@@ -3083,4 +3083,144 @@ class DivisiService
 
         return $output;
     }
+
+    // 3 JANUARI 2024
+    // NOTE : SIMPAN RKAP TAHUNAN OPERASIONAL
+    public static function do_simpan_act_opr($data)
+    {
+        date_default_timezone_set('Asia/Jakarta');
+
+        DB::beginTransaction();
+
+        $jenis          = $data['jenis'];
+        $user_id        = $data['user_id'];
+        $ip_address     = $data['ip_address'];
+        $today          = date('Y-m-d H:i:s');
+        if($jenis == 'add') {
+            $group_division_data    = DB::table('group_divisions')->select('id')->where('name', '=', 'Operasional')->get();
+            $group_division_id      = count($group_division_data) > 0 ? $group_division_data[0]->id : "";
+
+            // SIMPAN HEADER
+            $data_header    = [
+                "uid"                       => Str::random(30),
+                "pkt_title"                 => $data['data']['rkapTitle'],
+                "pkt_description"           => $data['data']['rkapDesc'],
+                "pkt_year"                  => $data['data']['rkapPeriode'],
+                "pkt_pic_job_employee_id"   => "",
+                "division_group_id"         => $group_division_id,
+                "created_by"                => $user_id,
+                "updated_by"                => $user_id,
+                "created_at"                => $today,
+                "updated_at"                => $today,
+            ];
+
+            DB::table('proker_tahunan')->insert($data_header);
+
+            // SIMPAN DETAIL
+            $header_id  = DB::getPdo()->lastInsertId();
+            if(count($data['data']['rkapDetail']) > 0) {
+                for($i = 0; $i < count($data['data']['rkapDetail']); $i++) {
+                    $data_detail    = [
+                        "pkt_id"    => $header_id,
+                        "pktd_seq"  => $data['data']['rkapDetail'][$i]['rkap_detail_seq'],
+                        "pktd_title"=> $data['data']['rkapDetail'][$i]['rkap_detail_title'],
+                        "pktd_target"   => 0,
+                        "created_by"    => $user_id,
+                        "updated_by"    => $user_id,
+                        "created_at"    => $today,
+                        "updated_at"    => $today,
+                    ];
+
+                    DB::table('proker_tahunan_detail')->insert($data_detail);
+                }
+            }
+
+            try {
+                DB::commit();
+                $output     = [
+                    "status"    => "berhasil",
+                    "message"   => 'Berhasil Menyimpan Data Program Kerja Operasional Tahun : '. $data['data']['rkapPeriode'],
+                    "errMsg"    => ""
+                ];
+                LogHelper::create('add', $output['message'], $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+
+                $output     = [
+                    "status"    => "gagal",
+                    "message"   => "Gagal Menyimpan Data Program Kerja Operasional Baru",
+                    "errMsg"    => $e->getMessage()
+                ];
+
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
+        } else if($jenis == 'edit') {
+            $uid    = $data['data']['rkapID'];
+            $id     = DB::table('proker_tahunan')->select('id')->where('uid', '=', $uid)->get()[0]->id;
+            
+            // UPDATE HEADER
+            $data_header    = [
+                "pkt_title"         => $data['data']['rkapTitle'],
+                "pkt_description"   => $data['data']['rkapDesc'],
+                "pkt_year"          => $data['data']['rkapPeriode'],
+                "updated_by"        => $user_id,
+                "updated_at"        => $today,
+            ];
+
+            $data_header_where  = [
+                "id"        => $id,
+                "uid"       => $uid,
+            ];
+
+            DB::table('proker_tahunan')->where($data_header_where)->update($data_header);
+
+            // UPDATE DETAIL
+            if(count($data['data']['rkapDetail']) > 0) {
+                $detail     = $data['data']['rkapDetail'];
+                // DELETE DATA SEBELUMNYA
+                DB::table('proker_tahunan_detail')->where('pkt_id', '=', $id)->delete();
+                // INSERT DATA BARU
+                for($i = 0; $i < count($detail); $i++) {
+                    $data_detail    = [
+                        "pkt_id"        => $id,
+                        "pktd_seq"      => $detail[$i]['rkap_detail_seq'],
+                        "pktd_title"    => $detail[$i]['rkap_detail_title'],
+                        "pktd_target"   => 0,
+                        "created_by"    => $user_id,
+                        "updated_by"    => $user_id,
+                        "created_at"    => $today,
+                        "updated_at"    => $today,
+                    ];
+
+                    DB::table('proker_tahunan_detail')->insert($data_detail);
+                }
+            }
+
+            try {
+                DB::commit();
+
+                $output     = [
+                    "status"    => "berhasil",
+                    "message"   => "Berhasil Merubah Data Program Kerja Tahunan Operasional Tahun : " . $data['data']['rkapPeriode'],
+                    "errMsg"    => "",
+                ];
+
+                LogHelper::create('edit', $output['message'] . " ID : " . $uid, $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                $output     = [
+                    "status"    => "gagal",
+                    "message"   => "Gagal Merubah Data Program Kerja Tahunan Operasonal Tahun : " . $data['data']['rkapPeriode'],
+                    "errMsg"    => $e->getMessage(),
+                ];
+
+                LogHelper::create('error_system', $output['message'], $ip_address);
+                Log::channel('daily')->error($e->getMessage());
+            }
+        }
+
+        return $output;
+    }
 }

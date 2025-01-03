@@ -454,6 +454,11 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/umrah_getData_tourCode/{tahun}', [DivisiController::class, 'umh_get_data_tour_code']);
                 Route::get('/umrah_getData_tourCode_detail', [DivisiController::class, 'umh_get_data_tour_code_detail']);
             });
+
+            Route::prefix('aktivitas')->group(function() {
+                Route::get('/data_aktivitas_tahunan', [DivisiController::class, 'opr_get_data_tahunan']);
+                Route::post('/aktivitas_tahunan_simpan/{jenis}', [DivisiController::class, 'opr_act_simpan']);
+            });
         });
 
         Route::prefix('finance')->group(function(){

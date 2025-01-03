@@ -2848,4 +2848,36 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 3 JANUARI 2024
+    // NOTE : SIMPAN RKAP TAHUNAN OPERASIONAL
+    public function opr_act_simpan(Request $request, $jenis)
+    {
+        $send_data  = [
+            "data"      => $request->all()['sendData'],
+            "user_id"   => Auth::user()->id,
+            "ip_address"=> $request->ip(),
+            "jenis"     => $jenis,
+        ];
+
+        $do_simpan  = DivisiService::do_simpan_act_opr($send_data);
+        
+        if($do_simpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => $do_simpan['message'],
+                "data"      => [],
+            ];
+        } else if($do_simpan['status'] == 'gagal') {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => $do_simpan['message'],
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

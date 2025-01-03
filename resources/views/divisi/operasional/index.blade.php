@@ -499,6 +499,7 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-sm-6 border-right">
+                            <input type="hidden" class="form-control" id="rkap_id" name="rkap_id" style="height: 38px;" placeholder="ID RKAP">
                             {{-- JUDUL RKAP --}}
                             <div class="form-row mb-2">
                                 <div class="col-sm-12">
@@ -541,7 +542,7 @@
                     <div class="d-flex flex-row align-items-center justify-content-end">
                         <button class="btn btn-primary mx-2" id="btnTambahBarisRKAP" value="1" onclick="tambahBaris('table_detail_rkap', this.value, '')">Tambah Baris</button>
                         <button class="btn btn-secondary mr-2" id="btnBatalRKAP" onclick="closeModal('modalRKAP')">Batal</button>
-                        <button class="btn btn-primary" id="btnSimpanRKAP" value="">Simpan</button>
+                        <button class="btn btn-primary" id="btnSimpanRKAP" value="" onclick="doSimpan('modalRKAP', this.value)">Simpan</button>
                     </div>
                 </div>
             </div>
@@ -579,15 +580,6 @@
 
 @push('addon-script')
     @include('layouts.js')
-    {{-- <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.11.0/dist/sweetalert2.all.min.js"></script>
-    <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script> --}}
     <script src="{{ asset('js/csrf-token.js') }}"></script>
-    {{-- MOMENT AREA --}}
-    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/id.js"></script> 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.36/moment-timezone-with-data.min.js"></script> --}}
-    {{-- NPROGRESS --}}
-    {{-- <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script> --}}
     <script src="{{ asset('js/divisi/operasional/index.operasional.js') }}"></script>
 @endpush

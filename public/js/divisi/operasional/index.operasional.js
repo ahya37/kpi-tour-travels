@@ -310,6 +310,7 @@ function showModal(idForm, valueCari, jenis)
         Swal.showLoading();
         Promise.all(getData)
             .then((success) => {
+                console.log(success);
                 // LOAD COMPONENT
                 // DATERANGEPICKER
                 $(".tanggal").daterangepicker({
@@ -381,10 +382,14 @@ function showModal(idForm, valueCari, jenis)
             .then((success) => {
                 const getData      = success.data['header'];
                 showTable('table_list_rkap', getData);
+                
+                const showMessage   = getData.length > 0 ? 'Berhasil Memuat Data' : 'Tidak Ada Data, Silahkan Tambah Data';
+                $("#table_list_rkap").find('.dataTables_empty').html(showMessage);
             })
             .catch((err)    => {
                 console.log(err);
                 showTable('table_list_rkap', '');
+                $("#table_list_rkap").find('.dataTables_empty').html(`Gagal Memuat Data`);
             })
 
         showTable('table_list_rkap', '');
@@ -396,6 +401,11 @@ function showModal(idForm, valueCari, jenis)
             autoHide: true,
             year    : parseInt(moment().format('YYYY')),
         });
+
+        $("#rkap_title").on('keyup', () => {
+            let doUpperCase     = $("#rkap_title").val().toUpperCase();
+            $("#rkap_title").val(doUpperCase);
+        })
 
         if(jenis == 'add') {
             $("#"+idForm).modal({backdrop: 'static', keyboard: false});
@@ -425,6 +435,7 @@ function showModal(idForm, valueCari, jenis)
                     const rkap_data_detail  = success.data.detail;
 
                     // FILL HEADER
+                    $("#rkap_id").val(rkap_data_header.pkt_id);
                     $("#rkap_title").val(rkap_data_header.pkt_title);
                     $("#rkap_description").val(rkap_data_header.pkt_description);
                     $("#rkap_year").val(rkap_data_header.pkt_year);
@@ -518,6 +529,7 @@ function closeModal(idForm) {
         $("#"+idForm).modal('hide');
         showModal('modalRKAPTable', '', '');
         $("#"+idForm).on('hidden.bs.modal', () => {
+            $("#rkap_id").val(null);
             $("#rkap_title").val(null);
             $("#rkap_description").val(null);
             $("#rkap_year").val(null);
@@ -1053,6 +1065,7 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
             $.each(valueCari, (i, item) => {
                 html    += "<option value='" + item.pkt_id + "'>" + item.pkt_title + "</option>";
             });
+
             $("#"+idSelect).html(html);
             
             $("#"+idSelect).on('change', function(){
@@ -1330,6 +1343,92 @@ function doSimpan(idForm, jenis)
                     console.log(err);
                 })
 
+        }
+    } else if(idForm == 'modalRKAP') {
+        // GET DATA
+        let rkapID      = $("#rkap_id");
+        let rkapTitle   = $("#rkap_title");
+        let rkapDesc    = $("#rkap_description");
+        let rkapPeriode = $("#rkap_year");
+        let rkapTable   = $("#table_detail_rkap").DataTable().rows().count();
+        let rkapDetail  = [];
+
+        let validationHeader    = false;
+        let validationDetail    = false;
+
+        if(rkapTitle.val() == '') {
+            Swal.fire({
+                icon    : 'warning',
+                title   : 'Terjadi Kesalahan',
+                text    : `Uraian RKAP Tidak Boleh Kosong`,
+                didClose    : () => {
+                    rkapTitle.focus();
+                    validationHeader    = false;
+                }
+            })
+        } else {
+            validationHeader    = true;
+        }
+
+        for(let i = 0; i < rkapTable; i++)
+        {
+            let ke                  = i + 1;
+            let rkapDetailNumber    = $("#rkapd_seq"+ke);
+            let rkapDetailTitle     = $("#rkapd_title"+ke);
+
+            if(rkapDetailTitle.val() == '') {
+                Swal.fire({
+                    icon    : 'warning',
+                    title   : 'Terjadi Kesalahan',
+                    text    : `Uraian Pada Baris ke-${ke} Tidak Boleh Kosong`,
+                    didClose    : () => {
+                        rkapDetailTitle.focus();
+                    }
+                })
+                validationDetail    = false;
+            } else {
+                rkapDetail.push({
+                    "rkap_detail_seq"   : rkapDetailNumber.val(),
+                    "rkap_detail_title" : rkapDetailTitle.val(),
+                })
+                validationDetail    = true;
+            }
+        }
+        
+        if(validationHeader === true && validationDetail === true) {
+            // SIMPAN DATA
+            let rkapURL     = site_url + "/aktivitas/aktivitas_tahunan_simpan/"+jenis;
+            let rkapData    = {
+                "rkapID"        : rkapID.val(),
+                "rkapTitle"     : rkapTitle.val(),
+                "rkapDesc"      : rkapDesc.val(),
+                "rkapPeriode"   : rkapPeriode.val(),
+                "rkapDetail"    : rkapDetail
+            };
+            let rkapType    = "POST";
+            let rkapMsg     = Swal.fire({ title : 'Data Sedang Diproses..' }); Swal.showLoading();
+            
+            doTrans(rkapURL, rkapType, rkapData, rkapMsg, true)
+                .then((res)     => {
+                    if(res.success == true) {
+                        Swal.fire({
+                            icon    : 'success',
+                            title   : 'Berhasil',
+                            text    : res.message,
+                        }).then((response)  => {
+                            if(response.isConfirmed) {
+                                closeModal('modalRKAP');
+                            }
+                        })
+                    }
+                })
+                .catch((err)    => {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : err.responseJSON.message,
+                    });
+                })
         }
     }
 }
