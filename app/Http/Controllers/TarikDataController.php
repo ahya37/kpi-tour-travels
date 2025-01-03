@@ -15,6 +15,11 @@ class TarikDataController extends Controller
 {
     protected $title    = "ERP Percik Tours | ";
 
+    private function link_api()
+    {
+        return env('API_PERCIK_V2');
+    }
+
     public function tarik_data_index()
     {
         $data   = [
@@ -27,11 +32,10 @@ class TarikDataController extends Controller
 
     public function tarik_data_get_absensi(Request $request)
     {
-        $host   = env('API_PERCIK_V2');
         $tgl_cari   = $request->all()['tgl_cari'];
-        
-        $url        = $host . "/api/presensi/get_data_presensi?tgl_awal=".$tgl_cari;
-        $get_data   = Http::get($url);
+        // $url        = $host . "/api/presensi/get_data_presensi?tgl_awal=".$tgl_cari;
+
+        $get_data   = Http::get($this->link_api() . "/api/presensi/get_data_presensi?tgl_awal=" . $tgl_cari);
 
         if($get_data->status() == 200) {
             $presensi_data  = $get_data->json()['data'];

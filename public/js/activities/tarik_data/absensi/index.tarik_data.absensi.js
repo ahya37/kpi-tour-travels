@@ -47,12 +47,12 @@ function cariData(id)
                 for(const prs_item of prs_getData)
                 {
                     $("#table_group_division").DataTable().row.add([
-                        prs_item['abs_no'],
-                        prs_item['abs_name'],
-                        prs_item['abs_in'],
-                        prs_item['abs_in_location'],
-                        prs_item['abs_out'],
-                        prs_item['abs_out_location'],
+                        `<label class='font-weight-normal no-margins'>${prs_item['abs_no']}</label>`,
+                        `<label class='font-weight-normal no-margins'>${prs_item['abs_name']}</label>`,
+                        `<label class='font-weight-normal no-margins'>${prs_item['abs_in']}</label>`,
+                        `<label class='font-weight-normal no-margins'>${prs_item['abs_in_location']}</label>`,
+                        `<label class='font-weight-normal no-margins'>${prs_item['abs_out']}</label>`,
+                        `<label class='font-weight-normal no-margins'>${prs_item['abs_out_location']}</label>`,
                     ]).draw(false);
                 }
             })
