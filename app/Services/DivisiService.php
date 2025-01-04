@@ -653,19 +653,18 @@ class DivisiService
 
     public static function doGetDataJobUser()
     {
-        $query_for_chart  = DB::select(
+        $query_for_chart    = DB::select(
             "
-            SELECT 	b.name as employee_name,
-                    count(a.id) as total_job
-            FROM 	proker_bulanan a
-            JOIN 	employees b ON a.created_by = b.user_id
-            JOIN 	job_employees c ON c.employee_id = b.id
-            JOIN 	group_divisions d ON c.group_division_id = d.id
-            WHERE 	d.name LIKE 'Operasional'
-            AND 	EXTRACT(YEAR FROM a.pkb_start_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-            AND     a.pkb_is_active = 't'
-            GROUP BY b.name
-            ORDER BY count(a.id) DESC
+            SELECT 	*
+            FROM    (
+                        SELECT 	a.name as employee_name,
+                                (SELECT COUNT(ID) FROM proker_bulanan WHERE created_by = a.user_id AND EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM CURRENT_DATE)) as total_job
+                        FROM    employees a
+                        JOIN 	job_employees b ON a.id = b.employee_id
+                        JOIN 	group_divisions c ON c.id = b.group_division_id
+                        WHERE 	c.name = 'Operasional'
+                    ) AS total
+            ORDER BY total.total_job DESC
             "
         );
 
