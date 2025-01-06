@@ -3,12 +3,42 @@ moment.locale('id');
 var temp_rules  = [];
 var site_url    = window.location.pathname;
 var today       = moment().format('YYYY-MM-DD');
+var typeUmrah   = [];
+var dataBulan   = [];
+var dataTahun   = [];
+var currMonth   = moment().format('MM');
+var currYear    = moment().format('YYYY');
 
 $(document).ready(function(){
-    var currMonth   = moment().format('MM');
-    var currYear    = moment().format('YYYY');
-    var currPaket   = '%';
-    var data_calendar   = {
+    // CLEAR URL TAG
+    clearUrl();
+
+    // GET TAHUN SEKARANG + 3 TAHUN KE BELAKANG & KE DEPAN
+    if(dataTahun.length == 0) {
+        let tahunLalu   = moment(today, 'YYYY-MM-DD').subtract(3, 'years').year();
+        let tahunDepan  = moment(today, 'YYYY-MM-DD').add(3, 'years').year();
+
+        for(let i = tahunLalu; i < tahunDepan; i++) {
+            dataTahun.push({
+                "tahun" : i,
+            })
+        }
+
+        dataTahun.sort((a, b)   => b['tahun'] - a['tahun']);
+    }
+    // GET BULAN
+    if(dataBulan.length == 0) {
+        for(let i = 0; i < 12; i++) {
+            let ke  = i + 1;
+    
+            dataBulan.push({
+                "bulan" : moment(ke, 'M').format('MM')
+            })
+        }
+    }
+
+    let currPaket   = '%';
+    let data_calendar   = {
         "start_date"    : currYear + "-01-01",
         "end_date"      : currYear + "-12-31",
         "program"       : "%",
@@ -16,41 +46,52 @@ $(document).ready(function(){
         "aktivitas"     : "%",
     };
 
-    // SHOW DATA DASHBOARD
-    
-    // ambilData()
-    //     .then((success) => {
-    //         console.log(success);
-    //     })
-    //     .catch((err)    => {
-    //         console.log(err);
-    //     })
-
     const rkap_data     = {
         "pkt_id"    : '%',
     };
 
-    var getAllData  = [
+    // GET TYPE UMRAH
+    const typeUmrah_url     = "/master/data/getProgramUmrah/umrah";
+    const typeUmrah_type    = "GET";
+    const typeUmrah_data    = {
+        "cari"  : '%',
+    };
+    const typeUmrah_msg     = "";
+
+    let getAllData  = [
         doTrans('/divisi/operasional/getDataDashboard/'+currYear, 'GET', '', '', true),
         doTrans('/operasional/daily/listEventsCalendarOperasional/', 'GET', data_calendar, '', true),
         doTrans('/divisi/operasional/getRKAP', 'GET', rkap_data, true),
+        doTrans(typeUmrah_url, typeUmrah_type, typeUmrah_data, typeUmrah_msg, true),
     ];
 
-    Promise.all(getAllData)
+    Promise.allSettled(getAllData)
         .then((success) => {
-            const getData   = success[0].data[0];
-            const daily     = success[1];
-            const rkap      = success[2].data.header;
+            // simpan ke temp array
+            // TYPE UMRAH
+            const getTypeUmrah  = success[3].status == "fulfilled" ? success[3].value.data : [];
+            if(getTypeUmrah.length > 0 && typeUmrah.length == 0) {
+                $.each(getTypeUmrah, (i, item)  => {
+                    typeUmrah.push({
+                        "program_id"    : item['program_id'],
+                        "program_name"  : item['program_name']
+                    })
+                })
+            }
+
+            const getData   = success[0].status == "fulfilled" ? success[0].value.data[0] : [];
+            const daily     = success[1].status == "fulfilled" ? success[1].value.data : [];
+            const rkap      = success[2].status == "fulfilled" ? success[2].value.data.header : [];
 
             $("#dashboard_jadwal_umrah").html(getData.grand_total_jadwal_umrah);
             $("#dashboard_rules").html(getData.grand_total_rule);
-            $("#dashboard_activity").html(daily.data.length);
+            $("#dashboard_activity").html(daily.length);
             $("#dashboard_rkap").html(rkap.length);
 
             // SHOW SELECT FOR FILTER
-            showSelect('programFilterBulan', '%', '%', '');
-            showSelect('programFilterTahun', '%', currYear, '');
-            showSelect('programFilterPaket', '%', currPaket, true);
+            showSelect('programFilterBulan', dataBulan, '%', '');
+            showSelect('programFilterTahun', dataTahun, moment(today).year(), '');
+            showSelect('programFilterPaket', typeUmrah, currPaket, true);
 
             // SHOW TABLE JADWAL
             var inputCurrMonth  = $("#programFilterBulan").val();
@@ -58,14 +99,15 @@ $(document).ready(function(){
             
             // SHOW CHART
             showDataOperasional();
+
         })
         .catch((err)    => {
             console.log(err);
             $("#dashboard_jadwal_umrah").html(0);
             $("#dashboard_rules").html(0);
-            showSelect('programFilterBulan', '%', '%', '');
-            showSelect('programFilterTahun', '%', currYear, '');
-            showSelect('programFilterPaket', '%', currPaket, true);
+            showSelect('programFilterBulan', dataBulan, '%', '');
+            showSelect('programFilterTahun', dataTahun, currYear, '');
+            showSelect('programFilterPaket', [], '', true);
 
             var inputCurrMonth  = $("#programFilterBulan").val();
 
@@ -1003,61 +1045,53 @@ function showSelect(idSelect, valueCari, valueSelect, isAsync)
         theme   : 'bootstrap4',
     });
     if(idSelect == 'programFilterBulan') {
-        var month   = moment.months();
-        var html    = [
-            "<option selected disabled>Pilih Bulan</option>",
+        let html    = [
+            '<option selected disabled>Pilih Bulan</option>',
             "<option value='%'>Semua</option>"
         ];
-        for(var i = 0; i < month.length; i++) {
-            var id      = moment(month[i], 'MMM').format('MM');
-            var text    = month[i];
-            html    += "<option value='" + id + "'>" + text + "</option>";
+
+        if(valueCari.length > 0) {
+            $.each(valueCari, (i, item) => {
+                html    += `<option value='${item['bulan']}'>${moment(item['bulan'], 'MM').format('MMMM')}</option>`
+            })
         }
 
         $("#"+idSelect).html(html);
+
         if(valueSelect != '') {
-            $("#"+idSelect).val(valueSelect).trigger('change');
+            $("#"+idSelect).val(valueSelect);
         }
     } else if(idSelect == 'programFilterTahun') {
-        var html            = "<option selected disabled>Pilih Tahun</option>";
-        var current_year    = moment().format('YYYY');
-        var past_year_10    = moment(current_year, 'YYYY').subtract(10, 'years').year();
-        var future_year_10  = moment(current_year, 'YYYY').add(10, 'years').year();
+        let html    = [
+            "<option selected disabled>Pilih Tahun</option>",
+        ];
 
-        for(let i = past_year_10; i <= future_year_10; i++) {
-            html    += "<option value='" + i + "'>" + i + "</option>"
+        if(valueCari.length > 0) {
+            $.each(valueCari, (i, item) => {
+                html    += `<option value='${item['tahun']}'>${item['tahun']}</option>`
+            })
         }
-        
+
         $("#"+idSelect).html(html);
-        if(valueCari != '') {
-            $("#"+idSelect).val(valueSelect).trigger('change');
+
+        if(valueSelect != '') {
+            $("#"+idSelect).val(valueSelect);
         }
     } else if(idSelect == 'programFilterPaket') {
-        var html    = [
-            "<option selected disabled>Pilih Paket Program Umrah</option>",
+        let html    = [
+            "<option selected disabled>Pilih Paket Umrah</option>",
             "<option value='%'>Semua</option>"
         ];
-        var url     = "/master/data/getProgramUmrah/umrah";
-        var data    = {
-            "cari"  : valueCari,
-        };
-        doTrans(url, "GET", data, '', isAsync)
-            .then(function(xhr){
-                for(var i = 0; i < xhr.data.length; i++) {
-                    html    += "<option value='" + xhr.data[i]['program_id'] + "'>" + xhr.data[i]['program_name'] + "</option>";
-                }
 
-                $("#"+idSelect).html(html);
-                
-                if(valueSelect != '') {
-                    $("#"+idSelect).val(valueSelect).trigger('change');
-                }
+        if(valueCari.length > 0) {
+            $.each(valueCari, (i, item) => {
+                html    += `<option value='${item['program_id']}'>${item['program_name']}</option>`
             })
-            .catch(function(xhr){
-                console.log(xhr);
-            });
+        }
 
         $("#"+idSelect).html(html);
+
+        $("#"+idSelect).val(valueSelect);
     } else if(idSelect == 'modalOperasionalTransaction_sasaranID') {
         var html    = "<option selected disabled>Pilih Sasaran</option>";
 
@@ -1201,7 +1235,7 @@ function generateRules(element, id)
                 text    : xhr.alert.message.text,
             }).then((results)=>{
                 if(results.isConfirmed) {
-                    showTable('table_jadwal_umrah', ['07', '2024', '%', '%']);
+                    showTable('table_jadwal_umrah', [currMonth, currYear, '%', '%']);
                 }
             });
         })
@@ -1516,31 +1550,10 @@ function doTrans(url, type, data, customMessage, isAsync)
     });
 }
 
-// function ambilData()
-// {
-//     var apiUrl  = 'https://api-percik.perciktours.com/api';
-//     var apiKey  = 'YjIzMTE5NTg1ZDQ1MDJiYWMyMTJmMDZhZDAxMGY1MjM4NWNhOTQxOQ==';
 
-//     var headers = {
-//         'x-api-key' : apiKey,
-//         'Access-Control-Allow-Origin': '*',
-//         'Content-Type':'application/json'
-//     };
-
-//     return new Promise((resolve, reject)    => {
-//         $.ajax({
-//             cache   : false,
-//             type    : 'GET',
-//             async   : true,
-//             url     : apiUrl+"/umrah/tourcode?year=2025",
-//             headers : headers,
-//             dataType: "json",
-//             success : (success) => {
-//                 console.log(success);
-//             },
-//             error   : (err) => {
-//                 console.log(err);
-//             }
-//         })
-//     }) 
-// }
+function clearUrl()
+{
+    var url     = window.location.href;
+    var cleanUrl= url.split('#')[0];
+    window.history.replaceState({}, document.title, cleanUrl);
+}

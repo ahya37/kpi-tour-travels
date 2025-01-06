@@ -331,9 +331,8 @@ class DivisiController extends Controller
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
                 $button_generate    = "<button type='button' class='btn btn-sm btn-success' title='Generate Aturan Program Kerja' data-startdate='".$getData[$i]->jdw_depature_date."' data-enddate='".$getData[$i]->jdw_arrival_date."' value='".$getData[$i]->jdw_id."' onclick='generateRules(this, this.value)'><i class='fa fa-cog'></i></button>";
-                // $button_generate    = "<button type='button' class='btn btn-sm btn-success' title='Generate Aturan Program Kerja' value='".$getData[$i]->jdw_id."' onclick='showModal(`modaGenerateRules`, this.value)'><i class='fa fa-cog'></i></button>";
                 $button_success     = "<button type='button' class='btn btn-sm btn-primary' title='Lihat Detail' value='" .$getData[$i]->jdw_id. "' onclick='showModal(`modalForm`, this.value)' title='Berhasil Generate'><i class='fa fa-check'></i></button>";
-                $button         = $getData[$i]->status_generated == 'f' ? $button_generate : $button_success;
+                $button             = $getData[$i]->status_generated == 'f' ? $button_generate : $button_success;
                 $data[]     = array(
                     $i + 1,
                     $getData[$i]->jdw_tour_code,

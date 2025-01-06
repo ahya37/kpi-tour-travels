@@ -55,19 +55,6 @@
             </div>
             <div class="col-sm-3">
                 <div class="card">
-                    <div class="card-header bg-primary">
-                        <h4 style="margin-top: 0px; margin-bottom: 0px;"><i class='fa fa-calendar'></i> &nbsp; Jadwal Umrah</h4>
-                    </div>
-                    <div class="card-body">
-                        <h2 style="margin-bottom: 0px; margin-top: 0px;" class="text-right" id="dashboard_jadwal_umrah">0</h2>
-                    </div>
-                    <a href="{{ route('index.operasional.program') }}">
-                        <div class="card-footer text-left">Lihat Detail</div>
-                    </a>
-                </div>
-            </div>
-            <div class="col-sm-3">
-                <div class="card">
                     <div class="card-header bg-success">
                         <h4 style="margin-top: 0px; margin-bottom: 0px;"><i class='fa fa-cog'></i> &nbsp; Aturan Program Kerja</h4>
                     </div>
@@ -160,7 +147,7 @@
                     <div class="card-header">
                         <div class="d-flex flex-row align-items-center justify-content-between w-100">
                             <h4 class="card-title no-margins">
-                                <i class="fa fa-cog"></i> Generate Program Kerja Bulanan
+                                <i class="fa fa-table"></i> &nbsp; <label class="fw-bold no-margins">Jadwal Program Umrah</label>
                             </h4>
                             <button type="button" class="btn btn-secondary" title="Filter Tabel" data-toggle="collapse" data-target="#filter">
                                 <i class="fa fa-filter"></i> Filter
@@ -168,7 +155,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="row">
+                        <div class="row mb-4">
                             <div class="col-sm-12">
                                 <div class="collapse" id="filter">
                                     <div class="card card-body">
@@ -187,21 +174,25 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="table-responsive" style="padding-top: 24px;">
-                            <table class="table table-sm table-striped table-hover table-bordered" id="table_jadwal_umrah" style="width: 100%;">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center" style="width: 7%;">No</th>
-                                        <th class="text-center">Tour Code</th>
-                                        <th class="text-center" style="width: 18%;">Paket</th>
-                                        <th class="text-center">Pembimbing</th>
-                                        <th class="text-center" style="width: 16%;">Tgl. Keberangkatan</th>
-                                        <th class="text-center" style="width: 16%;">Tgl. Kepulangan</th>
-                                        <th class="text-center" style="width: 7%;">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped table-hover table-bordered" id="table_jadwal_umrah" style="width: 100%;">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-center" style="width: 7%;">No</th>
+                                                <th class="text-center">Tour Code</th>
+                                                <th class="text-center" style="width: 18%;">Paket</th>
+                                                <th class="text-center">Pembimbing</th>
+                                                <th class="text-center" style="width: 16%;">Tgl. Keberangkatan</th>
+                                                <th class="text-center" style="width: 16%;">Tgl. Kepulangan</th>
+                                                <th class="text-center" style="width: 7%;">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
