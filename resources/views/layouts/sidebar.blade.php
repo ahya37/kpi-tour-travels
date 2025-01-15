@@ -123,6 +123,7 @@
                             <li class="{{ request()->is('tarik_data/umhaj/jadwal_umrah') ? 'active' : '' }}"><a href="{{ route('index.tarik_data.umhaj.jadwal_umrah') }}">Jadwal Umrah</a></li>
                         </ul>
                     </li>
+                    <li class="{{ request()->is('tarik_data/perciktourscom') || request()->is('tarik_data/perciktours/*') ? 'active' : '' }}"><a href="{{ route('index.tarik_data.perciktours') }}">Perciktours.com</a></li>
                 </ul>
             </li>
 

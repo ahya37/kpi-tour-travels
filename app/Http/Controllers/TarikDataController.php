@@ -7,6 +7,7 @@ date_default_timezone_set('Asia/Jakarta');
 use Illuminate\Http\Request;
 use App\Services\BaseService;
 use App\Services\TarikDataService;
+use Dotenv\Repository\RepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 use Response;
 use Http;
@@ -176,5 +177,62 @@ class TarikDataController extends Controller
         }
 
         return Response::json($output, $output['status']);
-    }   
+    }
+
+    // 15 JANUARI 2025
+    // NOTE : TARIK DATA UNTUK SUMMARY
+    public function perciktourscom_index()
+    {
+        $data   = [
+            "title"     => $this->title . " Perciktours.com",
+            "sub_title" => "Tarik Data untuk Perciktours.com",
+        ];
+
+        return view('activities.tarik_data.perciktours.index', $data);
+    }
+
+    public function perciktourscom_summary_data()
+    {
+        $get_data   = TarikDataService::percikTours_data_summary();
+
+        if(count($get_data) > 0) {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil ambil data summary",
+                "data"      => $get_data,
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => "Gagal ambil data summary",
+                "data"      => [
+                    [
+                        'total_jemaah'      => 0,
+                        'total_agen'        => 0,
+                        'total_perjalanan'  => 0,
+                        'total_pembimbing'  => 0,
+                        'last_update'       => date('Y-m-d H:i:s'),
+                    ]
+                ]
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function perciktourscom_get_data_summary()
+    {
+        $get_data   = Http::get($this->link_api() . "/api/perciktours/tarik_data_summary");
+        
+        $output     = [
+            "success"   => $get_data->json()['success'],
+            "status"    => $get_data->status(),
+            "message"   => $get_data->json()['message'],
+            "data"      => $get_data->json()['data'],
+        ];
+        
+        return Response::json($output, $output['status']);
+    }
 }

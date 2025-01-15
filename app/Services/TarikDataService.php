@@ -221,6 +221,16 @@ class TarikDataService {
 
         return $output;
     }
+
+    // 15 JANUARI 2025
+    // NOTE : AMBIL DATA
+    public static function percikTours_data_summary()
+    {
+        $get_data     = DB::connection('web_percik')
+                        ->table('pct_summary_data')
+                        ->get();
+        return $get_data;
+    }
 }
 
 ?>

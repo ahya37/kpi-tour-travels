@@ -579,6 +579,12 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('data_jadwal_umrah', [TarikDataController::class, 'umhaj_jadwal_umrah_get']);
             Route::post('sync_data_local', [TarikDataController::class, 'umhaj_jadwal_umrah_sync']);
         });
+
+        Route::prefix('perciktourscom')->group(function(){
+            Route::get('/', [TarikDataController::class, 'perciktourscom_index'])->name('index.tarik_data.perciktours');
+            Route::get('/summary_data', [TarikDataController::class, 'perciktourscom_summary_data']);
+            Route::get('/get_summary_data', [TarikDataController::class, 'perciktourscom_get_data_summary']);
+        });
     });
 
     Route::prefix('simulasi')->group(function(){
