@@ -19,6 +19,7 @@ use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TarikDataController;
 use App\Http\Controllers\SysUmhajController;
+use App\Http\Controllers\WebsiteController as percikToursController;
 use App\Models\Division;
 use App\Services\ProgramKerjaService;
 use App\Services\SysUmhajService;
@@ -194,6 +195,11 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/ambil_agent_act_jemaah', [MarketingController::class, 'marketing_agent_ambil_data_agent_act_jemaah']);
                 Route::post('/simpan_member_umhaj/{jenis}', [MarketingController::class, 'marketing_agent_simpan_data_member']);
             });
+
+            Route::prefix('master')->group(function(){
+                Route::get('/periode', [MarketingController::class, 'marketing_master_agent_periode'])->name('marketing.masterAgent.periode');
+                Route::post('/simpan_periode/{jenis}', [MarketingController::class, 'marketing_master_agent_periode_trans']);
+            });
         });
         
     });
@@ -205,6 +211,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/dashboard', [SysUmhajController::class, 'index_umhaj'])->name('umhaj.dashboard');
         Route::prefix('umrah')->group(function(){
             Route::get("/get_data", [SysUmhajController::class, 'umhaj_umrah_get_data'])->name('umhaj.umrah.get_data');
+            Route::post("/get_data_chart_umrah", [SysUmhajController::class, 'umhaj_chart_umrah_data']);
             Route::get("/get_data_detail", [SysUmhajController::class, 'umhaj_umrah_get_data_detail'])->name('umhaj.umrah.get_data');
             Route::get("/list_program", [SysUmhajController::class, 'umhaj_umrah_get_list_program'])->name('umhaj.umrah.get_list_program');
             Route::get("/get_data_umrah_list/tahun/{tahun}", [SysUmhajController::class, 'umhaj_umrah_list'])->name('umhaj.umrah.list_data');
@@ -213,11 +220,30 @@ Route::group(['middleware' => ['auth']], function () {
         
         Route::prefix('member')->group(function(){
             Route::get('/get_data', [SysUmhajController::class, 'umhaj_member_get_data'])->name('umhaj.member.get_data');
-            Route::get('/get_data_detail', [SysUmhajController::class, 'umhaj_member_get_data_detail'])->name('umhaj.member.get_data.detail');
+            Route::post("/get_data_chart_member", [SysUmhajController::class, 'umhaj_chart_member_data']);
+            Route::post('/get_data_detail', [SysUmhajController::class, 'umhaj_member_get_data_detail'])->name('umhaj.member.get_data.detail');
+            Route::post('/get_data_member_v2', [SysUmhajController::class, 'umhaj_member_get_data_v2'])->name('umhaj.member.get_data.v2');
+            Route::get('/get_jemaah_2_detail', [SysUmhajController::class, 'umhaj_member_get_data_detail_v2']);
+            Route::post('/simpan_data_jemaah/{jenis}', [SysUmhajController::class, 'umhaj_member_simpan_data']);
+        });
+
+        Route::prefix('agent')->group(function() {
+            Route::post('/get_data_agent', [SysUmhajController::class, 'umhaj_agent_get_data']);
         });
 
         Route::prefix('cs')->group(function(){
             Route::get('/get_data', [SysUmhajController::class, 'umhaj_cs_get_data'])->name('umhaj.cs.get_data');
+        });
+
+        Route::prefix('master')->group(function(){
+            Route::get('/master_data_sumber', [SysUmhajController::class, 'umhaj_master_data_sumber']);
+            Route::get('/data_wilayah/provinsi', [SysUmhajController::class, 'erp_master_wilayah_provinsi']);
+            Route::get('/data_wilayah/kota', [SysUmhajController::class, 'erp_master_wilayah_kota']);
+            Route::get('/data_wilayah/kecamatan', [SysUmhajController::class, 'erp_master_wilayah_kecamatan']);
+            Route::get('/data_wilayah/kelurahan', [SysUmhajController::class, 'erp_master_wilayah_kelurahan']);
+            Route::get('/master_data_program', [SysUmhajController::class, 'umhaj_master_data_program_umrah']);
+            Route::get('/master_data_user_cs', [SysUmhajController::class, 'umhaj_master_data_cs']);
+            Route::post("/master_data_jadwal_umrah", [SysUmhajController::class, 'umhaj_data_jadwal_umrah']);
         });
     });
 
@@ -429,6 +455,11 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/umrah_getData_tourCode/{tahun}', [DivisiController::class, 'umh_get_data_tour_code']);
                 Route::get('/umrah_getData_tourCode_detail', [DivisiController::class, 'umh_get_data_tour_code_detail']);
             });
+
+            Route::prefix('aktivitas')->group(function() {
+                Route::get('/data_aktivitas_tahunan', [DivisiController::class, 'opr_get_data_tahunan']);
+                Route::post('/aktivitas_tahunan_simpan/{jenis}', [DivisiController::class, 'opr_act_simpan']);
+            });
         });
 
         Route::prefix('finance')->group(function(){
@@ -479,7 +510,11 @@ Route::group(['middleware' => ['auth']], function () {
         });
 
         Route::prefix('human_resource')->group(function(){
-            Route::get('/', [DivisiController::class, 'indexHR'])->name('index.human_resouce');
+            // Route::get('/', [DivisiController::class, 'indexHR'])->name('index.human_resouce');
+            Route::get('/', function(){
+                return redirect()->route('index.human_resource.dashboard');
+            });
+            Route::get('/dashboard', [DivisiController::class, 'indexHR'])->name('index.human_resource.dashboard');
             Route::prefix('/employee')->group(function(){
                 Route::get('/list', [DivisiController::class, 'hr_list_employee']);
                 Route::post('/ubahStatus', [DivisiController::class, 'hr_ubah_status_employee']);
@@ -488,6 +523,11 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/list', [DivisiController::class, 'absensi_list']);
                 Route::get('/excelDownload', [DivisiController::class, 'absensi_download_excel']);
                 Route::post('/excelDelete', [DivisiController::class, 'absensi_delete_excel']);
+            });
+            Route::prefix('jam_kerja')->group(function(){
+                Route::get('/', [DivisiController::class, 'HR_indexJamKerja'])->name('index.human_resource.jam_kerja');
+                Route::get('/data_jam_kerja', [DivisiController::class, 'HR_getDataJamKerja']);
+                Route::post('/simpan_jam_kerja/{type}', [DivisiController::class, 'HR_simpanDataJamKerja']);
             });
         });
 
@@ -499,8 +539,6 @@ Route::group(['middleware' => ['auth']], function () {
     });
 
     Route::prefix('aktivitas')->group(function(){
-        // Route::get('/daily','daily')->name('aktivitas.daily.index');
-        // Route::get('modal/create','loadModalFormDailyActivities');
         Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('aktivitas.harian.index');
         Route::get('/listTableProkerHarian', [ProgramKerjaController::class,'listTableProkerHarian'])->name('programKerja.harian.listTable');
         Route::get('/detailDataProkerHarian', [ProgramKerjaController::class,'detailDataProkerHarian'])->name('programKerja.harian.detailprokerharian');
@@ -547,6 +585,23 @@ Route::group(['middleware' => ['auth']], function () {
     Route::prefix('simulasi')->group(function(){
         Route::prefix('perhitungan_lembur')->group(function(){
             Route::get('/', [DivisiController::class, 'index_simulasi_perhitungan_lembur']);
+        });
+    });
+
+    Route::prefix('website')->group(function(){
+        Route::get('/', [percikToursController::class, 'index'])->name('index.perciktours.com');
+        Route::get('/summary_data', [percikToursController::class, 'perciktourscom_summary_data']);
+        Route::get('/get_summary_data', [percikToursController::class, 'perciktourscom_get_data_summary']);
+
+        Route::prefix('master')->group(function(){
+            Route::get('/product', [percikToursController::class, 'perciktourscom_master_product']);
+            Route::get('/jadwal', [percikToursController::class, 'perciktourscom_master_jadwal']);
+            Route::get('/jadwal_tarik', [percikToursController::class, 'perciktourscom_master_jadwal_tarik']);
+            Route::get('/jadwal_detail', [percikToursController::class, 'perciktourscom_master_jadwal_detail']);
+        });
+
+        Route::prefix('transaction')->group(function(){
+
         });
     });
 });

@@ -270,7 +270,7 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-striped" id="table_emp" style="width: 100%;">
+                                <table class="table table-striped table-hover" id="table_emp" style="width: 100%;">
                                     <thead>
                                         <tr>
                                             <th class="text-center align-middle" style="width: 5%;">No</th>
@@ -417,7 +417,6 @@
 
 @push('addon-script')
     @include('layouts.js')
-    <script src="{{ asset('assets/js/plugins/switchery/switchery.js') }}"></script>
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/divisi/human_resource/dashboard/index.hr.dashboard.js') }}"></script>
 @endpush

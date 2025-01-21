@@ -7,6 +7,7 @@ date_default_timezone_set('Asia/Jakarta');
 use Illuminate\Http\Request;
 use App\Services\BaseService;
 use App\Services\TarikDataService;
+use Dotenv\Repository\RepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 use Response;
 use Http;
@@ -14,6 +15,11 @@ use Http;
 class TarikDataController extends Controller
 {
     protected $title    = "ERP Percik Tours | ";
+
+    private function link_api()
+    {
+        return env('API_PERCIK_V2');
+    }
 
     public function tarik_data_index()
     {
@@ -27,11 +33,10 @@ class TarikDataController extends Controller
 
     public function tarik_data_get_absensi(Request $request)
     {
-        $host   = env('API_PERCIK_V2');
         $tgl_cari   = $request->all()['tgl_cari'];
-        
-        $url        = $host . "/api/presensi/get_data_presensi?tgl_awal=".$tgl_cari;
-        $get_data   = Http::get($url);
+        // $url        = $host . "/api/presensi/get_data_presensi?tgl_awal=".$tgl_cari;
+
+        $get_data   = Http::get($this->link_api() . "/api/presensi/get_data_presensi?tgl_awal=" . $tgl_cari);
 
         if($get_data->status() == 200) {
             $presensi_data  = $get_data->json()['data'];
@@ -172,5 +177,5 @@ class TarikDataController extends Controller
         }
 
         return Response::json($output, $output['status']);
-    }   
+    }
 }

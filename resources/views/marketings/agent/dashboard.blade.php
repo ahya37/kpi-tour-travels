@@ -75,6 +75,17 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="widget style1 navy-bg" title="Master Periode" onclick="showModal('modal_pengaturan_periode', '', 'view')" style="cursor: pointer;">
+                        <div class="d-flex flex-row align-items-center justify-content-between">
+                            <i class="fa fa-calendar fa-3x"></i>
+                            <div>
+                                <h3 class="font-bold no-margins">Master Periode</h3>
+                                <small>Tahun <span id="periode_curr"><i class="fa fa-spinner fa-spin"></i></span></small>    
+                            </div> 
+                        </div>
+                    </div>
+                </div>
             </div>
             <hr>
             <span class="mb-4">
@@ -523,6 +534,72 @@
                     </div>
                     <div>
                         <button class="btn btn-sm btn-primary" type="button" title="Simpan Data" onclick="doSimpanData('modal_pengaturan_agent_jemaah', 'add', [])">Simpan Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- MODAL PENGATURAN PERIODE AGENT --}}
+    <div class="modal fade" id="modal_pengaturan_periode">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header d-flex flex-row align-items-center justify-content-between w-100">
+                    <h4 class="modal-title">
+                        <label class="no-margins font-weight-bold" id="modal_pengaturan_periode_title"></label>
+                    </h4>
+                    <button class="close" title="Tutup Tampilan" onclick="closeModal('modal_pengaturan_periode')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <button class="btn btn-primary" title="Tambah Data Periode" onclick="showModal('modal_pengaturan_periode_form', '', 'add')" id="btn_pengaturan_agent_form_buka">Tambah Data</button>
+                        </div>
+                    </div>
+                    <div class="collapse mt-2" id="modal_pengaturan_periode_form">
+                        <div class="card card-body">
+                            <input type="hidden" class="form-control" id="periode_id" placeholder="Periode ID" readonly>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped" id="table_pengaturan_agent_form" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" style="width: 10%;">&nbsp;</th>
+                                            <th class="text-center align-middle" style="width: 15%;">No</th>
+                                            <th class="text-center align-middle">Tahun</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                            <hr>
+                            <div class="row align-items-center">
+                                <div class="col-sm-6">
+                                    <small>Note : Tombol <b>'Enter'</b> bisa untuk menambah baris</small>
+                                </div>
+                                <div class="col-sm-6 text-right">
+                                    <button class="btn btn-secondary" id="btn_pengaturan_agent_form_tutup" onclick="closeModal('modal_pengaturan_periode_form')" title="Tutup Form">Tutup</button>
+                                    <button class="btn btn-success" id="btn_pengaturan_agent_form_tambah" value="1" onclick="addColumnTable('table_pengaturan_agent_form', this.value, '')">Tambah Baris</button>
+                                    <button class="btn btn-primary" title="Simpan Data Master Periode" id="btn_pengaturan_agent_form_simpan" onclick="doSimpanData('modal_pengaturan_periode_form', this.value, '')">Simpan</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered" id="table_pengaturan_periode" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" style="width: 10%;">No</th>
+                                            <th class="text-center align-middle" style="width: 18%;">Periode</th>
+                                            <th class="text-center align-middle">Tahun Periode</th>
+                                            <th class="text-center align-middle" style="width: 10%">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

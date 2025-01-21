@@ -331,9 +331,8 @@ class DivisiController extends Controller
         if(!empty($getData)) {
             for($i = 0; $i < count($getData); $i++) {
                 $button_generate    = "<button type='button' class='btn btn-sm btn-success' title='Generate Aturan Program Kerja' data-startdate='".$getData[$i]->jdw_depature_date."' data-enddate='".$getData[$i]->jdw_arrival_date."' value='".$getData[$i]->jdw_id."' onclick='generateRules(this, this.value)'><i class='fa fa-cog'></i></button>";
-                // $button_generate    = "<button type='button' class='btn btn-sm btn-success' title='Generate Aturan Program Kerja' value='".$getData[$i]->jdw_id."' onclick='showModal(`modaGenerateRules`, this.value)'><i class='fa fa-cog'></i></button>";
                 $button_success     = "<button type='button' class='btn btn-sm btn-primary' title='Lihat Detail' value='" .$getData[$i]->jdw_id. "' onclick='showModal(`modalForm`, this.value)' title='Berhasil Generate'><i class='fa fa-check'></i></button>";
-                $button         = $getData[$i]->status_generated == 'f' ? $button_generate : $button_success;
+                $button             = $getData[$i]->status_generated == 'f' ? $button_generate : $button_success;
                 $data[]     = array(
                     $i + 1,
                     $getData[$i]->jdw_tour_code,
@@ -2748,6 +2747,132 @@ class DivisiController extends Controller
                 "success"   => false,
                 "status"    => 404,
                 "message"   => "Gagal Konfirmasi Pembayaran Agent",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 10 DESEMBER 2024
+    // NOTE : PEMBUATAN SETTING JAM KERJA
+    public function HR_indexJamKerja()
+    {
+        $v_data     = [
+            "title"     => $this->title . " | Setting Jam Kerja",
+            "sub_title" => "Master - Jam Kerja"
+        ];
+
+        return view('divisi.human_resource.jam_kerja.index', $v_data);
+    }
+
+    // 11 DESEMBER 2024
+    // NOTE : AMBIL DATA JAM KERJA
+    public function HR_getDataJamKerja(Request $request)
+    {
+        $today  = $request->all()['today'];
+        $get_data   = DivisiService::get_data_jam_kerja($today);
+        $temp_data  = [];
+        $i          = 0;
+
+        if(count($get_data) > 0) {
+            $groupped   = [];
+            $formatted  = [];
+
+            foreach($get_data as $item){
+                $groupped[$item->date_start."&".$item->date_end][]  = [
+                    "clock_in"      => $item->clock_in,
+                    "clock_out"     => $item->clock_out,
+                ];
+            }
+
+            // print("<pre>" . print_r($groupped, true) . "</pre>");die();
+            foreach($groupped as $data_date => $data_clock) {
+                $formatted[]    = [
+                    'date_start'    => explode('&', $data_date)[0],
+                    'date_end'      => explode('&', $data_date)[1],
+                    'data_clock'    => $data_clock
+                ];
+            }
+
+            $output     = [
+                "status"    => 200,
+                "success"   => true,
+                "data"      => $formatted,
+                "message"   => "Berhasil Mengambil Data Jam Kerja",
+            ];            
+        } else {
+            $output     = [
+                "status"    => 404,
+                "success"   => false,
+                "data"      => [],
+                "message"   => "Data Jam Kerja Tidak Ditemukan" 
+            ];
+        }
+    
+        return Response::json($output, $output['status']);
+    }
+
+    public function HR_simpanDataJamKerja(Request $request, $type)
+    {
+        $data_simpan    = [
+            "type"      => $type,
+            "data"      => $request->all(),
+            "ip_address"=> $request->ip(),
+            "user_id"   => Auth::user()->id,
+        ];
+
+        $do_simpan  = DivisiService::do_simpan_data_jam_kerja($data_simpan);
+
+        $do_simpan  = [
+            'status'    => 'berhasil',
+            'message'   => 'Berhasil Menambahkan Jam Kerja Baru'
+        ];
+
+        if($do_simpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 201,
+                "message"   => $do_simpan['message'],
+                "data"      => "",
+            ];
+        } else if($do_simpan['status'] == 'gagal') {
+            $output     = [
+                "success"   => false,
+                "status"    => 500,
+                "message"   => $do_simpan['message'],
+                "data"      => "",
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 3 JANUARI 2024
+    // NOTE : SIMPAN RKAP TAHUNAN OPERASIONAL
+    public function opr_act_simpan(Request $request, $jenis)
+    {
+        $send_data  = [
+            "data"      => $request->all()['sendData'],
+            "user_id"   => Auth::user()->id,
+            "ip_address"=> $request->ip(),
+            "jenis"     => $jenis,
+        ];
+
+        $do_simpan  = DivisiService::do_simpan_act_opr($send_data);
+        
+        if($do_simpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => $do_simpan['message'],
+                "data"      => [],
+            ];
+        } else if($do_simpan['status'] == 'gagal') {
+            $output     = [
+                "success"   => false,
+                "status"    => 404,
+                "message"   => $do_simpan['message'],
                 "data"      => [],
             ];
         }
