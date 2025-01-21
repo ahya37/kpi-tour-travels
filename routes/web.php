@@ -19,6 +19,7 @@ use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TarikDataController;
 use App\Http\Controllers\SysUmhajController;
+use App\Http\Controllers\WebsiteController as percikToursController;
 use App\Models\Division;
 use App\Services\ProgramKerjaService;
 use App\Services\SysUmhajService;
@@ -579,17 +580,28 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('data_jadwal_umrah', [TarikDataController::class, 'umhaj_jadwal_umrah_get']);
             Route::post('sync_data_local', [TarikDataController::class, 'umhaj_jadwal_umrah_sync']);
         });
-
-        Route::prefix('perciktourscom')->group(function(){
-            Route::get('/', [TarikDataController::class, 'perciktourscom_index'])->name('index.tarik_data.perciktours');
-            Route::get('/summary_data', [TarikDataController::class, 'perciktourscom_summary_data']);
-            Route::get('/get_summary_data', [TarikDataController::class, 'perciktourscom_get_data_summary']);
-        });
     });
 
     Route::prefix('simulasi')->group(function(){
         Route::prefix('perhitungan_lembur')->group(function(){
             Route::get('/', [DivisiController::class, 'index_simulasi_perhitungan_lembur']);
+        });
+    });
+
+    Route::prefix('website')->group(function(){
+        Route::get('/', [percikToursController::class, 'index'])->name('index.perciktours.com');
+        Route::get('/summary_data', [percikToursController::class, 'perciktourscom_summary_data']);
+        Route::get('/get_summary_data', [percikToursController::class, 'perciktourscom_get_data_summary']);
+
+        Route::prefix('master')->group(function(){
+            Route::get('/product', [percikToursController::class, 'perciktourscom_master_product']);
+            Route::get('/jadwal', [percikToursController::class, 'perciktourscom_master_jadwal']);
+            Route::get('/jadwal_tarik', [percikToursController::class, 'perciktourscom_master_jadwal_tarik']);
+            Route::get('/jadwal_detail', [percikToursController::class, 'perciktourscom_master_jadwal_detail']);
+        });
+
+        Route::prefix('transaction')->group(function(){
+
         });
     });
 });

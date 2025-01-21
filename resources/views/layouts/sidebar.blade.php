@@ -123,7 +123,17 @@
                             <li class="{{ request()->is('tarik_data/umhaj/jadwal_umrah') ? 'active' : '' }}"><a href="{{ route('index.tarik_data.umhaj.jadwal_umrah') }}">Jadwal Umrah</a></li>
                         </ul>
                     </li>
-                    <li class="{{ request()->is('tarik_data/perciktourscom') || request()->is('tarik_data/perciktours/*') ? 'active' : '' }}"><a href="{{ route('index.tarik_data.perciktours') }}">Perciktours.com</a></li>
+                </ul>
+            </li>
+
+            <li class="{{ request()->is('website') || request()->is('website/*') ? 'active' : '' }}">
+                <a href="#">
+                    <i class="fa fa-globe"></i>
+                    <span class="nav-label">Perciktours.com</span>
+                    <span class="fa arrow"></span>
+                </a>
+                <ul class="nav nav-second-level collapse">
+                    <li class="{{ request()->is('website') ? 'active' : '' }}"><a href="{{ route('index.perciktours.com') }}">Dashboard</a></li>
                 </ul>
             </li>
 
@@ -323,11 +333,11 @@
                     if(success.length > 0) {
                         const sendData   = {
                             "email"         : storageExtract['email'],
-                            "profile_pict"  : success[0].pict_dir == null ? base_url + '/assets/img/9187604.png' : base_url + '/'+ success[0].pict_dir,
+                            "profile_pict"  : success[0].pict_dir == null ? pictDefault : base_url + '/'+ success[0].pict_dir,
                         };
                         local_data.push(sendData);
                         localStorage.setItem('items', JSON.stringify(local_data));
-                        $("#profile_image").prop('src', success[0].pict_dir == null ? base_url + '/assets/img/9187604.png' : base_url + '/'+ success[0].pict_dir);
+                        $("#profile_image").prop('src', success[0].pict_dir == null ? pictDefault : base_url + '/'+ success[0].pict_dir);
                     } else {
                         const sendData  = {
                             "email"         : storageExtract['email'],
@@ -340,6 +350,7 @@
                 },
                 error   : (err)     => {
                     console.log(err);
+                    $("#profile_image").prop('src', default_picture);
                 }
             })
         }

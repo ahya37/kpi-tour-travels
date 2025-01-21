@@ -161,6 +161,10 @@ class TarikDataService {
             $umhaj_depature_date= date('Y-m-d', strtotime($umhaj_data[$i]['UMRAH_DEPATURE']));
             $umhaj_arrival_date = date('Y-m-d', strtotime($umhaj_data[$i]['UMRAH_ARRIVAL']));
             $umhaj_tour_leader  = $umhaj_data[$i]['UMRAH_MENTOR_NAME'];
+            $umhaj_is_active    = $umhaj_data[$i]['UMRAH_IS_ACTIVE'];
+            $umhaj_total_seat   = $umhaj_data[$i]['UMRAH_TOTAL_SEAT'];
+            $umhaj_taken_seat   = $umhaj_data[$i]['UMRAH_TAKEN_SEAT'];
+            $umhaj_available_seat   = $umhaj_data[$i]['UMRAH_AVAILABLE_SEAT'];
 
             // CHECK DI LOCAL ADA ATAU TIDAK
             $check              = DB::table('programs_jadwal')->where('jdw_tour_code', '=', $umhaj_tour_code)->get();
@@ -171,6 +175,10 @@ class TarikDataService {
                     "depature_date"     => $umhaj_depature_date,
                     "arrival_date"      => $umhaj_arrival_date,
                     "tour_leader"       => $umhaj_tour_leader,
+                    "is_active"         => $umhaj_is_active,
+                    "total_seat"        => $umhaj_total_seat,
+                    "taken_seat"        => $umhaj_taken_seat,
+                    "available_seat"    => $umhaj_available_seat,
                 ];
             }
         }
@@ -180,6 +188,7 @@ class TarikDataService {
         {
             // GET DATA PPROGRAM
             $program_id     = DB::table('programs')->where('alias', '=', substr($temp_data_umhaj[$i]['tour_code'], 0, 2))->get();
+            // dd($program_id);
             
             $data_simpan    = [
                 "jdw_uuid"          => Str::uuid(),
@@ -188,12 +197,15 @@ class TarikDataService {
                 "jdw_arrival_date"  => $temp_data_umhaj[$i]['arrival_date'],
                 "jdw_mentor_name"   => $temp_data_umhaj[$i]['tour_leader'],
                 "jdw_tour_code"     => $temp_data_umhaj[$i]['tour_code'],
+                "jdw_seat"          => $temp_data_umhaj[$i]['total_seat'],
+                "jdw_take_seat"     => $temp_data_umhaj[$i]['taken_seat'],
+                "jdw_available_seat"=> $temp_data_umhaj[$i]['available_seat'],
                 "is_generated"      => "f",
-                "is_active"         => "t",
+                "is_active"         => $temp_data_umhaj[$i]['is_active'],
                 "created_by"        => $data['user_id'],
-                "created_at"        => date('Y-m-d'),
+                "created_at"        => date('Y-m-d H:i:s'),
                 "updated_by"        => $data['user_id'],
-                "updated_at"        => date('Y-m-d'),
+                "updated_at"        => date('Y-m-d H:i:s'),
             ];
 
             DB::table('programs_jadwal')->insert($data_simpan);
@@ -220,16 +232,6 @@ class TarikDataService {
         }
 
         return $output;
-    }
-
-    // 15 JANUARI 2025
-    // NOTE : AMBIL DATA
-    public static function percikTours_data_summary()
-    {
-        $get_data     = DB::connection('web_percik')
-                        ->table('pct_summary_data')
-                        ->get();
-        return $get_data;
     }
 }
 
