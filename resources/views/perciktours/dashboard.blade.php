@@ -161,7 +161,7 @@
                                     <h4 class="font-weight-bold no-margins">Progarm</h4>
                                 </div>
                                 <div class="col-8">
-                                    <input type="text" class="form-control" id="detai_program" placeholder="Nama Progarm" readonly>
+                                    <input type="text" class="form-control" id="detail_program" placeholder="Nama Program" readonly>
                                 </div>
                             </div>
                             <div class="row mb-2">
@@ -188,12 +188,31 @@
                                     <input type="text" class="form-control" id="detail_pembimbing" placeholder="Nama Pembimbing" readonly>
                                 </div>
                             </div>
-                            <div class="row mb-2">
+                            {{-- IF FLYER DIDNT EXIST --}}
+                            <form id="uploadFlyer" enctype="multipart/form-data">
+                                <div class="row mb-2">
+                                    <div class="col-4 mt-2">
+                                        <h4 class="font-weight-bold no-margins">Flyer</h4>
+                                    </div>
+                                    <div class="col-8">
+                                        <input type="hidden" id="tour_code" name="tour_code">
+                                        <input type="file" class="form-control-file" id="detail_flyer" name="detail_flyer">
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-4 mt-2">&nbsp;</div>
+                                    <div class="col-8">
+                                        <button type="button" class="btn btn-primary" onclick="doUpload();"><i class="fa fa-upload"></i> Upload</button>
+                                    </div>
+                                </div>
+                            </form>
+                            {{-- IF FLYER EXIST --}}
+                            <div class="row mb-2 d-none" id="flyer_exist">
                                 <div class="col-4 mt-2">
-                                    <h4 class="font-weight-bold no-margins">Flyer</h4>
+                                    <h4 class="no-margins font-weight-bold">Flyer</h4>
                                 </div>
                                 <div class="col-8">
-                                    <input type="file" class="form-control-file" id="detail_flyer">
+                                    <a href="#" id="flyer_exist_link" title="Download Flyer" target="_blank" class="btn btn-primary"></a>
                                 </div>
                             </div>
                             <div class="row mb-2">

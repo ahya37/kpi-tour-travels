@@ -36,9 +36,13 @@ $(document).ready(function() {
 
             $("#sum_total_program").html(summaryGetData['data_program']['total_program']);
 
-            const umrahGetData      = results[1].value.data;
+            const umrahGetData      = results[1].status == 'fulfilled' ? results[1].value.data : [];
             showTable('table_jadwal_umrah', umrahGetData);
-            $("#table_jadwal_umrah").find('.dataTables_empty').html(`Data Berhasil Dimuat`);
+            if(umrahGetData.length > 0) {
+                $("#table_jadwal_umrah").find('.dataTables_empty').html(`Data Berhasil Dimuat`);
+            } else {
+                $("#table_jadwal_umrah").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`)
+            }
         })
         .catch((err)    => {
             console.log(err);
@@ -225,7 +229,22 @@ function showModal(idModal, data, type)
                 $("#detail_jml_seat").val(detailGetData['jdw_seat']);
                 $("#detail_seat_avail").val(detailGetData['jdw_available_seat']);
                 $("#detail_seat_use").val(detailGetData['jdw_take_seat']);
-                $("#detail_update_terakhir").html(detailGetData['updated_at']);})
+                $("#detail_update_terakhir").html(detailGetData['updated_at']);
+
+                $("#tour_code").val(detailGetData['jdw_tour_code'])
+                
+                if(detailGetData['jdw_flyer'].length > 0) {
+                    $("#uploadFlyer").addClass('d-none');
+                    $("#flyer_exist").removeClass('d-none');
+
+                    $("#flyer_exist_link").attr('href', base_url + '/' + detailGetData['jdw_flyer']).html(`<i class='fa fa-download'></i> Download Flyer`);
+                } else {
+                    $("#uploadFlyer").removeClass('d-none');
+                    $("#flyer_exist").addClass('d-none');
+
+                    $("#flyer_exist_link").attr('href', '#').html('');
+                }
+            })
             .catch((error)        => {
                 Swal.fire({
                     icon    : 'error',
@@ -240,7 +259,66 @@ function closeModal(idModal)
 {
     if(idModal == 'modal_detail_jadwal') {
         $("#"+idModal).modal('hide');
+
+        $("#detail_tour_code").val('');
+        $("#detail_program").val('');
+        $("#detail_keberangkatan").val('');
+        $("#detail_kepulangan").val('');
+        $("#detail_pembimbing").val('');
+        $("#detail_jml_seat").val(0);
+        $("#detail_seat_avail").val(0);
+        $("#detail_seat_use").val(0);
+
+        $("#uploadFlyer").trigger('reset');
+
+        $("#uploadFlyer").removeClass('d-none');
+
+        $("#flyer_exist").addClass('d-none');
+        $("#flyer_exist_link").attr('href', '').html('');
     }
+}
+
+function doUpload()
+{
+    let form    = new FormData($("#uploadFlyer")[0]);
+
+    $.ajax({
+        cache   : false,
+        url     : base_url + '/' + 'website/transaction/flyer',
+        method  : "POST",
+        headers : {
+            'X-CSRF-TOKEN'  : CSRF_TOKEN,
+        },
+        data            : form,
+        contentType     : false,
+        processData     : false,
+        beforeSend      : () => {
+            Swal.fire({ title : 'Flyer Sedang Diupload..' }); Swal.showLoading();
+            closeModal('modal_detail_jadwal');
+        },
+        success         : (response)    => {
+            Swal.fire({
+                icon    : response.alert.icon,
+                title   : response.alert.message.title,
+                text    : response.alert.message.text,
+                didClose    : () => {
+                    showModal('modal_detail_jadwal', $("#tour_code").val());
+                }
+            });
+        },
+        error           : (error)       => {
+            let errMsg  = error.responseJSON.alert;
+
+            Swal.fire({
+                icon    : errMsg.icon,
+                title   : errMsg.message.title,
+                text    : errMsg.message.text,
+                didClose    : () => {
+                    showModal('modal_detail_jadwal', $("#tour_code").val());
+                }
+            })
+        }
+    })
 }
 
 function doTransaction(url, type, data, message)

@@ -601,7 +601,7 @@ Route::group(['middleware' => ['auth']], function () {
         });
 
         Route::prefix('transaction')->group(function(){
-
+            Route::post('/flyer', [percikToursController::class, 'perciktourscom_upload_flyer']);
         });
     });
 });

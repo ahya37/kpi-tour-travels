@@ -182,6 +182,52 @@ class WebsiteService
                     ->get();
         return $query;
     }
+
+    // 21 JANUARI 2025
+    // NOTE : UPLOAD FILE
+    public static function do_upload_flyer($file)
+    {
+        DB::beginTransaction();
+
+        $ip     = $file['ip'];
+
+        $data_where     = [
+            'jdw_tour_code'     => $file['tour_code'],
+        ];
+
+        $data_update    = [
+            "jdw_flyer"         => $file['storage_path'] . "/" . $file['custom_name'],
+            "updated_by"        => $file['user_id'],
+            "updated_at"        => date('Y-m-d H:i:s'),
+        ];
+
+        DB::table('programs_jadwal')->where($data_where)->update($data_update);
+
+        try {
+            DB::commit();
+
+            LogHelper::create('edit', 'Berhasil Upload Flyer ' . $file['tour_code'], $ip);
+
+            $output     = [
+                "status"    => "berhasil",
+                "message"   => "Berhasil Upload Flyer",
+                "errMsg"    => "",
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Upload Flyer', $ip);
+
+            $output     = [
+                'status'    => 'gagal',
+                'message'   => 'Gagal Upload Flyer',
+                'errMsg'    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
 }
 
 ?>

@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\WebsiteService;
 use Dotenv\Repository\RepositoryInterface;
+use File;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Validator;
+
+use function Ramsey\Uuid\v1;
 
 class WebsiteController extends Controller
 {
@@ -150,6 +154,90 @@ class WebsiteController extends Controller
                 "message"   => "Tidak Ada Data Tour Code " . $tour_code,
                 "data"      => [],
             ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 21 JANUARI 2025
+    // UPLOAD FLYER
+    public function perciktourscom_upload_flyer(Request $request)
+    {
+        $file       = $request->file('detail_flyer');
+        $tour_code  = $request->tour_code;
+
+        $validator  = Validator::make($request->all(), [
+            'detail_flyer'  => 'required|file|max:2048|mimes:jpg,png,jpeg,pdf',
+        ]);
+
+        if($validator->fails() === true) {
+            $output     = [
+                "success"       => false,
+                "status"        => 400,
+                "alert"         => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => $validator->messages()->first(), 
+                    ],
+                ],
+            ];
+        } else {
+            $file_info  = [
+                "file_name"     => $file->getClientOriginalName(),
+                "file_extension"=> $file->getClientOriginalExtension(),
+                "file_real_path"=> $file->getRealPath(),
+                "file_size"     => $file->getSize(),
+                "custom_name"   => "Flyer_" . str_replace('/', '_', $tour_code) . "." . $file->getClientOriginalExtension(),
+                "user_id"       => Auth::user()->id,
+                "storage_path"  => "storage/data-files/flyer/" . str_replace('/', '_', $tour_code),
+                "ip"            => $request->ip(),
+                "tour_code"     => $tour_code,
+            ];
+
+            $do_upload  = WebsiteService::do_upload_flyer($file_info);
+
+            if($do_upload['status'] == 'berhasil') {
+                $tujuan_upload  = public_path($file_info['storage_path']);
+
+                if(File::exists($tujuan_upload) && File::isDirectory($tujuan_upload)) {
+                    $files  = File::files($tujuan_upload);
+
+                    foreach($files as $currFile) {
+                        File::delete($currFile);
+                    }
+                }
+
+                if(file_exists($tujuan_upload)) {
+                    File::delete($tujuan_upload);
+                }
+
+                $file->move($tujuan_upload, $file_info['custom_name']);
+
+                $output     = [
+                    "success"       => true,
+                    "status"        => 200,
+                    "alert"         => [
+                        "icon"      => "success",
+                        "message"   => [
+                            "title"     => "Berhasil",
+                            "text"      => "Berhasil Mengunggah File Flyer", 
+                        ],
+                    ],
+                ];
+            } else {
+                $output     = [
+                    "success"       => false,
+                    "status"        => 500,
+                    "alert"         => [
+                        "icon"      => "error",
+                        "message"   => [
+                            "title"     => "Terjadi Kesalahan",
+                            "text"      => "Gagal Upload Flyer", 
+                        ],
+                    ],
+                ];
+            }
         }
 
         return Response::json($output, $output['status']);
