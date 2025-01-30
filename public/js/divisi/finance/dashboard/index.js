@@ -489,13 +489,13 @@ function showTable(idTable, data)
                         prs_status_note,
                     ]).draw(false);
                     $(".dataTables_empty").html("Data Sedang Ditampilkan");
-                } else if(prs_out != null && prs_out_time_new > "14:29" && moment(prs_date, 'YYYY-MM-DD').format('dddd') == 'Sabtu') {
-                    prs_out_time_new >= "14:30" && prs_status == "t" ? overtimeOne = 1 : "";
-                    prs_out_time_new >= "14:31" && prs_out_time_new < "23:29" && prs_status == "t" ? overtimeTwo = hitungJumlahJam("14:31", prs_out_time_new) : "";
+                } else if(prs_out != null && prs_out_time_new > "13:29" && moment(prs_date, 'YYYY-MM-DD').format('dddd') == 'Sabtu') {
+                    prs_out_time_new >= "13:30" && prs_status == "t" ? overtimeOne = 1 : "";
+                    prs_out_time_new >= "13:31" && prs_out_time_new < "23:29" && prs_status == "t" ? overtimeTwo = hitungJumlahJam("13:31", prs_out_time_new) : "";
                     prs_out_time_new >= "23:59" && prs_status == "t" ? overtimeThree = hitungJumlahJam("23:59", prs_out_time_new) : "";
 
                     // FOR TOTAL
-                    prs_out_time_new >= "14:30" && prs_status == "t" ? totalOvertimeOne += overtimeOne : "";
+                    prs_out_time_new >= "13:30" && prs_status == "t" ? totalOvertimeOne += overtimeOne : "";
                     prs_out_time_new >= "15:29" && prs_status == "t" ? totalOvertimeTwo += overtimeTwo : "";
                     prs_out_time_new >= "17:29" && prs_out_time_new <= "23:59" && prs_status == "t" ? totalOvertimeThree++ : "";
 
