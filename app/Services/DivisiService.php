@@ -2287,11 +2287,13 @@ class DivisiService
         // GET DATA USER
         $query_get_data_user    = DB::select(
             "
-            SELECT  a.user_id,
+            SELECT 	a.user_id,
                     a.name as user_name
-            FROM    employees a 
-            WHERE   a.user_id LIKE '$user_cari'
-            AND     a.user_id NOT IN ('1')
+            FROM 	employees a
+            JOIN 	users b ON a.user_id = b.id
+            WHERE 	b.is_active = '1'
+            AND 	a.user_id LIKE '$user_cari'
+            AND 	a.user_id NOT IN ('1')
             ORDER BY a.user_id ASC
             "
         );
