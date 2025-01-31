@@ -319,6 +319,47 @@ function showModal(idModal, jenis, data)
         $("#"+idModal).on('shown.bs.modal', () => {
             $("#pgj_cuti_note").focus();
         })
+    } else if(idModal == 'modal_edit_jam_kerja') {
+        const userID    = data.split('|')[0];
+        const tanggal   = data.split('|')[1];
+
+        const sendData  = {
+            "tanggal_awal"  : tanggal,
+            "tanggal_akhir" : tanggal,
+            "user_id"       : userID,
+            "jml_hari"      : 1,
+        };
+
+        const url       = base_url + "/divisi/human_resource/absensi/list";
+        const type      = "GET";
+        const msg       = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
+
+        doTrans(url, type, sendData, msg, true)
+            .then((results)     => {
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                const getData   = results.data[0];
+
+                const nama      = getData.nama;
+                const jamMasuk  = moment(getData.jam_masuk, 'HH:mm:ss').format('HH:mm');
+                const jamKeluar = moment(getData.jam_keluar, 'HH:mm:ss').format('HH:mm');
+                const tanggal   = moment(getData.tanggal_absen, 'YYYY-MM-DD').format('DD/MM/YYYY');
+
+                $("#edit_jam_kerja_nama").val(nama);
+                $("#edit_jam_kerja_user_id").val(userID);
+                $("#edit_jam_kerja_tanggal").val(tanggal);
+                $("#edit_jam_kerja_jam_masuk").val(jamMasuk);
+                $("#edit_jam_kerja_jam_keluar").val(jamKeluar);
+
+                Swal.close();
+            })
+            .catch((error)      => {
+                console.log(error);
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Data Yang Dicari Tidak Ditemukan',
+                })
+            })
     }
 }
 
@@ -349,6 +390,17 @@ function closeModal(idModal)
         showModal('modal_pgj_lmb', '', bulanSekarang); 
     } else if(idModal == 'modal_pgj_lmb_preview_tolak') {
         $("#"+idModal).modal('hide');
+    } else if(idModal == 'modal_edit_jam_kerja') {
+        $("#"+idModal).modal('hide');
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#edit_jam_kerja_nama").val(null);
+            $("#edit_jam_kerja_user_id").val(null);
+            $("#edit_jam_kerja_jam_masuk").val(null);
+            $("#edit_jam_kerja_jam_keluar").val(null);
+            $("#edit_jam_kerja_telat").val(null);
+            $("#edit_jam_kerja_lebih").val(null);
+        });
     }
 }
 
@@ -427,6 +479,7 @@ function showTable(idTable, data)
                 { "targets" : [3], "width" : "15%", "className" : "text-center align-middle" },
                 { "targets" : [4], "width" : "15%", "className" : "text-center align-middle" },
                 { "targets" : [5], "width" : "15%", "className" : "text-center align-middle" },
+                { "targets" : [6], "width" : "5%", "className" : "text-center align-middle" },
             ],
             pageLength  : -1,
             paging      : false,
@@ -446,6 +499,7 @@ function showTable(idTable, data)
                     const abs_getData       = success.data;
                     let abs_waktu_masuk;
                     let abs_waktu_pulang;
+                    let seq = 1;
 
                     for(const abs_item of abs_getData)
                     {
@@ -486,13 +540,8 @@ function showTable(idTable, data)
                         } else {
                             var jam_keluar              = "00:00:00";
                         }
-                        
-                        // FOR TABLE PURPOSE
-                        // console.log({
-                        //     "tanggal"   : abs_item.tanggal_absen,
-                        //     "hari"      : moment(abs_item.tanggal_absen, 'YYYY-MM-DD').format('dddd'),
-                        // })
 
+                        const abs_user_id   = abs_item.user_id;
                         const abs_tgl       = moment(abs_item.tanggal_absen, 'YYYY-MM-DD').format('dddd')  == 'Minggu' ? "<label class='no-margins font-weight-normal text-danger'>"+ abs_item.tanggal_absen +"</label>" : "<label class='no-margins font-weight-normal'>" + abs_item.tanggal_absen + "</label>";
                         const abs_emp_name  = abs_item.nama;
                         const abs_emp_in    = moment(abs_item.jam_masuk, 'HH:mm:ss').format('HH:mm:ss');
@@ -503,7 +552,8 @@ function showTable(idTable, data)
                             abs_emp_in,
                             abs_emp_out,
                             jam_masuk,
-                            jam_keluar
+                            jam_keluar,
+                            `<button class='btn btn-sm btn-primary' type='button' id='btnEditAbsen${seq++}' value="${abs_user_id}|${abs_item.tanggal_absen}" title='Edit Absen' onclick="showModal('modal_edit_jam_kerja', 'edit', this.value)"><i class='fa fa-edit'></i></button>`
                         ]).draw(false);
                     }
                 })
@@ -747,7 +797,7 @@ function showData(idData)
         const sendData  = {
             "tanggal_awal"  : moment(tanggal_awal, 'DD/MM/YYYY').format('YYYY-MM-DD'),
             "tanggal_akhir" : moment(tanggal_akhir, 'DD/MM/YYYY').format('YYYY-MM-DD'),
-            "user_id"       : user == 'semua' ? '%' : user,
+            "user_id"       :  user == 'semua' ? '%' : user,
             "jml_hari"      : moment(tanggal_akhir, 'DD/MM/YYYY').diff(moment(tanggal_awal, 'DD/MM/YYYY'), 'days') + 1,
         };
 
@@ -1056,6 +1106,46 @@ function doSimpan(type, jenis, data)
                     });
                 break;
             }
+        break;
+        case "edit_jam_kerja" :
+            const editData  = {
+                "user_id"   : $("#edit_jam_kerja_user_id").val(),
+                "tanggal"   : moment($("#edit_jam_kerja_tanggal").val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
+                "jam_masuk" : moment($("#edit_jam_kerja_tanggal").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') + " " + $("#edit_jam_kerja_jam_masuk").val() + ":00",
+                "jam_keluar": moment($("#edit_jam_kerja_tanggal").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') + " " + $("#edit_jam_kerja_jam_keluar").val() + ":00"
+            };
+
+            const editType  = "POST";
+            const editUrl   = base_url + "/divisi/human_resource/absensi/simpan_edit";
+            const editMsg   = Swal.fire({ title : 'Data Sedang Diproses..' }); Swal.showLoading();
+
+            doTrans(editUrl, editType, editData, editMsg, true)
+                .then((results) => {
+                    Swal.fire({
+                        icon    : 'success',
+                        title   : 'Berhasil',
+                        text    : results.message,
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            closeModal('modal_edit_jam_kerja');
+
+                            const tabelData     = {
+                                "tanggal_akhir" : moment($("#abs_tgl_cari").val().split(' s/d ')[1], 'DD/MM/YYYY').format('YYYY-MM-DD'),
+                                "tanggal_awal"  : moment($("#abs_tgl_cari").val().split(' s/d ')[0], 'DD/MM/YYYY').format('YYYY-MM-DD'),
+                                "user_id"       : "%",
+                                "jml_hari"      : 1
+                            };
+                            showTable('table_list_absensi', tabelData);
+                        }
+                    })
+                })
+                .catch((error)  => {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : error.responseJSON.message,
+                    });
+                })
         break;
     }
 }

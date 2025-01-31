@@ -20,6 +20,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use Symfony\Component\Console\Output\Output;
 
 class DivisiController extends Controller
 {
@@ -2873,6 +2874,37 @@ class DivisiController extends Controller
                 "success"   => false,
                 "status"    => 404,
                 "message"   => $do_simpan['message'],
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 31 JANUARI 2025
+    // NOTE : SIMPAN EDIT JAM KERJA
+    public function absensi_simpan_edit(Request $request) 
+    {
+        $data   = [
+            "user_id"   => Auth::user()->id,
+            "ip"        => $request->ip(),
+            "data"      => $request->all(),
+        ];
+
+        $do_simpan  = DivisiService::do_simpan_edit_absensi($data);
+
+        if($do_simpan['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengubah Absensi",
+                "data"      => [],
+            ];
+        } else {
+            $output = [
+                "success"   => false,
+                "status"    => 501,
+                "message"   => "Gagal Mengubah Absensi",
                 "data"      => [],
             ];
         }

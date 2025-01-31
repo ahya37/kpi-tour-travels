@@ -200,7 +200,7 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-sm-3">
-                            <label>Tanggal Cari</label>
+                            <label>Jarak Tanggal</label>
                         </div>
                         <div class="col-sm-3">
                             <label>User</label>
@@ -237,6 +237,7 @@
                                         <th class="text-center align-middle" style="width: 15%;">Jam Keluar</th>
                                         <th class="text-center align-middle" style="width: 15%;">Telat Jam</th>
                                         <th class="text-center align-middle" style="width: 15%;">Lebih Jam</th>
+                                        <th class="text-center align-middle" style="width: 5%">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -247,6 +248,7 @@
                                         <th id="table_list_absensi_total_jam_keluar"></th>
                                         <th id="table_list_absensi_total_jam_telat"></th>
                                         <th id="table_list_absensi_total_jam_lebih"></th>
+                                        <th>&nbsp;</th>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -412,6 +414,8 @@
             </div>
         </div>
     </div>
+
+    @include('divisi.human_resource.dashboard.modal_edit_data_jam_kerja');
 @endsection
 
 

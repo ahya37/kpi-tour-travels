@@ -523,6 +523,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/list', [DivisiController::class, 'absensi_list']);
                 Route::get('/excelDownload', [DivisiController::class, 'absensi_download_excel']);
                 Route::post('/excelDelete', [DivisiController::class, 'absensi_delete_excel']);
+                Route::post('/simpan_edit', [DivisiController::class, 'absensi_simpan_edit']);
             });
             Route::prefix('jam_kerja')->group(function(){
                 Route::get('/', [DivisiController::class, 'HR_indexJamKerja'])->name('index.human_resource.jam_kerja');

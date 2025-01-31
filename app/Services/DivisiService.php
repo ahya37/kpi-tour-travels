@@ -2317,6 +2317,7 @@ class DivisiService
                     );
                     if(count($query_get_data_absen) > 0) {
                         $abs_data[]     = [
+                            "user_id"           => $curr_user,
                             "nama"              => $curr_name,
                             "tanggal_absen"     => $query_get_data_absen[0]->prs_date,
                             "jam_masuk"         => $query_get_data_absen[0]->prs_in_time == '' ? '00:00:00' : date('H:i:s', strtotime($query_get_data_absen[0]->prs_in_time)),
@@ -2324,6 +2325,7 @@ class DivisiService
                         ];
                     } else {
                         $abs_data[]     = [
+                            "user_id"           => $curr_user,
                             "nama"              => $curr_name,
                             "tanggal_absen"     => $tgl_awal,
                             "jam_masuk"         => "00:00:00",
@@ -3220,6 +3222,50 @@ class DivisiService
                 LogHelper::create('error_system', $output['message'], $ip_address);
                 Log::channel('daily')->error($e->getMessage());
             }
+        }
+
+        return $output;
+    }
+
+    // 31 JANUARI 2025
+    // NOTE : SIMPAN UPDATE ABSENSI
+    public static function do_simpan_edit_absensi($data)
+    {
+        $ip_address     = $data['ip'];
+        $user_id        = $data['user_id'];
+        $today          = date('Y-m-d H:i:s');
+
+        DB::beginTransaction();
+
+        $data_where     = [
+            "prs_user_id"   => $data['data']['user_id'],
+            "prs_date"      => $data['data']['tanggal'],
+        ];
+
+        $data_update    = [
+            "prs_in_time"   => $data['data']['jam_masuk'],
+            "prs_out_time"  => $data['data']['jam_keluar'],
+            "updated_by"    => $user_id,
+            "updated_at"    => $today,
+        ];
+
+        DB::table('tm_presence')->where($data_where)->update($data_update);
+
+        try {
+            DB::commit();
+            LogHelper::create('edit', 'Berhasil Mengubah Data Absensi User : ' . $data['data']['user_id'] . 'Tanggal : ' . $data['data']['tanggal'], $ip_address);
+            $output     = [
+                "status"    => "berhasil",
+                "errMsg"    => "",  
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Mengubah Data Absensi User : ' . $data['data']['user_id'] . ' Tanggal : ' . $data['data']['tanggal'], $ip_address);
+            $output     = [
+                "status"    => "gagal",
+                "errMsg"    => $e->getMessage(),
+            ];
         }
 
         return $output;

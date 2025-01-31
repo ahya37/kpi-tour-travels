@@ -284,7 +284,17 @@
                         <li class="{{ request()->is('divisi/digital/umrah/jadwal') ? 'active' : '' }}"><a href="{{ route('index.digital.jadwal_umrah') }}">Jadwal Umrah</a></li>
                         <li class="{{ request()->is('divisi/digital/aktivitasHarian') ? 'active' : '' }}"><a href="{{ route('index.programKerja.digital') }}">Aktivitas Harian</a></li>
                     </ul>
-                </li>   
+                </li>
+                <li class="{{ request()->is('website') || request()->is('website/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class="fa fa-globe"></i>
+                        <span class="nav-label">Perciktours.com</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level collapse">
+                        <li class="{{ request()->is('website') ? 'active' : '' }}"><a href="{{ route('index.perciktours.com') }}">Dashboard</a></li>
+                    </ul>
+                </li>
             @endif
 
             {{-- HALAMAN YANG TIDAK PERLU ADMIN AKSES --}}
