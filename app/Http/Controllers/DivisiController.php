@@ -2241,7 +2241,7 @@ class DivisiController extends Controller
                         $column_start           = $column_start + 1;
                         $employee_prs_date      = $detail[$i]['emp_prs_date'];
                         $employee_prs_in_time   = date("H:i:s", strtotime($detail[$i]['emp_prs_in_time']));
-                        $employee_prs_out_time  = date("H:i:s", strtotime($detail[$i]['emp_prs_out_time']));
+                        $employee_prs_out_time  = !empty($detail[$i]['emp_prs_out_time']) ? date("H:i:s", strtotime($detail[$i]['emp_prs_out_time'])) : "16:00:00";
                         $employee_prs_name      = $detail[$i]['emp_name'];
                         $employee_is_approved   = $detail[$i]['emp_status'];
         
