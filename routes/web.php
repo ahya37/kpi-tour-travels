@@ -604,5 +604,12 @@ Route::group(['middleware' => ['auth']], function () {
         Route::prefix('transaction')->group(function(){
             Route::post('/flyer', [percikToursController::class, 'perciktourscom_upload_flyer']);
         });
+
+        Route::prefix('article')->group(function(){
+            Route::get('/list', [percikToursController::class, 'perciktourscom_article_list']);
+            Route::get('/tour_detail', [percikToursController::class, 'perciktourscom_article_tour_detail']);
+            Route::post('/save/{type}', [percikToursController::class, 'perciktouscom_article_save']);
+            Route::get('/detail/{uuid}', [percikToursController::class, 'perciktourscom_article_detail']);
+        });
     });
 });

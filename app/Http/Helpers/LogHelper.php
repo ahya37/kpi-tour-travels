@@ -17,6 +17,8 @@ class LogHelper {
             $type   = "3";
         } else if($type == 'error_system') {
             $type   = "4";
+        } else if($type == 'search_data') {
+            $type   = "5";
         } else {
             $type   = "0";
         }

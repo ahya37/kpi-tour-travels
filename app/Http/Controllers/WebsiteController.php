@@ -242,4 +242,171 @@ class WebsiteController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 4 FEBRUARI 2025
+    // NOTE : GET LIST ARTICLE
+    public function perciktourscom_article_list(Request $request)
+    {
+        $send_data   = [
+            'username'      => Auth::user()->id,
+            "ip_address"    => $request->ip(), 
+        ];
+
+        $get_data   = WebsiteService::get_article_list($send_data);
+
+        if($get_data['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 200,
+                "message"   => "Berhasil Mengambil Data Artikel Umrah",
+                "data"      => $get_data['data'],
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 500,
+                "message"   => "Internal Server Error",
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 05 FEBRUARI 2025
+    // NOTE : AMBIL TOUR CODE UNTUK KEBUTUHAN ARTIKEL
+    public function perciktourscom_article_tour_detail(Request $request)
+    {
+        $send_data  = [
+            "ip_address"=> $request->ip(),
+            "tour_code" => $request->all()['tour_code'],
+        ];
+
+        $get_data   = WebsiteService::get_article_tour_detail($send_data);
+
+        if($get_data['status'] == 'berhasil') {
+            // var_dump(count($get_d))
+            if(count($get_data['data']) > 0) {
+                $output = [
+                    "successs"   => true,
+                    "status"    => 201,
+                    "message"   => "Berhasil Mengambil Data Tour Code " . $send_data['tour_code'],
+                    "data"      => $get_data['data'],
+                ];
+            } else {
+                $output     = [
+                    "success"   => true,
+                    "status"    => 204,
+                    "message"   => "Gagal Mengambil Data Tour Code " . $send_data['tour_code'],
+                    "data"      => [],
+                ];
+            }
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 500,
+                "message"   => "Internal Server Error",
+                "data"      => []
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : SIMPAN ARTIKEL TOUR CODE
+    public function perciktouscom_article_save($type, Request $request)
+    {
+        $validator_rules    = [
+            'act_prog_title'        => 'required|string',
+            'act_prog_destination'  => 'required|string',
+            'act_prog_duration'     => 'required',
+            'act_prog_airlines'     => 'required',
+            'act_prog_hotel_mekkah' => 'required|string',
+            'act_prog_hotel_madinah'=> 'required|string',
+            'act_prog_cost_quad'    => 'required|numeric|min:1',
+            'act_prog_cost_triple'  => 'required|numeric|min:1',
+            'act_prog_cost_double'  => 'required|numeric|min:1',
+        ];
+
+        $validator  = Validator::make($request->all(), $validator_rules, []);
+
+        if($validator->fails()) {
+            $output     = [
+                "success"   => false,
+                "status"    => 400,
+                "message"   => $validator->errors(),
+                "data"      => [],
+            ];
+        } else {
+            $article_data   = [
+                'jdw_article_uuid'  => $request->act_prog_uuid,
+                'jdw_article_title' => $request->act_prog_title,
+                'jdw_tour_code'     => $request->act_prog_tour_code,
+                'jdw_airline'       => $request->act_prog_airlines,
+                'jdw_cost_double'   => $request->act_prog_cost_double,
+                'jdw_cost_triple'   => $request->act_prog_cost_triple,
+                'jdw_cost_quad'     => $request->act_prog_cost_quad,
+                'jdw_destination'   => $request->act_prog_destination,
+                'jdw_duration'      => $request->act_prog_duration,
+                'jdw_hotel'         => $request->act_prog_hotel_mekkah . " | " . $request->act_prog_hotel_madinah,
+            ];
+
+            $send_data  = [
+                "user_id"   => Auth::user()->id,
+                "ip_address"=> $request->ip(),
+                "data"      => $article_data,
+                "type"      => $type
+            ];
+
+            $do_simpan  = WebsiteService::do_save_article_umrah($send_data);
+
+            if($do_simpan['status']  == 'berhasil') {
+                $output     = [
+                    'status'    => 200,
+                    'success'   => true,
+                    'message'   => $do_simpan['message'],
+                    'data'      => [],
+                ];
+            } else {
+                $output     = [
+                    'status'    => 500,
+                    'success'   => false,
+                    'message'   => $do_simpan['message'],
+                    'data'      => [],
+                ];
+            }
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : 07 FEBRUARI 2025
+    // NOTE : AMBIL ARTIKEL DETAIL
+    public function perciktourscom_article_detail($uuid, Request $request)
+    {
+        $send_data  = [
+            'ip_address'    => $request->ip(),
+            'article_uuid'  => $uuid,
+        ];
+
+        $get_data   = WebsiteService::get_article_detail($send_data);
+
+        if($get_data['status'] == 'berhasil') {
+            $output     = [
+                "success"   => true,
+                "status"    => 201,
+                "message"   => "Berhasil Mengambil Data Artikel",
+                "data"      => $get_data['data'],
+            ];
+        } else {
+            $output     = [
+                "success"   => false,
+                "status"    => 500,
+                "message"   => $get_data['message'],
+                "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

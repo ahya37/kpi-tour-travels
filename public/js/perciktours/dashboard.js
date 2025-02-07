@@ -1,6 +1,7 @@
 var today       = moment().format('YYYY-MM-DD');
 var base_url    = window.location.origin;
 var path        = window.location.pathname;
+var tourCode    = [];
 
 $(document).ready(function() {
     // GET DATA SUMMARY
@@ -16,9 +17,16 @@ $(document).ready(function() {
     };
     const umrahMsg      = "";
 
+    const tourCodeUrl   = "website/master/jadwal";
+    const tourCodeType  = "GET";
+    const tourCodeData  = {
+        "tahun" : moment(today).year(),
+    };
+
     const getData       = [
         doTransaction(summaryURL, summaryType, summaryData, summaryMsg),
         doTransaction(umrahURL, umrahType, umrahData, umrahMsg),
+        doTransaction(tourCodeUrl, tourCodeType, tourCodeData)
     ];
 
     Promise.allSettled(getData)
@@ -31,17 +39,28 @@ $(document).ready(function() {
             $("#sum_total_pembimbing").html(summaryGetData['data_summary']['total_pembimbing']);
             $("#sum_total_agen").html(summaryGetData['data_summary']['total_agen']);
             $("#sum_last_update").html(summaryGetData['data_summary']['last_update']);
-
             $("#sum_total_produk").html(summaryGetData['data_product']['total_product']);
-
             $("#sum_total_program").html(summaryGetData['data_program']['total_program']);
 
+            
+            // TABLE UMRAH
             const umrahGetData      = results[1].status == 'fulfilled' ? results[1].value.data : [];
             showTable('table_jadwal_umrah', umrahGetData);
             if(umrahGetData.length > 0) {
                 $("#table_jadwal_umrah").find('.dataTables_empty').html(`Data Berhasil Dimuat`);
             } else {
                 $("#table_jadwal_umrah").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`)
+            }
+
+            // SELECT TOUR CODE
+            const tourCodeGetData   = results[2].status == "fulfilled" ? results[2].value.data : [];
+            if(tourCodeGetData.length > 0 && tourCode.length < 1) {
+                $.each(tourCodeGetData, (i, item)  => {
+                    tourCode.push({
+                        "jdw_tour_code"     : item['jdw_tour_code'],
+                        "jdw_depature_date" : item['jdw_depature_date'],
+                    })
+                })
             }
         })
         .catch((err)    => {
@@ -75,21 +94,22 @@ function showTable(idTable, data)
             paging      : true,
             ordering    : false,
             columnDefs  : [
-                { "targets" : [0, 6], "className" : "text-center align-middle", "width" : "8%" },
-                { "targets" : [3, 4, 5], "className" : "align-middle", "width" : "10%" },
+                { "targets" : [0, 7], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [3, 4, 5, 6], "className" : "align-middle", "width" : "10%" },
                 { "targets" : [1], "className" : "align-middle" },
                 { "targets" : [2], "className" : "align-middle", "width" : "15%" },
             ]
         })
 
         if(data.length > 0) {
-            
+            // SORT DATA
             data.sort((a, b)    => {
                 return new Date(b['jdw_depature_date']) - new Date(a['jdw_depature_date']);
             })
 
             $.each(data, (i, item)  => {
                 const umrahTourCode     = item['jdw_tour_code'];
+                const umrahDate         = moment(item['jdw_depature_date'], 'YYYY-MM-DD').format('DD MMM YYYY');
                 const umrahProgramName  = item['programs_name'];
                 const umrahSeat         = item['jdw_seat'];
                 const umrahTakeSeat     = item['jdw_take_seat'];
@@ -102,6 +122,7 @@ function showTable(idTable, data)
                 $("#"+idTable).DataTable().row.add([
                     `<label class="no-margins font-weight-normal">${i + 1}</label>`,
                     `<label class="no-margins font-weight-normal">${tourCode}</label>`,
+                    `<label class="no-margins font-weight-normal">${umrahDate}</label>`,
                     `<label class="no-margins font-weight-normal">${umrahProgramName}</label>`,
                     `<label class="no-margins font-weight-normal">${umrahSeat}</label>`,
                     `<label class="no-margins font-weight-normal">${umrahTakeSeat}</label>`,
@@ -109,6 +130,63 @@ function showTable(idTable, data)
                     umrahButtonEdit
                 ]).draw(false);
             })
+        }
+
+        $("#"+idTable+"_wrapper").css('padding-bottom', '0px');
+    } else if(idTable == 'table_active_program_umrah') {
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
+                "zeroRecords"   : "Data yang dicari tidak ditemukan",
+            },
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0, 5], "className" : "text-center align-middle", "width" : "5%" },
+                { "targets" : [1], "className" : "text-left align-middle", "width" : "20%" },
+                { "targets" : [2], "className" : "text-left align-middle"},
+                { "targets" : [3], "className" : "text-left align-middle", "width" : "15%" },
+                { "targets" : [4], "className" : "text-center align-middle", "width" : "10%" }
+            ],
+        })
+
+        if(data.length > 0 || data != '') {
+            let articleData     = data;
+            for(let i = 0; i < articleData.length; i++) {
+                let seq   = i + 1;
+                let articleID   = articleData[i]['jdw_uuid'];
+                let articleTourCode     = articleData[i]['jdw_tour_code'];
+                let articleTitle        = articleData[i]['jdw_title_name'];
+                let articleProgramName  = "";
+                let articleBadge;
+                let articleAction;
+                let articleActionColorButton;
+
+                switch(articleData[i]['jdw_status_upload']) {
+                    case 'pending'  :
+                        articleBadge    = `badge-success`;
+                        articleAction   = `<button class="btn btn-sm btn-success" value="${articleID}" onclick="showModal('modal_active_program_umrah_form', this.value, 'edit')" title="Lihat Program"><i class="fa fa-eye"></i></button>`;
+                    break;
+                    case 'appprove' : 
+                        articleBadge    = `badge-primary`;
+                        articleAction   = `<button class="btn btn-sm btn-primary" value="${articleID}" onclick="showModal('modal_active_program_umrah_form', this.value, 'approve')" title="Lihat Program" disabled><i class="fa fa-eye"></i></button>`;
+                    break;
+                    case 'reject'   :
+                        articleBadge    = 'badge-danger';
+                        articleAction   = `<button class="btn btn-sm btn-danger" value="${articleID}" onclick="showModal('modal_active_program_umrah_form', this.value, 'reject')" title="Lihat Program" disabled><i class="fa fa-eye"></i></button>`;
+                    break 
+                };
+
+                let articleStatus   = `<span class='badge ${articleBadge}'><label class='font-weight-bold no-margins'>${articleData[i]['jdw_status_upload']}</label></span>`;
+
+                $("#"+idTable).DataTable().row.add([
+                    seq,
+                    articleTourCode,
+                    articleTitle,
+                    articleProgramName,
+                    articleStatus,
+                    articleAction
+                ]).draw(false);
+            }
         }
 
         $("#"+idTable+"_wrapper").css('padding-bottom', '0px');
@@ -252,6 +330,157 @@ function showModal(idModal, data, type)
                     text    : error.responseJSON.message,
                 });
             })
+    } else if(idModal == 'modal_active_program_umrah') {
+        const article   = {
+            'url'       : 'website/article/list',
+            'type'      : 'GET',
+            'data'      : {},
+        };
+        const message   = Swal.fire({ title : 'Data Sedang Dimuat..' }); Swal.showLoading();
+
+        doTransaction(article['url'], article['type'], article['data'], message)
+            .then((results)     => {
+                Swal.close();
+                let articleData     = results.data;
+                let articleTable    = 'table_active_program_umrah';
+                
+                if(articleData.length > 0) {
+                    showTable(articleTable, articleData);
+                    $("#table_active_program_umrah").find('.dataTables_empty').html(`Berhasil Memuat Data`);
+                } else {
+                    showTable(articleTable, []);
+                    $("#table_active_program_umrah").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Ditampilkan. Silahkan Klik Tombol 'Tambah' untuk Menambah Data`);
+                }
+
+                // OPEN MODAL
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+            })
+            .catch((error)      => {
+                Swal.fire({
+                    icon    : 'warning',
+                    title   : 'Terjadi Kesalahan',
+                    text    : error.responseJSON.message,
+                });
+            })
+    } else if(idModal == 'modal_active_program_umrah_form') {
+        // DEFINE VALUE BUTTON
+        $("#btn_act_modal_active_program_umrah_form").val(type);
+        // CLOSE BACKGROUND MODAL
+        closeModal('modal_active_program_umrah');
+        if(data == "") {
+            // OPEN MODAL
+            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+            // SHOW SELECT
+            showSelect('act_prog_tour_code', tourCode);
+        } else {
+            // CHECK TYPE
+            if(type == 'edit') {
+                // GET DATA
+                const article   = {
+                    url     : 'website/article/detail/' + data,
+                    type    : 'GET',
+                    data    : '',
+                }
+
+                const message   = Swal.fire({ title : 'Data Sedang Dimuat..' }); Swal.showLoading();
+
+                doTransaction(article['url'], article['type'], article['data'], message)
+                    .then((results)     => {
+                        Swal.close();
+
+                        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                        
+                        fillForm('modal_active_program_umrah_form_edit', results.data);
+                    })
+                    .catch((error)      => {
+                        console.log(error);
+                        Swal.fire({
+                            icon    : 'error',
+                            title   : 'Terjadi Kesalahan',
+                            text    : error.responseJSON.message,
+                            didClose    : () => {
+                                showModal('modal_active_program_umrah', '', '');
+                            }
+                        });
+                    })
+            } else if(type == 'reject') {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Artikel Ditolak, Tidak Bisa Akses Artikel ini',
+                })
+            } else if(type == 'approve') {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Artikel Sudah Diapprove'
+                })
+            }
+        }
+    }
+}
+
+function showSelect(idSelect, data, selectedData = '')
+{
+    $("#"+idSelect).select2({
+        theme   : 'bootstrap4',
+    });
+
+    if(idSelect == 'act_prog_tour_code') {
+        let html    = `<option selected disabled>Pilih Tour Code</option>`;
+        if(data.length > 0) {
+            // SORT DATA DESC
+            data.sort((a, b)    => {
+                return new Date(b['jdw_depature_date']) - new Date(a['jdw_depature_date']);
+            })
+            // DEFINE CURRENT_DATE + 1 MONTH
+            let currentDataPlusOneMonth     = moment(today).add(1, 'month').format('YYYY-MM-DD');
+
+            $.each(data, (i, item)  => {
+                if(currentDataPlusOneMonth <= item['jdw_depature_date']) {
+                    html    += `<option value="${item['jdw_tour_code']}">${item['jdw_tour_code']}</option>`;
+                }
+            })
+
+            $("#"+idSelect).html(html);
+
+            if(selectedData != '') {
+                $("#"+idSelect).val(selectedData);
+            }
+        } else {
+            $("#"+idSelect).html(html);
+        }
+    }
+}
+
+function showSelectDetail(idSelect, selectedData) {
+    if(idSelect == 'act_prog_tour_code') {
+        const tourCode  = {
+            url     : 'website/article/tour_detail',
+            type    : 'GET',
+            data    : {
+                'tour_code' : selectedData,
+            },
+        };
+
+        const message   = Swal.fire({ title : 'Sedang Mencari Tour Code..' }); Swal.showLoading();
+
+        doTransaction(tourCode['url'], tourCode['type'], tourCode['data'], message)
+            .then((results) => {
+                Swal.close();
+                const tourCode_data     = results !== undefined ? results.data : [];
+
+                fillForm('form_modal_active_program_umrah', tourCode_data);
+                closeModal('modal_active_program_umrah');
+            })
+            .catch((error)  => {
+                console.log(error);
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : error.responseJSON.message,
+                });
+            })
     }
 }
 
@@ -275,6 +504,56 @@ function closeModal(idModal)
 
         $("#flyer_exist").addClass('d-none');
         $("#flyer_exist_link").attr('href', '').html('');
+    } else if(idModal == 'modal_active_program_umrah') {
+        $("#"+idModal).modal('hide');
+    } else if(idModal == 'modal_active_program_umrah_form') {
+        $("#"+idModal).modal('hide');
+        showModal('modal_active_program_umrah', '', '');
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            resetForm('form_modal_active_program_umrah');
+        })
+    }
+}
+
+function fillForm(idForm, data)
+{
+    if(idForm == 'form_modal_active_program_umrah') {
+        // RESET FORM
+        resetForm(idForm);
+
+        if(data.length > 0) {
+            $("#act_prog_depature_date").val(moment(data[0]['depature_date'], 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            $("#act_prog_arrival_date").val(moment(data[0]['arrival_date'], 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            $("#act_prog_category").val(data[0]['product_name']);
+            $("#act_prog_program").val(data[0]['program_name']);
+            $("#act_prog_title").focus();
+        }
+    } else if(idForm == 'modal_active_program_umrah_form_edit') {
+        if(data.length > 0) {
+            showSelect('act_prog_tour_code', tourCode, data[0]['tour_code']);
+
+            $("#act_prog_uuid").val(data[0]['article_id']);
+            $("#act_prog_depature_date").val(moment(data[0]['depature_date'], 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            $("#act_prog_arrival_date").val(moment(data[0]['arrival_date'], 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            $("#act_prog_category").val(data[0]['product_name']);
+            $("#act_prog_program").val(data[0]['program_name']);
+            $("#act_prog_title").val(data[0]['article_title']);
+            $("#act_prog_destination").val(data[0]['destination']);
+            $("#act_prog_duration").val(data[0]['duration']);
+            $("#act_prog_airlines").val(data[0]['airline_name']);
+            $("#act_prog_hotel_mekkah").val(data[0]['hotel_mekkah']);
+            $("#act_prog_hotel_madinah").val(data[0]['hotel_madinah']);
+            $("#act_prog_cost_quad").val(parseInt(data[0]['cost_quad']));
+            $("#act_prog_cost_triple").val(parseInt(data[0]['cost_triple']));
+            $("#act_prog_cost_double").val(parseInt(data[0]['cost_double']));
+        }
+    }
+}
+
+function resetForm(idForm) {
+    if(idForm == 'form_modal_active_program_umrah') {
+        const formName  = document.getElementById(idForm);
+        formName.reset();
     }
 }
 
@@ -321,7 +600,59 @@ function doUpload()
     })
 }
 
-function doTransaction(url, type, data, message)
+function doSaveData(idForm, type)
+{
+    if(idForm == 'form_modal_active_program_umrah')
+    {
+        let tourCode  = $("#act_prog_tour_code");
+
+        let formName    = document.getElementById(idForm);
+        let formData    = new FormData(formName);
+        formData.append('act_prog_tour_code', tourCode.val());
+
+        const article   = {
+            url     : "website/article/save/"+type,
+            type    : "POST",
+            data    : formData,
+        };
+
+        const message   = Swal.fire({ title : 'Data Sedang Diproses..' }); Swal.showLoading();
+
+        doPostTransaction(article['url'], article['type'], article['data'], message)
+            .then((results)     => {
+                Swal.fire({
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : results.message,
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        closeModal('modal_active_program_umrah_form');
+                    }
+                })
+            })
+            .catch((error)      => {
+                console.log(error);
+                Swal.fire({
+                    icon    : 'warning',
+                    title   : 'Terjadi Kesalan',
+                    text    : 'Kolom yang berwarna merah harus diisi',
+                    didClose    : () => {
+                        const message     = error.responseJSON.message;
+
+                        $.each(message, (i, item)   => {
+                            $("#"+i).addClass('is-invalid');
+
+                            $("#"+i).on('keyup', () => {
+                                $("#"+i).removeClass('is-invalid');
+                            })
+                        })
+                    }
+                });
+            })
+    }
+}
+
+function doTransaction(url, type, data, message = null)
 {
     return new Promise((resolve, reject)    => {
         $.ajax({
@@ -341,6 +672,31 @@ function doTransaction(url, type, data, message)
             error       : (error)   => {
                 reject(error);
             }
+        })
+    })
+}
+
+function doPostTransaction(url, type, data, message)
+{
+    return new Promise((resolve, reject)    => {
+        $.ajax({
+            url     : base_url + "/" + url,
+            type    : type,
+            data    : data,
+            headers     : {
+                'X-CSRF-TOKEN'  : CSRF_TOKEN,
+            },
+            processData     : false,
+            contentType     : false,
+            beforeSend      :  () => {
+                message;
+            },
+            success         : (success) => {
+                resolve(success)
+            },
+            error           : (error)   => {
+                reject(error)
+            },
         })
     })
 }

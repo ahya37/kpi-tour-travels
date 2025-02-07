@@ -25,7 +25,7 @@
     <div class="wrapper wrapper-content animated fadeInRight">
         <h1>Kategori</h1>
         <div class="row">
-            <div class="col-xl-3 col-lg-4 col-md-6 col-12">
+            <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-xl-0 mb-2">
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h3 class="card-title no-margins">Produk</h3>
@@ -39,7 +39,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-lg-4 col-md-6 col-12">
+            <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-xl-0 mb-2">
                 <div class="card">
                     <div class="card-header bg-success">
                         <h3 class="card-title no-margins">Program</h3>
@@ -53,7 +53,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-lg-4 col-md-6 col-12">
+            <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-xl-0 mb-2">
                 <div class="card">
                     <div class="card-header" style="background-color: var(--indigo); color: white;">
                         <h3 class="card-title no-margins">Aktif Program ({{ date('Y') }})</h3>
@@ -62,7 +62,7 @@
                         <h2 class="no-margins font-weight-bold" id="sum_total_aktif_program">0</h2>
                         <small>Total Program Aktif</small>
                     </div>
-                    <div class="card-footer" style="cursor: pointer;" title="Lihat Detail">
+                    <div class="card-footer" style="cursor: pointer;" title="Lihat Detail" onclick="showModal('modal_active_program_umrah')">
                         <span>Lihat Detail</span>
                     </div>
                 </div>
@@ -118,6 +118,7 @@
                                     <tr>
                                         <th class="text-center align-middle">No</th>
                                         <th class="text-center align-middle">Tour Code</th>
+                                        <th class="text-center align-middle">Keberangkatan</th>
                                         <th class="text-center align-middle">Program</th>
                                         <th class="text-center align-middle">Seat</th>
                                         <th class="text-center align-middle">Terisi</th>
@@ -189,7 +190,7 @@
                                 </div>
                             </div>
                             {{-- IF FLYER DIDNT EXIST --}}
-                            <form id="uploadFlyer" enctype="multipart/form-data">
+                            {{-- <form id="uploadFlyer" enctype="multipart/form-data">
                                 <div class="row mb-2">
                                     <div class="col-4 mt-2">
                                         <h4 class="font-weight-bold no-margins">Flyer</h4>
@@ -202,19 +203,19 @@
                                 <div class="row mb-2">
                                     <div class="col-4 mt-2">&nbsp;</div>
                                     <div class="col-8">
-                                        <button type="button" class="btn btn-primary" onclick="doUpload();"><i class="fa fa-upload"></i> Upload</button>
+                                        <button type="button" class="btn btn-primary" onclick="doUploadFlyer();"><i class="fa fa-upload"></i> Upload</button>
                                     </div>
                                 </div>
-                            </form>
+                            </form> --}}
                             {{-- IF FLYER EXIST --}}
-                            <div class="row mb-2 d-none" id="flyer_exist">
+                            {{-- <div class="row mb-2 d-none" id="flyer_exist">
                                 <div class="col-4 mt-2">
                                     <h4 class="no-margins font-weight-bold">Flyer</h4>
                                 </div>
                                 <div class="col-8">
                                     <a href="#" id="flyer_exist_link" title="Download Flyer" target="_blank" class="btn btn-primary"></a>
                                 </div>
-                            </div>
+                            </div> --}}
                             <div class="row mb-2">
                                 <div class="col-4 mt-2">
                                     <h4 class="font-weight-bold no-margins">Update Terakhir</h4>
@@ -264,6 +265,9 @@
             </div>
         </div>
     </div>
+
+    @include('perciktours.modal_active_program_umrah');
+    @include('perciktours.modal_active_program_umrah_form');
 @endsection
 
 

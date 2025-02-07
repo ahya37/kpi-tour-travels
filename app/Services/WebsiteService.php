@@ -3,8 +3,11 @@
 namespace App\Services;
 
 use App\Helpers\LogHelper;
+use DateTime;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Response;
+use Str;
 
 use function Ramsey\Uuid\v1;
 
@@ -224,6 +227,259 @@ class WebsiteService
                 'message'   => 'Gagal Upload Flyer',
                 'errMsg'    => $e->getMessage(),
             ];
+        }
+
+        return $output;
+    }
+
+    // 04 FEBRUARI 2025
+    // NOTE : AMBIL LIST ARTIKEL
+    public static function get_article_list($data)
+    {
+        $user_name  = $data['username'];
+        $ip_address = $data['ip_address'];
+        
+        DB::beginTransaction();
+
+        // GET DATA
+        $query  = DB::table('programs_article as a')
+                        ->join('programs_jadwal as b', 'a.jdw_tour_code', '=', 'b.jdw_tour_code')
+                        ->select('a.*')
+                        ->orderBy('a.created_at', 'asc')
+                        ->get();
+
+        try {
+            DB::commit();
+            LogHelper::create('search_data', 'Berhasil Mengambil Data Artikel Sebanyak '. count($query) . ' Data', $ip_address);
+            $output     = [
+                "status"    => "berhasil",
+                "data"      => $query,
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Koneksi Bermasalah', $ip_address);
+
+            $output     = [
+                "status"    => "gagal",
+                "data"      => [],
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function get_article_tour_detail($data)
+    {
+        $ip_address = $data['ip_address'];
+        $tour_code  = $data['tour_code'];
+        $current_date   = new DateTime();
+
+        $query      = DB::table('programs_jadwal as a')
+                        ->join('programs as b', 'a.jdw_programs_id', '=', 'b.id')
+                        ->join('products as c', 'b.product_id', '=', 'c.id')
+                        ->select(   'a.jdw_tour_code as tour_code', 
+                                    'c.name as product_name', 
+                                    'b.name as program_name', 
+                                    'a.jdw_depature_date as depature_date', 
+                                    'a.jdw_arrival_date as arrival_date', 
+                                    'a.jdw_mentor_name as mentor_name', 
+                                    'a.jdw_itinerary as itinerary', 
+                                    'a.jdw_flyer as flyer', 
+                                    'a.jdw_airline as airlines_name', 
+                                    'a.jdw_flight_code as airlines_code', 
+                                    'a.jdw_cost_double as cost_double', 
+                                    'a.jdw_cost_triple as cost_tiple', 
+                                    'a.jdw_cost_quad as cost_quad',
+                                    'a.jdw_destination as destination',
+                                    'a.jdw_duration as duration',
+                                    'a.jdw_hotel as hotel_name'
+                                )
+                        ->where('a.jdw_depature_date', '>=', $current_date->modify('+1 month'))
+                        ->where('a.jdw_tour_code', '=', $tour_code)
+                        ->get();
+        
+        try {
+            $output     = [
+                'status'    => 'berhasil',
+                'message'   => 'Berhasil Mengambil Data Tour Code : ' . $tour_code,
+                'data'      => $query,
+            ];
+            LogHelper::create('search_data', $output['message'], $ip_address);
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Mengambil Data Tour Code : ' . $tour_code, $ip_address);
+
+            $output     = [
+                'status'    => 'gagal',
+                'message'   => $e->getMessage(),
+                'data'      => [],
+            ];
+        }
+
+        return $output;
+    }
+
+    // 06 FEBRUARI 2025
+    // NOTE : SIMPAN ARTICLE
+    public static function do_save_article_umrah($data)
+    {
+        $type           = $data['type'];
+        $ip_address     = $data['ip_address'];
+        $user_id        = $data['user_id'];
+        
+        $article_data   = $data['data'];
+
+        $today          = date('Y-m-d H:i:s');
+
+        DB::beginTransaction();
+
+        // UPDATE PROGRAMS_JADWAL
+        $data_where_programs    = [
+            'jdw_tour_code'     => $article_data['jdw_tour_code'],
+        ];
+
+        $data_update_programs   = [
+            'jdw_airline'       => $article_data['jdw_airline'],
+            'jdw_cost_double'   => $article_data['jdw_cost_double'],
+            'jdw_cost_triple'   => $article_data['jdw_cost_triple'],
+            'jdw_cost_quad'     => $article_data['jdw_cost_quad'],
+            'jdw_destination'   => $article_data['jdw_destination'],
+            'jdw_duration'      => $article_data['jdw_duration'],
+            'jdw_hotel'         => $article_data['jdw_hotel'],
+        ];
+
+        DB::table('programs_jadwal')->where($data_where_programs)->update($data_update_programs);
+
+        if($type == 'add') {
+            // INSERT TO PROGRAMS ARTICLE
+            $data_insert_article    = [
+                'jdw_uuid'      => Str::uuid(),
+                'jdw_title_name'=> $article_data['jdw_article_title'],
+                'jdw_tour_code' => $article_data['jdw_tour_code'],
+                'jdw_title_slug'=> str_replace(' ', '-', strtolower($article_data['jdw_article_title'])),
+                'created_by'    => $user_id,
+                'created_at'    => $today,
+                'updated_by'    => $user_id,
+                'updated_at'    => $today,
+            ];
+            
+            DB::table('programs_article')->insert($data_insert_article);
+            
+            try {
+                $output     = [
+                    'status'    => 'berhasil',
+                    'message'   => 'Berhasil Menambahkan Artikel',
+                    'err_msg'   => [],
+                ];
+
+                DB::commit();
+                LogHelper::create('add', 'Berhasil Menambahkan Article Baru ID : ' . $data_insert_article['jdw_uuid'], $ip_address);
+
+            } catch (\Exception $e) {
+                $output     = [
+                    'status'    => 'gagal',
+                    'message'   => 'Gagal Menambahkan Artikel',
+                    'err_msg'   => $e->getMessage(),
+                ];
+
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', $output['message'], $ip_address);
+                
+            }
+        } else if($type == 'edit') {
+            // UPDATE PROGRAMS ARTICLE
+            $data_where_article     = [
+                'jdw_uuid'      => $article_data['jdw_article_uuid'],
+                'jdw_tour_code' => $article_data['jdw_tour_code'],
+            ];
+
+            $data_update_article    = [
+                'jdw_title_name'    => $article_data['jdw_article_title'],
+                'jdw_title_slug'    => str_replace(' ','-', strtolower($article_data['jdw_article_title'])),
+                'jdw_status_upload' => 'pending',
+                'updated_by'        => $user_id,
+                'updated_at'        => $today,
+            ];
+
+            DB::table('programs_article')->where($data_where_article)->update($data_update_article);
+
+            try {
+                DB::commit();
+                $output     = [
+                    'status'    => 'berhasil',
+                    'message'   => 'Berhasil Update Artikel',
+                    'err_msg'   => ''
+                ];
+                LogHelper::create('edit', 'Berhasil Update Artikel : ' . $article_data['jdw_article_uuid'], $ip_address);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $output     = [
+                    'status'    => 'gagal',
+                    'message'   => 'Gagal Update Artikel',
+                    'err_msg'   => $e->getMessage(),
+                ];
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', 'Gagal Update Artikel : ' . $article_data['jdw_article_uuid'], $ip_address);
+            }
+        }
+
+        return $output;
+    }
+
+    // 07 FEBRUARI 2025
+    // NOTE : AMBIL ARTIKEL DETAIL
+    public static function get_article_detail($data)
+    {
+        $ip_address     = $data['ip_address'];
+        $article_uuid   = $data['article_uuid'];
+
+        // GET DATA
+        $query          = DB::table('programs_article as a')
+                            ->join('programs_jadwal as b', 'a.jdw_tour_code', '=', 'b.jdw_tour_code')
+                            ->join('programs as c', 'b.jdw_programs_id', '=', 'c.id')
+                            ->join('products as d', 'c.product_id','=','d.id')
+                            ->select(
+                                    'a.jdw_uuid as article_id',
+                                    'a.jdw_title_name as article_title',
+                                    'a.jdw_status_upload as article_status_upload',
+                                    'b.jdw_tour_code as tour_code',
+                                    'c.name as program_name',
+                                    'd.name as product_name',
+                                    'b.jdw_depature_date as depature_date',
+                                    'b.jdw_arrival_date as arrival_date',
+                                    'b.jdw_destination as destination',
+                                    'b.jdw_duration as duration',
+                                    'b.jdw_airline as airline_name',
+                                    DB::raw("SUBSTRING_INDEX(b.jdw_hotel, ' | ', 1) as hotel_mekkah"),
+                                    DB::raw("SUBSTRING_INDEX(b.jdw_hotel, ' | ', -1) as hotel_madinah"),
+                                    'b.jdw_cost_quad as cost_quad',
+                                    'b.jdw_cost_triple as cost_triple',
+                                    'b.jdw_cost_double as cost_double'
+                                    )
+                            ->where('a.jdw_uuid', '=', $article_uuid)
+                            ->where('a.jdw_status_upload', '=', 'pending')
+                            ->get();
+        
+        try {
+            $output     = [
+                'status'    => 'berhasil',
+                'message'   => 'Berhasil Mencari Data Artikel UUID : ' . $article_uuid,
+                'data'      => $query,
+            ];
+
+            LogHelper::create('search_data', $output['message'], $ip_address);
+        } catch (\Exception $e) {
+            $output     = [
+                'status'    => 'gagal',
+                'message'   => 'Gagal Mencari Data Artikel UUID : ' . $article_uuid,
+                'data'      => [],
+            ];
+            
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Mencari Data Artikel UUID : ' . $article_uuid, $ip_address);
         }
 
         return $output;
