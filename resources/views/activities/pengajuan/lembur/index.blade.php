@@ -66,7 +66,7 @@
                                             <th class="text-center align-middle" style="width: 15%;">Nama</th>
                                             <th class="text-left align-middle">Keterangan</th>
                                             <th class="text-center align-middle" style="width: 15%">Status</th>
-                                            <th class="text-center align-middle" style="width: 10%">Aksi</th>
+                                            <th class="text-center align-middle" style="width: 15%">Aksi</th>
                                         </tr>
                                     </thead>
                                 </table>

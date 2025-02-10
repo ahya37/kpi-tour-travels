@@ -130,7 +130,7 @@ function showTable(idTable, data)
                 { "targets" : [2], "className" : "text-left align-middle", "width" : "15%"},
                 { "targets" : [3], "className" : "text-left align-middle" },
                 { "targets" : [4], "className" : "text-center align-middle", "width" : "15%" },
-                { "targets" : [5], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [5], "className" : "text-center align-middle", "width" : "15%" },
             ],
         });
 
@@ -143,8 +143,8 @@ function showTable(idTable, data)
                 let lemburTitle     = item['lembur_title'];
                 let lemburStatus    = item['lembur_status'];
                 let lemburActConfirm    = `<button class="btn btn-sm btn-primary" title="Approve" ${lemburStatus == 'Pending' ? '' : 'disabled'} value="${item['lembur_id']}" onclick="simpanData('accept_lemburan', this.value)"><i class="fa fa-check"></i></button>`;
-                let lemburActReject     = `<button class="btn btn-sm btn-danger" title="Reject" ${lemburStatus == 'Pending' ? '' : 'disabled'} onclick="simpanData('decline_lemburan', this.value)"><i class="fa fa-times"></i></button>`;
-                let lemburActView       = `<button class="btn btn-sm btn-danger" title="Lihat" onclick="showModal('modal_buat_lemburan', this.value)"><i class="fa fa-eye"></i></button>`
+                let lemburActReject     = `<button class="btn btn-sm btn-danger" title="Reject" ${lemburStatus == 'Pending' ? '' : 'disabled'} value="${item['lembur_id']}" onclick="simpanData('decline_lemburan', this.value)"><i class="fa fa-times"></i></button>`;
+                let lemburActView       = `<button class="btn btn-sm btn-success" title="Lihat" value="${item['lembur_id']}" onclick="showModal('modal_buat_lemburan', this.value)"><i class="fa fa-eye"></i></button>`
 
                 $("#"+idTable).DataTable().row.add([
                     `<label class="font-weight-normal no-margins">${lemburNumber}</label>`,
@@ -152,7 +152,7 @@ function showTable(idTable, data)
                     `<label class="font-weight-normal no-margins">${lemburEmpName}</label>`,
                     `<label class="font-weight-normal no-margins">${lemburTitle}</label>`,
                     `<label class="font-weight-normal no-margins"><span class="badge badge-sm ${lemburStatus == 'Pending' ? 'bg-warning' : (lemburStatus == 'Approve' ? 'bg-primary' : 'bg-danger')}">${lemburStatus}</label>`,
-                    lemburActConfirm + ' ' + lemburActReject
+                    lemburActConfirm + ' ' + lemburActReject + ' ' + lemburActView
                 ]).draw(false);
             }
         }
@@ -403,6 +403,31 @@ function simpanData(idForm, jenisSimpan)
                             icon    : 'success',
                             title   : 'Berhasil',
                             text    : results.message,
+                            didClose    : () => {
+                                let groupDivision  = $("#emp_group_division").val();
+                                let selectedBulan   = $("#pgj_lmb_select_month").val();
+
+                                let lemburURL       = base_url + "/divisi/finance/pengajuan/lembur";
+                                let lemburType      = "GET";
+                                let lemburData      = {
+                                    'month'     : selectedBulan,
+                                    'role'      : groupDivision
+                                };
+                                
+                                showTable('table_list_lembur_admin', []);
+
+                                doTrans(lemburURL, lemburType, lemburData, '', true)
+                                    .then((results)     => {
+                                        const lemburGetData     = results.data.length > 0 ? results.data : [];
+                                        
+                                        showTable('table_list_lembur_admin', lemburGetData);
+
+                                        lemburGetData.length    > 0 ? $("#table_list_lembur_admin").find('.dataTables_empty').html('Data Berhasil Dimuat') : $("#table_list_lembur_admin").find('.dataTables_empty').html(`Data Gagal Dimuat`);
+                                    })
+                                    .catch((error)      => {
+                                        console.log(error);
+                                    })
+                            }
                         })
                     })
                     .catch((error)      => {
@@ -412,15 +437,70 @@ function simpanData(idForm, jenisSimpan)
                             text    : 'Ada kesalahan ketika menyimpanm, silahkan coba lagi..'
                         })
                     })
-                // Swal.fire({
-                //     icon    : 'success',
-                //     title   : 'Berhasil',
-                //     text    : 'Pengajuan berhasil disetujui',
-                // })
             }
         })
     } else if(idForm == 'decline_lemburan') {
+        Swal.fire({
+            icon    : 'question',
+            title   : 'Setujui?',
+            text    : 'Anda yakin ingin menolak pengajuan lemburan ini?',
+            showCancelButton    : true,
+            showConfirmButton   : true,
+            confirmButtonText   : 'Tolak',
+            cancelButtonText    : 'Batal',
+            confirmButtonColor  : '#ED5565',
+            cancelButtonColor   : '#6c757d',
+        }).then((res)   => {
+            if(res.isConfirmed) {
+                const url   = base_url + "/divisi/finance/pengajuan/trans_lembur/reject";
+                const type  = "POST";
+                const message   = Swal.fire({ title : 'Data Sedang Diproses..' }); Swal.showLoading();
+                const data      = {
+                    'pgj_id'    : jenisSimpan,
+                };
 
+                doTrans(url, type, data, message, true)
+                    .then((results)     => {
+                        Swal.fire({
+                            icon    : 'success',
+                            title   : 'Berhasil',
+                            text    : results.message,
+                            didClose    : () => {
+                                let groupDivision  = $("#emp_group_division").val();
+                                let selectedBulan   = $("#pgj_lmb_select_month").val();
+
+                                let lemburURL       = base_url + "/divisi/finance/pengajuan/lembur";
+                                let lemburType      = "GET";
+                                let lemburData      = {
+                                    'month'     : selectedBulan,
+                                    'role'      : groupDivision
+                                };
+                                
+                                showTable('table_list_lembur_admin', []);
+
+                                doTrans(lemburURL, lemburType, lemburData, '', true)
+                                    .then((results)     => {
+                                        const lemburGetData     = results.data.length > 0 ? results.data : [];
+                                        
+                                        showTable('table_list_lembur_admin', lemburGetData);
+
+                                        lemburGetData.length    > 0 ? $("#table_list_lembur_admin").find('.dataTables_empty').html('Data Berhasil Dimuat') : $("#table_list_lembur_admin").find('.dataTables_empty').html(`Data Gagal Dimuat`);
+                                    })
+                                    .catch((error)      => {
+                                        console.log(error);
+                                    })
+                            }
+                        })
+                    })
+                    .catch((error)      => {
+                        Swal.fire({
+                            icon    : 'error',
+                            title   : 'Terjadi Kesalahan',
+                            text    : 'Ada kesalahan ketika menyimpan, silahkan coba lagi..'
+                        })
+                    })
+            }
+        })
     }
 }
 

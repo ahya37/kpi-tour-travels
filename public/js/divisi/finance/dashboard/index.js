@@ -39,7 +39,7 @@ $(document).ready(() => {
     const pgjLemburNotifUrl     = base_url + '/divisi/finance/pengajuan/lembur';
     const pgjLemburNotifType    = 'GET';
     const pgjLemburNotifData    = {
-        'month'     : moment(today).month(),
+        'month'     : moment(today).format('MM'),
         'role'      : 'finance', 
     };
 
@@ -95,7 +95,7 @@ $(document).ready(() => {
             const totalPgjLembur    = success[4].status == 'fulfilled' ? success[4].value.data.length : 0;
             if(totalPgjLembur > 0) {
                 $("#alert_pengajuan_lembur").removeClass('d-none');
-                $("#alert_pengajuan_lembur").html(`<i class='fa fa-exclamation-triangle'></i> Anda memiliki <strong>${totalPgjLembur}</strong> persetujuan pengajuan <strong>Lembur</strong>. <a href='#' title='Lihat Lemburan'>Lihat Selengkapnya</a>`);
+                $("#alert_pengajuan_lembur").html(`<i class='fa fa-exclamation-triangle'></i> Anda memiliki <strong>${totalPgjLembur}</strong> persetujuan pengajuan <strong>Lembur</strong>. <a href='${base_url}/pengajuan/lembur' title='Lihat Lemburan'>Lihat Selengkapnya</a>`);
             }
         })
         .catch((err)    => {

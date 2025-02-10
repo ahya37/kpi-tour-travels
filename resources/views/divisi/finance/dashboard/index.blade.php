@@ -31,7 +31,7 @@
 
 @section('content')
     <div class="wrapper wrapper-content animated fadeInRight">
-        @if($user_info['sub_division'] == 'manager' || $user_info['sub_division'] == '%')
+        @if($user_info['sub_division'] == 'manager')
             <div class="alert alert-warning d-none" id="alert_pengajuan_lembur">
                 {{-- <i class="fa fa-exclamation-triangle"></i> Anda memiliki <strong>{N}</strong> persetujuan pengajuan. <a href="#">Lihat Selengkapnya</a> --}}
             </div>
