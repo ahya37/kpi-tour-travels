@@ -36,11 +36,19 @@ $(document).ready(() => {
     const pgjPaymentType    = "GET";
     const pgjPaymentData    = [];
 
+    const pgjLemburNotifUrl     = base_url + '/divisi/finance/pengajuan/lembur';
+    const pgjLemburNotifType    = 'GET';
+    const pgjLemburNotifData    = {
+        'month'     : moment(today).month(),
+        'role'      : 'finance', 
+    };
+
     const getDataDashboard     = [
         doTrans(actUser_url, 'GET', actUser_data, '', true),
         doTrans(financeRKAP_url, 'GET', financeRKAP_data, '', true),
         doTransV2(gpkEmployee_url, 'GET', gpkEmployee_data, '', true),
-        doTrans(pgjPaymentURL, pgjPaymentType, pgjPaymentData, '', true)
+        doTrans(pgjPaymentURL, pgjPaymentType, pgjPaymentData, '', true),
+        doTransV2(pgjLemburNotifUrl, pgjLemburNotifType, pgjLemburNotifData, '', true)
     ];
 
     Promise.allSettled(getDataDashboard)
@@ -83,6 +91,12 @@ $(document).ready(() => {
             $("#confirm_payment_text").html(`<label class="no-margins font-weight-light">${totalPgjPayment}</label>`);
             $("#confirm_payment_text_pending").addClass('text-warning');
             totalConfirmPayment > 0 ? $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> ${totalConfirmPayment} butuh konfirmasi`) : $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> Tidak Ada Konfirmasi Pembayaran`);
+
+            const totalPgjLembur    = success[4].status == 'fulfilled' ? success[4].value.data.length : 0;
+            if(totalPgjLembur > 0) {
+                $("#alert_pengajuan_lembur").removeClass('d-none');
+                $("#alert_pengajuan_lembur").html(`<i class='fa fa-exclamation-triangle'></i> Anda memiliki <strong>${totalPgjLembur}</strong> persetujuan pengajuan <strong>Lembur</strong>. <a href='#' title='Lihat Lemburan'>Lihat Selengkapnya</a>`);
+            }
         })
         .catch((err)    => {
             // HIDE LOADING ACT USER

@@ -31,6 +31,11 @@
 
 @section('content')
     <div class="wrapper wrapper-content animated fadeInRight">
+        @if($user_info['sub_division'] == 'manager' || $user_info['sub_division'] == '%')
+            <div class="alert alert-warning d-none" id="alert_pengajuan_lembur">
+                {{-- <i class="fa fa-exclamation-triangle"></i> Anda memiliki <strong>{N}</strong> persetujuan pengajuan. <a href="#">Lihat Selengkapnya</a> --}}
+            </div>
+        @endif
         <div class="row">
             <div class="col-xl-3 col-lg-6 mb-sm-2">
                 <div class="card">

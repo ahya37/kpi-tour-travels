@@ -6,6 +6,7 @@ use App\Helpers\LogHelper;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -233,5 +234,34 @@ class UserService {
         );
 
         return $query;
+    }
+
+    public static function get_user_info($user_id)
+    {
+        $query = DB::table('employees as a')
+            ->join('job_employees as b', 'a.id', '=', 'b.employee_id')
+            ->join('group_divisions as c', 'b.group_division_id', '=', 'c.id')
+            ->join('sub_divisions as d', 'b.sub_division_id', '=', 'd.id')
+            ->select('a.id as employee_id', 'a.user_id', 'a.name as employee_name', 'c.name as group_division', 'd.name as sub_division')
+            ->where('a.user_id', '=', $user_id)
+            ->get();
+        
+        try {
+            $output     = [
+                'status'    => 'berhasil',
+                'err_msg'   => '',
+                'data'      => $query,
+            ];
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            
+            $output     = [
+                'status'    => 'gagal',
+                'err_msg'   => $e->getMessage(),
+                'data'      => [],
+            ];
+        }
+
+        return $output;
     }
 }

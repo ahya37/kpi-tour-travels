@@ -3270,4 +3270,107 @@ class DivisiService
 
         return $output;
     }
+
+    // 10 FEBUARI 2025
+    // NOTE : AMBIL LEMBURAN BY ROLE
+    public static function get_list_lembur_karyawan($data)
+    {
+        $user_role  = $data['user_role'];
+        $month      = $data['bulan'];
+
+        $query  = DB::table('employees_activity as a')
+                    ->join('employees as b', 'a.emp_act_user_id', '=', 'b.user_id')
+                    ->join('job_employees as c', 'b.id', '=', 'c.employee_id')
+                    ->join('group_divisions as d', 'c.group_division_id', '=', 'd.id')
+                    ->join('roles as e', 'd.roles_id', '=', 'e.id')
+                    ->select(
+                            'a.emp_act_uuid as lembur_id',
+                            'a.emp_act_user_id as lembur_user_id',
+                            'b.name as lembur_user_name',
+                            'a.emp_act_title as lembur_title',
+                            'a.emp_act_start_date as lembur_date',
+                            DB::raw("
+                                    CASE
+                                        WHEN a.emp_act_status = '1' THEN 'Approve'
+                                        WHEN a.emp_act_status = '2' THEN 'Reject'
+                                        WHEN a.emp_act_status = '3' THEN 'Pending'
+                                        ELSE null
+                                    END as lembur_status
+                                ")
+                            )
+                    ->where('a.emp_act_type', '=', 'Lembur')
+                    // ->where('a.emp_act_status', '=', '3')
+                    ->where('e.name', '=', $user_role)
+                    ->where(DB::raw("EXTRACT(MONTH FROM a.emp_act_start_date)"), '=', $month)
+                    ->where(DB::raw("EXTRACT(YEAR FROM a.emp_act_start_date)"), '=', date('Y'))
+                    ->orderBy('a.created_at', 'desc')
+                    ->get();
+        
+        try {
+            $output     = [
+                'status'    => 'berhasil',
+                'data'      => $query
+            ];
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            
+            $output     = [
+                'status'    => 'gagal',
+                'data'      => [],
+            ];
+        }
+
+        return $output;
+    }
+
+    // NOTE : TRANSAKSI PENGAJUAN LEMBUR
+    public static function do_trans_lembur_karyawan_finance($data)
+    {
+        $jenis          = $data['jenis'] == 'approve' ? '1' : '2';
+        $user_id        = $data['user_id'];
+        $ip_address     = $data['ip_address'];
+        $pengajuan_id   = $data['data']['pgj_id'];
+
+        DB::beginTransaction();
+
+        $data_where     = [
+            'emp_act_uuid'  => $pengajuan_id,
+        ];
+
+        $data_update    = [
+            'emp_act_status'    => $jenis,
+            'updated_by'        => $user_id,
+            'updated_at'        => date('Y-m-d H:i:s'),
+        ];
+        
+        DB::table('employees_activity')
+            ->where($data_where)
+            ->update($data_update);
+
+        try {
+            DB::commit();
+
+            $output     = [
+                'status'    => 'berhasil',
+                'message'   => 'Berhasil Update Pengajuan Lembur',
+                'err_msg'   => ''
+            ];
+
+            LogHelper::create('edit', 'Berhasil Update Pengajuan Lembur ID : ' . $pengajuan_id, $ip_address);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            $output     = [
+                'status'    => 'gagal',
+                'message'   => 'Gagal Update Pengajuan Lembur',
+                'err_msg'   => $e->getMessage(),
+            ];
+
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', 'Gagal Update Pengajuan Lembur ID : ' . $pengajuan_id, $ip_address);
+        }
+
+        return $output;
+    }
 }

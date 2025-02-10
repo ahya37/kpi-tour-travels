@@ -486,6 +486,9 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/pembayaran_agent', [DivisiController::class, 'finance_pgj_payment_agent']);
                 Route::get('/pembayaran_agent_detail', [DivisiController::class, 'finance_pgj_payment_agent_detail']);
                 Route::post('/pembayaran_agent_konfirmasi', [DivisiController::class, 'finance_pgj_payment_agent_confirm']);
+                // LEMBUR
+                Route::get('/lembur', [DivisiController::class, 'finance_pgj_lembur_karyawan_list']);
+                Route::post('/trans_lembur/{jenis}', [DivisiController::class, 'finance_pgj_lembur_karyawan_trans']);
             });
 
             Route::prefix('aktivitas')->group(function(){

@@ -14,10 +14,40 @@ if(dataBulan.length == 0) {
 $(document).ready(()    => {
     let currMonth   = moment(today, 'YYYY-MM-DD').format('MM');
     showTable('table_list_lembur', currMonth);
-
     // SHOW SELECT
     let selectedBulan   = moment(today, 'YYYY-MM-DD').format('MM');
     showSelect('pgj_lmb_select_month', dataBulan, selectedBulan, '')
+
+    // SHOW TABLE
+    showTable('table_list_lembur_admin', []);
+    // GET DATA LEMBUR ADMIN
+
+    let sub_division  = $("#emp_divisi").val();
+    let group_division= $("#emp_group_division").val();
+    
+    if(sub_division == 'manager') {
+        const lemburURL     = base_url + '/divisi/finance/pengajuan/lembur';
+        const lemburType    = "GET";
+        const lemburData    = {
+            'month'     : currMonth,
+            'role'      : group_division,
+        };
+
+        const getData       = [
+            doTrans(lemburURL, lemburType, lemburData, '', true)
+        ];
+
+        Promise.allSettled(getData)
+            .then((results) => {
+                const lemburGetData     = results[0].status == 'fulfilled' ? results[0].value.data : [];
+
+                showTable('table_list_lembur_admin', lemburGetData);
+                lemburGetData.length    > 0 ? $("#table_list_lembur_admin").find('.dataTables_empty').html('Data Berhasil Dimuat') : $("#table_list_lembur_admin").find('.dataTables_empty').html(`Data Gagal Dimuat`);
+            })
+            .catch((error)      => {
+                console.log(error);
+            })
+    }
 })
 
 function showTable(idTable, data)
@@ -52,7 +82,8 @@ function showTable(idTable, data)
                 const emp_data  = success.data;
                 let emp_seq     = 1;
                 if(emp_data.length > 0) {
-                    $(".dataTables_empty").html("Data Berhasil Dimuat");
+                    // $(".dataTables_empty").html("Data Berhasil Dimuat");
+                    $("#"+idTable).find('.dataTables_empty').html(`Data Berhasil Dimuat`);
 
                     for(const emp_item of emp_data) {
                         
@@ -81,12 +112,50 @@ function showTable(idTable, data)
                         ]).draw(false)
                     }
                 } else {
-                    $(".dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan..");
+                    $("#"+idTable).find('.dataTables_empty').html("Tidak Ada Data Yang Bisa Ditampilkan..");
                 }
             })
             .catch((err)        => {
                 console.log(err);
             })
+    } else if(idTable == 'table_list_lembur_admin') {
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat.."
+            },
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
+                { "targets" : [1], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [2], "className" : "text-left align-middle", "width" : "15%"},
+                { "targets" : [3], "className" : "text-left align-middle" },
+                { "targets" : [4], "className" : "text-center align-middle", "width" : "15%" },
+                { "targets" : [5], "className" : "text-center align-middle", "width" : "10%" },
+            ],
+        });
+
+        if(data.length > 0) {
+            let seq     = 1;
+            for(let item of data) {
+                let lemburNumber    = seq++;
+                let lemburDate      = moment(item['lembur_date'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
+                let lemburEmpName   = item['lembur_user_name'];
+                let lemburTitle     = item['lembur_title'];
+                let lemburStatus    = item['lembur_status'];
+                let lemburActConfirm    = `<button class="btn btn-sm btn-primary" title="Approve" ${lemburStatus == 'Pending' ? '' : 'disabled'} value="${item['lembur_id']}" onclick="simpanData('accept_lemburan', this.value)"><i class="fa fa-check"></i></button>`;
+                let lemburActReject     = `<button class="btn btn-sm btn-danger" title="Reject" ${lemburStatus == 'Pending' ? '' : 'disabled'} onclick="simpanData('decline_lemburan', this.value)"><i class="fa fa-times"></i></button>`;
+                let lemburActView       = `<button class="btn btn-sm btn-danger" title="Lihat" onclick="showModal('modal_buat_lemburan', this.value)"><i class="fa fa-eye"></i></button>`
+
+                $("#"+idTable).DataTable().row.add([
+                    `<label class="font-weight-normal no-margins">${lemburNumber}</label>`,
+                    `<label class="font-weight-normal no-margins">${lemburDate}</label>`,
+                    `<label class="font-weight-normal no-margins">${lemburEmpName}</label>`,
+                    `<label class="font-weight-normal no-margins">${lemburTitle}</label>`,
+                    `<label class="font-weight-normal no-margins"><span class="badge badge-sm ${lemburStatus == 'Pending' ? 'bg-warning' : (lemburStatus == 'Approve' ? 'bg-primary' : 'bg-danger')}">${lemburStatus}</label>`,
+                    lemburActConfirm + ' ' + lemburActReject
+                ]).draw(false);
+            }
+        }
     }
 }
 
@@ -125,10 +194,15 @@ function showModal(idModal, data)
 {
     if(idModal == 'modal_buat_lemburan')
     {
+        let employee_id             = $("#emp_id").val();
+        let employee_name           = $("#emp_name").val();
+        let employee_group_division = $("#emp_group_division").val();
+        let employee_sub_division   = $("#emp_divisi").val();
+
         // FILL FORM
-        $("#lmb_name_id").val($("#emp_id").val());
-        $("#lmb_name").val($("#emp_name").val());
-        $("#lmb_divisi").val($("#emp_divisi").val());
+        $("#lmb_name_id").val(employee_id);
+        $("#lmb_name").val(employee_name);
+        $("#lmb_divisi").val(employee_group_division);
 
         $("#lmb_date").daterangepicker({
             singleDatePicker    : true,
@@ -303,6 +377,50 @@ function simpanData(idForm, jenisSimpan)
                     })
                 })
         }
+    } else if(idForm == 'accept_lemburan') {
+        Swal.fire({
+            icon    : 'question',
+            title   : 'Setujui?',
+            text    : 'Anda yakin ingin menyetujui pengajuan lemburan ini?',
+            showCancelButton    : true,
+            showConfirmButton   : true,
+            confirmButtonText   : 'Setujui',
+            cancelButtonText    : 'Batal',
+            confirmButtonColor  : '#1ab394',
+            cancelButtonColor   : '#6c757d',
+        }).then((res)   => {
+            if(res.isConfirmed) {
+                const url   = base_url + "/divisi/finance/pengajuan/trans_lembur/approve";
+                const type  = "POST";
+                const message   = Swal.fire({ title : 'Data Sedang Diproses..' }); Swal.showLoading();
+                const data      = {
+                    'pgj_id'    : jenisSimpan,
+                };
+
+                doTrans(url, type, data, message, true)
+                    .then((results)     => {
+                        Swal.fire({
+                            icon    : 'success',
+                            title   : 'Berhasil',
+                            text    : results.message,
+                        })
+                    })
+                    .catch((error)      => {
+                        Swal.fire({
+                            icon    : 'error',
+                            title   : 'Terjadi Kesalahan',
+                            text    : 'Ada kesalahan ketika menyimpanm, silahkan coba lagi..'
+                        })
+                    })
+                // Swal.fire({
+                //     icon    : 'success',
+                //     title   : 'Berhasil',
+                //     text    : 'Pengajuan berhasil disetujui',
+                // })
+            }
+        })
+    } else if(idForm == 'decline_lemburan') {
+
     }
 }
 

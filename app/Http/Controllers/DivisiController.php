@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\DivisiService;
 use App\Services\BaseService;
 use App\Services\EmployeeService;
+use App\Services\UserService as User;
 use Http;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
@@ -29,6 +30,38 @@ class DivisiController extends Controller
     // IT
     // OPERASIONAL
     // FOR EXCEL PURPOSE
+
+    private function getUserRoles($user_id)
+    {
+        if($user_id)
+        {
+            // GET DATA
+            $get_data   = User::get_user_info($user_id);
+
+            if($get_data['status'] == 'berhasil' && count($get_data['data']) > 0) {
+                $output     = [
+                    'name'              => $get_data['data'][0]->employee_name,
+                    'group_division'    => strtolower($get_data['data'][0]->group_division),
+                    'sub_division'      => strtolower($get_data['data'][0]->sub_division)
+                ];
+            } else {
+                $output     = [
+                    'name'              => 'admin',
+                    'group_division'    => '%',
+                    'sub_division'      => '%',
+                ];
+            }
+        } else {
+            $output     = [
+                'name'              => '',
+                'group_division'    => '',
+                'sub_division'      => '',
+            ];
+        }
+
+        return $output;
+    }
+
     public function autoSizeColumn(Worksheet $sheet, $column)
         {
             $maxLength = 0;
@@ -1004,7 +1037,8 @@ class DivisiController extends Controller
             'user_id'       => Auth::user()->id,
             'role_name'     => Auth::user()->getRoleNames()[0],
             'title'         => $this->title." | Dashboard Keuangan",
-            'sub_title'     => "Dashboard - Divisi Keuangan"
+            'sub_title'     => "Dashboard - Divisi Keuangan",
+            'user_info'     => Auth::user()->getRoleNames()[0] == 'admin' ? '' : $this->getUserRoles(Auth::user()->id),
         ];
 
         return view('divisi.finance.dashboard.index', $data);
@@ -1932,25 +1966,35 @@ class DivisiController extends Controller
     {
         // DATA EMPLOYEES
         $emp_id                 = Auth::user()->id;
-        $get_data_employees     = DivisiService::getDataEmployee();
+        // $get_data_employees     = DivisiService::getDataEmployee();
         $data_emp               = [];
-        for($i = 0; $i < count($get_data_employees); $i++) {
-            if($get_data_employees[$i]->emp_id == $emp_id)
-            {
-                $data_emp   = [
-                    "emp_id"    => $emp_id,
-                    "emp_name"  => $get_data_employees[$i]->emp_name,
-                    "emp_divisi"=> $get_data_employees[$i]->emp_divisi,
-                ];
-                break;
-            } else {
-                $data_emp   = [
-                    "emp_id"    => $emp_id,
-                    "emp_name"  => Auth::user()->name,
-                    "emp_divisi"=> "%",
-                ];
-            }
-        }
+
+        $get_data_employee      = $this->getUserRoles($emp_id);
+        
+        $data_emp               = [
+            'emp_id'            => $emp_id,
+            'emp_name'          => $get_data_employee['name'],
+            'emp_group_division'=> $get_data_employee['group_division'],
+            'emp_sub_division'  => $get_data_employee['sub_division'],
+        ];
+
+        // for($i = 0; $i < count($get_data_employees); $i++) {
+        //     if($get_data_employees[$i]->emp_id == $emp_id)
+        //     {
+        //         $data_emp   = [
+        //             "emp_id"    => $emp_id,
+        //             "emp_name"  => $get_data_employees[$i]->emp_name,
+        //             "emp_divisi"=> $get_data_employees[$i]->emp_divisi,
+        //         ];
+        //         break;
+        //     } else {
+        //         $data_emp   = [
+        //             "emp_id"    => $emp_id,
+        //             "emp_name"  => Auth::user()->name,
+        //             "emp_divisi"=> "%",
+        //         ];
+        //     }
+        // }
         $data       = [
             "title"     => $this->title . " | Pengajuan Lembur",
             "sub_title" => "List Pengajuan Lembur",
@@ -2906,6 +2950,69 @@ class DivisiController extends Controller
                 "status"    => 501,
                 "message"   => "Gagal Mengubah Absensi",
                 "data"      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 10 FEBRUARI 2025
+    // NOTE : AMBIL DATA LEMBURAN FINANCE
+    public function finance_pgj_lembur_karyawan_list(Request $req)
+    {
+        $user_role  = $req->all()['role'];
+        $month      = $req->all()['month'];
+
+        $data       = [
+            'bulan'     => $month,
+            'user_role' => $user_role
+        ];
+
+        $get_data   = DivisiService::get_list_lembur_karyawan($data);
+
+        if($get_data['status'] == 'berhasil')
+        {
+            $output     = [
+                'success'   => true,
+                'status'    => 200,
+                'message'   => 'Berhasil Mengambil Data Lemburan ' . $user_role,
+                'data'      => $get_data['data']
+            ];
+        } else {
+            $output     = [
+                'success'   => false,
+                'status'    => 500,
+                'message'   => 'Gagal Mengambil Data Lemburan ' . $user_role,
+                'data'      => [],
+            ];
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : TRANS PENGAJUAN LEMBUR
+    public function finance_pgj_lembur_karyawan_trans(Request $request, $jenis)
+    {
+        $send_data  = [
+            'ip_address'    => $request->ip(),
+            'user_id'       => Auth::user()->id,
+            'jenis'         => $jenis,
+            'data'          => $request->all(),
+        ];
+
+        $get_data   = DivisiService::do_trans_lembur_karyawan_finance($send_data);
+
+        if($get_data['status'] == 'berhasil') {
+            $output     = [
+                'success'   => false,
+                'status'    => 200,
+                'message'   => 'Berhasil Melakukan Transaksi'
+            ];
+        } else if($get_data['status'] == 'gagal') {
+            $output     = [
+                'status'    => 500,
+                'success'   => false,
+                'message'   => 'Gagal Melakukan Transaksi',
             ];
         }
 

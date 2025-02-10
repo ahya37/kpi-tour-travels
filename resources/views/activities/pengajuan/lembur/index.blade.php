@@ -17,7 +17,8 @@
 @section('content')
     <input type="hidden" value="{{ $data_emp['emp_id'] }}" id="emp_id">
     <input type="hidden" value="{{ $data_emp['emp_name'] }}" id="emp_name">
-    <input type="hidden" value="{{ $data_emp['emp_divisi'] }}" id="emp_divisi">
+    <input type="hidden" value="{{ $data_emp['emp_sub_division'] }}" id="emp_divisi">
+    <input type="hidden" value="{{ $data_emp['emp_group_division'] }}" id="emp_group_division">
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="card shadow mb-5">
             <div class="card-header">
@@ -40,20 +41,37 @@
                 <hr>
                 <div class="row">
                     <div class="col-sm-12">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover" style="width: 100%;" id="table_list_lembur">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center align-middle" style="width: 5%;">No</th>
-                                        <th class="text-center align-middle" style="width: 20%;">Tanggal</th>
-                                        <th class="text-left align-middle">Keterangan</th>
-                                        <th class="text-center align-middle" style="width: 15%;">Status</th>
-                                        <th class="text-center align-middle" style="width: 5%">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
+                        @if($data_emp['emp_sub_division'] != 'manager')
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover" style="width: 100%;" id="table_list_lembur">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" style="width: 5%;">No</th>
+                                            <th class="text-center align-middle" style="width: 20%;">Tanggal</th>
+                                            <th class="text-left align-middle">Keterangan</th>
+                                            <th class="text-center align-middle" style="width: 15%;">Status</th>
+                                            <th class="text-center align-middle" style="width: 5%">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        @elseif($data_emp['emp_sub_division'] == 'manager')
+                            <div class="table-responsive">
+                                <table class="table table-stripepd table-hover" style="width: 100%;" id="table_list_lembur_admin">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" style="width: 5%">No</th>
+                                            <th class="text-center align-middle" style="width: 10%;">Tanggal</th>
+                                            <th class="text-center align-middle" style="width: 15%;">Nama</th>
+                                            <th class="text-left align-middle">Keterangan</th>
+                                            <th class="text-center align-middle" style="width: 15%">Status</th>
+                                            <th class="text-center align-middle" style="width: 10%">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -134,8 +152,10 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" id="btn_cancel_modal_buat_pengajuan" onclick="closeModal('modal_buat_lemburan')" title="Tutup Tampilan">Tutup</button>
-                    <button class="btn btn-primary" id="btn_save_modal_buat_pengajuan" value="" onclick="simpanData('lemburan', this.value)" title="Simpan Data">Simpan</button>
+                    <div>
+                        <button class="btn btn-secondary" id="btn_cancel_modal_buat_pengajuan" onclick="closeModal('modal_buat_lemburan')" title="Tutup Tampilan">Tutup</button>
+                        <button class="btn btn-primary" id="btn_save_modal_buat_pengajuan" value="" onclick="simpanData('lemburan', this.value)" title="Simpan Data">Simpan</button>
+                    </div>
                 </div>
             </div>
         </div>

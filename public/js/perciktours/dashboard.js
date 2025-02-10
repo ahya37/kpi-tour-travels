@@ -620,15 +620,16 @@ function doSaveData(idForm, type)
 
         doPostTransaction(article['url'], article['type'], article['data'], message)
             .then((results)     => {
-                Swal.fire({
-                    icon    : 'success',
-                    title   : 'Berhasil',
-                    text    : results.message,
-                }).then((res)   => {
-                    if(res.isConfirmed) {
-                        closeModal('modal_active_program_umrah_form');
-                    }
-                })
+                console.log(results);
+                // Swal.fire({
+                //     icon    : 'success',
+                //     title   : 'Berhasil',
+                //     text    : results.message,
+                // }).then((res)   => {
+                //     if(res.isConfirmed) {
+                //         closeModal('modal_active_program_umrah_form');
+                //     }
+                // })
             })
             .catch((error)      => {
                 console.log(error);
@@ -680,6 +681,7 @@ function doPostTransaction(url, type, data, message)
 {
     return new Promise((resolve, reject)    => {
         $.ajax({
+            cache   : false,
             url     : base_url + "/" + url,
             type    : type,
             data    : data,

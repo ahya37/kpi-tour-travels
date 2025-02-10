@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
 
-use function Ramsey\Uuid\v1;
-
 class WebsiteController extends Controller
 {
     protected $title    = "ERP Percik Tours | ";

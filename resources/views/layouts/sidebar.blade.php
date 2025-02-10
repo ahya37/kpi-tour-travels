@@ -231,17 +231,6 @@
 
             {{-- U/ ROLE FINANCE --}}
             @if(Auth::user()->hasRole('finance'))
-            {{-- <li class="{{ request()->is('master/*') ? 'active' : '' }}">
-                <a href="#">
-                    <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span class="fa arrow"></span>
-                </a>
-                <ul class="nav nav-second-level">
-                    <li
-                        class="{{ (request()->is('master/programkerja') || request()->is('master/programkerja/*')) ? 'active' : '' }}">
-                        <a href={{ route('programKerja.index') }}>Program Kerja</a>
-                    </li>
-                </ul>
-            </li> --}}
             <li class="{{ request()->is('divisi/*') ? 'active' : '' }}">
                 <a href="#">
                     <i class="fa fa-diamond"></i>
@@ -250,24 +239,10 @@
                 </a>
                 <ul class="nav nav-second-level collapse">
                     <li class="{{ request()->is('divisi/finance') ? 'active' : '' }}"><a href="{{ route('index.finance') }}">Dashboard</a></li>
-                    <li class="{{ request()->is('divisi/finance/aktivitas') ? 'active' : '' }}"><a href="{{ route('finance.index.aktivitas.harian') }}">Aktivitas Harian</a></li>
-                </ul>
-                {{-- <ul class="nav nav-second-level">
-                    <li class="{{ request()->is('divisi/operasional/program') ? 'active' : '' }}"><a href="{{ route('index.operasional.program') }}">Jadwal Umrah</a></li>
-                </ul>
-                
-                <ul class="nav nav-second-level">
-                    <li class="{{ request()->is('divisi/operasional/rules') ? 'active' : '' }}"><a href="{{ route('index.operasional.rulesprokerbulanan') }}">Aturan Program Kerja</a></li>
-                </ul> --}}
-            </li>
-            <li class="{{ request()->is('presensi/*') ? 'active' : '' }}">
-                <a href="#">
-                    <i class="fa fa-database"></i> 
-                    <span class="nav-label">Presensi</span>
-                    <span class="fa arrow"></span>
-                </a>
-                <ul class="nav nav-second-level collapse">
-                    <li class="{{ (request()->is('presensi') || request()->is('presensi/*')) ? 'active' : '' }}"><a href={{ route('presensi.report') }}>Laporan</a></li>
+                    {{-- <li class="{{ request()->is('divisi/finance/aktivitas') ? 'active' : '' }}"><a href="{{ route('finance.index.aktivitas.harian') }}">Aktivitas Harian</a></li> --}}
+                    <li class="{{ request()->is('divisi/finance/master') || request()->is('divisi/finance/master/*') ? 'active' : '' }}">
+                        <a href="#">Master</a>
+                    </li>
                 </ul>
             </li>
             @endif
