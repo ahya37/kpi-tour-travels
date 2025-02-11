@@ -108,7 +108,7 @@ function showTable(idTable, data)
                             moment(emp_item['emp_act_date'], 'YYYY-MM-DD').format('DD/MM/YYYY') + " (" + startTime + " - " + endTime + ")",
                             emp_item['emp_description'],
                             emp_status,
-                            "<button type='button' class='btn btn-sm btn-primary' value='"+emp_item[`emp_act_id`]+"' onclick='showModal(`modal_buat_lemburan`, this.value)' title='Lihat Data'><i class='fa fa-eye'></i></button>"
+                            "<button type='button' class='btn btn-sm btn-success' value='"+emp_item[`emp_act_id`]+"' onclick='showModal(`modal_buat_lemburan`, this.value)' title='Lihat Data'><i class='fa fa-eye'></i></button>"
                         ]).draw(false)
                     }
                 } else {
@@ -186,7 +186,34 @@ function showSelectDetail(idSelect, value)
 {
     
     if(idSelect == "pgj_lmb_select_month") {
-        showTable('table_list_lembur', value);
+        let groupDivision   = $("#emp_group_division").val();
+        if($("#emp_divisi").val() != 'manager')
+        {
+            showTable('table_list_lembur', value);
+        } else {
+            showTable('table_list_lembur_admin', []);
+            
+            const lemburURL     = base_url + "/divisi/finance/pengajuan/lembur";
+            const lemburType    = "GET";
+            const lemburData    = {
+                'month'     : value,
+                'role'      : groupDivision,
+                
+            };
+            const lemburMsg     = "";
+
+            doTrans(lemburURL, lemburType, lemburData, lemburMsg, true)
+                .then((results)     => {
+                    const lemburGetData     = results.data.length > 0 ? results.data : [];
+                    showTable('table_list_lembur_admin', lemburGetData);
+                    console.log(lemburGetData);
+
+                    results.data.length > 0 ? $("#table_list_lembur_admin").find('.dataTables_empty').html(`Data Berhasil Dimuat`) : $("#table_list_lembur_admin").find('.dataTables_empty').html(`Tidak Ada Data Lemburan Pada Bulan ${moment(value, 'MM').format('MMMM')}`);
+                })
+                .catch((error)      => {
+                    showTable('table_list_lembur_admin', []);
+                })
+        }
     }
 }
 

@@ -2514,73 +2514,111 @@ class DivisiService
                 DB::rollBack();
                 $output     = [
                     "status"    => "dupe",
-                    "errMsg"    => "Data Lemburan Pada Tanggal ".$data_lemburan['lmb_tanggal']." Sudah Dibuat",
+                    "errMsg"    => "",
+                    "message"   => "Data Lemburan Pada Tanggal ".$data_lemburan['lmb_tanggal']." Sudah Dibuat"
                 ];
 
                 return $output;
             }
+
+            try {
+                DB::commit();
+                
+                LogHelper::create('add', 'Berhasil Menambahkan Pengajuan Lembur ID : ' . $data_header['emp_act_uuid'], $ip);
+
+                $output     = [
+                    'status'    => 'berhasil',
+                    'errMsg'    => '',
+                    'message'   => 'Berhasil Menambahkan Pengajuan Lembur',
+                ];
+            } catch(\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', 'Gagal Menambahkan Pengajuan Lembur ID : ' . $data_header['emp_act_uuid'], $ip);
+
+                $output     = [
+                    'status'    => 'gagal',
+                    'errMsg'    => $e->getMessage(),
+                    'message'   => 'Gagal Menambahkan Pengajuan Lembur'
+                ];
+            }
+
+            return $output;
         } else if($jenis == 'edit') {
             // GET ID
-            $emp_act_id     = DB::table('employees_activity')
+            // CHECK APAKAH USER ID SAMA?
+            $check_user     = DB::table('employees_activity')
+                                ->select('created_by')
+                                ->where('emp_act_uuid', '=', $data_lemburan['lmb_act_id'])
+                                ->where('created_by', '=', $data['user_id'])
+                                ->get();
+            
+            if(count($check_user) > 0) {
+                $emp_act_id     = DB::table('employees_activity')
                                 ->select('id')
                                 ->where('emp_act_uuid', '=', $data_lemburan['lmb_act_id'])
                                 ->get()[0]
                                 ->id;
-            $data_where_header  = [
-                "emp_act_uuid"  => $data_lemburan['lmb_act_id'],
-                "id"            => $emp_act_id,
-            ];
+                $data_where_header  = [
+                    "emp_act_uuid"  => $data_lemburan['lmb_act_id'],
+                    "id"            => $emp_act_id,
+                ];
 
-            $data_update_header = [
-                "emp_act_title"         => $data_lemburan['lmb_keterangan'],
-                "emp_act_start_date"    => $data_lemburan['lmb_tanggal'],
-                "emp_act_end_date"      => $data_lemburan['lmb_tanggal'],
-                "updated_by"            => Auth::user()->id,
-                "updated_at"            => date('Y-m-d H:i:s'),
-            ];
+                $data_update_header = [
+                    "emp_act_title"         => $data_lemburan['lmb_keterangan'],
+                    "emp_act_start_date"    => $data_lemburan['lmb_tanggal'],
+                    "emp_act_end_date"      => $data_lemburan['lmb_tanggal'],
+                    "updated_by"            => Auth::user()->id,
+                    "updated_at"            => date('Y-m-d H:i:s'),
+                ];
 
-            DB::table('employees_activity')
-                ->where($data_where_header)
-                ->update($data_update_header);
+                DB::table('employees_activity')
+                    ->where($data_where_header)
+                    ->update($data_update_header);
 
-            // UPDATE DETAIL
-            $data_where_detail  = [
-                "emp_act_id"        => $emp_act_id,
-            ];
+                // UPDATE DETAIL
+                $data_where_detail  = [
+                    "emp_act_id"        => $emp_act_id,
+                ];
 
-            $data_update_detail = [
-                "empd_description"      => $data_lemburan['lmb_keterangan'],
-                "empd_date"             => $data_lemburan['lmb_tanggal'],
-                "empd_start_time"       => $data_lemburan['lmb_t_start'],
-                "empd_end_time"         => $data_lemburan['lmb_t_end'],
-            ];
+                $data_update_detail = [
+                    "empd_description"      => $data_lemburan['lmb_keterangan'],
+                    "empd_date"             => $data_lemburan['lmb_tanggal'],
+                    "empd_start_time"       => $data_lemburan['lmb_t_start'],
+                    "empd_end_time"         => $data_lemburan['lmb_t_end'],
+                ];
 
-            DB::table('employees_activity_detail')
-                ->where($data_where_detail)
-                ->update($data_update_detail);
-        }
+                DB::table('employees_activity_detail')
+                    ->where($data_where_detail)
+                    ->update($data_update_detail);
 
-        try {
-            DB::commit();
-            if($jenis == 'add') {
-                LogHelper::create('add', 'Berhasil Membuat Pengajuan Lembur ID : '.$data_header['emp_act_uuid'], $ip);
+                try {
+                    DB::commit();
+                    LogHelper::create('edit', 'Berhasil Mengubah Pengajuan Lembur ID : ' . $data_lemburan['lmb_act_id'], $ip);
+
+                    $output     = [
+                        'status'    => 'berhasil',
+                        'errMsg'    => '',
+                        'message'   => 'Berhasil Mengubah Pengajuan Lembur',
+                    ];
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::channel('daily')->error($e->getMessage());
+                    LogHelper::create('error_system', 'Gagal Mengubah Pengajuan Lembur ID : ' . $data_lemburan['lmb_act_id'], $ip);
+
+                    $output     = [
+                        'status'    => 'gagal',
+                        'errMsg'    => $e->getMessage(),
+                        'message'   => 'Gagal Mengubah Pengajuan Lembur'
+                    ];
+                }
             } else {
-                LogHelper::create('edit', 'Berhasil Merubah Pengajuan Lembur ID : ', $ip);
+                $output     = [
+                    'status'    => 'diff_user',
+                    'errMsg'    => '',
+                    'message'   => 'Tidak Dapat Mengubah Data Lemburan Ini'
+                ];
             }
-
-            $output     = [
-                "status"    => "berhasil",
-                "errMsg"    => "",
-            ];
-        } catch(\Exception $e) {
-            DB::rollBack();
-            Log::channel('daily')->error($e->getMessage());
-            LogHelper::create('error_system', 'Gagal Melakukan Pengajuan Lembur', $ip);
-
-            $output     = [
-                "status"    => "gagal",
-                "errMsg"    => $e->getMessage(),
-            ];
         }
 
         return $output;

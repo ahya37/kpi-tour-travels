@@ -26,18 +26,18 @@
     
 	@include('layouts.sidebar')
 
-        <div id="page-wrapper" class="gray-bg">
+    <div id="page-wrapper" class="gray-bg">
 
-		@include('layouts.navbar')
-		
-		@yield('breadcrumb')
-       
+        @include('layouts.navbar')
+        
+        @yield('breadcrumb')
+        
         @yield('content')
-				
+                
         @include('layouts.footer')
 
-        </div>
-        </div>
+    </div>
+</div>
                 
 
 	@stack('prepend-script')

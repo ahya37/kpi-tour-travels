@@ -2043,7 +2043,7 @@ class DivisiController extends Controller
                     "icon"      => "success",
                     "message"   => [
                         "title"     => "Berhasil",
-                        "text"      => $jenis == 'add' ? "Berhasil Menambahkan Pengajuan Lembur" : "Berhasil Mengubah Pengajuan Lembur",
+                        "text"      => $doSimpan['message'],
                     ],
                 ],
             ];
@@ -2055,7 +2055,7 @@ class DivisiController extends Controller
                     "icon"      => "error",
                     "message"   => [
                         "title"     => "Terjadi Kesalahan",
-                        "text"      => $jenis == 'add' ? "Gagal Menambahkan Pengajuan Lembur" : "Gagal Mengubah Pengajuan Lembur",
+                        "text"      => $doSimpan['message'],
                     ],
                 ],
             ];
@@ -2067,7 +2067,19 @@ class DivisiController extends Controller
                     "icon"      => "error",
                     "message"   => [
                         "title"     => "Terjadi Kesalahan",
-                        "text"      => $doSimpan['errMsg'],
+                        "text"      => $doSimpan['message'],
+                    ],
+                ],
+            ];
+        } else if($doSimpan['status'] == 'diff_user') {
+            $output     = [
+                "success"   => false,
+                "status"    => 401,
+                "alert"     => [
+                    "icon"      => "error",
+                    "message"   => [
+                        "title"     => "Terjadi Kesalahan",
+                        "text"      => "Anda Tidak Diperbolehkan Mengubah Pengajuan Ini",
                     ],
                 ],
             ];
