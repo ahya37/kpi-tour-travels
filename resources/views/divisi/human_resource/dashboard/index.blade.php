@@ -96,7 +96,7 @@
             </div>
             <div class="col-lg-3 col-md-6 col-sm-12">
                 <div class="ibox w-100">
-                    <div class="ibox-title">
+                    <div class="ibox-title" style="padding-right:0px;">
                         <h5>Pengajuan Lembur</h5>
                     </div>
                     <div class="ibox-content">
@@ -129,10 +129,10 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-lg-3 col sm-12 col-md-6">
+                        <div class="col-xl-3 col-md-4 col-12">
                             <div class="form-group">
                                 <label class="font-weight-bold no-margins">Pilih Bulan</label>
-                                <select name="pgj_select_month" id="pgj_select_month" class="form-control form-control-sm" style="width: 100%;" onchange="showSelectDetail(this.id, this.value)"></select>
+                                <select name="pgj_select_month" id="pgj_select_month" class="form-control" style="width: 100%;" onchange="showSelectDetail(this.id, this.value)"></select>
                             </div>
                         </div>
                     </div>
@@ -302,10 +302,16 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-lg-3 col sm-12 col-md-6">
+                        <div class="col-xl-3 col-md-4 col-12">
                             <div class="form-group">
-                                <label class="font-bold no-margins">Pilih Bulan</label>
-                                <select id="select_pgj_month" style="width: 100%;" class="form-control" onchange="showSelectDetail(this.id, this.value)"></select>
+                                <label class="font-weight-bold no-margins" for="select_pgj_month">Pilih Bulan</label>
+                                <select id="select_pgj_month" name="select_pgj_month" style="width: 100%;" class="form-control" onchange="showSelectDetail(this.id, this.value)"></select>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-4 col-12">
+                            <div class="form-group">
+                                <label for="select_pgj_role" class="font-weight-bold no-margins">Pilih Divisi</label>
+                                <select name="select_pgj_role" id="select_pgj_role" class="form-control" style="width: 100%;" onchange="showSelectDetail(this.id, this.value)"></select>
                             </div>
                         </div>
                     </div>

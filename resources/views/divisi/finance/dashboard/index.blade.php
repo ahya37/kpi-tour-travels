@@ -31,10 +31,12 @@
 
 @section('content')
     <div class="wrapper wrapper-content animated fadeInRight">
-        @if($user_info['sub_division'] == 'manager')
+        @if($role_name != 'admin')
+            @if($user_info['sub_division'] == 'manager')
             <div class="alert alert-warning d-none" id="alert_pengajuan_lembur">
                 {{-- <i class="fa fa-exclamation-triangle"></i> Anda memiliki <strong>{N}</strong> persetujuan pengajuan. <a href="#">Lihat Selengkapnya</a> --}}
             </div>
+            @endif
         @endif
         <div class="row">
             <div class="col-xl-3 col-lg-6 mb-sm-2">

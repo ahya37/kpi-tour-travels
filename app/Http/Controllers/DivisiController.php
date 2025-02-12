@@ -3030,4 +3030,35 @@ class DivisiController extends Controller
 
         return Response::json($output, $output['status']);
     }
+    
+    // 11 FEBRUARI 2025
+    // NOTE : PENAMBAHAN AMBIL DATA LIST LEMBURAN BY BULAN DAN ROLE
+    public function list_lembur_v2(Request $request)
+    {
+        $send_data  = [
+            "bulan_cari"    => $request->all()['month'],
+            "divisi_cari"   => $request->all()['role'] == 'semua' ? '%' : $request->all()['role']
+        ];
+
+        $get_data   = DivisiService::get_list_lembur_v2($send_data);
+
+        if($get_data['status'] == 'berhasil')
+        {
+            $output     = [
+                'success'   => true,
+                'status'    => 200,
+                'message'   => $get_data['message'],
+                'data'      => $get_data['data'],
+            ];
+        } else {
+            $output     = [
+                'success'   => false,
+                'status'    => 500,
+                'message'   => $get_data['message'],
+                'data'      => []
+            ];
+        }
+
+        return $output;
+    }
 }

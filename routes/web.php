@@ -571,6 +571,8 @@ Route::group(['middleware' => ['auth']], function () {
             Route::post('/simpan/{jenis}', [DivisiController::class, 'simpan_pengajuan_lembur']);
             Route::get('/get_data', [DivisiController::class, 'get_data_lembur']);
             Route::put('/konfirmasi', [DivisiController::class, 'konfirmasi_data_lembur']);
+
+            Route::get('/list_lembur_v2', [DivisiController::class, 'list_lembur_v2']);
         });
     });
 

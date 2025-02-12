@@ -3411,4 +3411,50 @@ class DivisiService
 
         return $output;
     }
+
+    public static function get_list_lembur_v2($request)
+    {
+        $role   = $request['divisi_cari'];
+        $month  = $request['bulan_cari'];
+
+        // GET DATA
+        $query  = DB::table('employees_activity as a')
+                    ->join('employees as b', 'a.emp_act_user_id', '=', 'b.user_id')
+                    ->join('job_employees as c', 'b.id', '=', 'c.employee_id')
+                    ->join('group_divisions as d', 'c.group_division_id', '=', 'd.id')
+                    ->join('roles as e', 'd.roles_id', '=', 'e.id')
+                    ->select(
+                        'a.emp_act_uuid as emp_act_id',
+                        'a.emp_act_user_id as user_id',
+                        'b.name as user_name',
+                        'a.emp_act_title as emp_act_title',
+                        'a.emp_act_start_date as emp_act_date',
+                        'a.emp_act_status as emp_act_status',
+                        'e.name as role_name'
+                    )
+                    ->where(DB::raw("EXTRACT(MONTH FROM a.emp_act_start_date)"), '=', $month)
+                    ->where(DB::raw("EXTRACT(YEAR FROM a.emp_act_start_date)"), '=', DB::raw("DATE_FORMAT(CURRENT_DATE, '%Y')"))
+                    ->where('a.emp_act_type', '=', 'Lembur')
+                    ->where('e.id', 'like', '%'.$role.'%')
+                    ->orderBy('a.created_at', 'desc')
+                    ->get();
+        
+        try {
+            $output     = [
+                'status'    => 'berhasil',
+                'message'   => 'Berhasil Mengambil Data Lemburan',
+                'data'      => $query,
+            ];
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'status'    => 'gagal',
+                'message'   => 'Internal Server Error',
+                'data'      => []
+            ];
+        }
+
+        return $output;
+    }
 }

@@ -4,6 +4,7 @@ var today               = moment().format('YYYY-MM-DD');
 var abs_data_global     = [];
 var base_url            = window.location.origin;
 var dataBulan           = [];
+var dataRoles           = [];
 
 clearUrl();
 
@@ -39,18 +40,24 @@ $(document).ready(() => {
         "jml_hari"      : 1
     };
 
-    const pgj_lmb_url   = base_url + "/pengajuan/lembur/list_lembur";
+    const pgj_lmb_url   = base_url + "/pengajuan/lembur/list_lembur_v2";
     const pgj_lmb_type  = "GET";
     const pgj_lmb_data  = {
-        "bulan" : moment(today, 'YYYY-MM-DD').format('MM')
+        "month" : moment(today, 'YYYY-MM-DD').format('MM'),
+        "role"  : "semua"
     };
     
+
+    const rolesURL      = base_url + '/master/data/trans/get/dataRoles';
+    const rolesType     = "GET";
+    const rolesData     = [];
 
     const sendData  = [
         doTrans(pgj_url, pgj_type, pgj_data, "", true),
         doTrans(emp_url, emp_type, emp_data, "", true),
         doTrans(abs_url, abs_type, abs_data, "", true),
-        doTrans(pgj_lmb_url, pgj_lmb_type, pgj_lmb_data, "", true)
+        doTrans(pgj_lmb_url, pgj_lmb_type, pgj_lmb_data, "", true),
+        doTrans(rolesURL, rolesType, rolesData, "", true)
     ];
 
     Promise.allSettled(sendData)
@@ -102,7 +109,7 @@ $(document).ready(() => {
             let pgj_lmb_pending     = 0;
 
             for(const pgj_lmb_item of pgj_lmb_getData) {
-                if(pgj_lmb_item['emp_trans_status'] == '3') {
+                if(pgj_lmb_item['emp_act_status'] == '3') {
                     pgj_lmb_pending++;
                 }
             }
@@ -112,6 +119,9 @@ $(document).ready(() => {
                 $("#pgj_lmb_confirmation_text").html("<i class='fa fa-exclamation-triangle'></i> <label class='no-margins'>" + pgj_lmb_pending+" Butuh Konfirmasi</label>");
             }
 
+
+            const rolesSendData     = success[4].status == 'fulfilled' ? success[4].value.data : [];
+            dataRoles   = rolesSendData;
         })
         .catch((err)        => {
             console.log(err);
@@ -230,37 +240,41 @@ function showModal(idModal, jenis, data)
 
         showTable('table_emp', '');
     } else if(idModal == 'modal_pgj_lmb') {
-        let bulanSekarang   = data == '' ? moment(today, 'YYYY-MM-DD').format('MM') : data;
-        showSelect('select_pgj_month', dataBulan, bulanSekarang, '');
-        showTable('table_pgj_lmb', []);
-        // GET DATA LEMBURAN DULU
-        let pgjLembur_URL   = base_url + "/pengajuan/lembur/list_lembur";
-        let pgjLembur_type  = "GET";
-        let pgjLembur_data  = {
-            "bulan"         : data || bulanSekarang,
-        };
-        let pgjLembur_msg   = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
+        // SHOW SELECT
+        const bulanSekarang     = data == '' ? moment(today, 'YYYY-MM-DD').format('MM') : data['bulan'];
+        showSelect('select_pgj_month', dataBulan, bulanSekarang);
 
-        doTrans(pgjLembur_URL, pgjLembur_type, pgjLembur_data, pgjLembur_msg, true)
-            .then((success) => {
+        const roleSekarang      = data == '' ? 'semua' : data['divisi'];
+        showSelect('select_pgj_role', dataRoles, roleSekarang);
+
+        // SHOW TABLE
+        const pgjLemburUrl  = base_url + "/pengajuan/lembur/list_lembur_v2";
+        const pgjLemburType = "GET";
+        const pgjLemburData = {
+            "month"     : bulanSekarang,
+            "role"      : roleSekarang,
+        };
+        const pgjLemburMsg  = Swal.fire({ title : 'Data Sedang Dimuat..' }); Swal.showLoading();
+
+        doTrans(pgjLemburUrl, pgjLemburType, pgjLemburData, pgjLemburMsg, true)
+            .then((results)     => {
+                // close swal
                 Swal.close();
-                // SHOW MODAL
-                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-                // SHOW TABLE
-                let pgjLembur_getData   = success.data;
-                if(pgjLembur_getData.length > 0) {
-                    showTable('table_pgj_lmb', pgjLembur_getData);
-                    $(".dataTables_empty").html('Berhasil Memuat Data');
-                } else {
-                    $(".dataTables_empty").html('Tidak Ada Data Yang Bisa Ditampilkan');
-                }
+                // show modal
+                $("#"+idModal).modal({ backdrop : 'static', keyboad : false });
+                
+                // show table
+                const pgjLemburGetData  = results.data;
+                showTable('table_pgj_lmb', pgjLemburGetData);
+                pgjLemburGetData.length > 0 ? $("#table_pgj_lmb").find('.dataTables_empty').html(`Berhasil Memuat Data Pengajuan Lembur`) : $("#table_pgj_lmb").find('.dataTables_empty').html(`Tidak Ada Data Pengajuan Lembur`);
+
             })
-            .catch((err)    => {
-                // SHOW MODAL
+            .catch((error)      => {
+                Swal.close();
                 $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-                // SHOW TABLE
+
                 showTable('table_pgj_lmb', []);
-                $(".dataTables_empty").html('Tidak Ada Data Yang Bisa Dimuat');
+                $("#table_pgj_lmb").find('.dataTables_empty').html(`Tidak Ada Pengajuan Lemburan`);
             })
     } else if(idModal == 'modal_pgj_lmb_preview') {
         // GET DATA PENGAJUAN LEMBUR DETAIL
@@ -387,7 +401,14 @@ function closeModal(idModal)
         clearUrl();
     } else if(idModal == 'modal_pgj_lmb_preview') {
         let bulanSekarang   = $("#select_pgj_month").val();
-        showModal('modal_pgj_lmb', '', bulanSekarang); 
+        let divisiSekarang  = $("#select_pgj_role").val();
+
+        let dataCari    = {
+            "bulan" : bulanSekarang,
+            "divisi": divisiSekarang
+        };
+
+        showModal('modal_pgj_lmb', '', dataCari); 
     } else if(idModal == 'modal_pgj_lmb_preview_tolak') {
         $("#"+idModal).modal('hide');
     } else if(idModal == 'modal_edit_jam_kerja') {
@@ -625,27 +646,33 @@ function showTable(idTable, data)
             for(const item of data)
             {
                 let pengajuanID         = item['emp_act_id'];
-                let pengajuanUsername   = item['emp_user_name'];
-                let pengajuanTanggal    = moment(item['emp_act_date']).format('DD-MM-YYYY');
-                let pengajuanButton     = `<button type="button" class="btn btn-sm btn-primary" onclick="showModal('modal_pgj_lmb_preview', 'prv', '${pengajuanID}')" title="Lihat Detail"><i class="fa fa-eye"></i></button>`
-                switch(item['emp_trans_status']) {
+                let pengajuanNumber     = seq++;
+                let pengajuanNama       = item['user_name'];
+                let pengajuanTanggal    = moment(item['emp_act_date'], 'YYYY-MM-DD').format('DD-MMM-YYYY');
+                let pengajuanStatus;
+                
+                switch(item['emp_act_status'])
+                {
                     case '1' :
-                        var pengajuanStatus = `<span class="badge badge-sm bdage-pills badge-primary pt-1"><label class="no-margins">Diterima</label></span>`; 
+                        pengajuanStatus     = `<span class="badge badge-sm badge-primary"><label class="font-weight-bold no-margins">Approve</label></span>`; 
                     break;
                     case '2' :
-                        var pengajuanStatus = `<span class="badge badge-sm bdage-pills badge-danger pt-1"><label class="no-margins">Ditolak</label></span>`;
+                        pengajuanStatus     = `<span class="badge badge-sm badge-danger"><label class="font-weight-bold no-margins">Reject</label></span>`;
                     break;
                     case '3' :
-                        var pengajuanStatus = `<span class="badge badge-sm bdage-pills badge-warning pt-1"><label class="no-margins text-dark">Menunggu Konfirmasi</label></span>`;
+                        pengajuanStatus     = `<span class="badge badge-sm badge-warning"><label class="font-weight-bold no-margins">Pending</label></span>`
                     break;
+                    default     : ``;
                 }
 
+                let pengajuanActButton  = `<button type="button" class="btn btn-sm btn-success" title="Lihat Detail" value="${pengajuanID}" onclick="showModal('modal_pgj_lmb_preview', 'prv', this.value)"><i class="fa fa-eye"></i></button>`;
+                
                 $("#"+idTable).DataTable().row.add([
-                    seq++,
-                    pengajuanUsername,
-                    pengajuanTanggal,
-                    pengajuanStatus ?? '',
-                    pengajuanButton,
+                    `<label class="font-weight-normal no-margins">${pengajuanNumber}</label>`,
+                    `<label class="font-weight-normal no-margins">${pengajuanNama}</label>`,
+                    `<label class="font-weight-normal no-margins">${pengajuanTanggal}</label>`,
+                    pengajuanStatus,
+                    pengajuanActButton
                 ]).draw(false);
             }
         }
@@ -729,6 +756,28 @@ function showSelect(idSelect, data, selectedData, seq)
         if(selectedData != "") {
             $("#"+idSelect).val(selectedData);
         }
+    } else if(idSelect == 'select_pgj_role') {
+        let html    = [
+            `<option selected disabled>Pilih Divisi</option>`,
+            `<option value="semua">semua</option>`
+        ];
+
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                if(item['role_name'] != 'admin')
+                {
+                    html    += `<option value="${item['role_id']}">${item['role_name']}</option>`
+                }
+            })
+            $("#"+idSelect).html(html);
+        } else {
+            $("#"+idSelect).html(html);
+        }
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
     }
 }
 
@@ -753,24 +802,60 @@ function showSelectDetail(idSelect, value, seq = null)
                 showTable('table_list_pengajuan', []);
             })
     } else if(idSelect == 'select_pgj_month') {
-        let pgjLembur_URL   = base_url + "/pengajuan/lembur/list_lembur";
+        let month   = value;
+        let role    = $("#select_pgj_role").val();
+
+        let pgjLembur_URL   = base_url + "/pengajuan/lembur/list_lembur_v2";
         let pgjLembur_type  = "GET";
         let pgjLembur_data  = {
-            "bulan"         : value,
+            "month"         : month,
+            "role"          : role,
+            
         };
-        let pgjLembur_msg   = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
+        let pgjLembur_msg   = "";
 
-        showTable('table_pjg_lmb', []);
+        showTable('table_pgj_lmb', []);
         doTrans(pgjLembur_URL, pgjLembur_type, pgjLembur_data, pgjLembur_msg, true)
             .then((success)     => {
                 Swal.close();
                 let pgjLembur_getData    = success.data;
                 if(pgjLembur_getData.length > 0) {
                     showTable('table_pgj_lmb', pgjLembur_getData);
-                    $(".dataTables_empty").html('Data Berhasil Dimuat');
+                    $("#table_pgj_lmb").find('.dataTables_empty').html(`Data Pengajuan Lembur Berhasil Dimuat`);
                 } else {
                     showTable('table_pgj_lmb', []);
-                    $(".dataTables_empty").html('Tidak Ada Data Yang Bisa Ditampilkan');
+                    $("#table_pgj_lmb").find('.dataTables_empty').html(`Tidak Ada Data Pengajuan Lembur Bulan ${moment(value, 'MM').format('MMMM')}`);
+                }
+            })
+            .catch((err)        => {
+                Swal.close();
+                showTable('table_pgj_lmb', []);
+                $(".dataTables_empty").html('Tidak Ada Data Yang Bisa Ditampilkan');
+            })
+    } else if(idSelect == 'select_pgj_role') {
+        let month   = $("#select_pgj_month").val();
+        let role    = value;
+
+        let pgjLembur_URL   = base_url + "/pengajuan/lembur/list_lembur_v2";
+        let pgjLembur_type  = "GET";
+        let pgjLembur_data  = {
+            "month"         : month,
+            "role"          : role,
+            
+        };
+        let pgjLembur_msg   = "";
+
+        showTable('table_pgj_lmb', []);
+        doTrans(pgjLembur_URL, pgjLembur_type, pgjLembur_data, pgjLembur_msg, true)
+            .then((success)     => {
+                Swal.close();
+                let pgjLembur_getData    = success.data;
+                if(pgjLembur_getData.length > 0) {
+                    showTable('table_pgj_lmb', pgjLembur_getData);
+                    $("#table_pgj_lmb").find('.dataTables_empty').html(`Data Pengajuan Lembur Berhasil Dimuat`);
+                } else {
+                    showTable('table_pgj_lmb', []);
+                    $("#table_pgj_lmb").find('.dataTables_empty').html(`Tidak Ada Data Pengajuan Lembur Bulan ${moment(value, 'MM').format('MMMM')}`);
                 }
             })
             .catch((err)        => {
