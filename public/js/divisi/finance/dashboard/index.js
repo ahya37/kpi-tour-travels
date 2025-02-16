@@ -457,18 +457,20 @@ function showTable(idTable, data)
             let amountOverTimeThree = 0;
             let amountTotalOverTime = 0;
 
+            console.log(data);
+
             for(const item of data)
             {
-                let prs_date    = item.emp_prs_date;
-                let prs_in      = item.emp_prs_in_time;
-                let prs_out     = item.emp_prs_out_time;
-                let prs_status  = item.emp_status;
-                let prs_status_note     = item.emp_status_note;
+                let prs_date            = item.emp_prs_date;
+                let prs_in              = item.emp_prs_in_time;
+                let prs_out             = item.emp_prs_out_time;
+                let prs_status          = item.emp_status;
+                let prs_status_note     = item.emp_status_note ?? item.emp_reason;
 
                 // SHOW TIME ONLY
-                let prs_in_time     = moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
-                let prs_out_time    = moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
-                let prs_late_time   = moment("08:10", "HH:mm").format('HH:mm');
+                let prs_in_time         = moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
+                let prs_out_time        = moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
+                let prs_late_time       = moment("08:10", "HH:mm").format('HH:mm');
                                 
                 // FORMATED TANGGAL
                 var prs_date_formatted  = prs_out != null ? moment(prs_date, 'YYYY-MM-DD').format('DD/MMM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+" - "+moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")" : moment(prs_date, 'YYYY-MM-DD').format('DD/MMM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")";
@@ -483,6 +485,7 @@ function showTable(idTable, data)
 
                 let isApproved      = prs_status == "t" ? "<i class='fa fa-check'></i>" : "<i class='fa fa-times'></i>";
 
+                // KETIKA HARI BUKAN SABTU
                 if(prs_out != null && prs_out_time_new > "16:59" && moment(prs_date, 'YYYY-MM-DD').format('dddd') != 'Sabtu') {
                     prs_out_time_new >= "17:00" && prs_status == "t" ? overtimeOne = 1 : "";
                     prs_out_time_new >= "17:01" && prs_out_time_new < "23:59" && prs_status == "t" ? overtimeTwo = hitungJumlahJam("17:01", prs_out_time_new) : "";
@@ -503,7 +506,9 @@ function showTable(idTable, data)
                         prs_status_note,
                     ]).draw(false);
                     $(".dataTables_empty").html("Data Sedang Ditampilkan");
-                } else if(prs_out != null && prs_out_time_new > "13:29" && moment(prs_date, 'YYYY-MM-DD').format('dddd') == 'Sabtu') {
+                } 
+                // KETIKA LEMBURAN SABTU
+                else if(prs_out != null && prs_out_time_new > "13:29" && moment(prs_date, 'YYYY-MM-DD').format('dddd') == 'Sabtu') {
                     prs_out_time_new >= "13:30" && prs_status == "t" ? overtimeOne = 1 : "";
                     prs_out_time_new >= "13:31" && prs_out_time_new < "23:29" && prs_status == "t" ? overtimeTwo = hitungJumlahJam("13:31", prs_out_time_new) : "";
                     prs_out_time_new >= "23:59" && prs_status == "t" ? overtimeThree = hitungJumlahJam("23:59", prs_out_time_new) : "";

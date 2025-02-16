@@ -94,7 +94,13 @@
                     <li class=""><a href="#">Marketing</a></li>
                     <li class="{{ request()->is('divisi/digital') || request()->is('divisi/digital/*') ? 'active' : '' }}"><a href="#">Digital</a></li>
                     <li class="{{ request()->is('divisi/operasional') || request()->is('divisi/operasional/*') ? 'active' : '' }}"><a href="{{ route('index.operasional') }}">Operasional</a></li>
-                    <li class="{{ request()->is('divisi/finance') || request()->is('divisi/finance/*') ? 'active' : '' }}"><a href="{{ route('index.finance') }}">Finance</a></li>
+                    <li class="{{ request()->is('divisi/finance') || request()->is('divisi/finance/*') ? 'active' : '' }}">
+                        <a href="#"> Finance <span class="fa arrow"></span></a>
+                        <ul class="nav nav-third-level">
+                            <li class="{{ request()->is('divisi/finance') || request()->is('disivi/finance/*') ? 'active' : ''}}"><a href="{{ route('index.finance') }}">Dashboard</a></li>
+                            <li class="{{ request()->is('divisi/finance/master') || request()->is('divisi/finance/master/*') ? 'active' : '' }}"><a href="#">Master</a></li>
+                        </ul>
+                    </li>
                     {{-- <li class="{{ request()->is('divisi/human_resource') ? 'active' : '' }}"><a href="{{ route('index.human_resouce') }}">HR</a></li> --}}
                     <li class="{{ request()->is('divisi/human_resource') || request()->is('divisi/human_resource/*') ? 'active' : '' }}">
                         <a href="#">HR <span class="fa arrow"></span></a>

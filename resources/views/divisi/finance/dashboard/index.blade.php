@@ -121,7 +121,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="col-xl-3 col-lg-6 mb-sm-2">
+                {{-- <div class="col-xl-3 col-lg-6 mb-sm-2">
                     <div class="card">
                         <div class="card-header bg-primary">
                             <h4 class="no-margins">Konfirmasi Pembayaran</h4>
@@ -134,7 +134,7 @@
                             Lihat Detail
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
         @endif
     </div>
