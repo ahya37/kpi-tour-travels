@@ -184,31 +184,33 @@ class TarikDataService {
         }
         
         // SIMPAN KE LOCAL
-        for($i = 0; $i < count($temp_data_umhaj); $i++)
-        {
-            // GET DATA PPROGRAM
-            $program_id     = DB::table('programs')->where('alias', '=', substr($temp_data_umhaj[$i]['tour_code'], 0, 2))->get();
-            // dd($program_id);
-            
-            $data_simpan    = [
-                "jdw_uuid"          => Str::uuid(),
-                "jdw_programs_id"   => count($program_id) > 0 ? $program_id[0]->id : "-",
-                "jdw_depature_date" => $temp_data_umhaj[$i]['depature_date'],
-                "jdw_arrival_date"  => $temp_data_umhaj[$i]['arrival_date'],
-                "jdw_mentor_name"   => $temp_data_umhaj[$i]['tour_leader'],
-                "jdw_tour_code"     => $temp_data_umhaj[$i]['tour_code'],
-                "jdw_seat"          => $temp_data_umhaj[$i]['total_seat'],
-                "jdw_take_seat"     => $temp_data_umhaj[$i]['taken_seat'],
-                "jdw_available_seat"=> $temp_data_umhaj[$i]['available_seat'],
-                "is_generated"      => "f",
-                "is_active"         => $temp_data_umhaj[$i]['is_active'],
-                "created_by"        => $data['user_id'],
-                "created_at"        => date('Y-m-d H:i:s'),
-                "updated_by"        => $data['user_id'],
-                "updated_at"        => date('Y-m-d H:i:s'),
-            ];
+        if(count($temp_data_umhaj) > 0) {
+            for($i = 0; $i < count($temp_data_umhaj); $i++)
+            {
+                // GET DATA PPROGRAM
+                $program_id     = DB::table('programs')->where('alias', '=', substr($temp_data_umhaj[$i]['tour_code'], 0, 2))->get();
+                // dd($program_id);
+                
+                $data_simpan    = [
+                    "jdw_uuid"          => Str::uuid(),
+                    "jdw_programs_id"   => count($program_id) > 0 ? $program_id[0]->id : "-",
+                    "jdw_depature_date" => $temp_data_umhaj[$i]['depature_date'],
+                    "jdw_arrival_date"  => $temp_data_umhaj[$i]['arrival_date'],
+                    "jdw_mentor_name"   => $temp_data_umhaj[$i]['tour_leader'],
+                    "jdw_tour_code"     => $temp_data_umhaj[$i]['tour_code'],
+                    "jdw_seat"          => $temp_data_umhaj[$i]['total_seat'],
+                    "jdw_take_seat"     => $temp_data_umhaj[$i]['taken_seat'],
+                    "jdw_available_seat"=> $temp_data_umhaj[$i]['available_seat'],
+                    "is_generated"      => "f",
+                    "is_active"         => $temp_data_umhaj[$i]['is_active'],
+                    "created_by"        => $data['user_id'],
+                    "created_at"        => date('Y-m-d H:i:s'),
+                    "updated_by"        => $data['user_id'],
+                    "updated_at"        => date('Y-m-d H:i:s'),
+                ];
 
-            DB::table('programs_jadwal')->insert($data_simpan);
+                DB::table('programs_jadwal')->insert($data_simpan);
+            }
         }
         
         try {
@@ -228,6 +230,115 @@ class TarikDataService {
                 "status"    => "gagal",
                 "errMsg"    => $e->getMessage(),
                 "count"     => 0,
+            ];
+        }
+
+        return $output;
+    }
+
+    // NO LOGIN PURPOSE
+    // 19 FEBRUARI 2025
+    // NOTE : TARIK DATA NO LOGIN
+    public static function doSimpanUmrahNoLogin($data)
+    {
+        DB::beginTransaction();
+        
+        // PENAMPUNG
+        $umhaj_data         = $data;
+        $temp_data_umhaj    = [];
+        $data_program       = [];
+
+        // LOOP DATA UMHAJ
+        for($i = 0; $i < count($umhaj_data); $i++)
+        {
+            // EXTRACT
+            $umhaj_tour_code    = $umhaj_data[$i]['UMRAH_TOUR_CODE'];
+            $umhaj_depature_date= date('Y-m-d', strtotime($umhaj_data[$i]['UMRAH_DEPATURE']));
+            $umhaj_arrival_date = date('Y-m-d', strtotime($umhaj_data[$i]['UMRAH_ARRIVAL']));
+            $umhaj_tour_leader  = $umhaj_data[$i]['UMRAH_MENTOR_NAME'];
+            $umhaj_is_active    = $umhaj_data[$i]['UMRAH_IS_ACTIVE'];
+            $umhaj_total_seat   = $umhaj_data[$i]['UMRAH_TOTAL_SEAT'];
+            $umhaj_taken_seat   = $umhaj_data[$i]['UMRAH_TAKEN_SEAT'];
+            $umhaj_available_seat   = $umhaj_data[$i]['UMRAH_AVAILABLE_SEAT'];
+
+            // CHECK DI LOCAL ADA ATAU TIDAK
+            $check              = DB::table('programs_jadwal')->where('jdw_tour_code', '=', $umhaj_tour_code)->get();
+
+            if(count($check) == 0) {
+                $temp_data_umhaj[]  = [
+                    "tour_code"         => $umhaj_tour_code,
+                    "depature_date"     => $umhaj_depature_date,
+                    "arrival_date"      => $umhaj_arrival_date,
+                    "tour_leader"       => $umhaj_tour_leader,
+                    "is_active"         => $umhaj_is_active,
+                    "total_seat"        => $umhaj_total_seat,
+                    "taken_seat"        => $umhaj_taken_seat,
+                    "available_seat"    => $umhaj_available_seat,
+                ];
+            }
+        }
+
+        if(count($temp_data_umhaj) > 0) {
+            // AMBIL MASTER DATA KODE PROGRAM
+            $program_id     = DB::table('programs')->select('id', 'alias')->get();
+            if(count($program_id) > 0) {
+                for($i = 0; $i < count($program_id); $i++) {
+                    $data_program[]     = [
+                        'kode_program'  => $program_id[$i]->id,
+                        'kode_inisial'  => $program_id[$i]->alias,
+                    ];
+                }
+            } else {
+                $data_program   = [
+                    'kode_program'  => '-',
+                    'kode_inisial'  => '-'
+                ];
+            }
+            
+            // MENDAPATKAN KOLOM VALUE UNTUK DIGUNAKAN DI ARRAY SEARCH
+            $column     = array_column($data_program, 'kode_inisial');
+
+            // LOOP INSERT DATA
+            for($i = 0; $i < count($temp_data_umhaj); $i++) {
+                $search_programs_id     = array_search(substr($temp_data_umhaj[$i]['tour_code'], 0, 2), $column);
+                $jdw_program_id         = $search_programs_id === false ? ['kode_program' => '-', 'kode_inisial' => '-'] : $data_program[$search_programs_id];
+                $data_insert_umrah  = [
+                    'jdw_uuid'          => Str::uuid(),
+                    'jdw_programs_id'   => $jdw_program_id['kode_program'],
+                    'jdw_depature_date' => $temp_data_umhaj[$i]['depature_date'],
+                    'jdw_arrival_date'  => $temp_data_umhaj[$i]['arrival_date'],
+                    'jdw_mentor_name'   => $temp_data_umhaj[$i]['tour_leader'],
+                    'jdw_tour_code'     => $temp_data_umhaj[$i]['tour_code'],
+                    'jdw_seat'          => $temp_data_umhaj[$i]['total_seat'],
+                    "jdw_take_seat"     => $temp_data_umhaj[$i]['taken_seat'],
+                    "jdw_available_seat"=> $temp_data_umhaj[$i]['available_seat'],
+                    "is_generated"      => "f",
+                    "is_active"         => $temp_data_umhaj[$i]['is_active'],
+                    "created_by"        => 1,
+                    "created_at"        => date('Y-m-d H:i:s'),
+                    "updated_by"        => 1,
+                    "updated_at"        => date('Y-m-d H:i:s'),
+                ];
+
+                DB::table('programs_jadwal')->insert($data_insert_umrah);
+            }
+        }
+
+        try {
+            DB::commit();
+
+            LogHelper::cronjob('add', 'Berhasil Tarik Data Jadwal Umrah Sebanyak ' . count($temp_data_umhaj), 'Tarik Data Umrah dari Umhaj');
+            $output     = [
+                'status'    => 'berhasil',
+                'message'   => 'Berhasil Tarik Data Jadwal Umrah Sebanyak ' . count($temp_data_umhaj),
+                'errMsg'    => "",
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $output     = [
+                'status'    => 'gagal',
+                'message'   => 'Gagal Tarik Data Jadwal Umrah',
+                'errMsg'    => $e->getMessage(),
             ];
         }
 
