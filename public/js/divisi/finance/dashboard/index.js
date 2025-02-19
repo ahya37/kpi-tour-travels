@@ -48,7 +48,8 @@ $(document).ready(() => {
         doTrans(financeRKAP_url, 'GET', financeRKAP_data, '', true),
         doTransV2(gpkEmployee_url, 'GET', gpkEmployee_data, '', true),
         doTrans(pgjPaymentURL, pgjPaymentType, pgjPaymentData, '', true),
-        doTransV2(pgjLemburNotifUrl, pgjLemburNotifType, pgjLemburNotifData, '', true)
+        doTransV2(pgjLemburNotifUrl, pgjLemburNotifType, pgjLemburNotifData, '', true),
+        doTrans(base_url + '/divisi/finance/master/coa_list', 'GET', [], '', true)
     ];
 
     Promise.allSettled(getDataDashboard)

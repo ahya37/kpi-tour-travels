@@ -20,15 +20,13 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TarikDataController;
 use App\Http\Controllers\SysUmhajController;
 use App\Http\Controllers\WebsiteController as percikToursController;
+use App\Http\Controllers\FinanceController as finance;
+use App\Http\Controllers\noLoginController as noLogin;
 use App\Models\Division;
 use App\Services\ProgramKerjaService;
 use App\Services\SysUmhajService;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
-
-Route::get('/test', function () {
-    return 'test';
-});
 
 Route::get('/', function () {
     if(!empty(Auth::user()->id)) {
@@ -478,8 +476,13 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/gaji_pokok_employee', [DivisiController::class, 'finance_master_employees_fee']);
                 Route::put('/gaji_pokok_employee/{emp_id}', [DivisiController::class, 'finance_master_employees_fee_update']);
 
+                Route::get('/', [finance::class, 'finance_master_dashboard'])->name('finance.mater.index');
                 // MASTER COA
-                
+                Route::prefix('coa')->group(function(){
+                    Route::get('/', [finance::class, 'finance_master_coa'])->name('finance.master.coa.index');
+                    Route::get('/list', [finance::class, 'finance_list_coa']);
+                    Route::post('/save/{jenis}', [finance::class, 'finance_save_coa']);
+                });
             });
             Route::prefix('simulasi')->group(function(){
                 Route::get('/employees_fee', [DivisiController::class, 'finance_sim_employees_fee']);

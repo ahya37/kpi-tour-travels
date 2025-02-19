@@ -98,7 +98,7 @@
                         <a href="#"> Finance <span class="fa arrow"></span></a>
                         <ul class="nav nav-third-level">
                             <li class="{{ request()->is('divisi/finance') || request()->is('disivi/finance/*') ? 'active' : ''}}"><a href="{{ route('index.finance') }}">Dashboard</a></li>
-                            <li class="{{ request()->is('divisi/finance/master') || request()->is('divisi/finance/master/*') ? 'active' : '' }}"><a href="#">Master</a></li>
+                            <li class="{{ request()->is('divisi/finance/master') || request()->is('divisi/finance/master/*') ? 'active' : '' }}"><a href="{{ route('finance.mater.index') }}">Master</a></li>
                         </ul>
                     </li>
                     {{-- <li class="{{ request()->is('divisi/human_resource') ? 'active' : '' }}"><a href="{{ route('index.human_resouce') }}">HR</a></li> --}}
