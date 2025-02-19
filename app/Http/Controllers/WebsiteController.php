@@ -364,6 +364,8 @@ class WebsiteController extends Controller
                 'jdw_article_uuid'  => $request->act_prog_uuid,
                 'jdw_article_title' => $request->act_prog_title,
                 'jdw_tour_code'     => $request->act_prog_tour_code,
+                'jdw_depature_date' => explode('/', $request->act_prog_depature_date)[2] . "-" . explode('/', $request->act_prog_depature_date)[1] . "-" . explode('/', $request->act_prog_depature_date)[0],
+                'jdw_arrival_date'  => explode('/', $request->act_prog_arrival_date)[2] . "-" . explode('/', $request->act_prog_arrival_date)[1] . "-" . explode('/', $request->act_prog_arrival_date)[0],
                 'jdw_airline'       => $request->act_prog_airlines,
                 'jdw_cost_double'   => $request->act_prog_cost_double,
                 'jdw_cost_triple'   => $request->act_prog_cost_triple,

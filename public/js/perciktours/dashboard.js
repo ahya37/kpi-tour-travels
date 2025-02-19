@@ -17,16 +17,9 @@ $(document).ready(function() {
     };
     const umrahMsg      = "";
 
-    const tourCodeUrl   = "website/master/jadwal";
-    const tourCodeType  = "GET";
-    const tourCodeData  = {
-        "tahun" : moment(today).year(),
-    };
-
     const getData       = [
         doTransaction(summaryURL, summaryType, summaryData, summaryMsg),
-        doTransaction(umrahURL, umrahType, umrahData, umrahMsg),
-        doTransaction(tourCodeUrl, tourCodeType, tourCodeData)
+        doTransaction(umrahURL, umrahType, umrahData, umrahMsg)
     ];
 
     Promise.allSettled(getData)
@@ -48,19 +41,15 @@ $(document).ready(function() {
             showTable('table_jadwal_umrah', umrahGetData);
             if(umrahGetData.length > 0) {
                 $("#table_jadwal_umrah").find('.dataTables_empty').html(`Data Berhasil Dimuat`);
-            } else {
-                $("#table_jadwal_umrah").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`)
-            }
-
-            // SELECT TOUR CODE
-            const tourCodeGetData   = results[2].status == "fulfilled" ? results[2].value.data : [];
-            if(tourCodeGetData.length > 0 && tourCode.length < 1) {
-                $.each(tourCodeGetData, (i, item)  => {
+                // INSERT TO VARIABLE PUBLIC
+                $.each(umrahGetData, (i, item)  => {
                     tourCode.push({
                         "jdw_tour_code"     : item['jdw_tour_code'],
                         "jdw_depature_date" : item['jdw_depature_date'],
                     })
                 })
+            } else {
+                $("#table_jadwal_umrah").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`)
             }
         })
         .catch((err)    => {
@@ -429,7 +418,10 @@ function showSelect(idSelect, data, selectedData = '')
 
     if(idSelect == 'act_prog_tour_code') {
         $("#"+idSelect).prop('disabled', false);
-        let html    = `<option selected disabled>Pilih Tour Code</option>`;
+        let html    =   `
+                        <option selected disabled>Pilih Tour Code</option>
+                        <option value="EMPTY_TOUR_CODE">Belum Ada Tour Code</option>
+                        `;
         if(data.length > 0) {
             // SORT DATA DESC
             data.sort((a, b)    => {
@@ -457,32 +449,74 @@ function showSelect(idSelect, data, selectedData = '')
 
 function showSelectDetail(idSelect, selectedData) {
     if(idSelect == 'act_prog_tour_code') {
-        const tourCode  = {
-            url     : 'website/article/tour_detail',
-            type    : 'GET',
-            data    : {
-                'tour_code' : selectedData,
-            },
-        };
+        resetForm('form_modal_active_program_umrah');
+        // REMOVE READONLY
+        $("#act_prog_depature_date").prop('readonly', true);
+        $("#act_prog_arrival_date").prop('readonly', true);
+        $("#act_prog_category").prop('readonly', true);
+        $("#act_prog_program").prop('readonly', true);
+        
+        if(selectedData != 'EMPTY_TOUR_CODE') {
+            const tourCode  = {
+                url     : 'website/article/tour_detail',
+                type    : 'GET',
+                data    : {
+                    'tour_code' : selectedData,
+                },
+            };
+    
+            const message   = Swal.fire({ title : 'Sedang Mencari Tour Code..', allowOutsideClick: false }); Swal.showLoading();
+    
+            doTransaction(tourCode['url'], tourCode['type'], tourCode['data'], message)
+                .then((results) => {
+                    Swal.close();
+                    const tourCode_data     = results !== undefined ? results.data : [];
+    
+                    fillForm('form_modal_active_program_umrah', tourCode_data);
+                    closeModal('modal_active_program_umrah');
+                })
+                .catch((error)  => {
+                    console.log(error);
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : error.responseJSON.message,
+                    });
+                })
+        } else {
+            // DEFINE
+            $("#act_prog_depature_date").daterangepicker({
+                minDate         : moment(today, 'YYYY-MM-DD').subtract(2, 'year'),
+                maxDate         : moment(today, 'YYYY-MM-DD').add(2, 'year'),
+                autoApply       : true,
+                format          : 'DD/MM/YYYY',
+                singleDatePicker    : true,
+                locale  : {
+                    cancelLabel : 'Batal',
+                    applyLabel  : 'Simpan',
+                },
+            }).css('cursor', 'pointer').prop('title', 'Pilih Tgl. Keberangkatan');
 
-        const message   = Swal.fire({ title : 'Sedang Mencari Tour Code..' }); Swal.showLoading();
+            $("#act_prog_arrival_date").daterangepicker({
+                minDate         : moment(today, 'YYYY-MM-DD').subtract(2, 'year'),
+                maxDate         : moment(today, 'YYYY-MM-DD').add(2, 'year'),
+                autoApply       : true,
+                format          : 'DD/MM/YYYY',
+                singleDatePicker    : true,
+                locale  : {
+                    cancelLabel : 'Batal',
+                    applyLabel  : 'Simpan',
+                },
+            }).css('cursor', 'pointer').prop('title', 'Pilih Tgl. Keberangkatan');
 
-        doTransaction(tourCode['url'], tourCode['type'], tourCode['data'], message)
-            .then((results) => {
-                Swal.close();
-                const tourCode_data     = results !== undefined ? results.data : [];
+            $("#act_prog_depature_date").val('');
+            $("#act_prog_arrival_date").val('');
 
-                fillForm('form_modal_active_program_umrah', tourCode_data);
-                closeModal('modal_active_program_umrah');
-            })
-            .catch((error)  => {
-                console.log(error);
-                Swal.fire({
-                    icon    : 'error',
-                    title   : 'Terjadi Kesalahan',
-                    text    : error.responseJSON.message,
-                });
-            })
+            $("#act_prog_depature_date").prop('readonly', false);
+            $("#act_prog_arrival_date").prop('readonly', false);
+            $("#act_prog_category").prop('readonly', false);
+            $("#act_prog_program").prop('readonly', false);
+        }
     }
 }
 
@@ -581,6 +615,8 @@ function resetForm(idForm) {
     if(idForm == 'form_modal_active_program_umrah') {
         const formName  = document.getElementById(idForm);
         formName.reset();
+        $("#act_prog_depature_date").data('daterangepicker') === true ? $("#act_prog_depature_date").data('daterangepicker').remove() : '';
+        $("#act_prog_arrival_date").data('daterangepicker') === true ? $("#act_prog_arrival_date").data('daterangepicker').remove() : '';
     } else if(idForm == 'form_flyer') {
         $("#is_flyer_exist").addClass('d-none');
 
@@ -678,30 +714,30 @@ function doSaveData(idForm, type)
                 })
                 .catch((error)      => {
                     console.log(error);
-                    if(error.status >= 400 || error.status < 500) {
-                        Swal.fire({
-                            icon    : 'warning',
-                            title   : 'Terjadi Kesalan',
-                            text    : 'Kolom yang berwarna merah harus diisi',
-                            didClose    : () => {
-                                const message     = error.responseJSON.message;
+                    // if(error.status >= 400 || error.status < 500) {
+                    //     Swal.fire({
+                    //         icon    : 'warning',
+                    //         title   : 'Terjadi Kesalan',
+                    //         text    : 'Kolom yang berwarna merah harus diisi',
+                    //         didClose    : () => {
+                    //             const message     = error.responseJSON.message;
         
-                                $.each(message, (i, item)   => {
-                                    $("#"+i).addClass('is-invalid');
+                    //             $.each(message, (i, item)   => {
+                    //                 $("#"+i).addClass('is-invalid');
         
-                                    $("#"+i).on('keyup', () => {
-                                        $("#"+i).removeClass('is-invalid');
-                                    })
-                                })
-                            }
-                        });
-                    } else {
-                        Swal.fire({
-                            icon    : 'error',
-                            title   : 'Terjadi Kesalahan',
-                            text    : 'Internal Server Error',
-                        })
-                    }
+                    //                 $("#"+i).on('keyup', () => {
+                    //                     $("#"+i).removeClass('is-invalid');
+                    //                 })
+                    //             })
+                    //         }
+                    //     });
+                    // } else {
+                    //     Swal.fire({
+                    //         icon    : 'error',
+                    //         title   : 'Terjadi Kesalahan',
+                    //         text    : 'Internal Server Error',
+                    //     })
+                    // }
                 })
         }
     }

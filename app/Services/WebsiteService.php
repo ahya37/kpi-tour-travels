@@ -335,22 +335,45 @@ class WebsiteService
         DB::beginTransaction();
 
         // UPDATE PROGRAMS_JADWAL
-        $data_where_programs    = [
-            'jdw_tour_code'     => $article_data['jdw_tour_code'],
-        ];
+        if($article_data['jdw_tour_code'] != 'EMPTY_TOUR_CODE') {
+            $data_where_programs    = [
+                'jdw_tour_code'     => $article_data['jdw_tour_code'],
+            ];
+    
+            $data_update_programs   = [
+                'jdw_airline'       => $article_data['jdw_airline'],
+                'jdw_cost_double'   => $article_data['jdw_cost_double'],
+                'jdw_cost_triple'   => $article_data['jdw_cost_triple'],
+                'jdw_cost_quad'     => $article_data['jdw_cost_quad'],
+                'jdw_destination'   => $article_data['jdw_destination'],
+                'jdw_duration'      => $article_data['jdw_duration'],
+                'jdw_hotel'         => $article_data['jdw_hotel'],
+                'jdw_flyer'         => $article_data['jdw_flyer'],
+            ];
+    
+            DB::table('programs_jadwal')->where($data_where_programs)->update($data_update_programs);
+        } else {
+            $data_insert_programs   = [
+                'jdw_uuid'          => Str::uuid(),
+                'jdw_programs_id'   => '-',
+                'jdw_depature_date' => date('Y-m-d', strtotime($article_data['jdw_depature_date'])),
+                'jdw_arrival_date'  => date('Y-m-d', strtotime($article_data['jdw_arrival_date'])),
+                'jdw_mentor_name'   => '-',
+                'jdw_tour_code'     => $article_data['jdw_tour_code'],
+                'jdw_seat'          => 0,
+                'jdw_take_seat'     => 0,
+                'jdw_available_seat'=> 0,
+                'jdw_flyer'         => $article_data['jdw_flyer'],
+                'is_generated'      => "t",
+                'is_active'         => "t",
+                'created_by'        => $user_id,
+                'updated_by'        => $user_id,
+                'created_at'        => $today,
+                'updated_at'        => $today,
+            ];
 
-        $data_update_programs   = [
-            'jdw_airline'       => $article_data['jdw_airline'],
-            'jdw_cost_double'   => $article_data['jdw_cost_double'],
-            'jdw_cost_triple'   => $article_data['jdw_cost_triple'],
-            'jdw_cost_quad'     => $article_data['jdw_cost_quad'],
-            'jdw_destination'   => $article_data['jdw_destination'],
-            'jdw_duration'      => $article_data['jdw_duration'],
-            'jdw_hotel'         => $article_data['jdw_hotel'],
-            'jdw_flyer'         => $article_data['jdw_flyer'],
-        ];
-
-        DB::table('programs_jadwal')->where($data_where_programs)->update($data_update_programs);
+            DB::table('programs_jadwal')->insert($data_insert_programs);
+        }
 
         if($type == 'add') {
             // INSERT TO PROGRAMS ARTICLE
