@@ -327,7 +327,9 @@ class TarikDataService {
         try {
             DB::commit();
 
-            LogHelper::cronjob('add', 'Berhasil Tarik Data Jadwal Umrah Sebanyak ' . count($temp_data_umhaj), 'Tarik Data Umrah dari Umhaj');
+            if(count($temp_data_umhaj) > 0) {
+                LogHelper::cronjob('get', 'Berhasil Tarik Data Jadwal Umrah Sebanyak ' . count($temp_data_umhaj), 'Tarik Data dari Umhaj : Program Umrah');
+            }
             $output     = [
                 'status'    => 'berhasil',
                 'message'   => 'Berhasil Tarik Data Jadwal Umrah Sebanyak ' . count($temp_data_umhaj),
@@ -339,6 +341,68 @@ class TarikDataService {
                 'status'    => 'gagal',
                 'message'   => 'Gagal Tarik Data Jadwal Umrah',
                 'errMsg'    => $e->getMessage(),
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function doTarikSeatNoLogin($data)
+    {
+        DB::beginTransaction();
+
+        $column_umhaj   = array_column($data, 'UMRAH_TOUR_CODE');
+        
+        // GET DATA UMHAJ FROM LOCAL
+        $programs_local     = DB::table('programs_jadwal')
+                                ->where(DB::raw('EXTRACT(YEAR FROM jdw_depature_date)'), '=', date('Y', strtotime(now())))
+                                ->orderBy('jdw_depature_date')
+                                ->get();
+
+        if(count($programs_local) > 0) {
+            // LOOP PROGRAMS LOCAL
+            for($i = 0; $i < count($programs_local); $i++) {
+                $index_umhaj   = array_search($programs_local[$i]->jdw_tour_code, $column_umhaj);
+
+                // WHERE DATA
+                $data_where     = [
+                    'jdw_uuid'      => $programs_local[$i]->jdw_uuid,
+                    'jdw_tour_code' => $programs_local[$i]->jdw_tour_code,
+                ];
+
+                $data_update    = [
+                    'jdw_seat'              => $data[$index_umhaj]['UMRAH_TOTAL_SEAT'],
+                    'jdw_take_seat'         => $data[$index_umhaj]['UMRAH_TAKEN_SEAT'],
+                    'jdw_available_seat'    => $data[$index_umhaj]['UMRAH_AVAILABLE_SEAT'],
+                    'updated_at'            => date('Y-m-d H:i:s'),
+                ];
+
+                DB::table('programs_jadwal')->where($data_where)->update($data_update);
+            }
+
+            try {
+                DB::commit();
+                LogHelper::cronjob('get', 'Berhasil Menarik Data Seat Program Umrah', 'Tarik Data dari Umhaj : Seat');
+                
+                $output     = [
+                    'status'    => 'berhasil',
+                    'message'   => 'Berhasil Tarik Data Seat Program Umrah',
+                    'errMsg'    => ''
+                ];
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                $output     = [
+                    'status'    => 'gagal',
+                    'message'   => 'Gagal Tarik Data Seat Program Umrah',
+                    'errMsg'    => $e->getMessage(),
+                ];
+            }
+        } else {
+            $output     = [
+                'status'    => 'gagal',
+                'message'   => 'Tidak Ada Data Program Umrah',
+                'errMsg'    => '',
             ];
         }
 

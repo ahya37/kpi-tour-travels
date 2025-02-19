@@ -35,16 +35,15 @@ class TarikDataUmrah extends Command
         if($get_data_api->status() >= 200 && $get_data_api->status() < 300) {
             $data_api   = $get_data_api->json('data');
 
-            $do_simpan  = TarikDataService::doSimpanUmrahNoLogin($data_api);
+            // TARIK DATA JADWAL UMRAH
+            $tarik_data_jadwal  = TarikDataService::doSimpanUmrahNoLogin($data_api);
+            info($tarik_data_jadwal['message'] . " " . now());
 
-            if($do_simpan['status'] == 'berhasil') {
-                info($do_simpan['message'] . " " . now());
-            } else {
-                info($do_simpan['message'] . " " . now());
-            }
-            
+            // TARIK DATA SEAT UMRAH
+            $tarik_data_seat    = TarikDataService::doTarikSeatNoLogin($data_api);
+            info($tarik_data_seat['message'] . " " . now());
         } else {
-            info('Tidak Ada Data Umrah Pada Tahun ' . $current_year);
+            info($get_data_api->json('message'));
         }
     }
 }
