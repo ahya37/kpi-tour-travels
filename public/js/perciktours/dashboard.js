@@ -166,7 +166,7 @@ function showTable(idTable, data)
                         articleBadge    = `badge-success`;
                         articleAction   = `<button class="btn btn-sm btn-success" value="${articleID}" onclick="showModal('modal_active_program_umrah_form', this.value, 'edit')" title="Lihat Program"><i class="fa fa-eye"></i></button>`;
                     break;
-                    case 'appprove' : 
+                    case 'approve' : 
                         articleBadge    = `badge-primary`;
                         articleAction   = `<button class="btn btn-sm btn-primary" value="${articleID}" onclick="showModal('modal_active_program_umrah_form', this.value, 'approve')" title="Lihat Program" disabled><i class="fa fa-eye"></i></button>`;
                     break;
@@ -284,8 +284,6 @@ function doTarikData(idForm)
 function showModal(idModal, data, type)
 {
     if(idModal == 'modal_detail_jadwal') {
-        // $("#"+idModal).modal({backdrop: 'static', keyboard: false});
-
         const detailUrl     = "website/master/jadwal_detail";
         const detailData    = {
             "tour_code" : data,
@@ -374,6 +372,9 @@ function showModal(idModal, data, type)
             showSelect('act_prog_tour_code', tourCode);
         } else {
             // CHECK TYPE
+            $("#btn_reject_article_program_umrah").removeClass('d-none');
+            $("#btn_approve_article_program_umrah").removeClass('d-none');
+
             if(type == 'edit') {
                 // GET DATA
                 const article   = {
@@ -427,6 +428,7 @@ function showSelect(idSelect, data, selectedData = '')
     });
 
     if(idSelect == 'act_prog_tour_code') {
+        $("#"+idSelect).prop('disabled', false);
         let html    = `<option selected disabled>Pilih Tour Code</option>`;
         if(data.length > 0) {
             // SORT DATA DESC
@@ -508,10 +510,19 @@ function closeModal(idModal)
         $("#"+idModal).modal('hide');
     } else if(idModal == 'modal_active_program_umrah_form') {
         $("#"+idModal).modal('hide');
+        
         showModal('modal_active_program_umrah', '', '');
+
         $("#"+idModal).on('hidden.bs.modal', () => {
             resetForm('form_modal_active_program_umrah');
-        })
+            $("#btn_reject_article_program_umrah").addClass('d-none');
+            $("#btn_approve_article_program_umrah").addClass('d-none');
+
+            $("#is_flyer_not_exist").removeClass('d-none');
+            
+            $("#is_flyer_exist").addClass('d-none');
+            $("#act_prog_flyer_exist").val('');
+        });
     }
 }
 
@@ -531,6 +542,7 @@ function fillForm(idForm, data)
     } else if(idForm == 'modal_active_program_umrah_form_edit') {
         if(data.length > 0) {
             showSelect('act_prog_tour_code', tourCode, data[0]['tour_code']);
+            $("#act_prog_tour_code").prop('disabled', true);
 
             $("#act_prog_uuid").val(data[0]['article_id']);
             $("#act_prog_depature_date").val(moment(data[0]['depature_date'], 'YYYY-MM-DD').format('DD/MM/YYYY'));
@@ -546,14 +558,33 @@ function fillForm(idForm, data)
             $("#act_prog_cost_quad").val(parseInt(data[0]['cost_quad']));
             $("#act_prog_cost_triple").val(parseInt(data[0]['cost_triple']));
             $("#act_prog_cost_double").val(parseInt(data[0]['cost_double']));
+
+            if(data[0]['flyer'].length > 2) {
+                $("#is_flyer_not_exist").addClass('d-none');
+                $("#is_flyer_exist").removeClass('d-none');
+                
+                $("#act_prog_flyer_exist").val(data[0]['flyer']);
+            } else {
+                $("#is_flyer_exist").removeClass('d-none');
+            }
         }
     }
+}
+
+function showPhotos(url)
+{
+    let path_url    = base_url + "/" + url;
+    window.open(path_url, '_blank');
 }
 
 function resetForm(idForm) {
     if(idForm == 'form_modal_active_program_umrah') {
         const formName  = document.getElementById(idForm);
         formName.reset();
+    } else if(idForm == 'form_flyer') {
+        $("#is_flyer_exist").addClass('d-none');
+
+        $("#is_flyer_not_exist").removeClass('d-none');
     }
 }
 
@@ -604,52 +635,75 @@ function doSaveData(idForm, type)
 {
     if(idForm == 'form_modal_active_program_umrah')
     {
-        let tourCode  = $("#act_prog_tour_code");
+        let tourCode    = $("#act_prog_tour_code");
+        let flyerName   = $("#act_prog_flyer_exist");
+        let depatureDate    = $("#act_prog_depature_date");
+        let arrivalDate     = $("#act_prog_arrival_date");
 
         let formName    = document.getElementById(idForm);
         let formData    = new FormData(formName);
         formData.append('act_prog_tour_code', tourCode.val());
+        formData.append('act_prog_flyer_name', flyerName.val());
 
-        const article   = {
-            url     : "website/article/save/"+type,
-            type    : "POST",
-            data    : formData,
-        };
-
-        const message   = Swal.fire({ title : 'Data Sedang Diproses..' }); Swal.showLoading();
-
-        doPostTransaction(article['url'], article['type'], article['data'], message)
-            .then((results)     => {
-                console.log(results);
-                // Swal.fire({
-                //     icon    : 'success',
-                //     title   : 'Berhasil',
-                //     text    : results.message,
-                // }).then((res)   => {
-                //     if(res.isConfirmed) {
-                //         closeModal('modal_active_program_umrah_form');
-                //     }
-                // })
+        if(tourCode.val() == null) {
+            Swal.fire({
+                icon    : 'warning',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Tour Code Harus Dipilih',
+                didClose    : () => {
+                    tourCode.select2('open');
+                }
             })
-            .catch((error)      => {
-                console.log(error);
-                Swal.fire({
-                    icon    : 'warning',
-                    title   : 'Terjadi Kesalan',
-                    text    : 'Kolom yang berwarna merah harus diisi',
-                    didClose    : () => {
-                        const message     = error.responseJSON.message;
-
-                        $.each(message, (i, item)   => {
-                            $("#"+i).addClass('is-invalid');
-
-                            $("#"+i).on('keyup', () => {
-                                $("#"+i).removeClass('is-invalid');
-                            })
+        } else {
+            const article   = {
+                url     : "website/article/save/"+type,
+                type    : "POST",
+                data    : formData,
+            };
+    
+            const message   = Swal.fire({ title : 'Data Sedang Diproses..' }); Swal.showLoading();
+    
+            doPostTransaction(article['url'], article['type'], article['data'], message)
+                .then((results)     => {
+                    console.log(results);
+                    Swal.fire({
+                        icon    : 'success',
+                        title   : 'Berhasil',
+                        text    : results.message,
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            closeModal('modal_active_program_umrah_form');
+                        }
+                    })
+                })
+                .catch((error)      => {
+                    console.log(error);
+                    if(error.status >= 400 || error.status < 500) {
+                        Swal.fire({
+                            icon    : 'warning',
+                            title   : 'Terjadi Kesalan',
+                            text    : 'Kolom yang berwarna merah harus diisi',
+                            didClose    : () => {
+                                const message     = error.responseJSON.message;
+        
+                                $.each(message, (i, item)   => {
+                                    $("#"+i).addClass('is-invalid');
+        
+                                    $("#"+i).on('keyup', () => {
+                                        $("#"+i).removeClass('is-invalid');
+                                    })
+                                })
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon    : 'error',
+                            title   : 'Terjadi Kesalahan',
+                            text    : 'Internal Server Error',
                         })
                     }
-                });
-            })
+                })
+        }
     }
 }
 
@@ -693,8 +747,8 @@ function doPostTransaction(url, type, data, message)
             beforeSend      :  () => {
                 message;
             },
-            success         : (success) => {
-                resolve(success)
+            success         : (results) => {
+                resolve(results)
             },
             error           : (error)   => {
                 reject(error)

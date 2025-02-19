@@ -347,6 +347,7 @@ class WebsiteService
             'jdw_destination'   => $article_data['jdw_destination'],
             'jdw_duration'      => $article_data['jdw_duration'],
             'jdw_hotel'         => $article_data['jdw_hotel'],
+            'jdw_flyer'         => $article_data['jdw_flyer'],
         ];
 
         DB::table('programs_jadwal')->where($data_where_programs)->update($data_update_programs);
@@ -424,6 +425,42 @@ class WebsiteService
                 Log::channel('daily')->error($e->getMessage());
                 LogHelper::create('error_system', 'Gagal Update Artikel : ' . $article_data['jdw_article_uuid'], $ip_address);
             }
+        } else if($type == 'approve') {
+            $data_where     = [
+                'jdw_uuid'      => $article_data['jdw_article_uuid'],
+            ];
+
+            $data_update    = [
+                'jdw_status_upload' => 'approve',
+                'updated_by'        => $user_id,
+                'updated_at'        => $today,
+            ];
+
+            DB::table('programs_article')
+                ->where($data_where)
+                ->update($data_update);
+
+            try {
+                DB::commit();
+                
+                LogHelper::create('edit', 'Berhasil Aprove Artikel ' . $article_data['jdw_article_uuid'], $ip_address);
+
+                $output      = [
+                    'status'    => 'berhasil',
+                    'message'   => 'Berhasil Approve Artikel',
+                    'data'      => '',
+                ];
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', 'Gagal Approve Artikel ' . $article_data['jdw_article_uuid'], $ip_address);
+
+                $output     = [
+                    'status'    => 'gagal',
+                    'message'   => 'Gagal Approve Artikel',
+                    'data'      => $e->getMessage(),
+                ];
+            }
         }
 
         return $output;
@@ -457,7 +494,9 @@ class WebsiteService
                                     DB::raw("SUBSTRING_INDEX(b.jdw_hotel, ' | ', -1) as hotel_madinah"),
                                     'b.jdw_cost_quad as cost_quad',
                                     'b.jdw_cost_triple as cost_triple',
-                                    'b.jdw_cost_double as cost_double'
+                                    'b.jdw_cost_double as cost_double',
+                                    'b.jdw_flyer as flyer',
+                                    'b.jdw_itinerary as itinerary'
                                     )
                             ->where('a.jdw_uuid', '=', $article_uuid)
                             ->where('a.jdw_status_upload', '=', 'pending')

@@ -56,7 +56,7 @@
             <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-xl-0 mb-2">
                 <div class="card">
                     <div class="card-header" style="background-color: var(--indigo); color: white;">
-                        <h3 class="card-title no-margins">Aktif Program ({{ date('Y') }})</h3>
+                        <h3 class="card-title no-margins">Post Umrah</h3>
                     </div>
                     <div class="card-body">
                         <h2 class="no-margins font-weight-bold" id="sum_total_aktif_program">0</h2>

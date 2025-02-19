@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\WebsiteService;
+use DateTime;
 use Dotenv\Repository\RepositoryInterface;
 use File;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use App\Services\TarikDataService;
 
 class WebsiteController extends Controller
 {
@@ -324,6 +327,7 @@ class WebsiteController extends Controller
             'act_prog_cost_quad'    => 'required|numeric|min:1',
             'act_prog_cost_triple'  => 'required|numeric|min:1',
             'act_prog_cost_double'  => 'required|numeric|min:1',
+            'act_prog_flyer'        => 'max:4096|mimes:jpg,jpeg,png',
         ];
 
         $validator  = Validator::make($request->all(), $validator_rules, []);
@@ -331,11 +335,31 @@ class WebsiteController extends Controller
         if($validator->fails()) {
             $output     = [
                 "success"   => false,
-                "status"    => 400,
+                "status"    => 422,
                 "message"   => $validator->errors(),
                 "data"      => [],
             ];
         } else {
+
+            $flyer  = $request->file('act_prog_flyer');
+            $path   = "img/PercikTours-Assets/umrah/flyer";
+
+            if(!empty($flyer)) {
+                $depature_date      = explode('/', $request->act_prog_depature_date);
+                $depature_day       = $depature_date[0];
+                $depature_month     = $depature_date[1];
+                $depature_year      = $depature_date[2];
+                $depature_new_date  = $depature_year."_".$depature_month."_".$depature_day;
+                $new_file_name  = strtolower($request->act_prog_program)."_". $depature_new_date ."_flyer.".$flyer->getClientOriginalExtension();
+                $flyer_folder   = $path . "/" . $new_file_name;
+            } else if(!empty($request->act_prog_flyer_name)) {
+                $new_file_name  = null;
+                $flyer_folder   = $request->act_prog_flyer_name;
+            } else {
+                $new_file_name  = null;
+                $flyer_folder   = null;
+            }
+
             $article_data   = [
                 'jdw_article_uuid'  => $request->act_prog_uuid,
                 'jdw_article_title' => $request->act_prog_title,
@@ -347,6 +371,7 @@ class WebsiteController extends Controller
                 'jdw_destination'   => $request->act_prog_destination,
                 'jdw_duration'      => $request->act_prog_duration,
                 'jdw_hotel'         => $request->act_prog_hotel_mekkah . " | " . $request->act_prog_hotel_madinah,
+                'jdw_flyer'         => $flyer_folder,
             ];
 
             $send_data  = [
@@ -365,12 +390,26 @@ class WebsiteController extends Controller
                     'message'   => $do_simpan['message'],
                     'data'      => [],
                 ];
-            } else {
+
+                if(!empty($flyer)) {
+                    // UPLOAD KE PERCIKTOURS
+                    // $upload     = Http::attach('flyer_image', file_get_contents($flyer), $flyer->getClientOriginalName())->post(env('PERCIKTOURS_COM') . '/api/test_upload', $article_data);
+
+                    $flyer->move($path, $new_file_name);
+                }
+            } else if($do_simpan['status'] == 'gagal'){
                 $output     = [
                     'status'    => 500,
                     'success'   => false,
                     'message'   => $do_simpan['message'],
                     'data'      => [],
+                ];
+            } else {
+                $output     = [
+                    'status'    => 404,
+                    'success'   => false,
+                    'message'   => 'Not Found',
+                    'data'      => []
                 ];
             }
         }

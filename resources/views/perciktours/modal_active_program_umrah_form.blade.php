@@ -109,12 +109,32 @@
                                 <input type="number" min="1" step="1" class="form-control" name="act_prog_cost_double" id="act_prog_cost_double" placeholder="Harga Double (IDR)" value="0" onclick="this.select();">
                             </div>
                         </div>
+                        <div class="col-xl-6 col-12">
+                            <div class="form-group" id="is_flyer_not_exist">
+                                <label for="act_prog_flyer">File : Flyer</label>
+                                <input type="file" class="form-input w-100" id="act_prog_flyer" name="act_prog_flyer">
+                                <small>* format .jpg, .jpeg, .png</small>
+                            </div>
+                            <div class="form-group d-none" id="is_flyer_exist">
+                                <label for="act_prog_flyer_exist">File : Flyer</label><br>
+                                <button type="button" class="btn btn-primary" id="act_prog_flyer_exist" name="act_prog_flyer_exist" value="" onclick="showPhotos(this.value)">Lihat Flyer</button>
+                                <button type="button" class="btn btn-success" id="act_prog_flyer_reset" name="act_prog_flyer_reset" onclick="resetForm('form_flyer')" title="Upload Ulang Flyer">
+                                    <i class="fa fa-upload"></i> Upload Ulang
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" title="Tutup Modul" id="btn_cancel_modal_active_program_umrah_form" onclick="closeModal('modal_active_program_umrah_form')" type="button">Tutup</button>
-                <button class="btn btn-primary" id="btn_act_modal_active_program_umrah_form" value="" onclick="doSaveData('form_modal_active_program_umrah', this.value)" type="button">Simpan</button>
+            <div class="modal-footer justify-content-between">
+                <div>
+                    <button class="btn btn-danger d-none" id="btn_reject_article_program_umrah" value="reject" onclick="doSaveData('form_modal_active_program_umrah', this.value)" type="button">Tolak</button>
+                    <button class="btn btn-success d-none" id="btn_approve_article_program_umrah" value="approve" onclick="doSaveData('form_modal_active_program_umrah', this.value)" type="button">Setujui</button>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" title="Tutup Modul" id="btn_cancel_modal_active_program_umrah_form" onclick="closeModal('modal_active_program_umrah_form')" type="button">Tutup</button>
+                    <button class="btn btn-primary" id="btn_act_modal_active_program_umrah_form" value="" onclick="doSaveData('form_modal_active_program_umrah', this.value)" type="button">Simpan</button>
+                </div>
             </div>
         </div>
     </div>
