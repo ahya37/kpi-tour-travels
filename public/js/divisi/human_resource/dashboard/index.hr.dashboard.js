@@ -1217,7 +1217,7 @@ function doSimpan(type, jenis, data)
                             const tabelData     = {
                                 "tanggal_akhir" : moment($("#abs_tgl_cari").val().split(' s/d ')[1], 'DD/MM/YYYY').format('YYYY-MM-DD'),
                                 "tanggal_awal"  : moment($("#abs_tgl_cari").val().split(' s/d ')[0], 'DD/MM/YYYY').format('YYYY-MM-DD'),
-                                "user_id"       : "%",
+                                "user_id"       : $("#abs_user_cari").val(),
                                 "jml_hari"      : 1
                             };
                             showTable('table_list_absensi', tabelData);

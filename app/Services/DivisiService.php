@@ -3280,12 +3280,23 @@ class DivisiService
             "prs_date"      => $data['data']['tanggal'],
         ];
 
-        $data_update    = [
-            "prs_in_time"   => $data['data']['jam_masuk'],
-            "prs_out_time"  => $data['data']['jam_keluar'],
-            "updated_by"    => $user_id,
-            "updated_at"    => $today,
-        ];
+        // CHECK APAKAH ADA JAM PULANG?
+        $check_jam_pulang   = DB::table('tm_presence')->select('prs_out_time')->where($data_where)->get();
+
+        if(count($check_jam_pulang) > 0 && !empty($check_jam_pulang[0]->prs_out_time)) {
+            $data_update    = [
+                "prs_in_time"   => $data['data']['jam_masuk'],
+                "prs_out_time"  => $data['data']['jam_keluar'],
+                "updated_by"    => $user_id,
+                "updated_at"    => $today,
+            ];
+        } else {
+            $data_update    = [
+                "prs_in_time"   => $data['data']['jam_masuk'],
+                'updated_by'    => $user_id,
+                'updated_at'    => $today,
+            ];
+        }
 
         DB::table('tm_presence')->where($data_where)->update($data_update);
 
