@@ -42,6 +42,10 @@ class TarikDataUmrah extends Command
             // TARIK DATA SEAT UMRAH
             $tarik_data_seat    = TarikDataService::doTarikSeatNoLogin($data_api);
             info($tarik_data_seat['message'] . " " . now());
+
+            // TARIK DATA SUMMARY
+            $get_data   = Http::get(env('API_PERCIK_V2') . "/api/perciktours/tarik_data_summary");
+            info($get_data->json('message'). " " . now());
         } else {
             info($get_data_api->json('message'));
         }
