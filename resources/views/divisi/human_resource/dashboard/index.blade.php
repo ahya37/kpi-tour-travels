@@ -421,7 +421,7 @@
         </div>
     </div>
 
-    @include('divisi.human_resource.dashboard.modal_edit_data_jam_kerja');
+    @include('divisi.human_resource.dashboard.modal_edit_data_jam_kerja')
 @endsection
 
 

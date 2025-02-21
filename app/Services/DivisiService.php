@@ -3207,41 +3207,77 @@ class DivisiService
             "prs_date"      => $data['data']['tanggal'],
         ];
 
-        // CHECK APAKAH ADA JAM PULANG?
-        $check_jam_pulang   = DB::table('tm_presence')->select('prs_out_time')->where($data_where)->get();
+        // CHECK APAKAH ADA DI TANGGAL SEGITU??
+        $check_kehadiran    = DB::table('tm_presence')->where($data_where)->get();
+        if(count($check_kehadiran) > 0) {
+            // UPDATE JAM PULANG
+            // CHECK APAKAH ADA JAM PULANG?
+            $check_jam_pulang   = DB::table('tm_presence')->select('prs_out_time')->where($data_where)->get();
 
-        if(count($check_jam_pulang) > 0 && !empty($check_jam_pulang[0]->prs_out_time)) {
-            $data_update    = [
+            if(count($check_jam_pulang) > 0 && !empty($check_jam_pulang[0]->prs_out_time)) {
+                $data_update    = [
+                    "prs_in_time"   => $data['data']['jam_masuk'],
+                    "prs_out_time"  => $data['data']['jam_keluar'],
+                    "updated_by"    => $user_id,
+                    "updated_at"    => $today,
+                ];
+            } else {
+                $data_update    = [
+                    "prs_in_time"   => $data['data']['jam_masuk'],
+                    'updated_by'    => $user_id,
+                    'updated_at'    => $today,
+                ];
+            }
+
+            DB::table('tm_presence')->where($data_where)->update($data_update);
+
+            try {
+                DB::commit();
+                LogHelper::create('edit', 'Berhasil Mengubah Data Absensi User : ' . $data['data']['user_id'] . 'Tanggal : ' . $data['data']['tanggal'], $ip_address);
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => "",  
+                ];
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', 'Gagal Mengubah Data Absensi User : ' . $data['data']['user_id'] . ' Tanggal : ' . $data['data']['tanggal'], $ip_address);
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => $e->getMessage(),
+                ];
+            }
+        } else {
+            // INSERT DATA KEHADIRAN
+            $data_insert_kehadiran  = [
+                "prs_date"      => $data['data']['tanggal'],
+                "prs_user_id"   => $data['data']['user_id'],
                 "prs_in_time"   => $data['data']['jam_masuk'],
                 "prs_out_time"  => $data['data']['jam_keluar'],
+                "created_by"    => $user_id,
                 "updated_by"    => $user_id,
-                "updated_at"    => $today,
+                "created_at"    => $today,
+                "updated_at"    => $today
             ];
-        } else {
-            $data_update    = [
-                "prs_in_time"   => $data['data']['jam_masuk'],
-                'updated_by'    => $user_id,
-                'updated_at'    => $today,
-            ];
-        }
 
-        DB::table('tm_presence')->where($data_where)->update($data_update);
+            DB::table('tm_presence')->insert($data_insert_kehadiran);
 
-        try {
-            DB::commit();
-            LogHelper::create('edit', 'Berhasil Mengubah Data Absensi User : ' . $data['data']['user_id'] . 'Tanggal : ' . $data['data']['tanggal'], $ip_address);
-            $output     = [
-                "status"    => "berhasil",
-                "errMsg"    => "",  
-            ];
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::channel('daily')->error($e->getMessage());
-            LogHelper::create('error_system', 'Gagal Mengubah Data Absensi User : ' . $data['data']['user_id'] . ' Tanggal : ' . $data['data']['tanggal'], $ip_address);
-            $output     = [
-                "status"    => "gagal",
-                "errMsg"    => $e->getMessage(),
-            ];
+            try {
+                DB::commit();
+                LogHelper::create('add', 'Berhasil Menambahkan Absen User :' . $data['data']['user_id'] . ' Pada Tanggal : ' . $data['data']['tanggal'], $ip_address);
+                $output     = [
+                    "status"    => "berhasil",
+                    "errMsg"    => "",  
+                ];
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', 'Gagal Menambahkan Absen User : ' . $data['data']['user_id'] . ' Pada Tanggal : ' . $data['data']['tanggal'], $ip_address);
+                $output     = [
+                    "status"    => "gagal",
+                    "errMsg"    => "",
+                ];
+            }
         }
 
         return $output;

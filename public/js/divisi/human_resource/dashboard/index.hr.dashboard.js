@@ -1213,12 +1213,13 @@ function doSimpan(type, jenis, data)
                     }).then((res)   => {
                         if(res.isConfirmed) {
                             closeModal('modal_edit_jam_kerja');
-
+                            let tanggalCari     = $("#abs_tgl_cari").val().split(' s/d ');
+                            let tanggalDiff     = moment(tanggalCari[1], 'DD/MM/YYYY').diff(moment(tanggalCari[0], 'DD/MM/YYYY'), 'days');
                             const tabelData     = {
-                                "tanggal_akhir" : moment($("#abs_tgl_cari").val().split(' s/d ')[1], 'DD/MM/YYYY').format('YYYY-MM-DD'),
-                                "tanggal_awal"  : moment($("#abs_tgl_cari").val().split(' s/d ')[0], 'DD/MM/YYYY').format('YYYY-MM-DD'),
+                                "tanggal_akhir" : moment(tanggalCari[1], 'DD/MM/YYYY').format('YYYY-MM-DD'),
+                                "tanggal_awal"  : moment(tanggalCari[0], 'DD/MM/YYYY').format('YYYY-MM-DD'),
                                 "user_id"       : $("#abs_user_cari").val(),
-                                "jml_hari"      : 1
+                                "jml_hari"      : tanggalDiff + 1
                             };
                             showTable('table_list_absensi', tabelData);
                         }
