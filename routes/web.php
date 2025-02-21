@@ -488,6 +488,13 @@ Route::group(['middleware' => ['auth']], function () {
                     Route::get('/list', [finance::class, 'finance_list_coa']);
                     Route::post('/save/{jenis}', [finance::class, 'finance_save_coa']);
                 });
+
+                Route::prefix('bank')->group(function(){
+                    Route::get('/', [finance::class, 'finance_master_bank'])->name('finance.master.bank.index');
+                    Route::get('/list_bank', [finance::class, 'finance_list_bank']);
+                    Route::get('/account', [finance::class, 'finance_bank_account'])->name('finance.master.bank_account.index');
+                    Route::get('/list_bank_account', [finance::class, 'finance_list_bank_account']);
+                });
             });
             Route::prefix('simulasi')->group(function(){
                 Route::get('/employees_fee', [DivisiController::class, 'finance_sim_employees_fee']);

@@ -32,7 +32,7 @@
 @section('content')
     <div class="wrapper wrapper-content animated fadeInRight">
         <div class="row">
-            <div class="col-xl-3 col-md-4 col-sm-6 col-12">
+            <div class="col-xl-3 col-md-6 col-12 mb-mb-0 mb-sm-2">
                 <div class="card">
                     <div class="card-header d-flex flex-row align-items-center justify-content-between bg-primary">
                         <h4 class="no-margins">Master COA</h4>
@@ -47,9 +47,23 @@
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-4 col-sm-6 col-12"></div>
-            <div class="col-xl-3 col-md-4 col-sm-6 col-12"></div>
-            <div class="col-xl-3 col-md-4 col-sm-6 col-12"></div>
+            <div class="col-xl-3 col-md-6 col-12 mb-mb-0 mb-sm-2">
+                <div class="card">
+                    <div class="card-header d-flex flex-row align-items-center justify-content-between bg-primary">
+                        <h4 class="no-margins">Master Account Bank</h4>
+                        <i class="fa fa-info-circle" title="List Account Bank" style="cursor: pointer;"></i>
+                    </div>
+                    <div class="card-body text-right" id="master_account_bank_content">
+                        <div class="spinner spinner-border"></div>
+                        <h2 class="no-margins"></h2>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ route('finance.master.bank_account.index') }}" title="Lihat Detail">Lihat Detail</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 col-12 mb-mb-0 mb-sm-2"></div>
+            <div class="col-xl-3 col-md-6 col-12 mb-mb-0 mb-sm-2"></div>
         </div>
     </div>
 @endsection

@@ -102,6 +102,97 @@ class FinanceServices
             return $output;
         }
     }
+
+    // 21 FEBRUARI 2025
+    // NOTE : AMBIL LIST MASTER BANK
+    public static function get_finance_list_bank()
+    {
+        $query  = DB::table('fin_mas_bank')->orderBy('bank_id', 'asc')->get();
+
+        try {
+            if(count($query) > 0 ) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data List Bank',
+                    'data'          => [
+                        'total_data'    => count($query),
+                        'data'          => $query,
+                    ]
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Bank Pada Sistem',
+                    'data'          => [
+                        'total_data'    => 0,
+                        'data'          => []
+                    ]
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Internal Server Error ' . $e->getMessage(),
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+
+    // NOTE : AMBIL LIST BANK ACCOUNT
+    public static function get_finance_list_account_bank()
+    {
+        $query  = DB::table('fin_mas_bank_account as a')
+                    ->join('fin_mas_bank as b', 'a.bank_id', '=', 'b.bank_id')
+                    ->select(
+                            'a.bank_account_id as account_id',
+                            'a.bank_account_number as account_number',
+                            'b.bank_name as account_bank_name',
+                            'a.coa_id',
+                            'a.bank_account_currency as account_currency',
+                            'a.is_active as account_is_active',
+                            )
+                    ->get();
+
+        try {
+            if(count($query) > 0 ) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data List Account Bank',
+                    'data'          => [
+                        'total_data'    => count($query),
+                        'data'          => $query,
+                    ]
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Account Bank Pada Sistem',
+                    'data'          => [
+                        'total_data'    => 0,
+                        'data'          => []
+                    ]
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Internal Server Error ' . $e->getMessage(),
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
 }
 
 ?>

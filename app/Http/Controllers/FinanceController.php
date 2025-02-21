@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\FinanceServices;
+use Dotenv\Repository\RepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
@@ -110,5 +111,59 @@ class FinanceController extends Controller
         ];
 
         return view('divisi.finance.pembayaran.dashboard', $data_view);
+    }
+
+    // 21 FEBRUARI 2025
+    // NOTE : MASTER BANK
+    public function finance_master_bank()
+    {
+        $data_view  = [
+            "title"         => $this->title . "Master Bank",
+            "sub_title"     => "Finance Master Bank",
+        ];
+
+        return view('divisi.finance.master.master_bank.index', $data_view);
+    }
+
+    // NOTE : LIST BANK
+    public function finance_list_bank(Request $request)
+    {
+        $get_data   = FinanceServices::get_finance_list_bank();
+
+        $output     = [
+            "success"   => $get_data['is_success'],
+            "status"    => $get_data['status_code'],
+            "message"   => $get_data['message'],
+            "data"      => $get_data['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : DASHBOARD BANK ACCOUNT
+    public function finance_bank_account()
+    {
+        $data_view  = [
+            'title'         => $this->title . "Master Bank Account",
+            'sub_title'     => "Finance - Master Akun Bank",
+            "data"          => [],
+        ];
+
+        return view('divisi.finance.master.master_bank_account.index', $data_view);
+    }
+
+    // NOTE : LIST BANK ACCOUNT
+    public function finance_list_bank_account(Request $request)
+    {
+        $get_data   = FinanceServices::get_finance_list_account_bank();
+
+        $output     = [
+            "success"   => $get_data['is_success'],
+            "status"    => $get_data['status_code'],
+            "message"   => $get_data['message'],
+            "data"      => $get_data['data'],
+        ];
+
+        return Response::json($output, $output['status']);
     }
 }
