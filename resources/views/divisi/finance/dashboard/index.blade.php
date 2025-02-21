@@ -121,20 +121,6 @@
                         </a>
                     </div>
                 </div>
-                {{-- <div class="col-xl-3 col-lg-6 mb-sm-2">
-                    <div class="card">
-                        <div class="card-header bg-primary">
-                            <h4 class="no-margins">Konfirmasi Pembayaran</h4>
-                        </div>
-                        <div class="card-body text-right">
-                            <h2 class="no-margins" id="confirm_payment_text"><i class="fa fa-spinner fa-spin"></i></h2>
-                            <small id="confirm_payment_text_pending">&nbsp;</small>
-                        </div>
-                        <div class="card-footer" onclick="showModal('modal_confirm_payment_agent', '', '')" title="Lihat List Table Konfirmasi Pembayaran" style="cursor:pointer; color: #007bff;" onclick="showModal('modal_confirm_payment_agent', '', '')">
-                            Lihat Detail
-                        </div>
-                    </div>
-                </div> --}}
             </div>
         @endif
     </div>
@@ -597,101 +583,6 @@
                     <button class="btn btn-primary" title="Download File" onclick="downloadLemburan()">
                         <i class="fa fa-download"></i> Download File
                     </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modal_confirm_payment_agent">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header d-flex flex-row align-items-center justify-content-between">
-                    <h4 class="modal-title no-margins font-weight-bold">List Pembayaran untuk Agent</h4>
-                    <button class="close" onclick="closeModal('modal_confirm_payment_agent')">&times;</button>
-                </div>
-                <div class="modal-body">
-                    {{-- FILTER --}}
-                    <div class="row">
-                        <div class="col-xl-3 col-sm-12">
-                        </div>
-                    </div>
-                    <hr>
-                    {{-- TABLE --}}
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="table-responsive">
-                                <table class="table table-sm table-striped table-hover" id="table_list_confirm_payment_agent" style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center align-middle">No</th>
-                                            <th class="text-center align-middle">Tour Code</th>
-                                            <th class="text-center align-middle">Agent Name</th>
-                                            <th class="text-center align-middle">Total Pengajuan</th>
-                                            <th class="text-center align-middle">Status</th>
-                                            <th class="text-center align-middle">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modal_detail_confirm_payment_agent">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header d-flex flex-row align-items-center justify-content-between w-100">
-                    <h4 class="no-margins font-weight-bold">Detail List Pembayaran Agent</h4>
-                    <button class="close" onclick="closeModal('modal_detail_confirm_payment_agent')">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="row mb-2">
-                        <div class="col-12">
-                            <div class="form-group">
-                                <label class="no-margins font-weight-bold">Tour Code</label>
-                                <input type="text" class="form-control" placeholder="Tour Code" id="payment_agent_tour_code" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-12">
-                            <div class="form-group">
-                                <label class="no-margins font-weight-bold">Nama Agen</label>
-                                <input type="hidden" class="form-control" placeholder="ID Agen" id="payment_agent_id" readonly>
-                                <input type="text" class="form-control" placeholder="Nama Agen" id="payment_agent_name" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="table-responsive">
-                                <table class="table-sm table-striped" id="table_detail_payment_agent" style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center align-middle">No</th>
-                                            <th class="text-center align-middle">Tgl. Pengajuan</th>
-                                            <th class="text-center align-middle">Pengajuan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th class="text-right align-middle" colspan="2">Total : </th>
-                                            <th class="align-middle" id="total_pengajuan_detail_payment_agent"></th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-primary" title="Konfirmasi Pembayaran Agent" onclick="doUpdate('payment_agent', '', '')">Konfirmasi</button>
                 </div>
             </div>
         </div>

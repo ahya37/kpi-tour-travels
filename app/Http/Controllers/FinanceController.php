@@ -99,4 +99,16 @@ class FinanceController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // MENU DIVISI PEMBAYARAN
+    public function finance_pembayaran_dashboard(Request $request)
+    {
+        $data_view  = [
+            "title"     => $this->title . "Finance Pembayaran Dashboard",
+            "sub_title" => "Pembayaran Dashboard",
+            "data"      => [],
+        ];
+
+        return view('divisi.finance.pembayaran.dashboard', $data_view);
+    }
 }

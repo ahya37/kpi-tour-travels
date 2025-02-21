@@ -32,10 +32,6 @@ $(document).ready(() => {
     const gpkEmployee_url   = base_url + "/divisi/finance/master/gaji_pokok_employee";
     const gpkEmployee_data  = "";
 
-    const pgjPaymentURL     = base_url + "/divisi/finance/pengajuan/pembayaran_agent";
-    const pgjPaymentType    = "GET";
-    const pgjPaymentData    = [];
-
     const pgjLemburNotifUrl     = base_url + '/divisi/finance/pengajuan/lembur';
     const pgjLemburNotifType    = 'GET';
     const pgjLemburNotifData    = {
@@ -47,9 +43,7 @@ $(document).ready(() => {
         doTrans(actUser_url, 'GET', actUser_data, '', true),
         doTrans(financeRKAP_url, 'GET', financeRKAP_data, '', true),
         doTransV2(gpkEmployee_url, 'GET', gpkEmployee_data, '', true),
-        doTrans(pgjPaymentURL, pgjPaymentType, pgjPaymentData, '', true),
-        doTransV2(pgjLemburNotifUrl, pgjLemburNotifType, pgjLemburNotifData, '', true),
-        doTrans(base_url + '/divisi/finance/master/coa_list', 'GET', [], '', true)
+        doTransV2(pgjLemburNotifUrl, pgjLemburNotifType, pgjLemburNotifData, '', true)
     ];
 
     Promise.allSettled(getDataDashboard)
@@ -58,7 +52,6 @@ $(document).ready(() => {
             const actUser_getData       = success[0].status == 'fulfilled' ? success[0].value.data : [];
             const financeRKAP_getData   = success[1].status == 'fullfilled' ? success[1].value.data : [];
             const gpkEmployee_getData   = success[2].status == 'fulfilled' ? success[2].value.total_data : [];
-            const pgjPayment_getData    = success[3].status == 'fulfilled' ? success[3].value.data : [];
 
             // HIDE LOADING ACT USER
             $("#act_user_loading").addClass('d-none');
@@ -77,23 +70,11 @@ $(document).ready(() => {
             
             $("#kar_text").html("<label class='no-margins font-weight-light'>" + gpkEmployee_getData + "</label>");
 
-            // KONFIRMASI PEMBAYARAN
-            const totalPgjPayment   = pgjPayment_getData.length;
-            let totalConfirmPayment = 0;
-            if(totalPgjPayment > 0) {
-                for(const item of pgjPayment_getData)
-                {
-                    if(item.is_paid != 1) {
-                        totalConfirmPayment     += 1;
-                    }
-                } 
-            }
-
             $("#confirm_payment_text").html(`<label class="no-margins font-weight-light">${totalPgjPayment}</label>`);
             $("#confirm_payment_text_pending").addClass('text-warning');
             totalConfirmPayment > 0 ? $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> ${totalConfirmPayment} butuh konfirmasi`) : $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> Tidak Ada Konfirmasi Pembayaran`);
 
-            const totalPgjLembur    = success[4].status == 'fulfilled' ? success[4].value.data.length : 0;
+            const totalPgjLembur    = success[3].status == 'fulfilled' ? success[3].value.data.length : 0;
             if(totalPgjLembur > 0) {
                 $("#alert_pengajuan_lembur").removeClass('d-none');
                 $("#alert_pengajuan_lembur").html(`<i class='fa fa-exclamation-triangle'></i> Anda memiliki <strong>${totalPgjLembur}</strong> persetujuan pengajuan <strong>Lembur</strong>. <a href='${base_url}/pengajuan/lembur' title='Lihat Lemburan'>Lihat Selengkapnya</a>`);
@@ -116,45 +97,6 @@ $(document).ready(() => {
             $("#abs_text").html("<label class='no-margins font-weight-light'>"+moment().format('YYYY-MM-DD')+"</label>");
         })
 });
-
-// function dataDashboard()
-// {
-//     let current_year    = moment().format('YYYY');
-//     let start_date      = current_year+"-01-01";
-//     let end_date        = current_year+"-12-31";
-
-//     // GET DATA
-//     const url           = "/divisi/finance/eventsFinance";
-//     const type          = "GET";
-//     const message       = "";
-//     const data          = {
-//         "start_date"    : start_date,
-//         "end_date"      : end_date
-//     };
-//     $("#act_rkap_loading").removeClass('d-none');
-//     $("#act_user_loading").removeClass('d-none');
-//     $("#act_rkap_text").addClass('d-none');
-//     $("#act_user_text").addClass('d-none');
-//     doTrans(url, type, data, message, true)
-//         .then((success) => {
-//             $("#act_rkap_loading").addClass('d-none');
-//             $("#act_user_loading").addClass('d-none');
-
-//             $("#act_rkap_text").html(0);
-//             $("#act_user_text").html(success.data.length);
-//             $("#act_rkap_text").removeClass('d-none');
-//             $("#act_user_text").removeClass('d-none');
-//         })
-//         .catch((err)    => {
-//             $("#act_rkap_loading").addClass('d-none');
-//             $("#act_user_loading").addClass('d-none');
-
-//             $("#act_rkap_text").html(0);
-//             $("#act_user_text").html(0);
-//             $("#act_rkap_text").removeClass('d-none');
-//             $("#act_user_text").removeClass('d-none');
-//         })
-// }
 
 function showCalendar(today)
 {

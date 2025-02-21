@@ -472,11 +472,16 @@ Route::group(['middleware' => ['auth']], function () {
                 // GET RKAP DATA
                 Route::get('/getRKAPData', [DivisiController::class, 'finance_rkap_getData']);
             });
+            
+            Route::prefix('pembayaran')->group(function(){
+                Route::get('/', [finance::class, 'finance_pembayaran_dashboard'])->name('finance.pembayaran.index');
+            });
+
             Route::prefix('master')->group(function(){
                 Route::get('/gaji_pokok_employee', [DivisiController::class, 'finance_master_employees_fee']);
                 Route::put('/gaji_pokok_employee/{emp_id}', [DivisiController::class, 'finance_master_employees_fee_update']);
 
-                Route::get('/', [finance::class, 'finance_master_dashboard'])->name('finance.mater.index');
+                Route::get('/', [finance::class, 'finance_master_dashboard'])->name('finance.master.index');
                 // MASTER COA
                 Route::prefix('coa')->group(function(){
                     Route::get('/', [finance::class, 'finance_master_coa'])->name('finance.master.coa.index');
@@ -489,9 +494,6 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/employees_fee_download', [DivisiController::class, 'finance_sim_employees_fee_download']);
             });
             Route::prefix('pengajuan')->group(function() {
-                Route::get('/pembayaran_agent', [DivisiController::class, 'finance_pgj_payment_agent']);
-                Route::get('/pembayaran_agent_detail', [DivisiController::class, 'finance_pgj_payment_agent_detail']);
-                Route::post('/pembayaran_agent_konfirmasi', [DivisiController::class, 'finance_pgj_payment_agent_confirm']);
                 // LEMBUR
                 Route::get('/lembur', [DivisiController::class, 'finance_pgj_lembur_karyawan_list']);
                 Route::post('/trans_lembur/{jenis}', [DivisiController::class, 'finance_pgj_lembur_karyawan_trans']);
