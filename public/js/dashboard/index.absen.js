@@ -578,7 +578,9 @@ function showTable(idTable, data)
         // GET DATA
         const pgj_list_url  = "/pengajuan/listCuti";
         const pgj_list_type = "GET";
-        const pgj_list_data = "";
+        const pgj_list_data = {
+            "bulan"     : moment(today, 'YYYY-MM-DD').format('MM')
+        };
         
         doTransV2(pgj_list_url, pgj_list_type, pgj_list_data, "", true)
             .then((success) => {
