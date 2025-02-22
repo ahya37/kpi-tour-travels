@@ -17,9 +17,15 @@ $(document).ready(function() {
     };
     const umrahMsg      = "";
 
+    const articleURL    = "website/article/list";
+    const articleType   = "GET";
+    const articleData   = [];
+    const articleMsg    = "";
+
     const getData       = [
         doTransaction(summaryURL, summaryType, summaryData, summaryMsg),
-        doTransaction(umrahURL, umrahType, umrahData, umrahMsg)
+        doTransaction(umrahURL, umrahType, umrahData, umrahMsg),
+        doTransaction(articleURL, articleType, articleData, articleMsg)
     ];
 
     Promise.allSettled(getData)
@@ -51,6 +57,10 @@ $(document).ready(function() {
             } else {
                 $("#table_jadwal_umrah").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`)
             }
+
+            // ARTICLE UMHRA
+            const articleGetData    = results[2].status == 'fulfilled' ? results[2].value.data : [];
+            $("#sum_total_aktif_program").html(articleGetData.length)
         })
         .catch((err)    => {
             console.log(err);
@@ -145,7 +155,7 @@ function showTable(idTable, data)
                 let articleID   = articleData[i]['jdw_uuid'];
                 let articleTourCode     = articleData[i]['jdw_tour_code'];
                 let articleTitle        = articleData[i]['jdw_title_name'];
-                let articleProgramName  = "";
+                let articleProgramName  = articleData[i]['jdw_program_name'];
                 let articleBadge;
                 let articleAction;
                 let articleActionColorButton;
@@ -168,10 +178,10 @@ function showTable(idTable, data)
                 let articleStatus   = `<span class='badge ${articleBadge}'><label class='font-weight-bold no-margins'>${articleData[i]['jdw_status_upload']}</label></span>`;
 
                 $("#"+idTable).DataTable().row.add([
-                    seq,
-                    articleTourCode,
-                    articleTitle,
-                    articleProgramName,
+                    `<label class="no-margins font-weight-normal">${seq}</label>`,
+                    `<label class="no-margins font-weight-normal">${articleTourCode}</label>`,
+                    `<label class="no-margins font-weight-normal">${articleTitle}</label>`,
+                    `<label class="no-margins font-weight-normal">${articleProgramName}</label>`,
                     articleStatus,
                     articleAction
                 ]).draw(false);
@@ -355,10 +365,14 @@ function showModal(idModal, data, type)
         // CLOSE BACKGROUND MODAL
         closeModal('modal_active_program_umrah');
         if(data == "") {
-            // OPEN MODAL
-            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-            // SHOW SELECT
-            showSelect('act_prog_tour_code', tourCode);
+            Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
+            setTimeout(() => {
+                // OPEN MODAL
+                Swal.close();
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                // SHOW SELECT
+                showSelect('act_prog_tour_code', tourCode);
+            }, 1000);
         } else {
             // CHECK TYPE
             $("#btn_reject_article_program_umrah").removeClass('d-none');
@@ -418,10 +432,7 @@ function showSelect(idSelect, data, selectedData = '')
 
     if(idSelect == 'act_prog_tour_code') {
         $("#"+idSelect).prop('disabled', false);
-        let html    =   `
-                        <option selected disabled>Pilih Tour Code</option>
-                        <option value="EMPTY_TOUR_CODE">Belum Ada Tour Code</option>
-                        `;
+        let html    = `<option selected disabled>Pilih Tour Code</option>`;
         if(data.length > 0) {
             // SORT DATA DESC
             data.sort((a, b)    => {
@@ -450,73 +461,33 @@ function showSelect(idSelect, data, selectedData = '')
 function showSelectDetail(idSelect, selectedData) {
     if(idSelect == 'act_prog_tour_code') {
         resetForm('form_modal_active_program_umrah');
-        // REMOVE READONLY
-        $("#act_prog_depature_date").prop('readonly', true);
-        $("#act_prog_arrival_date").prop('readonly', true);
-        $("#act_prog_category").prop('readonly', true);
-        $("#act_prog_program").prop('readonly', true);
         
-        if(selectedData != 'EMPTY_TOUR_CODE') {
-            const tourCode  = {
-                url     : 'website/article/tour_detail',
-                type    : 'GET',
-                data    : {
-                    'tour_code' : selectedData,
-                },
-            };
-    
-            const message   = Swal.fire({ title : 'Sedang Mencari Tour Code..', allowOutsideClick: false }); Swal.showLoading();
-    
-            doTransaction(tourCode['url'], tourCode['type'], tourCode['data'], message)
-                .then((results) => {
-                    Swal.close();
-                    const tourCode_data     = results !== undefined ? results.data : [];
-    
-                    fillForm('form_modal_active_program_umrah', tourCode_data);
-                    closeModal('modal_active_program_umrah');
-                })
-                .catch((error)  => {
-                    console.log(error);
-                    Swal.fire({
-                        icon    : 'error',
-                        title   : 'Terjadi Kesalahan',
-                        text    : error.responseJSON.message,
-                    });
-                })
-        } else {
-            // DEFINE
-            $("#act_prog_depature_date").daterangepicker({
-                minDate         : moment(today, 'YYYY-MM-DD').subtract(2, 'year'),
-                maxDate         : moment(today, 'YYYY-MM-DD').add(2, 'year'),
-                autoApply       : true,
-                format          : 'DD/MM/YYYY',
-                singleDatePicker    : true,
-                locale  : {
-                    cancelLabel : 'Batal',
-                    applyLabel  : 'Simpan',
-                },
-            }).css('cursor', 'pointer').prop('title', 'Pilih Tgl. Keberangkatan');
+        const tourCode  = {
+            url     : 'website/article/tour_detail',
+            type    : 'GET',
+            data    : {
+                'tour_code' : selectedData,
+            },
+        };
 
-            $("#act_prog_arrival_date").daterangepicker({
-                minDate         : moment(today, 'YYYY-MM-DD').subtract(2, 'year'),
-                maxDate         : moment(today, 'YYYY-MM-DD').add(2, 'year'),
-                autoApply       : true,
-                format          : 'DD/MM/YYYY',
-                singleDatePicker    : true,
-                locale  : {
-                    cancelLabel : 'Batal',
-                    applyLabel  : 'Simpan',
-                },
-            }).css('cursor', 'pointer').prop('title', 'Pilih Tgl. Keberangkatan');
+        const message   = Swal.fire({ title : 'Sedang Mencari Tour Code..', allowOutsideClick: false }); Swal.showLoading();
 
-            $("#act_prog_depature_date").val('');
-            $("#act_prog_arrival_date").val('');
+        doTransaction(tourCode['url'], tourCode['type'], tourCode['data'], message)
+            .then((results) => {
+                Swal.close();
+                const tourCode_data     = results !== undefined ? results.data : [];
 
-            $("#act_prog_depature_date").prop('readonly', false);
-            $("#act_prog_arrival_date").prop('readonly', false);
-            $("#act_prog_category").prop('readonly', false);
-            $("#act_prog_program").prop('readonly', false);
-        }
+                fillForm('form_modal_active_program_umrah', tourCode_data);
+                closeModal('modal_active_program_umrah');
+            })
+            .catch((error)  => {
+                console.log(error);
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : error.responseJSON.message,
+                });
+            })
     }
 }
 
@@ -699,7 +670,7 @@ function doSaveData(idForm, type)
     
             const message   = Swal.fire({ title : 'Data Sedang Diproses..' }); Swal.showLoading();
     
-            doPostTransaction(article['url'], article['type'], article['data'], message)
+            doTransaction(article['url'], article['type'], article['data'], message, false, false)
                 .then((results)     => {
                     console.log(results);
                     Swal.fire({
@@ -714,36 +685,12 @@ function doSaveData(idForm, type)
                 })
                 .catch((error)      => {
                     console.log(error);
-                    // if(error.status >= 400 || error.status < 500) {
-                    //     Swal.fire({
-                    //         icon    : 'warning',
-                    //         title   : 'Terjadi Kesalan',
-                    //         text    : 'Kolom yang berwarna merah harus diisi',
-                    //         didClose    : () => {
-                    //             const message     = error.responseJSON.message;
-        
-                    //             $.each(message, (i, item)   => {
-                    //                 $("#"+i).addClass('is-invalid');
-        
-                    //                 $("#"+i).on('keyup', () => {
-                    //                     $("#"+i).removeClass('is-invalid');
-                    //                 })
-                    //             })
-                    //         }
-                    //     });
-                    // } else {
-                    //     Swal.fire({
-                    //         icon    : 'error',
-                    //         title   : 'Terjadi Kesalahan',
-                    //         text    : 'Internal Server Error',
-                    //     })
-                    // }
                 })
         }
     }
 }
 
-function doTransaction(url, type, data, message = null)
+function doTransaction(url, type, data, message = null, processData = true, contentType = 'application/x-www-form-urlencoded')
 {
     return new Promise((resolve, reject)    => {
         $.ajax({
@@ -754,6 +701,8 @@ function doTransaction(url, type, data, message = null)
                 'X-CSRF-TOKEN'  : CSRF_TOKEN,
             },
             data    : data,
+            processData     : processData,
+            contentType     : contentType,
             beforeSend  : () => {
                 message;
             },
@@ -763,32 +712,6 @@ function doTransaction(url, type, data, message = null)
             error       : (error)   => {
                 reject(error);
             }
-        })
-    })
-}
-
-function doPostTransaction(url, type, data, message)
-{
-    return new Promise((resolve, reject)    => {
-        $.ajax({
-            cache   : false,
-            url     : base_url + "/" + url,
-            type    : type,
-            data    : data,
-            headers     : {
-                'X-CSRF-TOKEN'  : CSRF_TOKEN,
-            },
-            processData     : false,
-            contentType     : false,
-            beforeSend      :  () => {
-                message;
-            },
-            success         : (results) => {
-                resolve(results)
-            },
-            error           : (error)   => {
-                reject(error)
-            },
         })
     })
 }

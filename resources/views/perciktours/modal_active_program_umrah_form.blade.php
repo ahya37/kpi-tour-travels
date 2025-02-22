@@ -82,13 +82,25 @@
                         <div class="col-xl-6 col-12">
                             <div class="form-group">
                                 <label for="act_prog_hotel_mekkah">Hotel Mekkah</label>
-                                <input type="text" class="form-control" name="act_prog_hotel_mekkah" id="act_prog_hotel_mekkah" placeholder="Hotel Mekkah">
+                                {{-- <input type="text" class="form-control" name="act_prog_hotel_mekkah" id="act_prog_hotel_mekkah" placeholder="Hotel Mekkah"> --}}
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="act_prog_hotel_mekkah" id="act_prog_hotel_mekkah" placeholder="Hotel Mekkah">
+                                    <div class="input-group-append">
+                                        <label class="input-group-text font-weight-normal no-margins">/ Setaraf</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-xl-6 col-12">
                             <div class="form-group">
                                 <label for="act_prog_hotel_madinah">Hotel Madinah</label>
-                                <input type="text" class="form-control" name="act_prog_hotel_madinah" id="act_prog_hotel_madinah" placeholder="Hotel Madinah">
+                                {{-- <input type="text" class="form-control" name="act_prog_hotel_madinah" id="act_prog_hotel_madinah" placeholder="Hotel Madinah"> --}}
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="act_prog_hotel_madinah" id="act_prog_hotel_madinah" placeholder="Hotel Madinah">
+                                    <div class="input-group-append">
+                                        <label class="input-group-text no-margins font-weight-normal">/ Setaraf</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-xl-4 col-12">

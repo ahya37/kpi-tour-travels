@@ -244,7 +244,8 @@ class WebsiteService
         // GET DATA
         $query  = DB::table('programs_article as a')
                         ->join('programs_jadwal as b', 'a.jdw_tour_code', '=', 'b.jdw_tour_code')
-                        ->select('a.*')
+                        ->join('programs as c', 'b.jdw_programs_id', '=', 'c.id')
+                        ->select('a.*', 'c.name as jdw_program_name')
                         ->orderBy('a.created_at', 'asc')
                         ->get();
 
@@ -335,45 +336,22 @@ class WebsiteService
         DB::beginTransaction();
 
         // UPDATE PROGRAMS_JADWAL
-        if($article_data['jdw_tour_code'] != 'EMPTY_TOUR_CODE') {
-            $data_where_programs    = [
-                'jdw_tour_code'     => $article_data['jdw_tour_code'],
-            ];
-    
-            $data_update_programs   = [
-                'jdw_airline'       => $article_data['jdw_airline'],
-                'jdw_cost_double'   => $article_data['jdw_cost_double'],
-                'jdw_cost_triple'   => $article_data['jdw_cost_triple'],
-                'jdw_cost_quad'     => $article_data['jdw_cost_quad'],
-                'jdw_destination'   => $article_data['jdw_destination'],
-                'jdw_duration'      => $article_data['jdw_duration'],
-                'jdw_hotel'         => $article_data['jdw_hotel'],
-                'jdw_flyer'         => $article_data['jdw_flyer'],
-            ];
-    
-            DB::table('programs_jadwal')->where($data_where_programs)->update($data_update_programs);
-        } else {
-            $data_insert_programs   = [
-                'jdw_uuid'          => Str::uuid(),
-                'jdw_programs_id'   => '-',
-                'jdw_depature_date' => date('Y-m-d', strtotime($article_data['jdw_depature_date'])),
-                'jdw_arrival_date'  => date('Y-m-d', strtotime($article_data['jdw_arrival_date'])),
-                'jdw_mentor_name'   => '-',
-                'jdw_tour_code'     => $article_data['jdw_tour_code'],
-                'jdw_seat'          => 0,
-                'jdw_take_seat'     => 0,
-                'jdw_available_seat'=> 0,
-                'jdw_flyer'         => $article_data['jdw_flyer'],
-                'is_generated'      => "t",
-                'is_active'         => "t",
-                'created_by'        => $user_id,
-                'updated_by'        => $user_id,
-                'created_at'        => $today,
-                'updated_at'        => $today,
-            ];
+        $data_where_programs    = [
+            'jdw_tour_code'     => $article_data['jdw_tour_code'],
+        ];
 
-            DB::table('programs_jadwal')->insert($data_insert_programs);
-        }
+        $data_update_programs   = [
+            'jdw_airline'       => $article_data['jdw_airline'],
+            'jdw_cost_double'   => $article_data['jdw_cost_double'],
+            'jdw_cost_triple'   => $article_data['jdw_cost_triple'],
+            'jdw_cost_quad'     => $article_data['jdw_cost_quad'],
+            'jdw_destination'   => $article_data['jdw_destination'],
+            'jdw_duration'      => $article_data['jdw_duration'],
+            'jdw_hotel'         => $article_data['jdw_hotel'],
+            'jdw_flyer'         => $article_data['jdw_flyer'],
+        ];
+
+        DB::table('programs_jadwal')->where($data_where_programs)->update($data_update_programs);
 
         if($type == 'add') {
             // INSERT TO PROGRAMS ARTICLE
@@ -391,23 +369,25 @@ class WebsiteService
             DB::table('programs_article')->insert($data_insert_article);
             
             try {
+                DB::commit();
+
                 $output     = [
                     'status'    => 'berhasil',
                     'message'   => 'Berhasil Menambahkan Artikel',
                     'err_msg'   => [],
                 ];
 
-                DB::commit();
                 LogHelper::create('add', 'Berhasil Menambahkan Article Baru ID : ' . $data_insert_article['jdw_uuid'], $ip_address);
 
             } catch (\Exception $e) {
+                DB::rollBack();
+
                 $output     = [
                     'status'    => 'gagal',
                     'message'   => 'Gagal Menambahkan Artikel',
                     'err_msg'   => $e->getMessage(),
                 ];
 
-                DB::rollBack();
                 Log::channel('daily')->error($e->getMessage());
                 LogHelper::create('error_system', $output['message'], $ip_address);
                 
@@ -431,20 +411,24 @@ class WebsiteService
 
             try {
                 DB::commit();
+
                 $output     = [
                     'status'    => 'berhasil',
                     'message'   => 'Berhasil Update Artikel',
                     'err_msg'   => ''
                 ];
+
                 LogHelper::create('edit', 'Berhasil Update Artikel : ' . $article_data['jdw_article_uuid'], $ip_address);
 
             } catch (\Exception $e) {
                 DB::rollBack();
+                
                 $output     = [
                     'status'    => 'gagal',
                     'message'   => 'Gagal Update Artikel',
                     'err_msg'   => $e->getMessage(),
                 ];
+                
                 Log::channel('daily')->error($e->getMessage());
                 LogHelper::create('error_system', 'Gagal Update Artikel : ' . $article_data['jdw_article_uuid'], $ip_address);
             }

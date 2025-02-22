@@ -10,6 +10,10 @@
         label {
             font-weight: bold;
         }
+
+        input[type="text"] {
+            height: 38px;
+        }
     </style>
 @endpush
 
@@ -60,7 +64,7 @@
                     </div>
                     <div class="card-body">
                         <h2 class="no-margins font-weight-bold" id="sum_total_aktif_program">0</h2>
-                        <small>Total Program Aktif</small>
+                        <small>Total Artikel</small>
                     </div>
                     <div class="card-footer" style="cursor: pointer;" title="Lihat Detail" onclick="showModal('modal_active_program_umrah')">
                         <span>Lihat Detail</span>
