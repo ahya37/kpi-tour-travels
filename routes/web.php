@@ -494,6 +494,8 @@ Route::group(['middleware' => ['auth']], function () {
                     Route::get('/list_bank', [finance::class, 'finance_list_bank']);
                     Route::get('/account', [finance::class, 'finance_bank_account'])->name('finance.master.bank_account.index');
                     Route::get('/list_bank_account', [finance::class, 'finance_list_bank_account']);
+                    Route::get('/selected_bank_account', [finance::class, 'finance_selected_bank_account']);
+                    Route::post('/save_bank_account/{type}', [finance::class, 'finane_save_bank_account']);
                 });
             });
             Route::prefix('simulasi')->group(function(){

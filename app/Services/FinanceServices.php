@@ -193,6 +193,138 @@ class FinanceServices
 
         return $output;
     }
+
+    // NOTE : GET SELECTED BANK ACCOUNT
+    public static function get_data_selected_bank_account($bank_account_id)
+    {
+        $query  = DB::table('fin_mas_bank_account')
+                    ->select('bank_id', 'coa_id', 'bank_account_number', 'bank_account_currency')
+                    ->where('bank_account_id', '=', $bank_account_id)
+                    ->get();
+        
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasi Mengambil Data Bank Account ID : ' . $bank_account_id,
+                    'data'          => $query[0],
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 404,
+                    'message'       => 'Gagal Mengambil Data Bank Account ID : ' . $bank_account_id,
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Internal Server Error',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+    // NOTE : TRANSACTION BANK ACCOUNT
+    public static function do_save_bank_account($type, $data)
+    {
+        $ip_address     = $data['ip_address'];
+        $user_id        = $data['user_id'];
+        
+        $bank_id        = $data['data']['acb_bank_id'];
+        $coa_id         = $data['data']['acb_coa_id'] == 999 ? null : $data['data']['acb_coa_id'];
+        $currency       = $data['data']['acb_currency'];
+        $account_bank   = $data['data']['acb_bank_account'];
+
+        DB::beginTransaction();
+
+        if($type == 'add') {
+            $data_simpan    = [
+                'bank_id'               => $bank_id,
+                'coa_id'                => $coa_id,
+                'bank_account_number'   => $account_bank,
+                'bank_account_currency' => $currency,
+                'is_active'             => 't',
+                'created_by'            => $user_id,
+                'created_at'            => date('Y-m-d H:i:s'),
+                'updated_by'            => $user_id,
+                'updated_at'            => date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('fin_mas_bank_account')->insert($data_simpan);
+
+            try {
+                DB::commit();
+
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Menyimpan Data Bank Account Baru',
+                    'data'          => [],
+                ];
+                
+                LogHelper::create('add', $output['message'], $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 500,
+                    'message'       => 'Internal Server Error',
+                    'data'          => []
+                ];
+
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
+        } else if($type == 'edit') {
+            $data_where     = [
+                'bank_account_id'   => $data['data']['acb_id'],
+            ];
+
+            $data_updpate   = [
+                'bank_id'   => $data['data']['acb_bank_id'],
+                'coa_id'    => $data['data']['acb_coa_id'] == 999 ? null : $data['data']['acb_coa_id'],
+                'bank_account_number'   => $data['data']['acb_bank_account'],
+                'bank_account_currency' => $data['data']['acb_currency'],
+            ];
+
+            DB::table('fin_mas_bank_account')->where($data_where)->update($data_updpate);
+            
+            try {
+                DB::commit();
+
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 201,
+                    'message'       => 'Berhasil Mengubah Data Bank Account ID : ' . $data['data']['acb_id'],
+                    'data'          => [],
+                ];
+
+                LogHelper::create('edit', $output['message'], $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 500,
+                    'message'       => 'Internal Server Error',
+                    'data'          => []
+                ];
+                
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
+        }
+
+        return $output;
+    }
 }
 
 ?>

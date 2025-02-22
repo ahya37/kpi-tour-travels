@@ -166,4 +166,60 @@ class FinanceController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 22 FEBRUARI 2025
+    // NOTE : AMBIL DATA BANK ACCOUNT SESUAI ID
+    public function finance_selected_bank_account(Request $request)
+    {
+        $bank_account_id    = $request->all()['acb_id'];
+
+        $get_data           = FinanceServices::get_data_selected_bank_account($bank_account_id);
+
+        $output         = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : SIMPAN DATA MASTER BANK ACCOUNT
+    public function finane_save_bank_account(Request $request, $type)
+    {
+        // VALIDATE
+        $check  = Validator::make($request->all(), [
+            'acb_bank_id'   => 'required',
+            'acb_coa_id'    => 'required', 
+            'acb_currency'  => 'required',
+            'acb_bank_account'  => 'required|numeric',
+        ]);
+
+        if($check->fails()) {
+            $output     = [
+                'success'   => false,
+                'status'    => 422, 
+                'message'   => $check->errors(),
+                'data'      => [],
+            ];
+        } else {
+            $data_simpan    = [
+                'ip_address'    => $request->ip(),
+                'user_id'       => Auth::user()->id,
+                'data'          => $request->all(),
+            ];
+
+            $do_simpan      = FinanceServices::do_save_bank_account($type, $data_simpan);
+
+            $output         = [
+                'success'   => $do_simpan['is_success'],
+                'status'    => $do_simpan['status_code'],
+                'message'   => $do_simpan['message'],
+                'data'      => [],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

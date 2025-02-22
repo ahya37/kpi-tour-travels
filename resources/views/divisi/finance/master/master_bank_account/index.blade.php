@@ -19,9 +19,9 @@
         <div class="row">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header d-flex flex-row align-items-center justify-content-start">
+                    <div class="card-header d-flex flex-row align-items-center justify-content-between w-100">
                         <h4 class="no-margins card-title">Tabel Akun Bank</h4>
-                        {{-- <button class="btn btn-sm btn-primary" title="Tambah Data" onclick="showModal('modal_form_coa', 'add', '')"><i class="fa fa-plus"></i> Tambah COA</button> --}}
+                        <button class="btn btn-sm btn-primary" title="Tambah Data" onclick="showModal('modal_form_account_bank', 'add', '')"><i class="fa fa-plus"></i> Tambah Akun Bank</button>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -47,6 +47,8 @@
             </div>
         </div>
     </div>
+
+    @include('divisi.finance.master.master_bank_account.modal_form_akun_bank')
 @endsection
 
 
