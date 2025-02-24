@@ -12,41 +12,38 @@ if(dataBulan.length == 0) {
 }
 
 $(document).ready(()    => {
-    let currMonth   = moment(today, 'YYYY-MM-DD').format('MM');
-    showTable('table_list_lembur', currMonth);
-    // SHOW SELECT
-    let selectedBulan   = moment(today, 'YYYY-MM-DD').format('MM');
-    showSelect('pgj_lmb_select_month', dataBulan, selectedBulan, '')
+    const sub_division      = $("#emp_divisi").val();
+    const group_division    = $("#emp_group_division").val();
+    const currMonth         = moment(today, 'YYYY-MM-DD').format('MM');
 
-    // SHOW TABLE
-    showTable('table_list_lembur_admin', []);
-    // GET DATA LEMBUR ADMIN
+    showSelect('pgj_lmb_select_month', dataBulan, currMonth, '');
 
-    let sub_division  = $("#emp_divisi").val();
-    let group_division= $("#emp_group_division").val();
-    
-    if(sub_division == 'manager') {
-        const lemburURL     = base_url + '/divisi/finance/pengajuan/lembur';
+    if(sub_division == 'manager' || sub_division == 'manager finance') {
+        showTable('table_list_lembur_admin', []);
+        // GET DATA
+        const lemburURL     = base_url + "/divisi/finance/pengajuan/lembur";
         const lemburType    = "GET";
         const lemburData    = {
-            'month'     : currMonth,
-            'role'      : group_division,
+            'month' : currMonth,
+            'role'  : group_division,
         };
+        const lemburMsg     = "";
 
+        // DO TRANS GET DATA
         const getData       = [
-            doTrans(lemburURL, lemburType, lemburData, '', true)
+            doTrans(lemburURL, lemburType, lemburData, lemburMsg, true)
         ];
 
         Promise.allSettled(getData)
             .then((results) => {
                 const lemburGetData     = results[0].status == 'fulfilled' ? results[0].value.data : [];
-
                 showTable('table_list_lembur_admin', lemburGetData);
-                lemburGetData.length    > 0 ? $("#table_list_lembur_admin").find('.dataTables_empty').html('Data Berhasil Dimuat') : $("#table_list_lembur_admin").find('.dataTables_empty').html(`Data Gagal Dimuat`);
             })
             .catch((error)      => {
-                console.log(error);
+                $("#table_list_lembur_admin").find('.dataTables_empty').html(`Tidak Ada Data Lemburan`);
             })
+    } else {
+        showTable('table_list_lembur', currMonth);
     }
 })
 
@@ -184,10 +181,9 @@ function showSelect(idSelect, data, selectedData, seq)
 
 function showSelectDetail(idSelect, value)
 {
-    
     if(idSelect == "pgj_lmb_select_month") {
         let groupDivision   = $("#emp_group_division").val();
-        if($("#emp_divisi").val() != 'manager')
+        if($("#emp_divisi").val() != 'manager' || $("#emp_divisi").val() != 'manager finance')
         {
             showTable('table_list_lembur', value);
         } else {

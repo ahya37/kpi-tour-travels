@@ -48,10 +48,17 @@ $(document).ready(() => {
 
     Promise.allSettled(getDataDashboard)
         .then((success) => {
-
             const actUser_getData       = success[0].status == 'fulfilled' ? success[0].value.data : [];
             const financeRKAP_getData   = success[1].status == 'fullfilled' ? success[1].value.data : [];
             const gpkEmployee_getData   = success[2].status == 'fulfilled' ? success[2].value.total_data : [];
+            const totalPgjLembur        = success[3].status == 'fulfilled' ? success[3].value.data : [];
+
+            // SHOW NOTIF
+            console.log(totalPgjLembur);
+            if(totalPgjLembur.length > 0) {
+                $("#alert_pengajuan_lembur").removeClass('d-none');
+                $("#alert_pengajuan_lembur").html(`<i class='fa fa-exclamation-triangle'></i> Anda memiliki <strong>${totalPgjLembur.length}</strong> pengajuan <strong>Lembur</strong>. <a href='${base_url}/pengajuan/lembur' title='Lihat Lemburan'>Lihat Selengkapnya</a>`);
+            }
 
             // HIDE LOADING ACT USER
             $("#act_user_loading").addClass('d-none');
@@ -73,12 +80,6 @@ $(document).ready(() => {
             $("#confirm_payment_text").html(`<label class="no-margins font-weight-light">${totalPgjPayment}</label>`);
             $("#confirm_payment_text_pending").addClass('text-warning');
             totalConfirmPayment > 0 ? $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> ${totalConfirmPayment} butuh konfirmasi`) : $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> Tidak Ada Konfirmasi Pembayaran`);
-
-            const totalPgjLembur    = success[3].status == 'fulfilled' ? success[3].value.data.length : 0;
-            if(totalPgjLembur > 0) {
-                $("#alert_pengajuan_lembur").removeClass('d-none');
-                $("#alert_pengajuan_lembur").html(`<i class='fa fa-exclamation-triangle'></i> Anda memiliki <strong>${totalPgjLembur}</strong> persetujuan pengajuan <strong>Lembur</strong>. <a href='${base_url}/pengajuan/lembur' title='Lihat Lemburan'>Lihat Selengkapnya</a>`);
-            }
         })
         .catch((err)    => {
             // HIDE LOADING ACT USER
