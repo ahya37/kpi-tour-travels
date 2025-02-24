@@ -41,22 +41,7 @@
                 <hr>
                 <div class="row">
                     <div class="col-sm-12">
-                        @if($data_emp['emp_sub_division'] != 'manager')
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover" style="width: 100%;" id="table_list_lembur">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center align-middle" style="width: 5%;">No</th>
-                                            <th class="text-center align-middle" style="width: 20%;">Tanggal</th>
-                                            <th class="text-left align-middle">Keterangan</th>
-                                            <th class="text-center align-middle" style="width: 15%;">Status</th>
-                                            <th class="text-center align-middle" style="width: 5%">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        @elseif($data_emp['emp_sub_division'] == 'manager')
+                        @if($data_emp['emp_sub_division'] == 'manager' || $data_emp['emp_sub_division'] == 'manager finance')
                             <div class="table-responsive">
                                 <table class="table table-stripepd table-hover" style="width: 100%;" id="table_list_lembur_admin">
                                     <thead>
@@ -69,6 +54,21 @@
                                             <th class="text-center align-middle" style="width: 15%">Aksi</th>
                                         </tr>
                                     </thead>
+                                </table>
+                            </div>
+                        @else
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover" style="width: 100%;" id="table_list_lembur">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" style="width: 5%;">No</th>
+                                            <th class="text-center align-middle" style="width: 20%;">Tanggal</th>
+                                            <th class="text-left align-middle">Keterangan</th>
+                                            <th class="text-center align-middle" style="width: 15%;">Status</th>
+                                            <th class="text-center align-middle" style="width: 5%">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
                                 </table>
                             </div>
                         @endif
