@@ -182,33 +182,33 @@ function showSelect(idSelect, data, selectedData, seq)
 function showSelectDetail(idSelect, value)
 {
     if(idSelect == "pgj_lmb_select_month") {
+        console.log(idSelect, value);
         let groupDivision   = $("#emp_group_division").val();
-        if($("#emp_divisi").val() != 'manager' || $("#emp_divisi").val() != 'manager finance')
-        {
-            showTable('table_list_lembur', value);
-        } else {
+        let subDivisi       = $("#emp_divisi").val();
+
+        if(subDivisi == 'manager' || subDivisi == 'manager finance') {
             showTable('table_list_lembur_admin', []);
             
-            const lemburURL     = base_url + "/divisi/finance/pengajuan/lembur";
-            const lemburType    = "GET";
-            const lemburData    = {
+            let lemburURL       = base_url + "/divisi/finance/pengajuan/lembur";
+            let lemburType      = "GET";
+            let lemburData      = {
                 'month'     : value,
-                'role'      : groupDivision,
-                
+                'role'      : groupDivision
             };
             const lemburMsg     = "";
-
+            
             doTrans(lemburURL, lemburType, lemburData, lemburMsg, true)
                 .then((results)     => {
                     const lemburGetData     = results.data.length > 0 ? results.data : [];
+                    
                     showTable('table_list_lembur_admin', lemburGetData);
-                    console.log(lemburGetData);
 
-                    results.data.length > 0 ? $("#table_list_lembur_admin").find('.dataTables_empty').html(`Data Berhasil Dimuat`) : $("#table_list_lembur_admin").find('.dataTables_empty').html(`Tidak Ada Data Lemburan Pada Bulan ${moment(value, 'MM').format('MMMM')}`);
+                    if(lemburGetData.length < 1) {
+                        $("#tabel_list_lembur_admin").find('.dataTables_empty').html(`Tidak Ada Data Lemburan Bulan ${moment(value, 'MM').format('MMM')}`);
+                    }
                 })
-                .catch((error)      => {
-                    showTable('table_list_lembur_admin', []);
-                })
+        } else {
+            showTable('table_list_lembur', value);
         }
     }
 }
