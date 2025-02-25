@@ -325,6 +325,133 @@ class FinanceServices
 
         return $output;
     }
+
+    // 25 FEBRUARI 2025
+    // NOTE : GET DATA PENGAJUAN KEUANGAN SUMMARY
+    public static function get_pengajuan_keuangan_umhaj($data)
+    {
+        $tahun  = $data['tahun'];
+        $bulan  = $data['bulan'];
+
+        // GET DATA FROM UMHAJ
+        $query  = DB::connection('umhaj_percik')
+                    ->table('uang as a')
+                    ->join('uang_detail as b', 'a.ID', '=', 'b.IDUANG')
+                    ->select(
+                            'a.ID as pengajuan_id',
+                            'a.NOMOR as pengajuan_nomor_surat',
+                            'a.NAMA as pengaju_nama',
+                            'a.TGL as pengajuan_tanggal',
+                            DB::raw('UPPER(a.UNTUK) as pengajuan_deskripsi'),
+                            DB::raw('COUNT(b.ID) as total_item'),
+                            DB::raw('SUM(b.JUMLAH) as total_pengajuan'),
+                            'a.CURRENCY as pengajuan_mata_uang'
+                            )
+                    ->where(DB::raw('EXTRACT(YEAR FROM a.TGL)'), '=', $tahun)
+                    ->where(DB::raw('EXTRACT(MONTH FROM a.TGL)'), '=', $bulan)
+                    ->groupBy('a.ID', 'a.NOMOR', 'a.UNTUK', 'a.TGL', 'a.CURRENCY', 'a.NAMA')
+                    ->orderBy('a.CREATED_DATE', 'desc')
+                    ->get();
+        
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'status_code'   => 201,
+                    'is_success'    => true,
+                    'message'       => 'Berhasil Mengambil Data Pengajuan Keuangan Bulan ' . $bulan . ' Tahun ' . $tahun,
+                    'data'          => $query,
+                ];
+            } else {
+                $output     = [
+                    'status_code'   => 404,
+                    'is_success'    => true,
+                    'message'       => 'Tidak Ada Data Pengajuan Keuangan Pada Bulan ' . $bulan . ' Tahun ' . $tahun,
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'status_code'   => 500,
+                'is_success'    => false,
+                'message'       => 'Internal Server Error',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+
+    // NOTE : GET DATA PENGAJUAN KEUANGAN HEADER & DETAIL
+    public static function get_pengajuan_keuangan_detail_umhaj($id_pengajuan)
+    {
+        $query_header = DB::connection('umhaj_percik')
+                            ->table('uang as a')
+                            ->join('uang_detail as b', 'a.ID', '=', 'b.IDUANG')
+                            ->select(
+                                    'a.NOMOR as pengajuan_nomor',
+                                    'a.NAMA as pengaju_nama',
+                                    'a.UNTUK as pengajuan_deskripsi',
+                                    'a.JENISBAYAR as pengajuan_metode',
+                                    'a.REKENING as pengajuan_rekening',
+                                    'a.FILELOKASI as pengajuan_file',
+                                    'a.TGL as pengajuan_tanggal',
+                                    'a.JENISBAYAR as pengajuan_metode',
+                                    'a.CURRENCY as pengajuan_mata_uang',
+                                    DB::raw('SUM(b.JUMLAH) as pengajuan_total')
+                                    )
+                            ->where('a.ID', '=', $id_pengajuan)
+                            ->groupBy('a.NOMOR', 'a.NAMA', 'a.UNTUK', 'a.JENISBAYAR', 'a.REKENING', 'a.FILELOKASI', 'a.TGL', 'a.JENISBAYAR', 'a.CURRENCY')
+                            ->get();
+
+        $query_detail   = DB::connection('umhaj_percik')
+                            ->table('uang_detail as a')
+                            ->join('uang as b', 'a.IDUANG', '=', 'b.id')
+                            ->select(
+                                    'a.ID as pengajuan_detail_id',
+                                    'a.URAIAN as pengajuan_detail_deskripsi',
+                                    'a.JUMLAH as pengajuan_detail_jumlah',
+                                    'b.CURRENCY as pengajuan_detail_currency'
+                                    )
+                            ->where('IDUANG', '=', $id_pengajuan)
+                            ->get();
+        
+        try {
+            if(count($query_header) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 201,
+                    'message'       => 'Berhasil Mengambil Data Pengajuan Keuangan',
+                    'data'          => [
+                        'header'    => $query_header,
+                        'detail'    => $query_detail,
+                    ]
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 404,
+                    'message'       => 'Data Pengajuan Keuangan Tidak Ditemukan',
+                    'data'          => [
+                        'header'        => [],
+                        'detail'        => [],
+                    ],
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Internal Server Error',
+                'data'          => [],
+            ];
+        }
+
+        return $output;
+    }
 }
 
 ?>

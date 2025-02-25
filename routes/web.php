@@ -478,10 +478,12 @@ Route::group(['middleware' => ['auth']], function () {
             });
 
             Route::prefix('master')->group(function(){
+                Route::get('/', [finance::class, 'finance_master_dashboard'])->name('finance.master.index');
+
+                // GAJI POKOK
                 Route::get('/gaji_pokok_employee', [DivisiController::class, 'finance_master_employees_fee']);
                 Route::put('/gaji_pokok_employee/{emp_id}', [DivisiController::class, 'finance_master_employees_fee_update']);
 
-                Route::get('/', [finance::class, 'finance_master_dashboard'])->name('finance.master.index');
                 // MASTER COA
                 Route::prefix('coa')->group(function(){
                     Route::get('/', [finance::class, 'finance_master_coa'])->name('finance.master.coa.index');
@@ -489,6 +491,7 @@ Route::group(['middleware' => ['auth']], function () {
                     Route::post('/save/{jenis}', [finance::class, 'finance_save_coa']);
                 });
 
+                // MASTER BANK
                 Route::prefix('bank')->group(function(){
                     Route::get('/', [finance::class, 'finance_master_bank'])->name('finance.master.bank.index');
                     Route::get('/list_bank', [finance::class, 'finance_list_bank']);
@@ -506,6 +509,10 @@ Route::group(['middleware' => ['auth']], function () {
                 // LEMBUR
                 Route::get('/lembur', [DivisiController::class, 'finance_pgj_lembur_karyawan_list']);
                 Route::post('/trans_lembur/{jenis}', [DivisiController::class, 'finance_pgj_lembur_karyawan_trans']);
+
+                // PENGAJUAN KEUANGAN
+                Route::get('/keuangan', [finance::class, 'finance_umhaj_pengajuan_keuangan']);
+                Route::get('/keuangan_detail', [finance::class, 'finance_umhaj_pengajuan_keuangan_detail']);
             });
 
             Route::prefix('aktivitas')->group(function(){

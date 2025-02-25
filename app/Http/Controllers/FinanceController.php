@@ -222,4 +222,42 @@ class FinanceController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 25 FEBRUARI 2025
+    // NOTE : AMBIL PENGAJUAN KEUANGAN
+    public function finance_umhaj_pengajuan_keuangan(Request $request)
+    {
+        $send_data   = [
+            'bulan'     => $request->all()['selected_month'],
+            'tahun'     => $request->all()['selected_year'],
+        ];
+
+        $get_data   = FinanceServices::get_pengajuan_keuangan_umhaj($send_data);
+
+        $output     = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data']
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : AMBIL PENGAJUAN KEUANGAN DETAIL
+    public function finance_umhaj_pengajuan_keuangan_detail(Request $request)
+    {
+        $id_pengajuan   = $request->all()['id'];
+        
+        $get_data   = FinanceServices::get_pengajuan_keuangan_detail_umhaj($id_pengajuan);
+
+        $output     = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
 }
