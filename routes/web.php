@@ -500,6 +500,11 @@ Route::group(['middleware' => ['auth']], function () {
                     Route::get('/selected_bank_account', [finance::class, 'finance_selected_bank_account']);
                     Route::post('/save_bank_account/{type}', [finance::class, 'finane_save_bank_account']);
                 });
+
+                Route::prefix('currency')->group(function(){
+                    Route::get('/list', [finance::class, 'finance_master_currency']);
+                    Route::post('/currency_update/{trans_type}', [finance::class, 'finance_master_currency_trans']);
+                });
             });
             Route::prefix('simulasi')->group(function(){
                 Route::get('/employees_fee', [DivisiController::class, 'finance_sim_employees_fee']);

@@ -36,7 +36,6 @@
                 <div class="card">
                     <div class="card-header d-flex flex-row align-items-center justify-content-between bg-primary">
                         <h4 class="no-margins">Master COA</h4>
-                        <i class="fa fa-info-circle" title="Chart of Accounts" style="cursor: pointer;"></i>
                     </div>
                     <div class="card-body text-right" id="master_coa_content">
                         <div class="spinner spinner-border"></div>
@@ -51,7 +50,6 @@
                 <div class="card">
                     <div class="card-header d-flex flex-row align-items-center justify-content-between bg-primary">
                         <h4 class="no-margins">Master Account Bank</h4>
-                        <i class="fa fa-info-circle" title="List Account Bank" style="cursor: pointer;"></i>
                     </div>
                     <div class="card-body text-right" id="master_account_bank_content">
                         <div class="spinner spinner-border"></div>

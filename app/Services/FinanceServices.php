@@ -452,6 +452,49 @@ class FinanceServices
 
         return $output;
     }
+
+    // NOTE : GET DATA CURRENCY LIST
+    public static function get_finance_currency_master($data)
+    {
+        $limit      = $data['limit'];
+        $order_by   = $data['orderBy'];
+
+        $query      = DB::table('fin_mas_currency')
+                        ->select('id', 'curr_from', 'curr_to_value_low', 'curr_to_value_high')
+                        ->orderBy('created_date', $order_by)
+                        ->limit($limit)
+                        ->get();
+
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Kurs',
+                    'data'          => $query,
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Data Kurs Tidak Ditemukan',
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Internal Server Error',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+    
 }
 
 ?>

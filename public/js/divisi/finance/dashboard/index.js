@@ -998,6 +998,67 @@ function showModal(idModal, value, jenis)
                     text    : 'Tidak Ada Detail Pembayaran Untuk Data Ini',
                 });
             })
+    } else if (idModal == 'modal_update_kurs') {
+        // GET DATA KURS
+        const currURL   = base_url + "/divisi/finance/master/currency/list";
+        const currType  = "GET";
+        const currData  = {
+            'limit' : '5',
+            'sort'  : 'desc',
+        };
+        const currMsg   = [];
+
+        doTransV2(currURL, currType, currData, currMsg, true)
+            .then((success) => {
+                console.log(success);
+            })
+            .catch((error)  => {
+                console.log(error);
+                $("#table_list_kurs tbody tr").html(`<td colspan="5" class="text-center">${error.responseJSON.message}</td>`)
+            })
+        
+
+        
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+
+        $("#btn_simpan_kurs").val('add');
+        
+        $("#kurs_start_date").daterangepicker({
+            singleDatePicker    : true,
+            locale              : {
+                format  : 'DD/MM/YYYY',
+            },
+            minYear             : moment().subtract(1, 'year'),
+            maxYear             : moment().add(1, 'year'),
+            autoApply           : true,
+            showDropdowns       : true,
+        }).prop('style', 'background-color:#fff; cursor: pointer');
+
+        $("#kurs_value_low").on('keyup', () => {
+            let valueLow    = $("#kurs_value_low");
+            let formatValue = valueLow.val().replace(/[^0-9]/g, '');
+
+            if(formatValue != '') {
+                valueLow.val(parseInt(formatValue).toLocaleString('id-ID'));
+            } else {
+                valueLow.val(null);
+            }
+            
+            valueLow.removeClass('is-invalid');
+        });
+
+        $("#kurs_value_high").on('keyup', () => {
+            let valueHigh   = $("#kurs_value_high");
+            let formatValue = valueHigh.val().replace(/[^0-9]/g, '');
+
+            if(formatValue != '') {
+                valueHigh.val(parseInt(formatValue).toLocaleString('id-ID'));
+            } else {
+                valueHigh.val(null);
+            }
+
+            valueHigh.removeClass('is-invalid');
+        })
     }
 }
 
@@ -1098,6 +1159,17 @@ function closeModal(idModal) {
     } else if(idModal == 'modal_detail_confirm_payment_agent') {
         $("#"+idModal).modal('hide');
         showModal('modal_confirm_payment_agent', '', '');
+    } else if (idModal == 'modal_update_kurs') {
+        $("#"+idModal).modal('hide');
+        // RESET FORM
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#kurs_start_date").val(null);
+            $("#kurs_value_low").val(0);
+            $("#kurs_value_high").val(0);
+            $("#kurs_value_low").removeClass('is-invalid');
+            $("#kurs_value_high").removeClass('is-invalid');
+        });
+    
     }
 }
 
@@ -1436,6 +1508,42 @@ function doUpdate(idForm, data, seq)
                     text    : 'Gagal Menyimpan Data'
                 })
             })
+    } else if(idForm == 'modal_update_kurs') {
+        const fd    = new FormData;
+        fd.append('kurs_id', $("#kurs_id").val());
+        fd.append('kurs_start_date', $("#kurs_start_date").val() != '' ? moment($("#kurs_start_date").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : today);
+        fd.append('kurs_value_low', $("#kurs_value_low").val() == '' ? '' : parseInt($("#kurs_value_low").val()));
+        fd.append('kurs_value_high', $("#kurs_value_low").val() == '' ? '' : parseInt($("#kurs_value_low").val()));
+
+        const transType     = data;
+
+        const kursURL       = base_url + "/divisi/finance/master/currency/currency_update/"+transType;
+        const kursType      = "POST";
+        const kursData      = fd;
+        const kursMessage   = Swal.fire({ title : "Data Sedang Diproses.." }); Swal.showLoading();
+
+        doTransV2(kursURL, kursType, kursData, kursMessage, true, false, false)
+            .then((success) => {
+                console.log(success);
+            })
+            .catch((error)  => {
+                if(error.status == 422) {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : 'Periksa Kembali Kolom Yang Berwarna Merah',
+                        didClose    :  () => {
+                            $.each(error.responseJSON.message, (index, value)   => {
+                                $("#"+index).addClass('is-invalid');
+                            })
+                        }
+                    })
+                } else {
+                    console.log(error);
+                }
+            })
+
+        
     }
 }
 
@@ -1612,14 +1720,17 @@ function doTrans(url, type, data, message, isAsync)
     })
 }
 
-function doTransV2(url, type, data, message, isAsync)
+function doTransV2(url, type, data, message, isAsync, processData = true, contentType = 'application/x-www-form-urlencoded')
 {
     return new Promise((resolve, reject)    => {
         $.ajax({
+            cache   : false,
             url     : url,
             dataType: 'json',
             async   : isAsync,
             type    : type,
+            processData     : processData, 
+            contentType     : contentType,
             headers : {
                 'X-CSRF-TOKEN'  : CSRF_TOKEN,
             },

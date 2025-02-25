@@ -260,4 +260,54 @@ class FinanceController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // NOTE : LIST MASTER KURS
+    public function finance_master_currency(Request $request)
+    {
+        $send_data  = [
+            'limit'     => $request->all()['limit'],
+            'orderBy'   => $request->all()['sort'],
+        ];
+
+        $get_data   = FinanceServices::get_finance_currency_master($send_data);
+
+        $output      = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : TRANS SIMPAN CURRENCY
+    public function finance_master_currency_trans(Request $request, $trans_type)
+    {
+        $validator  = Validator::make($request->all(), [
+            'kurs_start_date'   => 'required|date',
+            'kurs_value_low'    => 'required',
+            'kurs_value_high'   => 'required'
+        ]);
+
+        if($validator->fails())
+        {
+            $output     = [
+                'success'   => false,
+                'status'    => 422,
+                'message'   => $validator->messages(),
+                'data'      => [],
+            ];
+        } else {
+            $send_data  = [
+                'data'      => $request->all(),
+                'type'      => $trans_type,
+                'user_id'   => Auth::user()->id,
+                'user_name' => Auth::user()->name,
+                'ip_address'=> $request->ip(),   
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

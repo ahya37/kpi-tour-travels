@@ -39,6 +39,29 @@
             @endif
         @endif
         <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success d-flex flex-row align-items-center w-100 justify-content-between">
+                        <h4 class="no-margins font-weight-normal card-title">Kurs Rupiah Tanggal {{ date('d F Y') }}</h4>
+                        <button class="btn btn-sm btn-success" title="Update Kurs" onclick="showModal('modal_update_kurs')"><i class="fa fa-plus-circle"></i> Update Kurs</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-sm-6 col-12">
+                                <h2 class="no-margins">Terendah</h2>
+                                <h2 class="no-margins" id="dashboard_curr_low">Rp. 0.00</h2>
+                            </div>
+                            <div class="col-sm-6 col-12">
+                                <h2 class="no-margins">Tertinggi</h2>
+                                <h2 class="no-margins" id="dashboard_curr_high">Rp. 0.00</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
             <div class="col-xl-3 col-lg-6 mb-sm-2">
                 <div class="card">
                     <div class="card-header bg-primary">
@@ -587,6 +610,8 @@
             </div>
         </div>
     </div>
+
+    @include('divisi.finance.dashboard.modal_update_kurs')
 @endsection
 
 
