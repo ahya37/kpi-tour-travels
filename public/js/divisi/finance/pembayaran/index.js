@@ -94,10 +94,8 @@ function showModal(idModal, type, data)
                         if(pengajuanFile.includes('^') === true) {
                             let split   = pengajuanFile.split('^');
                             for(let i = 0; i < split.length; i++) {
-                                console.log(html);
                                 html    += `<li><a href="http://umhaj.perciktours.com/${split[i]}" target="_blank">File ${i + 1}</li>`;
                             }
-                            console.log(html);
                             $("#pgj_file").html(html);
                         } else {
                             html    = `<li><a href="https://umhaj.perciktours.com/${pengajuanFile}" target="_blank">File 1</li>`

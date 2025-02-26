@@ -3221,6 +3221,12 @@ class DivisiService
                     "updated_by"    => $user_id,
                     "updated_at"    => $today,
                 ];
+            } else if(count($check_jam_pulang) > 0 && empty($check_jam_pulang[0]->prs_out_time)) {
+                $data_update    = [
+                    'prs_out_time'  => $data['data']['jam_keluar'],
+                    'updated_by'    => $user_id,
+                    'updated_at'    => $today,
+                ];
             } else {
                 $data_update    = [
                     "prs_in_time"   => $data['data']['jam_masuk'],
