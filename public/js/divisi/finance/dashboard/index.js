@@ -538,7 +538,7 @@ function showTable(idTable, data)
 
                 $("#"+idTable).DataTable().row.add([
                     `<label class="font-weight-normal no-margins">${kursNo}</label>`,
-                    `<label class="font-weight-normal no-margins">${moment(kursDate, 'YYYY-MM-DD').format('DD MMM YYYY')}</label>`,
+                    `<label class="font-weight-normal no-margins"><a href="#" onclick="copyText('kurs', ${kursId})">${moment(kursDate, 'YYYY-MM-DD').format('DD MMM YYYY')}</a></label>`,
                     `<label class="font-weight-normal no-margins">${parseInt(kursLow).toLocaleString('id-ID')}</label>`,
                     `<label class="font-weight-normal no-margins">${parseInt(kursHigh).toLocaleString('id-ID')}</label>`,
                     kursButton
@@ -1710,12 +1710,38 @@ function formatRupiah(amount)
 function copyText(type, data)
 {
     if(type == 'kurs') {
-        console.log(data);
-        // let text    = `Kurs Tanggal ${item['curr_start_date']}
-        // USD
-        // Kurs Tertinggi  : Rp. ${parseInt(item['curr_to_value_high']).toLocaleString('id-ID')}
-        // Kurs Terendah   : Rp. ${parseInt(item['curr_to_value_lo']).toLocaleString('id-ID')}`
+        const currURL   = base_url + "/divisi/finance/master/currency/list_detail";
+        const currType  = "GET";
+        const currData  = {
+            'curr_id'   : data,
+        };
+        const currMsg   = "";
 
-        // console.log(text);
+        doTransV2(currURL, currType, currData, currMsg, true)
+            .then((results) => {
+                const currGetData   = results.data[0];
+                let textToCopy  = 
+                `Kurs Tgl. ${currGetData.curr_start_date}
+USD
+Kurs Tertinggi  : Rp. ${parseInt(currGetData.curr_to_value_high).toLocaleString('id-ID')}
+Kurs Terendah : Rp. ${parseInt(currGetData.curr_to_value_low).toLocaleString('id-ID')} `;
+
+                navigator.clipboard.writeText(textToCopy)
+                    .then(()    => {
+                        Swal.fire({
+                            icon    : 'info',
+                            title   : 'Berhasil Menyalin Kurs'
+                        })
+                    })
+                    .catch((error)  => {
+                        Swal.fire({
+                            icon    : 'info',
+                            title   : 'Data Gagal Dicopy'
+                        })
+                    })
+            })
+            .catch((error)  => {
+                console.log(error);
+            })
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Helpers\LogHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+date_default_timezone_set('Asia/Jakarta');
 
 class FinanceServices
 {
@@ -507,6 +508,7 @@ class FinanceServices
         $today          = date('Y-m-d H:i:s');
 
         DB::beginTransaction();
+        DB::connection('umhaj_percik')->beginTransaction();
 
         if($type == 'add') {
             // INSERT KE FIN MASTER CURR
@@ -527,8 +529,20 @@ class FinanceServices
 
             DB::table('fin_mas_currency')->insert($data_insert);
 
+            // INSERT TO UMHAJ
+            $data_insert_umhaj  = [
+                'TERTINGGI'     => $curr_data['kurs_value_high'],
+                'TERENDAH'      => $curr_data['kurs_value_low'],
+                'TANGGAL'       => $curr_data['kurs_start_date'],
+                'CREATED_BY'    => $user_name,
+                'CREATED_DATE'  => $today,
+            ];
+
+            DB::connection('umhaj_percik')->table('kurs')->insert($data_insert_umhaj);
+
             try {
                 DB::commit();
+                DB::connection('umhaj_percik')->commit();
 
                 $output     = [
                     'is_success'    => true,
@@ -540,6 +554,8 @@ class FinanceServices
                 LogHelper::create('add', $output['message'], $ip_address);
             } catch (\Exception $e) {
                 DB::rollBack();
+                DB::connection('umhaj_percik')->rollBack();
+                
                 $output     = [
                     'is_success'    => false,
                     'status_code'   => 500,
@@ -562,8 +578,28 @@ class FinanceServices
 
             DB::table('fin_mas_currency')->where($data_where)->update($data_update);
 
+            // GET ID KURS FROM UMHAJ
+            $get_kursID_umhaj   = DB::connection('umhaj_percik')->table('kurs')->select('ID')->where('TANGGAL', '=', $curr_data['kurs_start_date'])->get();
+            if(count($get_kursID_umhaj) > 0) {
+                $kursID_umhaj   = $get_kursID_umhaj[0]->ID;
+
+                $data_where_umhaj   = [
+                    'ID'    => $kursID_umhaj
+                ];
+
+                $data_update_umhaj  = [
+                    'TERTINGGI' => $curr_data['kurs_value_low'],
+                    'TERENDAH'  => $curr_data['kurs_value_high'],
+                    'UPDATED_BY'=> $user_name,
+                    'UPDATED_DATE'  => $today
+                ];
+
+                DB::connection('umhaj_percik')->table('kurs')->where($data_where_umhaj)->update($data_update_umhaj);
+            }
+
             try {
                 DB::commit();
+                DB::connection('umhaj_percik')->commit();
 
                 $output     = [
                     'is_success'    => true,
@@ -573,6 +609,9 @@ class FinanceServices
                 ];
                 LogHelper::create('edit', $output['message'], $ip_address);
             } catch (\Exception $e) {
+                DB::rollback();
+                DB::connection('umhaj_percik')->rollBack();
+
                 $output     = [
                     'is_success'    => false,
                     'status_code'   => 500,
@@ -580,7 +619,6 @@ class FinanceServices
                     'data'          => [],
                 ];
 
-                DB::rollback();
                 Log::channel('daily')->error($e->getMessage());
                 LogHelper::create('error_system', $output['message'], $ip_address);
             }
