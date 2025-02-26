@@ -39,11 +39,20 @@ $(document).ready(() => {
         'role'      : 'finance', 
     };
 
+    const currURL           = base_url + '/divisi/finance/master/currency/list/';
+    const currType          = "GET";
+    const currData          = {
+        'limit' : 1,
+        'sort'  : 'desc',
+    };
+    const currMsg           = "";
+
     const getDataDashboard     = [
         doTrans(actUser_url, 'GET', actUser_data, '', true),
         doTrans(financeRKAP_url, 'GET', financeRKAP_data, '', true),
         doTransV2(gpkEmployee_url, 'GET', gpkEmployee_data, '', true),
-        doTransV2(pgjLemburNotifUrl, pgjLemburNotifType, pgjLemburNotifData, '', true)
+        doTransV2(pgjLemburNotifUrl, pgjLemburNotifType, pgjLemburNotifData, '', true),
+        doTransV2(currURL, currType, currData, currMsg, true)
     ];
 
     Promise.allSettled(getDataDashboard)
@@ -52,6 +61,7 @@ $(document).ready(() => {
             const financeRKAP_getData   = success[1].status == 'fullfilled' ? success[1].value.data : [];
             const gpkEmployee_getData   = success[2].status == 'fulfilled' ? success[2].value.total_data : [];
             const totalPgjLembur        = success[3].status == 'fulfilled' ? success[3].value.data : [];
+            const currGetData           = success[4].status == 'fulfilled' ? success[4].value.data : [];
 
             // SHOW NOTIF
             if(totalPgjLembur.length > 0) {
@@ -72,13 +82,15 @@ $(document).ready(() => {
             // HIDE ABS LOADING
             $("#abs_loading").addClass('d-none');
             $("#abs_text").removeClass('d-none');
-            $("#abs_text").html("<label class='no-margins font-weight-light'>"+moment().format('YYYY-MM-DD')+"</label>");
+            $("#abs_text").html("<label class='no-margins font-weight-light'>" + moment().format('YYYY-MM-DD') + "</label>");
             
             $("#kar_text").html("<label class='no-margins font-weight-light'>" + gpkEmployee_getData + "</label>");
 
-            $("#confirm_payment_text").html(`<label class="no-margins font-weight-light">${totalPgjPayment}</label>`);
-            $("#confirm_payment_text_pending").addClass('text-warning');
-            totalConfirmPayment > 0 ? $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> ${totalConfirmPayment} butuh konfirmasi`) : $("#confirm_payment_text_pending").html(`<i class="fa fa-exclamation-circle"></i> Tidak Ada Konfirmasi Pembayaran`);
+            // UPDATE CURRENT CURRENCY
+            $("#dashboard_curr_low").html('Rp. ' + parseInt(currGetData[0].curr_to_value_low).toLocaleString('id-ID'));
+            $("#dashboard_curr_high").html('Rp. ' + parseInt(currGetData[0].curr_to_value_high).toLocaleString('id-ID'));
+
+
         })
         .catch((err)    => {
             // HIDE LOADING ACT USER
@@ -106,7 +118,7 @@ function showCalendar(today)
     var calendar    = new FullCalendar.Calendar(idCalendar,{
         themeSystem : 'bootstrap',
         headerToolbar   : {
-        left    : 'prevCustomButton nextCustomButton',
+            left    : 'prevCustomButton nextCustomButton',
             right   : 'todayCustomButton dayGridMonth',
         },
         locale          : 'id',
@@ -495,89 +507,6 @@ function showTable(idTable, data)
             $("#sml_emp_ot2").html(totalOvertimeTwo + " (" + formatRupiah(amountOverTimeTwo) + " )");
             $("#sml_emp_ot3").html(totalOvertimeThree + " (" + formatRupiah(amountOverTimeThree) + " )");
         }
-    } else if(idTable == 'table_list_confirm_payment_agent') {
-        $("#"+idTable).DataTable().clear().destroy();
-
-        $("#"+idTable).DataTable({
-            language    : {
-                emptyTable  : '<i class="fa fa-spinner fa-spin"></i> Data Sedang Dimuat..',
-            },
-            lengthMenu  : [
-                [ 10, 20, 50, 100, -1 ],
-                [ 10, 20, 50, 100, "Semua"],
-            ],
-            pageLength  : 10,
-            autoWidth   : false,
-            columnDefs  : [
-                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
-                { "targets" : [1], "className" : "align-middle" },
-                { "targets" : [2], "className" : "align-middle", "width" : "25%" },
-                { "targets" : [3], "className" : "align-middle", "width" : "15%" },
-                { "targets" : [4], "className" : "text-center align-middle", "width" : "15%" },
-                { "targets" : [5], "className" : "text-center align-middle", "width" : "10%" },
-            ],
-        });
-        
-        if(data.length > 0) {
-            let seq = 1;
-            for(const item of data)
-            {
-                let tourCode        = `<label class="font-weight-normal no-margins">${item['tour_code']}</label>`;
-                let agentName       = `<label class="font-weight-normal no-margins">${item['agent_name']}</label>`
-                let totalPengajuan  = `<label class="font-weight-normal no-margins">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item['total_payment'])}</label>`;
-                let isPaid          = item['is_paid'] == "1" ? `<span class="badge badge-sm badge-primary"><label class="font-weight-bold no-margins">Disetujui</label></span>` : `<span class="badge badge-sm badge-warning"><label class="font-weight-bold no-margins">Pending</label></span>`;
-                let button          = item['is_paid'] ==  "1" ? `<button type="button" class="btn btn-sm btn-secondary" disabled style="cursor:no-drop" title="Sudah Dibayarkan"><i class="fa fa-check"></i></button>` : `<button type="button" class="btn btn-sm btn-primary" value="${item['tour_code']}&${item['agent_id']}" title="Konfirmasi Pembayaran" onclick="showModal('modal_detail_confirm_payment_agent', this.value, 'update')"><i class="fa fa-check"></i></button>`;
-                $("#"+idTable).DataTable().row.add([
-                    seq++,
-                    tourCode,
-                    agentName,
-                    totalPengajuan,
-                    isPaid,
-                    button
-                ]).draw(false);
-            }
-        }
-
-        // REMOVE FOOTER
-        $("#table_list_confirm_payment_agent_wrapper").css('padding-bottom', '0px');
-    } else if(idTable == 'table_detail_payment_agent') {
-        $("#"+idTable).DataTable().clear().destroy();
-        $("#"+idTable).DataTable({
-            language    : {
-                emptyTable  : "<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..",
-            },
-            searching   : false,
-            pageLength  : -1,
-            paging      : false,
-            autoWidth   : false,
-            bInfo       : false,
-            columnDefs  : [
-                { "targets" : [0], "className" : "text-center align-middle", "width" : "10%" },
-                { "targets" : [1], "className" : "text-center align-middle", "width" : "45%" },
-                { "targets" : [2], "className" : "align-middle" },
-            ],
-        })
-
-        $("#"+idTable+"_wrapper").css('padding-bottom', '0px');
-
-        if(data.length > 0) {
-            let seq     = 1;
-            let totalPengajuan  = 0;
-            for(const item of data)
-            {
-                $("#"+idTable).DataTable().row.add([
-                    `<label class="font-weight-normal no-margins">${seq++}</label>`,
-                    `<label class="font-weight-normal no-margins">${moment(item['act_date'], 'YYYY-MM-DD').format('DD-MM-YYYY')}</label>`,
-                    `<label class="font-weight-normal no-margins">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item['amount'])}</label>`
-                ]).draw(false);
-
-                totalPengajuan  += item['amount'];
-            }
-
-            $("#total_pengajuan_detail_payment_agent").html(new Intl.NumberFormat('id-ID', { style: "currency", currency: 'IDR' }).format(totalPengajuan));
-        } else {
-            $("#total_pengajuan_detail_payment_agent").html("Rp 0,00");
-        }
     } else if(idTable == 'table_list_kurs') {
         $("#"+idTable).DataTable().clear().destroy();
 
@@ -605,7 +534,7 @@ function showTable(idTable, data)
                 let kursDate    = item['curr_start_date'];
                 let kursLow     = parseInt(item['curr_to_value_low']);
                 let kursHigh    = parseInt(item['curr_to_value_high']);
-                let kursButton  = `<button class="btn btn-sm btn-success" value="${kursId}" title="Edit"><i class="fa fa-edit"></i></button>`;
+                let kursButton  = `<button class="btn btn-sm btn-success" value="${kursId}" title="Edit" onclick="showModal('modal_update_kurs', this.value, 'edit')"><i class="fa fa-edit"></i></button>`;
 
                 $("#"+idTable).DataTable().row.add([
                     `<label class="font-weight-normal no-margins">${kursNo}</label>`,
@@ -982,85 +911,57 @@ function showModal(idModal, value, jenis)
                     text    : 'Data Tidak Ditemukan'
                 })
             })
-    } else if(idModal == 'modal_confirm_payment_agent') {
-        let pgjConfirmPaymentURL    = base_url + "/divisi/finance/pengajuan/pembayaran_agent";
-        let pgjConfirmPaymentMsg    = Swal.fire({ title : 'Data Sedang Dimuat..' }); Swal.showLoading();
-
-        showTable('table_list_confirm_payment_agent', []);
-        doTrans(pgjConfirmPaymentURL, "GET", [], pgjConfirmPaymentMsg, true)
-            .then((success)     => {
-                Swal.close();                
-                $("#"+idModal).modal({ backdrop : 'static', keyboard : false });
-                let pgjConfirmPaymentData   = success.data;
-
-                showTable('table_list_confirm_payment_agent', pgjConfirmPaymentData);
-                $("#table_list_confirm_payment_agent .dataTables_empty").html('Data Berhasil Dimuat');
-            })
-            .catch((err)        => {
-                console.log(err);
-                Swal.fire({
-                    icon    : 'error',
-                    title   : 'Terjadi Kesalahan',
-                    text    : 'Data Pembayaran Agent Kosong',
-                });
-            })
-    } else if(idModal == 'modal_detail_confirm_payment_agent') {
-        let pgjPaymentDetail_URL    = base_url + "/divisi/finance/pengajuan/pembayaran_agent_detail";
-        let pgjPaymentDetail_Type   = "GET";
-        let pgjPaymentDetail_data   = {
-            "tour_code" : value.split('&')[0],
-            "agent_id"  : value.split('&')[1],
-        };
-        let pgjPaymentDetail_msg    = Swal.fire({ title : "Data Sedang Dimuat..", allowOutsideClick: false }); Swal.showLoading();
-
-        doTrans(pgjPaymentDetail_URL, pgjPaymentDetail_Type, pgjPaymentDetail_data, pgjPaymentDetail_msg, true)
-            .then((success)     => {
-                closeModal('modal_confirm_payment_agent');
-                Swal.close();
-                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-                // HEADER
-                $("#payment_agent_tour_code").val(success.data.header['tour_code']);
-                $("#payment_agent_id").val(success.data.header['agent_id']);
-                $("#payment_agent_name").val(success.data.header['agent_name']);
-
-                // DETAIL
-                showTable('table_detail_payment_agent', success.data.detail);
-                $("#table_detail_payment_agent .dataTables_empty").html('Data Ditemukan');
-            })
-            .catch((error)      => {
-                console.log(error);
-                Swal.fire({
-                    icon    : 'error',
-                    title   : 'Terjadi Kesalahan',
-                    text    : 'Tidak Ada Detail Pembayaran Untuk Data Ini',
-                });
-            })
     } else if (idModal == 'modal_update_kurs') {
-        showTable('table_list_kurs', []);
-        // GET DATA KURS
-        const currURL   = base_url + "/divisi/finance/master/currency/list";
-        const currType  = "GET";
-        const currData  = {
-            'limit' : '5',
-            'sort'  : 'desc',
-        };
-        const currMsg   = [];
+        if(jenis == 'add') {
+            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+            showTable('table_list_kurs', []);
+            // GET DATA KURS
+            const currURL   = base_url + "/divisi/finance/master/currency/list";
+            const currType  = "GET";
+            const currData  = {
+                'limit' : '5',
+                'sort'  : 'desc',
+            };
+            const currMsg   = [];
 
-        doTransV2(currURL, currType, currData, currMsg, true)
-            .then((success) => {
-                // SHOW TABLE
-                const currGetdata   = success.data;
-                showTable('table_list_kurs', currGetdata);
-            })
-            .catch((error)  => {
-                $("#table_list_kurs").find('.dataTables_empty').html(error.responseJSON.message);
-            })
-        
+            doTransV2(currURL, currType, currData, currMsg, true)
+                .then((success) => {
+                    // SHOW TABLE
+                    const currGetdata   = success.data;
+                    showTable('table_list_kurs', currGetdata);
+                })
+                .catch((error)  => {
+                    $("#table_list_kurs").find('.dataTables_empty').html(error.responseJSON.message);
+                })
+        } else {
+            console.log(value, jenis);
 
-        
-        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-
-        $("#btn_simpan_kurs").val('add');
+            const detailCurrURL     = base_url + '/divisi/finance/master/currency/list_detail';
+            const detailCurrType    = "GET";
+            const detailCurrData    = {
+                'curr_id'   : value,
+            };
+            const detailCurrMsg     = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
+            
+            doTransV2(detailCurrURL, detailCurrType, detailCurrData, detailCurrMsg, true)
+                .then((success)     => {
+                    Swal.close();
+                    const detailCurrGetData     = success.data;
+                    // FILL FORM
+                    $("#kurs_id").val(value);
+                    $("#kurs_start_date").data('daterangepicker').setStartDate(moment(detailCurrGetData[0].curr_start_date));
+                    $("#kurs_start_date").data('daterangepicker').setEndDate(moment(detailCurrGetData[0].curr_start_date));
+                    $("#kurs_value_high").val(parseInt(detailCurrGetData[0].curr_to_value_high).toLocaleString('id-ID'));
+                    $("#kurs_value_low").val(parseInt(detailCurrGetData[0].curr_to_value_low).toLocaleString('id-ID'));
+                })
+                .catch((error)      => {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : error.responseJSON.message,
+                    })
+                })
+        }
         
         $("#kurs_start_date").daterangepicker({
             singleDatePicker    : true,
@@ -1097,7 +998,9 @@ function showModal(idModal, value, jenis)
             }
 
             valueHigh.removeClass('is-invalid');
-        })
+        });
+
+        $("#btn_simpan_kurs").val(jenis);
     }
 }
 
@@ -1192,21 +1095,18 @@ function closeModal(idModal) {
         })
 
         clearUrl();
-    } else if(idModal == 'modal_confirm_payment_agent') {
-        $("#"+idModal).modal('hide');
-        showTable('table_list_confirm_payment_agent', []);
-    } else if(idModal == 'modal_detail_confirm_payment_agent') {
-        $("#"+idModal).modal('hide');
-        showModal('modal_confirm_payment_agent', '', '');
     } else if (idModal == 'modal_update_kurs') {
         $("#"+idModal).modal('hide');
         // RESET FORM
         $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#kurs_id").val(null);
             $("#kurs_start_date").val(null);
             $("#kurs_value_low").val(0);
             $("#kurs_value_high").val(0);
             $("#kurs_value_low").removeClass('is-invalid');
             $("#kurs_value_high").removeClass('is-invalid');
+
+            $("#btn_simpan_kurs").val(null);
         });
     }
 }
@@ -1513,39 +1413,6 @@ function doUpdate(idForm, data, seq)
                     text    : err.responseJSON.alert.message.text,
                 });
             })
-    } else if(idForm == 'payment_agent') {
-        let tourCode    = $("#payment_agent_tour_code").val();
-        let agentID     = $("#payment_agent_id").val();
-        let agentName   = $("#payment_agent_name").val();
-
-        let agtPayment_URL  = base_url + "/divisi/finance/pengajuan/pembayaran_agent_konfirmasi";
-        let agtPayment_type = "POST";
-        let agtPayment_data = {
-            "agent_id"      : agentID,
-            "tour_code"     : tourCode,
-        };
-        let agtPayment_msg  = Swal.fire({ title : 'Data Sedang Diproses..', allowOutsideClick: false }); Swal.showLoading();
-
-        doTrans(agtPayment_URL, agtPayment_type, agtPayment_data, agtPayment_msg)
-            .then((success)     => {
-                Swal.fire({
-                    icon    : 'success',
-                    title   : 'Berhasil',
-                    text    : 'Berhasil Konfirmasi Pembayaran Agent'
-                }).then((res)   => {
-                    if(res.isConfirmed) {
-                        closeModal('modal_detail_confirm_payment_agent');
-                    }
-                })
-            })
-            .catch((err)        => {
-                console.log(err);
-                Swal.fire({
-                    icon    : 'error',
-                    title   : 'Terjadi Kesalahan',
-                    text    : 'Gagal Menyimpan Data'
-                })
-            })
     } else if(idForm == 'modal_update_kurs') {
         const fd    = new FormData;
         fd.append('kurs_id', $("#kurs_id").val());
@@ -1569,7 +1436,8 @@ function doUpdate(idForm, data, seq)
                 }).then((res)   => {
                     if(res.isConfirmed) {
                         // RESET FORM
-                        $("#kurs_start_date").val(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                        $("#kurs_start_date").data('daterangepicker').setStartDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                        $("#kurs_start_date").data('daterangepicker').setEndDate(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
                         $("#kurs_value_low").val(0);
                         $("#kurs_value_high").val(0);
                         $("#kurs_value_low").removeClass('is-invalid');
@@ -1589,6 +1457,9 @@ function doUpdate(idForm, data, seq)
                             .then((results)     => {
                                 const currGetdata   = results.data;
                                 showTable('table_list_kurs', currGetdata);
+
+                                $("#dashboard_curr_low").html('Rp. ' + parseInt(currGetdata[0].curr_to_value_low).toLocaleString('id-ID'));
+                                $("#dashboard_curr_high").html(`Rp. ${parseInt(currGetdata[0].curr_to_value_high).toLocaleString('id-ID')}`);
                             })
                             .catch((error)      => {
                                 showTable('table_list_kurs', []);
@@ -1833,5 +1704,18 @@ function formatRupiah(amount)
     } else {
         const formatNumber  = new Intl.NumberFormat('id-ID', { style: 'currency', currency:'IDR' }).format(amount);
         return formatNumber;
+    }
+}
+
+function copyText(type, data)
+{
+    if(type == 'kurs') {
+        console.log(data);
+        // let text    = `Kurs Tanggal ${item['curr_start_date']}
+        // USD
+        // Kurs Tertinggi  : Rp. ${parseInt(item['curr_to_value_high']).toLocaleString('id-ID')}
+        // Kurs Terendah   : Rp. ${parseInt(item['curr_to_value_lo']).toLocaleString('id-ID')}`
+
+        // console.log(text);
     }
 }

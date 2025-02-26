@@ -504,6 +504,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::prefix('currency')->group(function(){
                     Route::get('/list', [finance::class, 'finance_master_currency']);
                     Route::post('/currency_update/{trans_type}', [finance::class, 'finance_master_currency_trans']);
+                    Route::get('/list_detail', [finance::class, 'finance_mater_currency_detail']);
                 });
             });
             Route::prefix('simulasi')->group(function(){

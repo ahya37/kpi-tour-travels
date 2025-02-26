@@ -43,7 +43,7 @@
                 <div class="card">
                     <div class="card-header bg-success d-flex flex-row align-items-center w-100 justify-content-between">
                         <h4 class="no-margins font-weight-normal card-title">Kurs Rupiah Tanggal {{ date('d F Y') }}</h4>
-                        <button class="btn btn-sm btn-success" title="Update Kurs" onclick="showModal('modal_update_kurs')"><i class="fa fa-plus-circle"></i> Update Kurs</button>
+                        <button class="btn btn-sm btn-success" title="Update Kurs" onclick="showModal('modal_update_kurs', '', 'add')"><i class="fa fa-plus-circle"></i> Update Kurs</button>
                     </div>
                     <div class="card-body">
                         <div class="row text-center">

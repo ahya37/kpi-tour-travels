@@ -321,4 +321,21 @@ class FinanceController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // NOTE : AMBIL DETAIL CURRENCY
+    public function finance_mater_currency_detail(Request $request)
+    {
+        $curr_id    = $request->all()['curr_id'];
+        
+        $get_data   = FinanceServices::get_finance_currency_detail($curr_id);
+
+        $output     = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
 }

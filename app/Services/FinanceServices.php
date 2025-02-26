@@ -551,7 +551,77 @@ class FinanceServices
             }
 
         } else if($type == 'edit') {
+            $data_where     = [
+                'id'    => $curr_data['kurs_id'],
+            ];
+            
+            $data_update    = [
+                'curr_to_value_low' => $curr_data['kurs_value_low'],
+                'curr_to_value_high'=> $curr_data['kurs_value_high'],
+            ];
 
+            DB::table('fin_mas_currency')->where($data_where)->update($data_update);
+
+            try {
+                DB::commit();
+
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 201,
+                    'message'       => 'Berhasil Mengubah Data Currency',
+                    'data'          => [],
+                ];
+                LogHelper::create('edit', $output['message'], $ip_address);
+            } catch (\Exception $e) {
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 500,
+                    'message'       => 'Internal Server Error',
+                    'data'          => [],
+                ];
+
+                DB::rollback();
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
+        }
+
+        return $output;
+    }
+
+    // NOTE : AMBIL CURRENCY DETAIL
+    public static function get_finance_currency_detail($id)
+    {
+        $query  = DB::table('fin_mas_currency')    
+                ->select('id', 'curr_start_date', 'curr_to_value_low', 'curr_to_value_high')
+                ->where('id', '=', $id)
+                ->get();
+
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Currency',
+                    'data'          => $query
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Currency dengan ID ' . $id,
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Internal Server Error',
+                'data'          => [],
+            ];
         }
 
         return $output;
