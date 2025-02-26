@@ -54,7 +54,6 @@ $(document).ready(() => {
             const totalPgjLembur        = success[3].status == 'fulfilled' ? success[3].value.data : [];
 
             // SHOW NOTIF
-            console.log(totalPgjLembur);
             if(totalPgjLembur.length > 0) {
                 $("#alert_pengajuan_lembur").removeClass('d-none');
                 $("#alert_pengajuan_lembur").html(`<i class='fa fa-exclamation-triangle'></i> Anda memiliki <strong>${totalPgjLembur.length}</strong> pengajuan <strong>Lembur</strong>. <a href='${base_url}/pengajuan/lembur' title='Lihat Lemburan'>Lihat Selengkapnya</a>`);
@@ -579,6 +578,44 @@ function showTable(idTable, data)
         } else {
             $("#total_pengajuan_detail_payment_agent").html("Rp 0,00");
         }
+    } else if(idTable == 'table_list_kurs') {
+        $("#"+idTable).DataTable().clear().destroy();
+
+        $("#"+idTable).DataTable({
+            language    : {
+                emptyTable  : '<i class="fa fa-spinner fa-spin"></i> Data Sedang Dimuat'
+            },
+            searching   : false,
+            bInfo       : false,
+            paging      : false,
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [4], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [1], "className" : "align-middle" },
+                { "targets" : [2, 3], "className" : "text-right align-middle" },
+            ],
+        })
+
+        if(data.length > 0) {
+            let seq = 1;
+            for(const item of data) {
+                let kursNo      = seq++;
+                let kursId      = item['id'];
+                let kursDate    = item['curr_start_date'];
+                let kursLow     = parseInt(item['curr_to_value_low']);
+                let kursHigh    = parseInt(item['curr_to_value_high']);
+                let kursButton  = `<button class="btn btn-sm btn-success" value="${kursId}" title="Edit"><i class="fa fa-edit"></i></button>`;
+
+                $("#"+idTable).DataTable().row.add([
+                    `<label class="font-weight-normal no-margins">${kursNo}</label>`,
+                    `<label class="font-weight-normal no-margins">${moment(kursDate, 'YYYY-MM-DD').format('DD MMM YYYY')}</label>`,
+                    `<label class="font-weight-normal no-margins">${parseInt(kursLow).toLocaleString('id-ID')}</label>`,
+                    `<label class="font-weight-normal no-margins">${parseInt(kursHigh).toLocaleString('id-ID')}</label>`,
+                    kursButton
+                ]).draw(false);
+            }
+        }
     }
 }
 
@@ -999,6 +1036,7 @@ function showModal(idModal, value, jenis)
                 });
             })
     } else if (idModal == 'modal_update_kurs') {
+        showTable('table_list_kurs', []);
         // GET DATA KURS
         const currURL   = base_url + "/divisi/finance/master/currency/list";
         const currType  = "GET";
@@ -1010,11 +1048,12 @@ function showModal(idModal, value, jenis)
 
         doTransV2(currURL, currType, currData, currMsg, true)
             .then((success) => {
-                console.log(success);
+                // SHOW TABLE
+                const currGetdata   = success.data;
+                showTable('table_list_kurs', currGetdata);
             })
             .catch((error)  => {
-                console.log(error);
-                $("#table_list_kurs tbody tr").html(`<td colspan="5" class="text-center">${error.responseJSON.message}</td>`)
+                $("#table_list_kurs").find('.dataTables_empty').html(error.responseJSON.message);
             })
         
 
@@ -1169,7 +1208,6 @@ function closeModal(idModal) {
             $("#kurs_value_low").removeClass('is-invalid');
             $("#kurs_value_high").removeClass('is-invalid');
         });
-    
     }
 }
 
@@ -1512,8 +1550,8 @@ function doUpdate(idForm, data, seq)
         const fd    = new FormData;
         fd.append('kurs_id', $("#kurs_id").val());
         fd.append('kurs_start_date', $("#kurs_start_date").val() != '' ? moment($("#kurs_start_date").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : today);
-        fd.append('kurs_value_low', $("#kurs_value_low").val() == '' ? '' : parseInt($("#kurs_value_low").val()));
-        fd.append('kurs_value_high', $("#kurs_value_low").val() == '' ? '' : parseInt($("#kurs_value_low").val()));
+        fd.append('kurs_value_low', $("#kurs_value_low").val() == '' ? '' : parseInt($("#kurs_value_low").val().replace('.', '')));
+        fd.append('kurs_value_high', $("#kurs_value_high").val() == '' ? '' : parseInt($("#kurs_value_high").val().replace('.', '')));
 
         const transType     = data;
 
@@ -1524,7 +1562,39 @@ function doUpdate(idForm, data, seq)
 
         doTransV2(kursURL, kursType, kursData, kursMessage, true, false, false)
             .then((success) => {
-                console.log(success);
+                Swal.fire({
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : success.message,
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        // RESET FORM
+                        $("#kurs_start_date").val(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                        $("#kurs_value_low").val(0);
+                        $("#kurs_value_high").val(0);
+                        $("#kurs_value_low").removeClass('is-invalid');
+                        $("#kurs_value_high").removeClass('is-invalid');
+                        
+                        showTable('table_list_kurs', []);
+
+                        const currURL   = base_url + "/divisi/finance/master/currency/list";
+                        const currType  = "GET";
+                        const currData  = {
+                            'limit' : 5,
+                            'sort'  : 'desc',
+                        };
+                        const currMsg   = "";
+
+                        doTransV2(currURL, currType, currData, currMsg, true)
+                            .then((results)     => {
+                                const currGetdata   = results.data;
+                                showTable('table_list_kurs', currGetdata);
+                            })
+                            .catch((error)      => {
+                                showTable('table_list_kurs', []);
+                            })
+                    }
+                })
             })
             .catch((error)  => {
                 if(error.status == 422) {

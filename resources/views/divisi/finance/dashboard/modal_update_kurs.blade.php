@@ -45,11 +45,7 @@
                                         <th class="text-center align-middle">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="5" class="text-center"><i class="fa fa-spinner fa-spin"></i> Data Sedang Dimuat</td>
-                                    </tr>
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                     </div>

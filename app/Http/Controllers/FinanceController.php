@@ -306,6 +306,17 @@ class FinanceController extends Controller
                 'user_name' => Auth::user()->name,
                 'ip_address'=> $request->ip(),   
             ];
+
+            $do_simpan  = FinanceServices::trans_finance_currency_master($send_data);
+
+            $output     = [
+                'success'   => $do_simpan['is_success'],
+                'status'    => $do_simpan['status_code'],
+                'message'   => $do_simpan['message'],
+                'data'      => $do_simpan['data'],  
+            ];
+
+            return Response::json($output, $output['status']);
         }
 
         return Response::json($output, $output['status']);

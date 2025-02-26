@@ -460,15 +460,15 @@ class FinanceServices
         $order_by   = $data['orderBy'];
 
         $query      = DB::table('fin_mas_currency')
-                        ->select('id', 'curr_from', 'curr_to_value_low', 'curr_to_value_high')
-                        ->orderBy('created_date', $order_by)
+                        ->select('id', 'curr_start_date', 'curr_to_value_low', 'curr_to_value_high',)
+                        ->orderBy('curr_start_date', $order_by)
                         ->limit($limit)
                         ->get();
 
         try {
             if(count($query) > 0) {
                 $output     = [
-                    'is_success'    => false,
+                    'is_success'    => true,
                     'status_code'   => 200,
                     'message'       => 'Berhasil Mengambil Data Kurs',
                     'data'          => $query,
@@ -495,6 +495,67 @@ class FinanceServices
         return $output;
     }
     
+    // 26 FEBRUARI 2025
+    // NOTE : TRANS FINANCE MASTER CURRENCY
+    public static function trans_finance_currency_master($data)
+    {
+        $ip_address     = $data['ip_address'];
+        $user_id        = $data['user_id'];
+        $user_name      = $data['user_name'];
+        $type           = $data['type'];
+        $curr_data      = $data['data'];
+        $today          = date('Y-m-d H:i:s');
+
+        DB::beginTransaction();
+
+        if($type == 'add') {
+            // INSERT KE FIN MASTER CURR
+            $data_insert    = [
+                'curr_from'         => 'USD',
+                'curr_to'           => 'IDR',
+                'curr_from_value'   => 1,
+                'curr_to_value_low' => $curr_data['kurs_value_low'],
+                'curr_to_value_high'=> $curr_data['kurs_value_high'],
+                'curr_start_date'   => $curr_data['kurs_start_date'],
+                'curr_end_date'     => $curr_data['kurs_start_date'],
+                'curr_note'         => '',
+                'created_by'        => $user_id,
+                'created_date'      => $today,
+                'updated_by'        => $user_id,
+                'updated_date'      => $today
+            ];
+
+            DB::table('fin_mas_currency')->insert($data_insert);
+
+            try {
+                DB::commit();
+
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 201,
+                    'message'       => 'Berhasil Menambahkan Kurs Tanggal : ' . $curr_data['kurs_start_date'],
+                    'data'          => [],
+                ];
+
+                LogHelper::create('add', $output['message'], $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 500,
+                    'message'       => 'Internal Server Error',
+                    'data'          => []
+                ];
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
+
+        } else if($type == 'edit') {
+
+        }
+
+        return $output;
+    }
 }
 
 ?>
