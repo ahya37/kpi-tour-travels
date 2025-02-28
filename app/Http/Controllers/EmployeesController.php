@@ -230,4 +230,13 @@ class EmployeesController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 28 FEBRUARI 2025
+    // NOTE : GET DATA EMPLOYEES ALL W/ OPTION
+    public function getDataEmployee(Request $request)
+    {
+        $get_data   = EmployeeService::do_get_data_employee();
+
+        return Response::json($get_data, $get_data['status']);
+    }
 }

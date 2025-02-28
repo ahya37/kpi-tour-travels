@@ -5,6 +5,7 @@ var abs_data_global     = [];
 var base_url            = window.location.origin;
 var dataBulan           = [];
 var dataRoles           = [];
+var dataEmployees       = [];
 
 clearUrl();
 
@@ -24,10 +25,7 @@ $(document).ready(() => {
     };
 
     // GET DATA EMPLOYEE
-    const emp_url   = "/master/employees/trans/get/dataTableEmployee";
-    const emp_data  = {
-        "cari"  : "%",
-    };
+    const emp_url   = "/master/employees/data_employees";
     const emp_type  = "GET";
 
     // GET DATA ABSEN
@@ -54,7 +52,7 @@ $(document).ready(() => {
 
     const sendData  = [
         doTrans(pgj_url, pgj_type, pgj_data, "", true),
-        doTrans(emp_url, emp_type, emp_data, "", true),
+        doTrans(emp_url, emp_type, "", "", true),
         doTrans(abs_url, abs_type, abs_data, "", true),
         doTrans(pgj_lmb_url, pgj_lmb_type, pgj_lmb_data, "", true),
         doTrans(rolesURL, rolesType, rolesData, "", true)
@@ -64,10 +62,12 @@ $(document).ready(() => {
         .then((success)     => {
 
             // EMP AREA
-            const emp_getData   = success[1].value.data;
+            const emp_getData   = success[1].status == 'fulfilled' ? success[1].value.data : [];
             $("#emp_total").html(emp_getData.length);
+            if(emp_getData.length > 0 && dataEmployees.length < 1) {
+                dataEmployees.push(emp_getData);
+            }
             
-
             // PENGAJUAN AREA
             let pgj_total_warn_count  = 0;
             const pgj_getData   = success[0].value.data;
@@ -171,47 +171,27 @@ function showModal(idModal, jenis, data)
                 $(".dataTables_empty").html('Tidak Ada Data Yang Bisa Ditampilkan');
             })
     } else if(idModal == 'modal_abs') {
-        // GET DATA
-        const emp_url   = "/divisi/master/getDataEmployees";
-        const emp_data  = "";
-        const emp_type  = "GET";
+        // SHOW SELECT
+        showSelect('abs_user_cari', dataEmployees);
 
-        const sendData  = [
-            doTrans(emp_url, emp_type, emp_data, "", true)
-        ];
+        showTable('table_list_absensi', []);
+        
+        $("#abs_tgl_cari").daterangepicker({
+            minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
+            maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
+            autoApply   : true,
+            format      : 'DD/MM/YYYY',
+            setStartDate    : moment(today, 'YYYY-MM-DD'),
+            locale  : {
+                separator   : ' s/d ',
+                cancelLabel : 'Batal',
+                applyLabel  : 'Simpan',
+            },
+        });
 
-        const message   = Swal.fire({ title : 'Data Sedang Dimuat', allowOutsideClick: false }); Swal.showLoading();
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
-        Promise.allSettled(sendData)
-            .then((success)     => {
-                // CLOSE LOADING
-                Swal.close();
-                // GET DATA EMPLOYEES
-                const emp_getData   = success[0]['value']['data'];
-                // SHOW SELECT
-                showSelect('abs_user_cari', emp_getData, '', '');
-                // SHOW TABLE
-                showTable('table_list_absensi', '');
-                // SHOW DATERANGEPICKER
-                $("#abs_tgl_cari").daterangepicker({
-                    minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
-                    maxDate     : moment(today, 'YYYY-MM-DD').add(1, 'year'),
-                    autoApply   : true,
-                    format      : 'DD/MM/YYYY',
-                    setStartDate    : moment(today, 'YYYY-MM-DD'),
-                    locale  : {
-                        separator   : ' s/d ',
-                        cancelLabel : 'Batal',
-                        applyLabel  : 'Simpan',
-                    },
-                });
-                // SHOW MODAL
-                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });  
-            })
-            .catch((err)        => {
-                Swal.close();
-                console.log(err);
-            })
+
     } else if(idModal == 'modal_emp') {
         const openModal     = (idModal) => {
             $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
@@ -719,18 +699,21 @@ function showSelect(idSelect, data, selectedData, seq)
 
     if(idSelect == 'abs_user_cari')
     {
-        var html    = [
+        let html    = [
             "<option selected disabled>Pilih User</option>",
             "<option value='semua'>Semua</option>"
         ];
+        
         if(data.length > 0) {
-            $.each(data, (i, item)  => {
-                html    += "<option value='" + item.emp_id + "'>" + item.emp_name + "</option>";
+            $.each(data[0], (i, item)  => {
+                if(item['active'] == '1' && item['employee_id'] != '1') {
+                    html    += `<option value="${item['employee_id']}">${item['employee_name']}</option>`;
+                }
             });
-            $("#"+idSelect).html(html);
-        } else {
-            $("#"+idSelect).html(html);
         }
+
+        $("#"+idSelect).html(html);
+
     } else if(idSelect == 'pgj_select_month') {
         let html    = "<option selected disabled>Pilih Bulan</option>";
         

@@ -313,10 +313,13 @@ Route::group(['middleware' => ['auth']], function () {
         // EMPLOYEES
         Route::prefix('employees')->group(function(){
             Route::get('/', [EmployeesController::class, 'index'])->name('Employees.index');
-            Route::get('/trans/get/dataGroupDivision', [EmployeesController::class, 'getDataDivisionGlobal'])->name('employee.trans.getDataDivisionGlobal');
-            Route::post('/trans/post/dataEmployeeNew', [EmployeesController::class, 'saveDataEmployee'])->name('employee.trans.postDataEmployee');
-            Route::get('/trans/get/dataTableEmployee', [EmployeesController::class, 'getDataTableEmployee'])->name('employee.trans.getDataTableEmployee');
-            Route::get('/getDataEmployeesDetail', [EmployeesController::class, 'getDataEmployeesDetail'])->name('employee.trans.getDataEmployeesDetail');
+            Route::prefix('trans')->group(function(){
+                Route::get('/get/dataGroupDivision', [EmployeesController::class, 'getDataDivisionGlobal'])->name('employee.trans.getDataDivisionGlobal');
+                Route::get('/get/dataTableEmployee', [EmployeesController::class, 'getDataTableEmployee'])->name('employee.trans.getDataTableEmployee');
+                Route::get('/getDataEmployeesDetail', [EmployeesController::class, 'getDataEmployeesDetail'])->name('employee.trans.getDataEmployeeDetail');
+                Route::post('/post/dataEmployeeNew', [EmployeesController::class, 'saveDataEmployee'])->name('employees.trans.postDataEmployee');
+            });
+            Route::get('/data_employees', [EmployeesController::class, 'getDataEmployee']);
         });
 
         Route::prefix('programkerja')->group(function(){

@@ -279,4 +279,41 @@ class EmployeeService
         
         return $query;
     }
+
+    // NOTE : AMBIL DATA EMPLOYEES ALL
+    public static function do_get_data_employee()
+    {
+        $query  = DB::table('employees as a')
+                        ->join('users as b', 'a.user_id', '=', 'b.id')
+                        ->select('b.id as employee_id', 'b.name as employee_name', 'b.email as employee_email', 'b.is_active as active')
+                        ->orderBy('b.name', 'asc')
+                        ->get();
+        try {
+            if(count($query) > 0 ) {
+                $output     = [
+                    'success'   => true,
+                    'status'    => 200,
+                    'message'   => 'Berhasil Mengambil Data Karyawan',
+                    'data'      => $query,
+                ];
+            } else {
+                $output     = [
+                    'success'   => false,
+                    'status'    => 404,
+                    'message'   => 'Tidak Ada Data Karyawan',
+                    'data'      => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            $output     = [
+                'success'   => false,
+                'status'    => 500,
+                'message'   => 'Internal Server Error',
+                'data'      => []
+            ];
+        }
+        
+        return $output;
+    }
 }
