@@ -82,7 +82,7 @@
         </div>
         <hr>
         <div class="row">
-            <div class="col-xl-3 col-lg-4 col-md-6 col-12">
+            <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-xl-0 mb-2">
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h4 class="no-margins card-title">
@@ -94,27 +94,43 @@
                             <span class="spinner spinner-border"></span>
                         </h2>
                     </div>
-                    <a href="#" class="card-footer" title="Lihat Detail Pembayaran" onclick="showModal('modal_pengajuan_keuangan', 'list', '')">
-                        Lihat Detail
-                    </a>
+                    <div class="card-footer" style="cursor: pointer;" title="Lihat Detail Pembayaran" onclick="showModal('modal_pengajuan_keuangan', 'list', '')">
+                        <span class="text-success">Lihat Detail</span>
+                    </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-lg-4 col-md-6 col-12">
+            <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-xl-0 mb-2">
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h4 class="no-margins card-title">
-                            <label class="no-margins font-weight-normal">Pembayaran Jemaah <span id="year_title_pembayaran_jemaah">{{ date('Y') }}</span></label>
+                            <label class="no-margins font-weight-normal">Pembayaran Umrah <span id="year_title_pembayaran_umrah">{{ date('Y') }}</span></label>
                         </h4>
                     </div>
                     <div class="card-body text-right">
-                        <h2 class="no-margins" style="padding-top:" id="dashboard_pembayaran_jemaah">
+                        <h2 class="no-margins" id="dashboard_pembayaran_umrah">
                             <span class="spinner spinner-border"></span>
-                            {{-- <span>52</span> --}}
                         </h2>
                     </div>
-                    <a href="#" class="card-footer" title="Pembayaran Jemaah" >
-                        Lihat Detail
-                    </a>
+                    <div class="card-footer" style="cursor: pointer;" title="Pembayaran Umrah">
+                        <span class="text-success">Lihat Detail</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-xl-0 mb-2">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h4 class="no-margins card-title">
+                            <label class="no-margins font-weight-normal">Pembayaran Haji <span id="year_title_pembayaran_haji">{{ date('Y') }}</span></label>
+                        </h4>
+                    </div>
+                    <div class="card-body text-right">
+                        <h2 class="no-margins" id="dashboard_pembayaran_haji">
+                            <span class="spinner spinner-border"></span>
+                        </h2>
+                    </div>
+                    <div class="card-footer" style="cursor: pointer;" title="Pembayaran Haji" onclick="showModal('modal_pembayaran_haji')">
+                        <span class="text-success">Lihat Detail</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -122,6 +138,8 @@
 
     @include('divisi.finance.pembayaran.pengajuan_keuangan.modal_pengajuan_keuangan')
     @include('divisi.finance.pembayaran.pengajuan_keuangan.modal_pengajuan_keuangan_detail')
+    @include('divisi.finance.pembayaran.pembayaran_haji.modal_pembayaran_haji')
+    @include('divisi.finance.pembayaran.pembayaran_haji.modal_pembayaran_haji_form')
 @endsection
 
 

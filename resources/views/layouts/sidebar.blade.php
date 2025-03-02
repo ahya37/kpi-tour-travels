@@ -248,6 +248,7 @@
                     <li class="{{ request()->is('divisi/finance') ? 'active' : '' }}"><a href="{{ route('index.finance') }}">Dashboard</a></li>
                     {{-- <li class="{{ request()->is('divisi/finance/aktivitas') ? 'active' : '' }}"><a href="{{ route('finance.index.aktivitas.harian') }}">Aktivitas Harian</a></li> --}}
                     <li class="{{ request()->is('divisi/finance/master') || request()->is('divisi/finance/master/*') ? 'active' : '' }}"><a href="{{ route('finance.master.index') }}">Master</a></li>
+                    <li class="{{ request()->is('divisi/finance/pembayaran') || request()->is('divisi/finance/pembayaran') ? 'active' : '' }}"><a href="{{ route('finance.pembayaran.index') }}"></a></li>
                 </ul>
             </li>
             @endif

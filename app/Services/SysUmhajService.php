@@ -6,6 +6,7 @@ use App\Models\SubDivision;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Http;
+use Log;
 
 date_default_timezone_set('Asia/Jakarta');
 
@@ -289,5 +290,47 @@ class SysUmhajService
                     ->orderBy(DB::raw('CAST(id as UNSIGNED)'), 'asc')
                     ->get();
         return $query;
+    }
+
+    // 02 MARET 2025
+    // NOTE : GET DATA MEMBER
+    public static function get_data_member($keyword)
+    {
+        $query  = DB::connection('umhaj_percik')
+                    ->table('member')
+                    ->select('ID as member_id', 'NAMA as member_name')
+                    ->where('ID', 'LIKE', '%' . $keyword . '%')
+                    ->orWhere('NAMA', 'LIKE', '%' . $keyword . '%')
+                    ->orderBy('ID', 'asc')
+                    ->get();
+
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Member',
+                    'data'          => $query,
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Member',
+                    'data'          => [],
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data Member',
+                'data'          => []
+            ];
+        }
+
+        return $output;
     }
 }

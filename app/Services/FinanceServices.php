@@ -664,6 +664,50 @@ class FinanceServices
 
         return $output;
     }
+
+    // NOTE : GET LIST HAJI DATA BY JEMAAH ID
+    public static function do_get_no_daftar_jemaah($data)
+    {
+        $jemaah_id  = $data['jemaah_id'];
+        $haji_kode  = $data['haji_kode'];
+
+        $query  = DB::connection('umhaj_percik')
+                    ->table('haji')
+                    ->select('ID as haji_id', 'ID_MEMBER as jemaah_id', 'NAMA as jemaah_nama', 'NO_DAFTAR as no_daftar', 'JENIS_UMRAH as kode_keberangkatan', 'TGL_BERANGKAT as tgl_keberangkatan', 'ROOM as haji_paket', 'SPPH as no_spph', 'TGL_SPPH as tgl_spph', 'BPIH_NO as no_bpih', 'BPIH_TGL as tgl_bpih')
+                    ->where('ID_MEMBER', '=', $jemaah_id)
+                    ->where('JENIS_UMRAH', 'LIKE', $haji_kode)
+                    ->orderBy('ID', 'asc')
+                    ->get();
+
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Haji',
+                    'data'          => $query,
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Haji',
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data Haji',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
 }
 
 ?>

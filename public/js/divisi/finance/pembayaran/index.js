@@ -1,7 +1,9 @@
-var today       = moment().format('YYYY-MM-DD');
-var base_url    = window.location.origin;
-var temp_pengajuan  = [];
-var temp_bulan      = [];
+var today               = moment().format('YYYY-MM-DD');
+var base_url            = window.location.origin;
+var temp_pengajuan      = [];
+var temp_bulan          = [];
+var temp_haji           = [];
+var temp_haji_detail    = [];
 
 for(let i = 0; i < 11; i++) {
     let monthNumber     = moment(i + 1, 'M').format('MM');
@@ -116,6 +118,19 @@ function showModal(idModal, type, data)
                     }
                 })
             })
+    } else if(idModal == 'modal_pembayaran_haji') {
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+
+        showTable('table_pembayaran_haji', []);
+    } else if(idModal == 'modal_pembayaran_haji_form') {
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+
+        showSelect('hj_member_id', []);
+        showSelect('hj_depature_code', []);
+
+        showTable('table_pembayaran_haji_form', []);
+
+        addRowTable('table_pembayaran_haji_form', [], 1);
     }
 }
 
@@ -126,6 +141,10 @@ function closeModal(idModal)
     } else if(idModal == 'detail_modal_pengajuan_keuangan') {
         $("#"+idModal).modal('hide');
         showModal('modal_pengajuan_keuangan', 'list', '');
+    } else if(idModal == 'modal_pembayaran_haji') {
+        $("#"+idModal).modal('hide');
+    } else if (idModal == 'modal_pembayaran_haji_form') {
+        $("#"+idModal).modal('hide');
     }
 }
 
@@ -211,14 +230,91 @@ function showTable(idTable, data)
 
             $("#total_pengajuan_keuangan").html(`<label class="no-margins">${parseInt(grandTotal).toLocaleString('id-ID')}</label>`);
         }
+    } else if(idTable == 'table_pembayaran_haji') {
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : `<i class="fa fa-spinner fa-spin"></i> Data Sedang Dimuat..`,
+            },
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [2], "className" : "text-left align-middle", "width" : "15%" },
+                { "targets" : [3], "className" : "text-center align-middle", "width" : "15%," },
+                { "targets" : [4], "className" : "text-center align-middle", "width" : "8%," },
+                { "targets" : [5], "className" : "text-center align-middle", "width" : "8%," },
+            ],
+        })
+    } else if(idTable == 'table_pembayaran_haji_form') {
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : `Klik Tambah Baris Untuk Menambahkan Data`,
+            },
+            autoWidth   : false,
+            searching   : false,
+            pageLength  : -1,
+            paging      : false,
+            bInfo       : false,
+            ordering    : false,
+            columnDefs  : [
+                { "targets" : [0, 1], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [2, 4], "width" : "15%" },
+                { "targets" : [3], "width" : "20%"}
+            ],
+        })
     }
 
     $("#"+idTable+"_wrapper").css('padding-bottom', '0px');
+    
+
 }
 
-function showSelect(idSelect, data, selectedData)
+function addRowTable(idTable, data, seq)
 {
-    $("#"+idSelect).select2({
+    if(idTable == 'table_pembayaran_haji_form') {
+        let buttonSeq       = $("#btnTambahBaris");
+        let inputSeq        = `<input type="text" class="form-control text-center" id="hj_detail_no${seq}" readonly>`;
+        let buttonDelete    = `<button class="btn btn-sm btn-danger" type="button" title="Hapus Baris"><i class="fa fa-trash"></i></button>`;
+        let inputTglBayar   = `<input type="date" class="form-control" placeholder="DD/MM/YYYY" id="hj_detail_tglBayar${seq}">`;
+        let selectMetode    = `<select class="form-control" id="hj_detail_method${seq}" style="width: 100%;"></select>`;
+        let selectKurs      = `<select class="form-control" id="hj_detail_curr${seq}" style="width: 100%;"></select>`;
+        let inputJmlBayar   = `<input type="text" class="form-control" placeholder="Jml. Bayar" value="0" onclick="this.select()">`
+
+        $("#"+idTable).DataTable().row.add([
+            buttonDelete,
+            inputSeq,
+            inputTglBayar,
+            selectMetode,
+            selectKurs,
+            inputJmlBayar
+        ]).draw(false);
+        
+        // SHOW ANOTHER ELEMENT
+        let dataMethod  = [
+            { 'id' : 'tf', 'text' : 'Transfer' },
+            { 'id' : 'cash', 'text' : 'Cash' },
+        ];
+        showSelect('hj_detail_method', dataMethod, '', seq);
+        
+        let dataKurs    = [
+            { 'id' : 'IDR', 'text' : '(Rp.) Rupiah' },
+            { 'id' : 'USD', 'text' : '($) Dollar' },
+        ];
+        showSelect('hj_detail_curr', dataKurs, '', seq);
+
+        // DEFAULT VALUE
+        $("#hj_detail_no"+seq).val(seq);
+
+        if(data.length < 1) {
+            $("#hj_detail_no"+seq).focus();
+        }
+
+        buttonSeq.val(parseInt(seq) + 1);
+    }
+}
+
+function showSelect(idSelect, data, selectedData = '', seq = '')
+{
+    $("#"+idSelect+""+seq).select2({
         theme   : 'bootstrap4'
     });
     if (idSelect == 'filter_bulan') {
@@ -236,6 +332,145 @@ function showSelect(idSelect, data, selectedData)
 
         $("#"+idSelect).html(html);
         $("#"+idSelect).val(selectedData);
+    } else if(idSelect == 'hj_member_id') {
+        $("#"+idSelect).select2({
+            theme   : 'bootstrap4',
+            placeholder     : `Pilih Nama Jemaah`,
+            language    : {
+                "inputTooShort" : () => {
+                    return `Minimal 3 Karakter Untuk Melakukan Pencarian`
+                },
+                "searching"     : () => {
+                    return `Data Sedang Dicari..`
+                },
+                "noResults"     : () => {
+                    return `Data Yang Dicari Tidak Ditemukan`
+                },
+                "errorLoading"  : () => {
+                    return `Gagal Melakukan Pencarian`
+                }
+            },
+            ajax    : {
+                url     : base_url + "/divisi/finance/master/member/list",
+                dataType: "json",
+                headers : {
+                    'X-CSRF-TOKEN'  : CSRF_TOKEN,
+                },
+                delay   : 250,
+                data    : (e) => {
+                    return {
+                        keyword     : e.term,
+                    }
+                },
+                processResults  : (data) => {
+                    if(data.status == 200) {
+                        return {
+                            results     : data.data.map((item)  => {
+                                return {
+                                    id      : item.member_id,
+                                    text    : item.member_name,
+                                }
+                            })
+                        }
+                    }
+                },
+                cache   : true,
+            },
+            minimumInputLength  : 3,
+        });        
+    } else if(idSelect == 'hj_depature_code') {
+        let html    = `<option selected disabled>Pilih Kode Keberangkatan</option>`;
+        
+        if(data.length > 0) {
+            for(const item of data) {
+                html    += `<option value="${item['depature_code']}">${item['depature_code']}</option>`
+            }
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
+
+    } else if(idSelect == 'hj_detail_method') {
+        $("#"+idSelect+""+seq).select2({
+            theme   : 'bootstrap4',
+            minimumResultsForSearch     : -1,
+        })
+
+        let html    = `<option selected disabled>Metode Bayar</option>`;
+
+        $.each(data, (i, item)  => {
+            html    += `<option value="${item['id']}">${item['text']}</option>`
+        });
+
+        $("#"+idSelect+""+seq).html(html);
+
+    } else if(idSelect == 'hj_detail_curr') {
+        $("#"+idSelect+""+seq).select2({
+            theme   : 'bootstrap4',
+            minimumResultsForSearch     : -1,
+        })
+
+        let html    = `<option selected disabled>Mata Uang</option>`;
+
+        $.each(data, (i, item)  => {
+            html    += `<option value="${item['id']}">${item['text']}</option>`
+        });
+
+        $("#"+idSelect+""+seq).html(html);
+    }
+}
+
+function showSelectDetail(idSelect, data, seq = '')
+{
+    if(idSelect == 'hj_member_id') {
+        // GET DATA NO DAFTAR HAJI
+        const hajiCodeURL   = "divisi/finance/pembayaran/haji/detail_jemaah";
+        const hajiCodeType  = "GET";
+        const hajiCodeData  = {
+            "member_id" : data,
+            "haji_kode" : "semua",
+        };
+        const hajiCodeMsg   = "";
+
+        doTransaction(hajiCodeURL, hajiCodeType, hajiCodeData, hajiCodeMsg)
+            .then((success)     => {
+                let dataCodeDepature    = [];
+                for(const item of success.data)
+                {
+                    dataCodeDepature.push({
+                        'depature_code' : item['kode_keberangkatan'],
+                    })
+                }
+                showSelect('hj_depature_code', dataCodeDepature, '');
+            })
+            .catch((error)      => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : error.responseJSON.message,
+                })
+            })
+    } else if(idSelect == 'hj_depature_code') {
+        const hajiCodeURL   = "divisi/finance/pembayaran/haji/detail_jemaah";
+        const hajiCodeType  = "GET";
+        const hajiCodeData  = {
+            "member_id" : $("#hj_member_id").val(),
+            "haji_kode" : data,
+        };
+        const hajiCodeMsg   = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
+
+        doTransaction(hajiCodeURL, hajiCodeType, hajiCodeData, hajiCodeMsg)
+            .then((success)     => {
+                Swal.close();
+                console.log(success);
+            })
+            .catch((error)      => {
+                Swal.close();
+                console.log(error);
+            })
     }
 }
 
@@ -243,7 +478,8 @@ function showDataDashboard(selectedMonth)
 {
     // SHOW DEFAULT LOADING
     isLoading('dashboard_pengajuan_keuangan');
-    isLoading('dashboard_pembayaran_jemaah');
+    isLoading('dashboard_pembayaran_umrah');
+    isLoading('dashboard_pembayaran_haji');
     $("#title_bulan_saldo_awal").html(moment(selectedMonth, 'MM').format('MMMM'));
     $("#title_bulan_debit").html(moment(selectedMonth, 'MM').format('MMMM'));
     $("#title_bulan_kredit").html(moment(selectedMonth, 'MM').format('MMMM'));
@@ -258,10 +494,15 @@ function showDataDashboard(selectedMonth)
     };
     const pengajuanMsg  = "";
 
+    const hajiURL       = "divisi/finance/pembayaran/haji/list_pembayaran_haji";
+    const hajiType      = "GET";
+    const hajiData      = [];
+    const hajiMsg       = [];
     
     // COLLECTIVE GET DATA
     const collectApi    = [
-        doTransaction(pengajuanURL, pengajuanType, pengajuanData, pengajuanMsg)
+        doTransaction(pengajuanURL, pengajuanType, pengajuanData, pengajuanMsg),
+        doTransaction(hajiURL, hajiType, hajiData, hajiMsg),
     ];
 
     Promise.allSettled(collectApi)
@@ -274,7 +515,14 @@ function showDataDashboard(selectedMonth)
             $("#dashboard_pengajuan_keuangan").html(`<h2 class="no-margins">${pengajuanGetData.length}</h2>`);
 
             // PEMBAYARAN JEMAAH
-            $("#dashboard_pembayaran_jemaah").html(`<h2 class="no-margins">0</h2>`);
+            $("#dashboard_pembayaran_umrah").html(`<h2 class="no-margins">0</h2>`);
+
+            const hajiGetData   = success[1].status == 'fulfilled' ? success[1].value.data : [];
+            if(hajiGetData.length > 0 && temp_haji.length < 1) {
+                temp_haji.push(hajiGetData);
+            }
+
+            $("#dashboard_pembayaran_haji").html(`<h2 class="no-margins">${hajiGetData.length}</h2>`);
         })
         .catch((error)      => {
             console.log(error);
@@ -330,4 +578,11 @@ function doTransaction(url, type, data, message = '', processData = true, conten
             }
         })
     })
+}
+
+function clearUrl()
+{
+    let url     = window.location.href;
+    let cleanUrl= url.split('#')[0];
+    window.history.replaceState({}, document.title, cleanUrl);
 }

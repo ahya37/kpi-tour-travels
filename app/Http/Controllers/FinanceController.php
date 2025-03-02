@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\FinanceServices;
+use App\Services\SysUmhajService;
 use Dotenv\Repository\RepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
@@ -338,4 +339,57 @@ class FinanceController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 02 MARET 2025
+    // NOTE : AMBIL DATA PEMBAYARAN HAJI
+    public function finance_pembayaran_haji_list(Request $request)
+    {
+        $output     = [
+            'success'   => false,
+            'status'    => 404,
+            'message'   => 'Berhasil Memuat Data',
+            'data'      => []
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : AMBIL DATA MEMBER
+    public function master_get_data_member(Request $request)
+    {
+        // FOR SELECT2 PURPOSE
+        $keyword    = $request->all()['keyword'];
+
+        $get_data   = SysUmhajService::get_data_member($keyword);
+
+        $output     = [
+            "success"   => $get_data['is_success'],
+            "status"    => $get_data['status_code'],
+            "message"   => $get_data['message'],
+            "data"      => $get_data['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : AMBIL NO DAFTAR SELECTED MEMBER ID
+    public function finance_pembayaran_haji_detail_jemaah(Request $request)
+    {
+        $send_data  = [
+            'jemaah_id' => $request->all()['member_id'],
+            'haji_kode' => $request->all()['haji_kode'] == 'semua' ? '%' : $request->all()['haji_kode']
+        ];
+
+        $get_data   = FinanceServices::do_get_no_daftar_jemaah($send_data);
+
+        $output     = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+    
 }

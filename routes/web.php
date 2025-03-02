@@ -478,6 +478,11 @@ Route::group(['middleware' => ['auth']], function () {
             
             Route::prefix('pembayaran')->group(function(){
                 Route::get('/', [finance::class, 'finance_pembayaran_dashboard'])->name('finance.pembayaran.index');
+
+                Route::prefix('haji')->group(function(){
+                    Route::get('/list_pembayaran_haji', [finance::class, 'finance_pembayaran_haji_list']);
+                    Route::get('/detail_jemaah', [finance::class, 'finance_pembayaran_haji_detail_jemaah']);
+                });
             });
 
             Route::prefix('master')->group(function(){
@@ -508,6 +513,10 @@ Route::group(['middleware' => ['auth']], function () {
                     Route::get('/list', [finance::class, 'finance_master_currency']);
                     Route::post('/currency_update/{trans_type}', [finance::class, 'finance_master_currency_trans']);
                     Route::get('/list_detail', [finance::class, 'finance_mater_currency_detail']);
+                });
+
+                Route::prefix('member')->group(function(){
+                    Route::get('/list', [finance::class, 'master_get_data_member']);
                 });
             });
             Route::prefix('simulasi')->group(function(){
