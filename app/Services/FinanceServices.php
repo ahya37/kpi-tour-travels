@@ -681,11 +681,40 @@ class FinanceServices
 
         try {
             if(count($query) > 0) {
+                // CONDITION
+                $price  = 0;
+                for($i = 0; $i < count($query); $i++) {
+                    switch ($query[$i]->haji_paket) {
+                        case 'Quad' : 
+                            $price  = 17500;
+                        break;
+                        case 'Triple' :
+                            $price  = 18500;
+                        break;
+                        case 'Quad' :
+                            $price  = 20000;
+                        break;
+                    }
+                    $condition_data[]     = [
+                        "haji_id"               => $query[$i]->haji_id,
+                        "haji_paket"            => $query[$i]->haji_paket,
+                        "haji_harga"            => $price,
+                        "jemaah_id"             => $query[$i]->jemaah_id,
+                        "jemaah_nama"           => $query[$i]->jemaah_nama,
+                        "kode_keberangkatan"    => $query[$i]->kode_keberangkatan,
+                        "no_bpih"               => $query[$i]->no_bpih,
+                        "no_daftar"             => $query[$i]->no_daftar,
+                        "no_spph"               => $query[$i]->no_spph,
+                        "tgl_bpih"              => $query[$i]->tgl_bpih == "0000-00-00" ? "" : date('d/M/Y', strtotime($query[$i]->tgl_bpih)),
+                        "tgl_keberangkatan"     => $query[$i]->tgl_keberangkatan == "0000-00-00" ? "" : date('d/M/Y', strtotime($query[$i]->tgl_keberangkatan)),
+                        "tgl_spph"              => $query[$i]->tgl_spph == "0000-00-00" ? "" : date('d/M/Y', strtotime($query[$i]->tgl_spph)),
+                    ];
+                }
                 $output     = [
                     'is_success'    => true,
                     'status_code'   => 200,
                     'message'       => 'Berhasil Mengambil Data Haji',
-                    'data'          => $query,
+                    'data'          => $condition_data,
                 ];
             } else {
                 $output     = [

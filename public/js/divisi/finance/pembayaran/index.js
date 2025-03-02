@@ -4,6 +4,7 @@ var temp_pengajuan      = [];
 var temp_bulan          = [];
 var temp_haji           = [];
 var temp_haji_detail    = [];
+var temp_data_bank_account  = [];
 
 for(let i = 0; i < 11; i++) {
     let monthNumber     = moment(i + 1, 'M').format('MM');
@@ -256,9 +257,9 @@ function showTable(idTable, data)
             bInfo       : false,
             ordering    : false,
             columnDefs  : [
-                { "targets" : [0, 1], "className" : "text-center align-middle", "width" : "8%" },
-                { "targets" : [2, 4], "width" : "15%" },
-                { "targets" : [3], "width" : "20%"}
+                { "targets" : [0, 1], "className" : "text-center align-middle", "width" : "6%" },
+                { "targets" : [2, 4, 5], "width" : "15%" },
+                { "targets" : [3], "width" : "10%"}
             ],
         })
     }
@@ -274,16 +275,18 @@ function addRowTable(idTable, data, seq)
         let buttonSeq       = $("#btnTambahBaris");
         let inputSeq        = `<input type="text" class="form-control text-center" id="hj_detail_no${seq}" readonly>`;
         let buttonDelete    = `<button class="btn btn-sm btn-danger" type="button" title="Hapus Baris"><i class="fa fa-trash"></i></button>`;
-        let inputTglBayar   = `<input type="date" class="form-control" placeholder="DD/MM/YYYY" id="hj_detail_tglBayar${seq}">`;
-        let selectMetode    = `<select class="form-control" id="hj_detail_method${seq}" style="width: 100%;"></select>`;
+        let inputTglBayar   = `<input type="text" class="form-control" placeholder="DD/MM/YYYY" id="hj_detail_tglBayar${seq}" readonly title="Pilih Tgl. Transaksi">`;
+        let selectMetode    = `<select class="form-control" id="hj_detail_method${seq}" style="width: 120px;" onchange="showSelectDetail('hj_detail_method', this.value, ${seq})"></select>`;
+        let selectBankAcc   = `<select class="form-control" id="hj_detail_bank_acc${seq}" style="width: 290px;" disabled></select>`
         let selectKurs      = `<select class="form-control" id="hj_detail_curr${seq}" style="width: 100%;"></select>`;
-        let inputJmlBayar   = `<input type="text" class="form-control" placeholder="Jml. Bayar" value="0" onclick="this.select()">`
+        let inputJmlBayar   = `<input type="text" class="form-control" placeholder="Jml. Bayar" value="0" onclick="this.select()" id="hj_detail_amount${seq}">`
 
         $("#"+idTable).DataTable().row.add([
             buttonDelete,
             inputSeq,
             inputTglBayar,
             selectMetode,
+            selectBankAcc,
             selectKurs,
             inputJmlBayar
         ]).draw(false);
@@ -300,6 +303,33 @@ function addRowTable(idTable, data, seq)
             { 'id' : 'USD', 'text' : '($) Dollar' },
         ];
         showSelect('hj_detail_curr', dataKurs, '', seq);
+
+        showSelect('hj_detail_bank_acc', [], '', seq);
+
+        $("#hj_detail_tglBayar"+seq).daterangepicker({
+            drops       : 'up',
+            minDate     : moment(today, 'YYYY-MM-DD').subtract(10, 'year'),
+            maxDate     : moment(today, 'YYYY-MM-DD').add(10, 'year'),
+            autoApply   : true,
+            showDropdowns : true,
+            format      : 'DD/MM/YYYY',
+            setStartDate    : moment(today, 'YYYY-MM-DD'),
+            singleDatePicker    : true,
+            locale  : {
+                cancelLabel : 'Batal',
+                applyLabel  : 'Simpan',
+            },
+        }).css({'cursor':'pointer', 'background':'white'});
+
+        $("#hj_detail_amount"+seq).on('keyup', () => {
+            let currentValue    = $("#hj_detail_amount"+seq).val();
+            let formatText      = currentValue.replace(/[^0-9]/g, '');
+            let usdFormat       = parseInt(formatText).toLocaleString('en-US');
+            
+            if(currentValue != '') {
+                $("#hj_detail_amount"+seq).val(usdFormat);
+            }
+        })
 
         // DEFAULT VALUE
         $("#hj_detail_no"+seq).val(seq);
@@ -420,6 +450,16 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
         });
 
         $("#"+idSelect+""+seq).html(html);
+    } else if(idSelect == 'hj_detail_bank_acc') {
+        let html    = `<option selected disabled>No. Rekening</option>`;
+
+        if(data.length > 0 ) {
+            $.each(data[0], (i, item)  => {
+                html    += `<option value="${item['account_id']}">${item['account_bank_name']} - ${item['account_number']}</option>`
+            })
+        }
+
+        $("#"+idSelect+""+seq).html(html);
     }
 }
 
@@ -437,6 +477,7 @@ function showSelectDetail(idSelect, data, seq = '')
 
         doTransaction(hajiCodeURL, hajiCodeType, hajiCodeData, hajiCodeMsg)
             .then((success)     => {
+                console.log(success.data);
                 let dataCodeDepature    = [];
                 for(const item of success.data)
                 {
@@ -447,6 +488,7 @@ function showSelectDetail(idSelect, data, seq = '')
                 showSelect('hj_depature_code', dataCodeDepature, '');
             })
             .catch((error)      => {
+                // console.log(error);
                 Swal.fire({
                     icon    : 'error',
                     title   : 'Terjadi Kesalahan',
@@ -465,12 +507,29 @@ function showSelectDetail(idSelect, data, seq = '')
         doTransaction(hajiCodeURL, hajiCodeType, hajiCodeData, hajiCodeMsg)
             .then((success)     => {
                 Swal.close();
-                console.log(success);
+                // FILL FORM
+                const hajiCodeGetData   = success.data[0];
+                
+                $("#hj_no_daftar").val(hajiCodeGetData.no_daftar);
+                $("#hj_tgl_daftar").val(hajiCodeGetData.tgl_keberangkatan);
+                $("#hj_no_bpih").val(hajiCodeGetData.no_bpih);
+                $("#hj_room").val(hajiCodeGetData.haji_paket);
+                $("#hj_room_price").val(parseInt(hajiCodeGetData.haji_harga).toLocaleString('en-US'));
+                $("#hj_current_payment").val();
+                $("#hj_status_payment").val();
             })
             .catch((error)      => {
                 Swal.close();
                 console.log(error);
             })
+    } else if(idSelect == 'hj_detail_method') {
+        if(data == 'tf') {
+            $("#hj_detail_bank_acc"+seq).prop('disabled', false);
+            showSelect('hj_detail_bank_acc', temp_data_bank_account, '', seq);
+        } else {
+            $("#hj_detail_bank_acc"+seq).prop('disabled', true);
+            showSelect('hj_detail_bank_acc', [], '', seq);
+        }
     }
 }
 
@@ -499,10 +558,16 @@ function showDataDashboard(selectedMonth)
     const hajiData      = [];
     const hajiMsg       = [];
     
+    const bankAccountURL    = "divisi/finance/master/bank/list_bank_account";
+    const bankAccountType   = "GET";
+    const bankAccountData   = [];
+    const bankAccountMsg    = "";
+    
     // COLLECTIVE GET DATA
     const collectApi    = [
         doTransaction(pengajuanURL, pengajuanType, pengajuanData, pengajuanMsg),
         doTransaction(hajiURL, hajiType, hajiData, hajiMsg),
+        doTransaction(bankAccountURL, bankAccountType, bankAccountData, bankAccountMsg)
     ];
 
     Promise.allSettled(collectApi)
@@ -523,6 +588,12 @@ function showDataDashboard(selectedMonth)
             }
 
             $("#dashboard_pembayaran_haji").html(`<h2 class="no-margins">${hajiGetData.length}</h2>`);
+
+            // GET BANK ACCOUNT
+            const bankAccountGetData    = success[2].status == 'fulfilled' ? success[2].value.data.data : [];
+            if(bankAccountGetData.length > 0 && temp_data_bank_account.length < 1) {
+                temp_data_bank_account.push(bankAccountGetData);
+            }
         })
         .catch((error)      => {
             console.log(error);

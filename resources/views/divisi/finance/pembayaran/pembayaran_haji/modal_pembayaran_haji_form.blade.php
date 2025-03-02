@@ -69,6 +69,7 @@
                                         <th class="text-center align-middle">No</th>
                                         <th class="text-center align-middle">Tgl. Bayar</th>
                                         <th class="text-center align-middle">Metode</th>
+                                        <th class="text-center align-middle">No. Rekening</th>
                                         <th class="text-center align-middle">Mata Uang</th>
                                         <th class="text-center align-middle">Jml. Bayar</th>
                                     </tr>
