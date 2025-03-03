@@ -344,11 +344,13 @@ class FinanceController extends Controller
     // NOTE : AMBIL DATA PEMBAYARAN HAJI
     public function finance_pembayaran_haji_list(Request $request)
     {
+        $get_data   = FinanceServices::get_data_pembayaran_haji();
+
         $output     = [
-            'success'   => false,
-            'status'    => 404,
-            'message'   => 'Berhasil Memuat Data',
-            'data'      => []
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data']
         ];
 
         return Response::json($output, $output['status']);

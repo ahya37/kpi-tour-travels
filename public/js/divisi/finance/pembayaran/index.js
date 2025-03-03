@@ -3,7 +3,6 @@ var base_url            = window.location.origin;
 var temp_pengajuan      = [];
 var temp_bulan          = [];
 var temp_haji           = [];
-var temp_haji_detail    = [];
 var temp_data_bank_account  = [];
 
 for(let i = 0; i < 11; i++) {
@@ -148,9 +147,17 @@ function closeModal(idModal)
         $("#"+idModal).modal('hide');
     } else if (idModal == 'modal_pembayaran_haji_form') {
         $("#"+idModal).modal('hide');
-        temp_haji_detail = [];
         showModal('modal_pembayaran_haji', '', []);
         $("#btn_tambah_baris_haji").val(1);
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#hj_no_daftar").val(null);
+            $("#hj_tgl_daftar").val(null);
+            $("#hj_no_bpih").val(null);
+            $("#hj_room").val(null);
+            $("#hj_room_price").val(null);
+            $("#hj_status_payment").val(null);
+        })
     }
 }
 

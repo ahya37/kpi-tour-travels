@@ -820,6 +820,24 @@ class FinanceServices
 
         return $output;
     }
+
+    // NOTE : AMBIL PEMBAYARAN HAJI
+    public static function get_data_pembayaran_haji()
+    {
+        // $query  = DB::table('fin_trans_haji as a')
+        //             ->join('fin_trans_haji_detail as b', 'a.hj_trans_id', '=', 'b.hj_trans_id')
+        //             ->select(
+        //                 'a.hj_trans_id as trans_id',
+        //                 'a.hj_trans_member_id as jemaah_id',
+        //                 'a.hj_trans_member_name as jemaah_nama',
+        //                 'a.hj_tour_code as tour_code',
+        //                 'a.hj_tgl_daftar as tgl_daftar',
+        //                 DB::raw(
+        //                     "CASE"
+        //                 )
+        //             )
+        //             ->get();
+    }
 }
 
 ?>
