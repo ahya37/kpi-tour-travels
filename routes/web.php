@@ -482,6 +482,7 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::prefix('haji')->group(function(){
                     Route::get('/list_pembayaran_haji', [finance::class, 'finance_pembayaran_haji_list']);
                     Route::get('/detail_jemaah', [finance::class, 'finance_pembayaran_haji_detail_jemaah']);
+                    Route::post('/simpan_haji/{type}', [finance::class, 'finance_pembayaran_haji_simpan_haji']);
                 });
             });
 

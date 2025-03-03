@@ -737,6 +737,89 @@ class FinanceServices
 
         return $output;
     }
+
+    // NOTE : SIMPAN TRANS PEMBAYARAN HAJI
+    public static function do_simpan_pembayaran_haji($type, $data)
+    {
+        $ip_address         = $data['ip_address'];
+        $user_id            = $data['user_id'];
+        $haji_data_header   = $data['data']['header'];
+        $haji_data_detail   = $data['data']['detail'];
+
+        DB::beginTransaction();
+        
+        if($type == 'add') {
+            // SIMPAN DATA HEADER
+            $insert_data_header = [
+                'hj_create_date'        => $haji_data_header['tgl_daftar'],
+                'hj_trans_member_id'    => $haji_data_header['jemaah_id'],
+                'hj_trans_member_name'  => $haji_data_header['jemaah_nama'],
+                'hj_tour_code'          => $haji_data_header['tour_code'],
+                'hj_no_daftar'          => $haji_data_header['no_daftar'],
+                'hj_tgl_daftar'         => $haji_data_header['tgl_daftar'],
+                'hj_no_bpih'            => $haji_data_header['no_bpih'],
+                'hj_paket'              => $haji_data_header['paket'],
+                'created_by'            => $user_id,
+                'created_date'          => date('Y-m-d H:i:s'),
+                'updated_by'            => $user_id,
+                'updated_date'          => date('Y-m-d H:i:s'),
+            ];
+            
+            DB::table('fin_trans_haji')->insert($insert_data_header);
+
+            $haji_id    = DB::getPdo()->lastInsertId();
+
+            // SIMPAN DATA DETAIL
+            if(count($haji_data_detail) > 0) {
+                for($i = 0; $i < count($haji_data_detail); $i++) {
+                    $insert_data_detail     = [
+                        'hj_trans_id'           => $haji_id,
+                        'hj_seq'                => $haji_data_detail[$i]['seq'],
+                        'hj_payment_method'     => $haji_data_detail[$i]['metode_bayar'],
+                        'hj_bank_account_id'    => $haji_data_detail[$i]['no_rekening'],
+                        'hj_payment_amount'     => $haji_data_detail[$i]['jml_bayar'],
+                        'hj_payment_currency'   => $haji_data_detail[$i]['mata_uang'],
+                        'hj_payment_note'       => '',
+                        'created_by'            => $user_id,
+                        'created_date'          => date('Y-m-d H:i:s'),
+                        'updated_by'            => $user_id,
+                        'updated_date'          => date('Y-m-d H:i:s'),
+                    ];
+
+                    DB::table('fin_trans_haji_detail')->insert($insert_data_detail);
+                }
+            }
+
+            try {
+                $output     = [
+                    'status_code'   => 200,
+                    'is_success'    => true,
+                    'message'       => 'Berhasil Menambahkan Data Pembayaran Haji',
+                    'data'          => [],
+                ];
+
+                DB::commit();
+
+                LogHelper::create('add', $output['message'] . ' ID : ' . $haji_id, $ip_address);
+            } catch (\Exception $e) {
+                $output     = [
+                    'status_code'   => 500,
+                    'is_success'    => false,
+                    'message'       => 'Gagal Menambahkan Data Pembayaran Haji',
+                    'data'          => []
+                ];
+                
+                DB::rollBack();
+                
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
+        } else if($type == 'edit') {
+
+        }
+
+        return $output;
+    }
 }
 
 ?>

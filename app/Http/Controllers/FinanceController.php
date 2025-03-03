@@ -392,4 +392,39 @@ class FinanceController extends Controller
         return Response::json($output, $output['status']);
     }
     
+    // 03 MARET 2025
+    // NOTE : SIMPAN DATA PEMBAYARAN HAJI
+    public function finance_pembayaran_haji_simpan_haji($type, Request $request)
+    {
+        $validator  = Validator::make($request->all()['header'], [
+            'jemaah_id'     => 'required',
+            'tour_code'     => 'required',
+        ]);
+
+        if($validator->fails()) {
+            $output     = [
+                'success'   => false,
+                'status'    => 522,
+                'message'   => $validator->errors(),
+                'data'      => []
+            ];
+        } else {
+            $send_data  = [
+                'user_id'       => Auth::user()->id,
+                'ip_address'    => $request->ip(),
+                'data'          => $request->all(),
+            ];
+            
+            $do_simpan  = FinanceServices::do_simpan_pembayaran_haji($type, $send_data);
+            
+            $output     = [
+                'success'   => $do_simpan['is_success'],
+                'status'    => $do_simpan['status_code'],
+                'message'   => $do_simpan['message'],
+                'data'      => $do_simpan['data']
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
 }

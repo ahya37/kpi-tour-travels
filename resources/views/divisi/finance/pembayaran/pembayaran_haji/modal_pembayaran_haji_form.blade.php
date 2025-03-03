@@ -80,10 +80,10 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-success" id="btnTambahBaris" value="1" onclick="addRowTable('table_pembayaran_haji_form', [], this.value)"><i class="fa fa-plus"></i> Tambah Baris</button>
+                <button class="btn btn-success" id="btn_tambah_baris_haji" value="1" onclick="addRowTable('table_pembayaran_haji_form', [], this.value)"><i class="fa fa-plus"></i> Tambah Baris</button>
                 |
                 {{-- <button class="btn btn-secondary" onclick="closeModal('modal_pembayaran_haji_form')" title="Tutup Tampilan">Tutup</button> --}}
-                <button class="btn btn-primary" id="btn_modal_pembayaran_haji_form" value="" title="Simpan Data">Simpan</button>
+                <button class="btn btn-primary" id="btn_simpan_pembayaran_haji" value="" title="Simpan Data" onclick="simpanData('modal_pembayaran_haji', this.value, [])">Simpan</button>
             </div>
         </div>
     </div>
