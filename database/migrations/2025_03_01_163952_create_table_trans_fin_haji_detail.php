@@ -14,15 +14,16 @@ return new class extends Migration
         Schema::create('fin_trans_haji_detail', function (Blueprint $table) {
             $table->string('hj_trans_id', length:10);
             $table->integer('hj_seq');
-            $table->enum('hj_payment_method', ['transfer', 'cash']);
+            $table->date('hj_payment_date');
+            $table->enum('hj_payment_method', ['tf', 'cash']);
             $table->integer('hj_bank_account_id')->nullable();
             $table->decimal('hj_payment_amount', 17, 2);
             $table->string('hj_payment_currency', length:3);
             $table->text('hj_payment_note');
             $table->string('created_by', length:10);
-            $table->dateTime('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->dateTime('created_date')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->string('updated_by', length:10);
-            $table->dateTime('updated_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->dateTime('updated_date')->default(DB::raw('CURRENT_TIMESTAMP'));
         });
     }
 

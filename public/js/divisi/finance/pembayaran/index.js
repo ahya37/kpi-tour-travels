@@ -26,7 +26,7 @@ $(document).ready(function(){
     showDataDashboard(moment(today, 'YYYY-MM-DD').format('MM'));
 });
 
-function showModal(idModal, type, data)
+function showModal(idModal, type, data = '')
 {
     if(idModal == 'modal_pengajuan_keuangan') {
         Swal.fire({
@@ -122,15 +122,41 @@ function showModal(idModal, type, data)
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
         showTable('table_pembayaran_haji', []);
-    } else if(idModal == 'modal_pembayaran_haji_form') {
-        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
+        // GET DATA PEMBAYARAN HAJI
+        const paymentHajiURL    = "divisi/finance/pembayaran/haji/list_pembayaran_haji";
+        const paymentHajiType   = "GET";
+        const paymentHajiData   = {};
+        const paymentHajiMsg    = "";
+
+        doTransaction(paymentHajiURL, paymentHajiType, paymentHajiData, paymentHajiMsg)
+            .then((success)     => {
+                const paymentHajiGetData    = success.data;
+                showTable('table_pembayaran_haji', paymentHajiGetData);
+
+                if(paymentHajiGetData.length < 1) {
+                    $("#table_pembayaran_haji").find('.dataTables_empty').html(success.message);
+                }
+            })
+            .catch((error)      => {
+                showTable('table_pembayaran_haji', []);
+            })
+    } else if(idModal == 'modal_pembayaran_haji_form') {
         closeModal('modal_pembayaran_haji');
 
-        showSelect('hj_member_id', []);
-        showSelect('hj_depature_code', []);
+        console.log({idModal, type, data})
 
-        showTable('table_pembayaran_haji_form', []);
+        if(data == '') {
+            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+            showSelect('hj_member_id', []);
+            showSelect('hj_depature_code', []);
+            showTable('table_pembayaran_haji_form', []);
+        } else {
+            $(".is_not_empty_data").removeClass('d-none');
+            $(".is_empty_data").addClass('d-none');
+
+            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        }
 
         $("#btn_simpan_pembayaran_haji").val(type);
     }
@@ -151,6 +177,16 @@ function closeModal(idModal)
         $("#btn_tambah_baris_haji").val(1);
 
         $("#"+idModal).on('hidden.bs.modal', () => {
+
+            // HIDE FORM
+            $(".is_empty_data").removeClass('d-none');
+            $(".is_not_empty_data").addClass('d-none');
+            $("#hj_member_id_edit").val(null);
+            $("#hj_member_name_edit").val(null);
+            $("#hj_depature_code_edit").val(null);
+
+
+            $("#hj_member_id").val('');
             $("#hj_no_daftar").val(null);
             $("#hj_tgl_daftar").val(null);
             $("#hj_no_bpih").val(null);
@@ -251,12 +287,34 @@ function showTable(idTable, data)
             autoWidth   : false,
             columnDefs  : [
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [1], "className" : "align-middle", },
                 { "targets" : [2], "className" : "text-left align-middle", "width" : "15%" },
                 { "targets" : [3], "className" : "text-center align-middle", "width" : "15%," },
                 { "targets" : [4], "className" : "text-center align-middle", "width" : "8%," },
                 { "targets" : [5], "className" : "text-center align-middle", "width" : "8%," },
             ],
         })
+        
+        if(data.length > 0) {
+            for(let i = 0; i < data.length; i++) {
+                let seq                 = i + 1;
+                let transID             = data[i]['trans_id'];
+                let jemaahName          = data[i]['jemaah_name'];
+                let jemaahTglDaftar     = data[i]['tgl_daftar'] === null ? '' : moment(data[i]['tgl_daftar'], 'YYYY-MM-DD').format('DD MMM YYYY');
+                let jemaahPaket         = data[i]['jemaah_pkg'];
+                let jemaahStatusBayar   = '';
+                let btnJemaahAct        = `<button class="btn btn-sm btn-primary" value="${transID}" title="Lihat Data" onclick="showModal('modal_pembayaran_haji_form', 'edit', this.value)"><i class="fa fa-eye"></i></button>`
+                $("#"+idTable).DataTable().row.add([
+                    `<label class="no-margins font-weight-normal">${seq}</label>`,
+                    `<label class="no-margins font-weight-normal">${jemaahName}</label>`,
+                    `<label class="no-margins font-weight-normal">${jemaahTglDaftar}</label>`,
+                    `<label class="no-margins font-weight-normal">${jemaahPaket}</label>`,
+                    `<label class="no-margins font-weight-normal">${jemaahStatusBayar}</label>`,
+                    `<label class="no-margins font-weight-normal">${btnJemaahAct}</label>`,
+                ]).draw(false);
+            }
+        }
+
     } else if(idTable == 'table_pembayaran_haji_form') {
         $("#"+idTable).DataTable({
             language    : {
@@ -634,10 +692,6 @@ function showDataDashboard(selectedMonth)
             $("#dashboard_pembayaran_umrah").html(`<h2 class="no-margins">0</h2>`);
 
             const hajiGetData   = success[1].status == 'fulfilled' ? success[1].value.data : [];
-            if(hajiGetData.length > 0 && temp_haji.length < 1) {
-                temp_haji.push(hajiGetData);
-            }
-
             $("#dashboard_pembayaran_haji").html(`<h2 class="no-margins">${hajiGetData.length}</h2>`);
 
             // GET BANK ACCOUNT
@@ -671,7 +725,7 @@ function simpanData(idForm, type, data = [])
             let seq     = i + 1;
             hajiDetail.push({
                 'seq'           : $("#hj_detail_no"+seq).val(),
-                'tgl_bayar'     : $("#hj_detail_tglBayar"+seq).val(),
+                'tgl_bayar'     : moment($("#hj_detail_tglBayar"+seq).val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
                 'metode_bayar'  : $("#hj_detail_method"+seq).val(),
                 'no_rekening'   : $("#hj_detail_bank_acc"+seq).val(),
                 'mata_uang'     : $("#hj_detail_curr"+seq).val(),

@@ -10,7 +10,7 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-xl-3 col-6">
-                        <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_pembayaran_haji_form','add',[])"><i class="fa fa-plus"></i> Tambah Data</button>
+                        <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_pembayaran_haji_form', 'add', '')"><i class="fa fa-plus"></i> Tambah Data</button>
                     </div>
                 </div>
                 <hr>

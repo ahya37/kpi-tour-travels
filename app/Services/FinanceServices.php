@@ -775,6 +775,7 @@ class FinanceServices
                     $insert_data_detail     = [
                         'hj_trans_id'           => $haji_id,
                         'hj_seq'                => $haji_data_detail[$i]['seq'],
+                        'hj_payment_date'       => $haji_data_detail[$i]['tgl_bayar'],
                         'hj_payment_method'     => $haji_data_detail[$i]['metode_bayar'],
                         'hj_bank_account_id'    => $haji_data_detail[$i]['no_rekening'],
                         'hj_payment_amount'     => $haji_data_detail[$i]['jml_bayar'],
@@ -824,19 +825,41 @@ class FinanceServices
     // NOTE : AMBIL PEMBAYARAN HAJI
     public static function get_data_pembayaran_haji()
     {
-        // $query  = DB::table('fin_trans_haji as a')
-        //             ->join('fin_trans_haji_detail as b', 'a.hj_trans_id', '=', 'b.hj_trans_id')
-        //             ->select(
-        //                 'a.hj_trans_id as trans_id',
-        //                 'a.hj_trans_member_id as jemaah_id',
-        //                 'a.hj_trans_member_name as jemaah_nama',
-        //                 'a.hj_tour_code as tour_code',
-        //                 'a.hj_tgl_daftar as tgl_daftar',
-        //                 DB::raw(
-        //                     "CASE"
-        //                 )
-        //             )
-        //             ->get();
+        $query  = DB::table('fin_trans_haji as a')
+                    ->join('fin_trans_haji_detail as b', 'a.hj_trans_id', '=', 'b.hj_trans_id')
+                    ->select('a.hj_trans_id as trans_id', 'a.hj_trans_member_id as jemaah_id', 'a.hj_trans_member_name as jemaah_name', 'a.hj_tour_code as tour_code', 'a.hj_no_daftar as no_daftar', 'a.hj_tgl_daftar as tgl_daftar', 'a.hj_no_bpih as no_bpih', 'a.hj_paket as jemaah_pkg', DB::raw("SUM(b.hj_payment_amount) as total_payment"))
+                    ->groupBy('a.hj_trans_id', 'a.hj_trans_member_id', 'a.hj_trans_member_name', 'a.hj_tour_code', 'a.hj_no_daftar', 'a.hj_tgl_daftar', 'a.hj_no_bpih', 'a.hj_paket')
+                    ->orderBy('a.hj_trans_id', 'desc')
+                    ->get();
+        
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Pembayaran Haji',
+                    'data'          => $query,
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Pembayaran Haji',
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => true,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data Pembayaran Haji',
+                'data'          => []
+            ];
+        }
+
+        return $output;
     }
 }
 

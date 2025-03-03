@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('fin_trans_haji', function (Blueprint $table) {
             $table->id('hj_trans_id');
-            $table->date('hj_create_date');
+            $table->date('hj_create_date')->nullable();
             $table->smallInteger('hj_trans_member_id');
             $table->string('hj_trans_member_name', length:100);
             $table->string('hj_tour_code', length:100);

@@ -10,19 +10,30 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-xl-6 col-md-12">
-                        <div class="form-group">
+                        <div class="form-group is_empty_data">
                             <label class="no-margins font-weight-bold" for="hj_member_id">
                                 <h4 class="no-margins">Nama Jemaah</h4>
                             </label>
                             <select id="hj_member_id" style="width: 100%;" class="form-control" onchange="showSelectDetail(this.id, this.value)"></select>
                         </div>
+                        <div class="form-group d-none is_not_empty_data">
+                            <label for="no-margins font-weight-bold" for="hj_member_id_edit">
+                                <h4 class="no-margins">Nama Jemaah</h4>
+                            </label>
+                            <input type="hidden" id="hj_member_id_edit" class="form-control" readonly placeholder="Jemaah Id">
+                            <input type="text" id="hj_member_name_edit" class="form-control" readonly placeholder="Nama Jemaah">
+                        </div>
                     </div>
                     <div class="col-12">
                         <div class="row">
                             <div class="col-xl-6 col-12">
-                                <div class="form-group">
+                                <div class="form-group is_empty_data">
                                     <label for="hj_depature_code">Kode Keberangkatan</label>
                                     <select id="hj_depature_code" style="width: 100%;" class="form-control" onchange="showSelectDetail(this.id, this.value)"></select>
+                                </div>
+                                <div class="form-group d-none is_not_empty_data">
+                                    <label for="hj_depature_code_edit">Kode Keberangkatan</label>
+                                    <input type="text" class="form-control" id="hj_depature_code_edit" readonly placeholder="Kode Keberangkatan">
                                 </div>
                                 <div class="form-group">
                                     <label for="hj_no_daftar">No. Daftar</label>

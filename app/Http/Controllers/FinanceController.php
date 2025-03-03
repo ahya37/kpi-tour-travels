@@ -375,7 +375,7 @@ class FinanceController extends Controller
     }
 
     // NOTE : AMBIL NO DAFTAR SELECTED MEMBER ID
-    public function finance_pembayaran_haji_detail_jemaah(Request $request)
+    public function finance_detail_jemaah_haji(Request $request)
     {
         $send_data  = [
             'jemaah_id' => $request->all()['member_id'],
@@ -398,10 +398,16 @@ class FinanceController extends Controller
     // NOTE : SIMPAN DATA PEMBAYARAN HAJI
     public function finance_pembayaran_haji_simpan_haji($type, Request $request)
     {
-        $validator  = Validator::make($request->all()['header'], [
-            'jemaah_id'     => 'required',
-            'tour_code'     => 'required',
-        ]);
+        if($type == 'add') {
+            $validator_rules    = [
+                'jemaah_id' => 'required',
+                'tour_code' => 'required',
+            ];
+        } else {
+            $validator_rules    = [];
+        }
+        
+        $validator  = Validator::make($request->all()['header'], $validator_rules);
 
         if($validator->fails()) {
             $output     = [
@@ -428,5 +434,12 @@ class FinanceController extends Controller
         }
 
         return Response::json($output, $output['status']);
+    }
+
+    // 04 MARET 2025
+    // NOTE : GET DATA FINANCE PEMBAYARAN JEMAAH
+    public function finance_pembayaran_detail_haji_jemaah(Request $request)
+    {
+        
     }
 }
