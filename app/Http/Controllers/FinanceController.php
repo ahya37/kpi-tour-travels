@@ -440,6 +440,17 @@ class FinanceController extends Controller
     // NOTE : GET DATA FINANCE PEMBAYARAN JEMAAH
     public function finance_pembayaran_detail_haji_jemaah(Request $request)
     {
-        
+        $trans_id   = $request->all()['trans_id'];
+
+        $get_data   = FinanceServices::do_get_data_pembayaran_detail_haji_jemaah($trans_id);
+
+        $output     = [
+            'status'    => $get_data['status_code'],
+            'success'   => $get_data['is_success'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data'],
+        ];
+
+        return Response::json($output, $output['status']);
     }
 }

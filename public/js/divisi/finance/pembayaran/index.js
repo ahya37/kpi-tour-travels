@@ -140,11 +140,10 @@ function showModal(idModal, type, data = '')
             })
             .catch((error)      => {
                 showTable('table_pembayaran_haji', []);
+                $("#table_pembayaran_haji").find('.dataTables_empty').html(error.responseJSON.message);
             })
     } else if(idModal == 'modal_pembayaran_haji_form') {
         closeModal('modal_pembayaran_haji');
-
-        console.log({idModal, type, data})
 
         if(data == '') {
             $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
@@ -154,8 +153,41 @@ function showModal(idModal, type, data = '')
         } else {
             $(".is_not_empty_data").removeClass('d-none');
             $(".is_empty_data").addClass('d-none');
+            
+            const paymentHajiURL    = "divisi/finance/pembayaran/haji/pembayaran_detail_jemaah";
+            const paymentHajiType   = "GET";
+            const paymentHajiData   = {
+                'trans_id'  : data,
+            };
+            const paymentHajiMsg    = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
 
-            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+            doTransaction(paymentHajiURL, paymentHajiType, paymentHajiData, paymentHajiMsg)
+                .then((success)     => {
+                    Swal.close();
+                    $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                    
+                    const paymentHajiHeader     = success.data.header;
+                    const paymentHajiDetail     = success.data.detail;
+
+                    // FILL FORM
+                    $("#hj_trans_id").val(data);
+                    $("#hj_member_name_edit").val(paymentHajiHeader['jemaah_name']);
+                    $("#hj_member_id_edit").val(paymentHajiHeader['jemaah_id']);
+                    $("#hj_depature_code_edit").val(paymentHajiHeader['tour_code']);
+                    $("#hj_no_daftar").val(paymentHajiHeader['no_daftar']);
+                    $("#hj_tgl_daftar").val(paymentHajiHeader['tgl_daftar']);
+                    $("#hj_no_bpih").val(paymentHajiHeader['no_bpih']);
+                    $("#hj_room").val(paymentHajiHeader['jemaah_pkg']);
+                    $("#hj_room_price").val(paymentHajiHeader['jemaah_harga_paket'].toLocaleString('en-US'));
+                    $("#hj_current_payment").val(parseInt(paymentHajiHeader['jemaah_total_bayar']).toLocaleString('en-US'));
+                    $("#hj_status_payment").val(paymentHajiHeader['jemaah_status_bayar']);
+
+                    showTable('table_pembayaran_haji_form', paymentHajiDetail);
+                })
+                .catch((error)      => {
+                    console.log(error);
+                })
+
         }
 
         $("#btn_simpan_pembayaran_haji").val(type);
@@ -335,7 +367,10 @@ function showTable(idTable, data)
 
         if(data.length > 0) {
             // LOOP DATA LALU ADD ROW
-            console.log(data);
+            let seq = 1;
+            for(let i = 0; i < data.length; i++) {
+                addRowTable('table_pembayaran_haji_form', data[i], seq++);
+            }
         } else {
             let currentSeq  = $("#btn_tambah_baris_haji").val();
             addRowTable('table_pembayaran_haji_form', [], parseInt(currentSeq));
@@ -412,11 +447,15 @@ function addRowTable(idTable, data, seq)
             showSelect('hj_detail_curr', dataKurs, '', seq);
             showSelect('hj_detail_bank_acc', [], '', seq);
         } else {
-            // showSelect('hj_detail_method', dataMethod, data['metode'], seq);
-            // showSelect('hj_detail_curr', dataKurs, data['mata_uang'], seq);
-            // showSelect('hj_detail_bank_acc', temp_data_bank_account, data['no_rekening'], seq);
+            $("#hj_detail_tglBayar"+seq).data('daterangepicker').setStartDate(moment(data['payment_date'], 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            $("#hj_detail_tglBayar"+seq).data('daterangepicker').setEndDate(moment(data['payment_date'], 'YYYY-MM-DD').format('DD/MM/YYYY'));
 
-            // $("#hj_detail_amount"+seq).val(parseInt(data['jml_bayar']).toLocaleString('en-US'));
+            let bankAccountID   = data['bank_account_id'] == null ? '' : data['bank_account_id'];
+
+            showSelect('hj_detail_method', dataMethod, data['payment_method'], seq);
+            showSelect('hj_detail_curr', dataKurs, data['payment_curr'], seq);
+            showSelect('hj_detail_bank_acc', [], bankAccountID, seq);
+            $("#hj_detail_amount"+seq).val(parseInt(data['payment_amount']).toLocaleString('en-US'));
         }
 
         buttonSeq.val(parseInt(seq) + 1);
@@ -547,6 +586,9 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
 
         $("#"+idSelect+""+seq).html(html);
 
+        if(selectedData != '') {
+            $("#"+idSelect+""+seq).val(selectedData);
+        }
     } else if(idSelect == 'hj_detail_curr') {
         $("#"+idSelect+""+seq).select2({
             theme   : 'bootstrap4',
@@ -560,6 +602,10 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
         });
 
         $("#"+idSelect+""+seq).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect+""+seq).val(selectedData);
+        }
     } else if(idSelect == 'hj_detail_bank_acc') {
         let html    = `<option selected disabled>No. Rekening</option>`;
 
@@ -570,6 +616,10 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
         }
 
         $("#"+idSelect+""+seq).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect+""+seq).val(selectedData);
+        }
     }
 }
 
@@ -711,6 +761,7 @@ function simpanData(idForm, type, data = [])
         // GET DATA FORM
         let hajiDetail  = [];
         let hajiHeader  = {
+            'trans_id'      : $("#hj_trans_id").val(),
             'jemaah_id'     : $("#hj_member_id").val(),
             'jemaah_nama'   : $("#hj_member_id option:selected").text(),
             'tour_code'     : $("#hj_depature_code").val(),

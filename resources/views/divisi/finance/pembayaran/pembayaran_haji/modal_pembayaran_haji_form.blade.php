@@ -8,6 +8,7 @@
                 <button class="close" onclick="closeModal('modal_pembayaran_haji_form')" title="Tutup Tampilan">&times;</button>
             </div>
             <div class="modal-body">
+                <input type="hidden" id="hj_trans_id">
                 <div class="row">
                     <div class="col-xl-6 col-md-12">
                         <div class="form-group is_empty_data">

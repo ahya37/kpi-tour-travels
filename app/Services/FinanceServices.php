@@ -816,7 +816,52 @@ class FinanceServices
                 LogHelper::create('error_system', $output['message'], $ip_address);
             }
         } else if($type == 'edit') {
+            // DELETE DETAIL
+            DB::table('fin_trans_haji_detail')->where('hj_trans_id', '=', $haji_data_header['trans_id'])->delete();
 
+            // INSERT DETAIL
+            for($i = 0; $i < count($haji_data_detail); $i++) {
+                $data_insert_detail     = [
+                    'hj_trans_id'           => $haji_data_header['trans_id'],
+                    'hj_seq'                => $haji_data_detail[$i]['seq'],
+                    'hj_payment_date'       => $haji_data_detail[$i]['tgl_bayar'],
+                    'hj_payment_method'     => $haji_data_detail[$i]['metode_bayar'],
+                    'hj_bank_account_id'    => $haji_data_detail[$i]['no_rekening'],
+                    'hj_payment_amount'     => $haji_data_detail[$i]['jml_bayar'],
+                    'hj_payment_currency'   => $haji_data_detail[$i]['mata_uang'],
+                    'hj_payment_note'       => '',
+                    'created_by'            => $user_id,
+                    'created_date'          => date('Y-m-d H:i:s'),
+                    'updated_by'            => $user_id,
+                    'updated_date'          => date('Y-m-d H:i:s') 
+                ];
+
+                DB::table('fin_trans_haji_detail')->insert($data_insert_detail);
+            }
+
+            try {
+                DB::commit();
+
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 201,
+                    'message'       => 'Berhasil Mengubah Data Pembayaran Haji',
+                    'data'          => []
+                ];
+
+                LogHelper::create('edit', $output['message'] . ' ID : ' . $haji_data_header['trans_id'], $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 500,
+                    'message'       => 'Gagal Mengubah Data Pembayaran Haji',
+                    'data'          => []
+                ];
+
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
         }
 
         return $output;
@@ -856,6 +901,102 @@ class FinanceServices
                 'status_code'   => 500,
                 'message'       => 'Gagal Mengambil Data Pembayaran Haji',
                 'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+
+    // 04 MARET 2025
+    // NOTE : AMBIL DATA PEMBAYARAN HAJI
+    public static function do_get_data_pembayaran_detail_haji_jemaah($trans_id)
+    {
+        // HEADER
+        $query_header   = DB::table('fin_trans_haji as a')
+                            ->select(
+                                    'a.hj_trans_id', 
+                                    'a.hj_tgl_daftar', 
+                                    'a.hj_trans_member_id', 
+                                    'a.hj_trans_member_name', 
+                                    'a.hj_tour_code', 
+                                    'a.hj_no_daftar', 
+                                    'a.hj_tgl_daftar', 
+                                    'a.hj_no_bpih', 
+                                    'a.hj_paket', 
+                                    DB::raw('SUM(b.hj_payment_amount) as hj_total_payment')
+                                )
+                            ->join('fin_trans_haji_detail as b', 'a.hj_trans_id', '=', 'b.hj_trans_id')
+                            ->where('a.hj_trans_id', '=', $trans_id)
+                            ->groupBy('a.hj_trans_id', 'a.hj_tgl_daftar', 'a.hj_trans_member_id', 'a.hj_trans_member_name', 'a.hj_tour_code', 'a.hj_no_daftar', 'a.hj_tgl_daftar', 'a.hj_no_bpih', 'a.hj_paket')
+                            ->get();
+                            
+        $query_detail   = DB::table('fin_trans_haji_detail')
+                            ->select('hj_seq as seq', 'hj_payment_method as payment_method', 'hj_payment_date as payment_date', 'hj_payment_currency as payment_curr', 'hj_payment_amount as payment_amount', 'hj_bank_account_id as bank_account_id')
+                            ->where('hj_trans_id', '=', $trans_id)
+                            ->get();
+
+        try {
+            
+            if(count($query_header) > 0 && count($query_detail) > 0) {
+                switch ($query_header[0]->hj_paket) {
+                    case 'Double' :
+                        $room_price     = 20000;
+                    break;
+                    case 'Triple' :
+                        $room_price     = 18500;
+                    break;
+                    case 'Quad' :
+                        $room_price     = 17500;
+                    break;
+                }
+
+                $header     = [
+                    'payment_id'        => $query_header[0]->hj_trans_id,
+                    'payment_date'      => !empty($query_header[0]->hj_tgl_daftar) ? date('d/M/Y', strtotime($query_header[0]->hj_tgl_daftar)) : "",
+                    'jemaah_id'         => $query_header[0]->hj_trans_member_id,
+                    'jemaah_name'       => $query_header[0]->hj_trans_member_name,
+                    'tour_code'         => $query_header[0]->hj_tour_code,
+                    'no_daftar'         => $query_header[0]->hj_no_daftar,
+                    'tgl_daftar'        => !empty($query_header[0]->hj_tgl_daftar) ? date('d/M/Y', strtotime($query_header[0]->hj_tgl_daftar)) : "",
+                    'no_bpih'           => $query_header[0]->hj_no_bpih,
+                    'jemaah_pkg'        => $query_header[0]->hj_paket,
+                    'jemaah_total_bayar'=> $query_header[0]->hj_total_payment, 
+                    'jemaah_harga_paket'=> $room_price,
+                    'jemaah_status_bayar'   => $query_header[0]->hj_total_payment < $room_price ? 'Kurang Bayar' : ($query_header[0]->hj_total_payment > $room_price ? 'Lebih Bayar' : 'Lunas'),
+                ];
+
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Pembayaran Haji',
+                    'data'          => [
+                        'header'        => $header,
+                        'detail'        => $query_detail,
+                    ],
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Pembayaran Haji',
+                    'data'          => [
+                        'header'        => [],
+                        'detail'        => [],
+                    ]
+                ];
+            }
+
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data Pembayaran Haji',
+                'data'          => [
+                    'header'        => [],
+                    'detail'        => [],
+                ]
             ];
         }
 
