@@ -82,46 +82,46 @@ function showTable(idTable, data)
         });
         
         if(data != '') {
-            $("#"+idTable+" tbody .dataTables_empty").html("Data Ditemukan");
-            let seq     = 1;
-            let totalKeterlambatan  = moment.duration(0);
-            let totalLemburan       = moment.duration(0);
+            let i = 1;
+            let totalOverTime   = moment.duration(0);
+            let totalLateTime   = moment.duration(0);
             for(const item of data)
             {
-                const prs_date      = item['prs_date'];
-                const prs_in        = moment(item['prs_in_time'], 'YYYY-MM-DD HH:mm:ss').format('HH:mm:ss');
-                const prs_out       = item['prs_out_time'] !== null ? moment(item['prs_out_time'], 'YYYY-MM-DD HH:mm:ss').format('HH:mm:ss') : "00:00:00";
-                
-                const prs_max_in    = "08:00:00";
-                const prs_max_out   = moment(item['prs_date'], 'YYYY-MM-DD').format('dddd') == 'Sabtu' ? '13:30:00' : (moment(item['prs_date'], 'YYYY-MM-DD').format('dddd') == "Minggu" ? "00:00:00" : "16:00:00"); 
+                const seq               = i++;
+                const presenceDate      = moment(item['prs_date'], 'YYYY-MM-DD').format('DD MMM YYYY');
+                const presenceDayName   = item['prs_day_name'];
+                const presenceIn        = item['prs_in'];
+                const presenceOut       = item['prs_out'];
+                const totalWorkHour     = '00:00:00';
+                const lateTime          = item['prs_late_time'];
+                const overTime          = item['prs_over_time'];
 
-                const prs_jam_kerja     = prs_out != "00:00:00" ? getDiffTime(prs_in, prs_out) : "";
-                const prs_jam_telat     = prs_out != "00:00:00" ? (prs_in > moment(prs_max_in, 'HH:mm:ss').add(1, 'seconds').format('HH:mm:ss') ? getDiffTime(prs_max_in, prs_in) : "00:00:00") : "00:00:00";
-                const prs_jam_lebih     = prs_out != "00:00:00" ? (prs_out > moment(prs_max_out, 'HH:mm:ss').add(1, 'seconds').format('HH:mm:ss') ? getDiffTime(prs_max_out, prs_out) : "00:00:00") : "00:00:00";
                 $("#"+idTable).DataTable().row.add([
-                    "<label>" + seq++ + "</label>",
-                    "<label>" + moment(prs_date, 'YYYY-MM-DD').format('dddd')+", "+ moment(prs_date, 'YYYY-MM-DD').format('DD/MM/YYYY') + "</label>",
-                    "<label>" + prs_in + "</label>",
-                    "<label>" + prs_out + "</label>",
-                    "<label>" + prs_jam_kerja + "</label>",
-                    "<label>" + prs_jam_telat + "</label>",
-                    "<label>" + prs_jam_lebih + "</label>",
+                    `<label class="no-margins">${seq}</label>`,
+                    `<label class="no-margins">${presenceDayName}, ${presenceDate}</label>`,
+                    `<label class="no-margins">${presenceIn}</label>`,
+                    `<label class="no-margins">${presenceOut}</label>`,
+                    `<label class="no-margins">${totalWorkHour}</label>`,
+                    `<label class="no-margins">${lateTime}</label>`,
+                    `<label class="no-margins">${overTime}</label>`
                 ]).draw(false);
 
-                const jam_telat     = moment.duration(prs_jam_telat == "" ? "00:00:00" : prs_jam_telat);
-                const jam_lebih     = moment.duration(prs_jam_lebih == "" ? "00:00:00" : prs_jam_lebih);
-                totalKeterlambatan.add(jam_telat);
-                totalLemburan.add(jam_lebih);
+                totalOverTime.add(moment.duration(overTime));
+                totalLateTime.add(moment.duration(lateTime));
             }
 
-            $("#tbl_total_absen_keterlambatan").html(moment.utc(totalKeterlambatan.asMilliseconds()).format('HH:mm:ss'));
-            $("#tbl_total_absen_lebih_jam").html(moment.utc(totalLemburan.asMilliseconds()).format('HH:mm:ss'));
+            // console.log({totalOverTime, totalLateTime});
 
-            $("#tbl_total_absen_keterlambatan_1").html($("#tbl_total_absen_keterlambatan").text());
-            $("#tbl_total_absen_lebih_jam_1").html($("#tbl_total_absen_lebih_jam").text());
+            // $("#tbl_total_absen_keterlambatan").html(moment(totalLateTime).format('hh:mm:ss'));
+            // $("#tbl_total_absen_lebih_jam").html(totalOverTime);
+
+            // $("#tbl_total_absen_keterlambatan_1").html($("#tbl_total_absen_keterlambatan").text());
+            // $("#tbl_total_absen_lebih_jam_1").html($("#tbl_total_absen_lebih_jam").text());
             $("#tbl_total_absensi").html(data.length);
+
+            $("#"+idTable).find('.dataTabels_empty').html('Data Ditemukan');
         } else {
-            $("#"+idTable+" tbody .dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
+            $("#"+idTable).find('.dataTables_empty').html("Tidak Ada Data Yang Bisa Ditampilkan");
         }
 
         $("#tbl_total_absen_title").removeClass('text-center');

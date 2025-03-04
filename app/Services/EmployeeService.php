@@ -267,8 +267,9 @@ class EmployeeService
         $user_id    = $data['user_id'];
         $year       = $data['year'];
         $month      = $data['month'];
+        $today      = date('Y-m-d');
 
-        $query      = DB::table('tm_presence as a')
+        $query_absensi  = DB::table('tm_presence as a')
                         ->join('users as b', 'a.prs_user_id', '=', 'b.id')
                         ->select('b.name as prs_name', 'a.prs_date', 'a.prs_in_time', 'a.prs_out_time')
                         ->where(DB::raw('EXTRACT(YEAR FROM a.prs_date)'),'=', $year)
@@ -277,7 +278,19 @@ class EmployeeService
                         ->orderBy('a.prs_date', 'asc')
                         ->get();
         
-        return $query;
+        $query_jam_kerja = DB::table('v_master_hour')
+                            ->where('date_start', '<=', $today)
+                            ->where('date_end', '>=', $today)
+                            ->orderBy('master_id', 'desc')
+                            ->orderBy('day_num', 'asc')
+                            ->get();
+
+        $output     = [
+            'absensi'   => $query_absensi,
+            'jam_kerja' => $query_jam_kerja
+        ];
+
+        return $output;
     }
 
     // NOTE : AMBIL DATA EMPLOYEES ALL

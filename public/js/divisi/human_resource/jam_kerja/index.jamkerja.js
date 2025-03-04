@@ -151,7 +151,7 @@ function showDate(type, idForm, data)
 function showCurrentJamKerja(data)
 {
     if(data.length > 0) {
-        const getCurrentDate    = data.find(item => moment(item.date_start).isBefore(moment('2024-12-12')));
+        const getCurrentDate    = data.find(item => moment(item.date_end).isAfter(today));
         for(let i = 0; i < getCurrentDate.data_clock.length; i++)
         {
             let ke  = i + 1;
@@ -265,7 +265,7 @@ function doSimpan(idForm, type)
         } else {
             let dateForm    = {
                 "date_start"    : moment(dateStart.val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
-                "date_end"      : dateEnd.val(),
+                "date_end"      : dateEnd.val() == '' ? dateEnd.val() : moment(dateEnd.val(), 'DD/MM/YYYY').format('YYYY-MM-DD'),
                 "day_1_start"   : day1Start.val() == '' ? (m_day1Start.val() == '' ? "00:00:00" : m_day1Start.val()+":00") : day1Start.val()+":00",
                 "day_1_end"     : day1End.val() == '' ? (m_day1End.val() == '' ? "00:00:00" : m_day1End.val()+":00") : day1End.val()+":00",
                 "day_2_start"   : day2Start.val() == '' ? (m_day2Start.val() == '' ? "00:00:00" : m_day2Start.val()+":00") : day2Start.val()+":00",
