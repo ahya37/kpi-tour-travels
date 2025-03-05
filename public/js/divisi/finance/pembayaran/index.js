@@ -329,17 +329,32 @@ function showTable(idTable, data)
         
         if(data.length > 0) {
             for(let i = 0; i < data.length; i++) {
+
+                let tourPrice   = 0;
+                switch(data[i]['jemaah_pkg']) {
+                    case 'Double' :
+                        tourPrice   = 20000;
+                    break;
+                    case 'Triple' :
+                        tourPrice   = 18500;
+                    break;
+                    case 'Quad' :
+                        tourPrice   = 17500;
+                    break;
+                }
+
                 let seq                 = i + 1;
                 let transID             = data[i]['trans_id'];
-                let jemaahName          = data[i]['jemaah_name'];
-                let jemaahTglDaftar     = data[i]['tgl_daftar'] === null ? '' : moment(data[i]['tgl_daftar'], 'YYYY-MM-DD').format('DD MMM YYYY');
+                let jemaahNama          = data[i]['jemaah_name'];
+                let HajiKode            = data[i]['tour_code'];
                 let jemaahPaket         = data[i]['jemaah_pkg'];
-                let jemaahStatusBayar   = '';
+                let jemaahTotalBayar    = data[i]['total_payment'];
+                let jemaahStatusBayar   = parseInt(jemaahTotalBayar) - tourPrice == 0 ? `<span class="badge badge-sm badge-primary">Lunas</span>` : (parseInt(jemaahTotalBayar) - tourPrice < 0 ? `<span class="badge badge-sm badge-warning" style="color: #000">Kurang Bayar</span>` : `<span class="badge badge-sm badge-primary">Lebih Bayar</span>`);
                 let btnJemaahAct        = `<button class="btn btn-sm btn-primary" value="${transID}" title="Lihat Data" onclick="showModal('modal_pembayaran_haji_form', 'edit', this.value)"><i class="fa fa-eye"></i></button>`
                 $("#"+idTable).DataTable().row.add([
                     `<label class="no-margins font-weight-normal">${seq}</label>`,
-                    `<label class="no-margins font-weight-normal">${jemaahName}</label>`,
-                    `<label class="no-margins font-weight-normal">${jemaahTglDaftar}</label>`,
+                    `<label class="no-margins font-weight-normal">${jemaahNama}</label>`,
+                    `<label class="no-margins font-weight-normal">${HajiKode}</label>`,
                     `<label class="no-margins font-weight-normal">${jemaahPaket}</label>`,
                     `<label class="no-margins font-weight-normal">${jemaahStatusBayar}</label>`,
                     `<label class="no-margins font-weight-normal">${btnJemaahAct}</label>`,
@@ -454,7 +469,13 @@ function addRowTable(idTable, data, seq)
 
             showSelect('hj_detail_method', dataMethod, data['payment_method'], seq);
             showSelect('hj_detail_curr', dataKurs, data['payment_curr'], seq);
-            showSelect('hj_detail_bank_acc', [], bankAccountID, seq);
+            if(data['payment_methode'] == 'cash') {
+                $("#hj_detail_bank_acc"+seq).prop('disabled', true);
+                showSelect('hj_detail_bank_acc', [], bankAccountID, seq);
+            } else {
+                $("#hj_detail_bank_acc"+seq).prop('disabled', false);
+                showSelect('hj_detail_bank_acc', temp_data_bank_account, bankAccountID, seq);
+            }
             $("#hj_detail_amount"+seq).val(parseInt(data['payment_amount']).toLocaleString('en-US'));
         }
 

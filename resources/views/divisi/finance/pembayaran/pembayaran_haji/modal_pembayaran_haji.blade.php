@@ -22,7 +22,7 @@
                                     <tr>
                                         <th class="text-center align-middle" style="width: 8%;">No</th>
                                         <th class="text-center align-middle">Nama</th>
-                                        <th class="text-center align-middle" style="width: 15%;">Tgl. Daftar</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Tour Code</th>
                                         <th class="text-center align-middle" style="width: 15%;">Paket</th>
                                         <th class="text-center align-middle" style="width: 10%;">Status Bayar</th>
                                         <th class="text-center align-middle" style="width: 10%;">Aksi</th>
