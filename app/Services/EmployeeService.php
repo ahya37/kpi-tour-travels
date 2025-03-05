@@ -267,7 +267,6 @@ class EmployeeService
         $user_id    = $data['user_id'];
         $year       = $data['year'];
         $month      = $data['month'];
-        $today      = date('Y-m-d');
 
         $query_absensi  = DB::table('tm_presence as a')
                         ->join('users as b', 'a.prs_user_id', '=', 'b.id')
@@ -277,17 +276,9 @@ class EmployeeService
                         ->where('a.prs_user_id', 'LIKE', '%'.$user_id.'%')
                         ->orderBy('a.prs_date', 'asc')
                         ->get();
-        
-        $query_jam_kerja = DB::table('v_master_hour')
-                            ->where('date_start', '<=', $today)
-                            ->where('date_end', '>=', $today)
-                            ->orderBy('master_id', 'desc')
-                            ->orderBy('day_num', 'asc')
-                            ->get();
 
         $output     = [
             'absensi'   => $query_absensi,
-            'jam_kerja' => $query_jam_kerja
         ];
 
         return $output;
@@ -328,5 +319,18 @@ class EmployeeService
         }
         
         return $output;
+    }
+
+    // NOTE : AMBIL DATA JAM KERJA
+    public static function get_data_jam_kerja($date, $day_ke)
+    {
+        $query  = DB::table('v_master_hour')
+                    ->where('date_start', '<=', $date)
+                    ->where('date_end', '>=', $date)
+                    ->where('day_num', '=', $day_ke)
+                    ->orderBy('day_num', 'asc')
+                    ->get();
+
+        return $query;
     }
 }

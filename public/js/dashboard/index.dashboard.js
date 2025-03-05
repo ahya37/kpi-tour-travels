@@ -89,10 +89,10 @@ function showTable(idTable, data)
             {
                 const seq               = i++;
                 const presenceDate      = moment(item['prs_date'], 'YYYY-MM-DD').format('DD MMM YYYY');
-                const presenceDayName   = item['prs_day_name'];
+                const presenceDayName   = moment(item['prs_date'], 'YYYY-MM-DD').format('dddd');
                 const presenceIn        = item['prs_in'];
                 const presenceOut       = item['prs_out'];
-                const totalWorkHour     = '00:00:00';
+                const totalWorkHour     = item['prs_total_time'];
                 const lateTime          = item['prs_late_time'];
                 const overTime          = item['prs_over_time'];
 
@@ -110,13 +110,15 @@ function showTable(idTable, data)
                 totalLateTime.add(moment.duration(lateTime));
             }
 
-            // console.log({totalOverTime, totalLateTime});
+            let overTime    = moment.utc(totalOverTime.asMilliseconds()).format('HH:mm:ss');
+            let lateTime    = moment.utc(totalLateTime.asMilliseconds()).format('HH:mm:ss');
 
-            // $("#tbl_total_absen_keterlambatan").html(moment(totalLateTime).format('hh:mm:ss'));
-            // $("#tbl_total_absen_lebih_jam").html(totalOverTime);
+            $("#tbl_total_absen_keterlambatan").html(lateTime);
+            $("#tbl_total_absen_lebih_jam").html(overTime);
 
-            // $("#tbl_total_absen_keterlambatan_1").html($("#tbl_total_absen_keterlambatan").text());
-            // $("#tbl_total_absen_lebih_jam_1").html($("#tbl_total_absen_lebih_jam").text());
+            $("#tbl_total_absen_keterlambatan_1").html($("#tbl_total_absen_keterlambatan").text());
+            $("#tbl_total_absen_lebih_jam_1").html($("#tbl_total_absen_lebih_jam").text());
+
             $("#tbl_total_absensi").html(data.length);
 
             $("#"+idTable).find('.dataTabels_empty').html('Data Ditemukan');
@@ -198,30 +200,25 @@ function showTable(idTable, data)
 
         if(data != '') {
             for(let i = 0; i < data.length; i++) {
-                let ke  = i + 1;
-                let namaKaryawan    = data[i].prs_name;
-                let tglAbsen        = data[i].prs_date;
-                const getJamKerja   = jamKerjaTemp.find(item => {
-                    let jamKerja    = moment(tglAbsen, 'YYYY-MM-DD').format('YYYY-MM-DD') >= moment(item.date_start, 'YYYY-MM-DD').format('YYYY-MM-DD') && moment(tglAbsen, 'YYYY-MM-DD').format('YYYY-MM-DD') <= moment(item.date_end, 'YYYY-MM-DD').format('YYYY-MM-DD');
-                    return jamKerja;
-                });
-                let jamMasukMax     = getJamKerja.data_clock[moment(tglAbsen, 'YYYY-MM-DD').isoWeekday() - 1].clock_in;
-                let jamKeluarMax    = getJamKerja.data_clock[moment(tglAbsen, 'YYYY-MM-DD').isoWeekday() - 1].clock_out;
-                let jamMasuk        = data[i].prs_in_time == null ? '' : moment(data[i].prs_in_time, 'YYYY-MM-DD HH:mm:ss').format('HH:mm:ss');
-                let jamKeluar       = data[i].prs_out_time == null ? '' : moment(data[i].prs_out_time, 'YYYY-MM-DD HH:mm:ss').format('HH:mm:ss');
-                let jamKerja        = jamKeluar != '' ? getDiffTime(jamMasuk, jamKeluar) : '';
-                let jamTelat        = jamKeluar != '' ? (jamMasuk > moment(jamMasukMax, 'HH:mm:ss').add(1, 'seconds').format('HH:mm:ss') ? getDiffTime(jamMasukMax, jamMasuk) : "00:00:00") : "";
-                let jamLebih        = jamKeluar != '' ? (jamKeluar > moment(jamKeluarMax, 'HH:mm:ss').add(1, 'seconds').format('HH:mm:ss') ? getDiffTime(jamKeluarMax, jamKeluar) : "00:00:00") : "";
+                const seq               = i + 1;
+                const employeeName      = data[i]['prs_emp_name'];
+                const presenceDate      = moment(data[i]['prs_date'], 'YYYY-MM-DD').format('DD MMM YYYY');
+                const presenceDay       = moment(data[i]['prs_date'], 'YYYY-MM-DD').format('dddd');
+                const presenceTimeIn    = data[i]['prs_in'];
+                const presenceTimeOut   = data[i]['prs_out'];
+                const totalWorkHour     = data[i]['prs_total_time'];
+                const totalLateHour     = data[i]['prs_late_time'];
+                const totalOverTime     = data[i]['prs_over_time'];
 
                 $("#"+idTable).DataTable().row.add([
-                    `<label class="fw-normal no-margins">${ke}</label>`,
-                    `<label class="fw-normal no-margins">${namaKaryawan}</label>`,
-                    `<label class="fw-normal no-margins">${moment(tglAbsen, 'YYYY-MM-DD').format('dddd')}, ${moment(tglAbsen, 'YYYY-MM-DD').format('DD/MM/YYYY')}</label>`,
-                    `<label class="fw-normal no-margins">${jamMasuk}</label>`,
-                    `<label class="fw-normal no-margins">${jamKeluar}</label>`,
-                    `<label class="fw-normal no-margins">${jamKerja}</label>`,
-                    `<label class="fw-normal no-margins">${jamTelat}</label>`,
-                    `<label class="fw-normal no-margins">${jamLebih}</label>`,
+                    `<label class="no-margins">${seq}</label>`,
+                    `<label class="no-margins">${employeeName}</label>`,
+                    `<label class="no-margins">${presenceDay}, ${presenceDate}</label>`,
+                    `<label class="no-margins">${presenceTimeIn}</label>`,
+                    `<label class="no-margins">${presenceTimeOut}</label>`,
+                    `<label class="no-margins">${totalWorkHour}</label>`,
+                    `<label class="no-margins">${totalLateHour}</label>`,
+                    `<label class="no-margins">${totalOverTime}</label>`
                 ]).draw(false);
             }
         }

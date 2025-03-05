@@ -253,22 +253,7 @@
 @endsection
 
 @push('addon-script')
-    {{-- MOMENT --}}
-    <script src="{{ asset('js/customJS/moment/moment.min.js') }}"></script>
-    <script src="{{ asset('js/customJS/moment/id.js') }}"></script>
-    <script src="{{ asset('js/customJS/moment/moment-timezone-with-data.min.js') }}"></script>
-    {{-- DATATABLE --}}
-    <script src="{{ asset('assets/js/plugins/dataTables/datatables.min.js') }}"></script>
-    <script src="{{ asset('js/customJS/DataTables/buttons.dataTables.js') }}"></script>
-    <script src="{{ asset('js/customJS/DataTables/dataTables.buttons.js') }}"></script>
-    <script src="{{ asset('js/customJS/DataTables/fixedHeader-3.2.0/dataTables.fixedHeader.min.js') }}"></script>
-    {{-- SWEETALERT2 --}}
-    <script src="{{ asset('js/customJS/SweetAlert/sweetalert2.all.min.js') }}"></script>
-    {{-- DATERANGEPICKER --}}
-    <script src="{{ asset('js/customJS/daterangepicker/daterangepicker.min.js') }}"></script>
-    {{-- SELECT2 --}}
-    <script src="{{ asset('assets/js/plugins/select2/select2.full.min.js') }}"></script>
-
+    @include('layouts.js')
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/dashboard/index.dashboard.js') }}"></script>
 @endpush
