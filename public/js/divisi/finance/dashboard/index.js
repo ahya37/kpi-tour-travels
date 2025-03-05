@@ -1626,7 +1626,7 @@ function downloadLemburan()
                             .catch((err)    => {
                                 console.log(err);
                             })
-                    }, 1000);
+                    }, 5000);
                 }
             })
         })
