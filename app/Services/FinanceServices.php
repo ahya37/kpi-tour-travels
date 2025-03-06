@@ -745,13 +745,32 @@ class FinanceServices
         $user_id            = $data['user_id'];
         $haji_data_header   = $data['data']['header'];
         $haji_data_detail   = $data['data']['detail'];
+        $today              = date('Y-m-d');
 
         DB::beginTransaction();
         
         if($type == 'add') {
+            // GENERATE TRANS ID
+            $query_trans_id     = DB::table('fin_trans_haji')
+                                    ->select(DB::raw("CAST(SUBSTRING_INDEX(hj_trans_id, '-', -1) AS UNSIGNED) AS last_trans_number"))
+                                    ->where(DB::raw('EXTRACT(YEAR FROM hj_create_date)'), '=', date('Y', strtotime($today)))
+                                    ->where(DB::raw('EXTRACT(MONTH FROM hj_create_date)'), '=', date('m', strtotime($today)))
+                                    ->orderBy(DB::raw("CAST(SUBSTRING_INDEX(hj_trans_id, '-', -1) AS UNSIGNED)"), 'desc')
+                                    ->limit(1)
+                                    ->get();
+            
+            if(count($query_trans_id) > 0) {
+                $last_number_trans_hj   = $query_trans_id[0]->last_trans_number;
+                $new_number_trans_hj    = (int) $last_number_trans_hj + 1;
+                $haji_trans_id      = "HJ/" . date('Ym', strtotime($today)) . "-". str_pad($new_number_trans_hj, 4, 0, STR_PAD_LEFT);
+            } else {
+                $haji_trans_id      = "HJ/" . date('Ym', strtotime($today)) . "-0001";
+            }
+
             // SIMPAN DATA HEADER
             $insert_data_header = [
-                'hj_create_date'        => $haji_data_header['tgl_daftar'],
+                'hj_trans_id'           => $haji_trans_id,
+                'hj_create_date'        => $today,
                 'hj_trans_member_id'    => $haji_data_header['jemaah_id'],
                 'hj_trans_member_name'  => $haji_data_header['jemaah_nama'],
                 'hj_tour_code'          => $haji_data_header['tour_code'],
@@ -759,21 +778,19 @@ class FinanceServices
                 'hj_tgl_daftar'         => $haji_data_header['tgl_daftar'],
                 'hj_no_bpih'            => $haji_data_header['no_bpih'],
                 'hj_paket'              => $haji_data_header['paket'],
+                'hj_est_berangkat'      => $haji_data_header['estimasi_berangkat'],
                 'created_by'            => $user_id,
                 'created_date'          => date('Y-m-d H:i:s'),
                 'updated_by'            => $user_id,
                 'updated_date'          => date('Y-m-d H:i:s'),
             ];
-            
             DB::table('fin_trans_haji')->insert($insert_data_header);
-
-            $haji_id    = DB::getPdo()->lastInsertId();
 
             // SIMPAN DATA DETAIL
             if(count($haji_data_detail) > 0) {
                 for($i = 0; $i < count($haji_data_detail); $i++) {
                     $insert_data_detail     = [
-                        'hj_trans_id'           => $haji_id,
+                        'hj_trans_id'           => $haji_trans_id,
                         'hj_seq'                => $haji_data_detail[$i]['seq'],
                         'hj_payment_date'       => $haji_data_detail[$i]['tgl_bayar'],
                         'hj_payment_method'     => $haji_data_detail[$i]['metode_bayar'],
@@ -786,7 +803,6 @@ class FinanceServices
                         'updated_by'            => $user_id,
                         'updated_date'          => date('Y-m-d H:i:s'),
                     ];
-
                     DB::table('fin_trans_haji_detail')->insert($insert_data_detail);
                 }
             }
@@ -801,7 +817,7 @@ class FinanceServices
 
                 DB::commit();
 
-                LogHelper::create('add', $output['message'] . ' ID : ' . $haji_id, $ip_address);
+                LogHelper::create('add', $output['message'] . ' ID : ' . $haji_trans_id, $ip_address);
             } catch (\Exception $e) {
                 $output     = [
                     'status_code'   => 500,
@@ -923,6 +939,7 @@ class FinanceServices
                                     'a.hj_tgl_daftar', 
                                     'a.hj_no_bpih', 
                                     'a.hj_paket', 
+                                    'a.hj_est_berangkat',
                                     DB::raw('SUM(b.hj_payment_amount) as hj_total_payment')
                                 )
                             ->join('fin_trans_haji_detail as b', 'a.hj_trans_id', '=', 'b.hj_trans_id')
@@ -934,9 +951,7 @@ class FinanceServices
                             ->select('hj_seq as seq', 'hj_payment_method as payment_method', 'hj_payment_date as payment_date', 'hj_payment_currency as payment_curr', 'hj_payment_amount as payment_amount', 'hj_bank_account_id as bank_account_id')
                             ->where('hj_trans_id', '=', $trans_id)
                             ->get();
-
         try {
-            
             if(count($query_header) > 0 && count($query_detail) > 0) {
                 switch ($query_header[0]->hj_paket) {
                     case 'Double' :
@@ -948,21 +963,24 @@ class FinanceServices
                     case 'Quad' :
                         $room_price     = 17500;
                     break;
+                    default :
+                        $room_price     = 0;
                 }
 
                 $header     = [
-                    'payment_id'        => $query_header[0]->hj_trans_id,
-                    'payment_date'      => !empty($query_header[0]->hj_tgl_daftar) ? date('d/M/Y', strtotime($query_header[0]->hj_tgl_daftar)) : "",
-                    'jemaah_id'         => $query_header[0]->hj_trans_member_id,
-                    'jemaah_name'       => $query_header[0]->hj_trans_member_name,
-                    'tour_code'         => $query_header[0]->hj_tour_code,
-                    'no_daftar'         => $query_header[0]->hj_no_daftar,
-                    'tgl_daftar'        => !empty($query_header[0]->hj_tgl_daftar) ? date('d/M/Y', strtotime($query_header[0]->hj_tgl_daftar)) : "",
-                    'no_bpih'           => $query_header[0]->hj_no_bpih,
-                    'jemaah_pkg'        => $query_header[0]->hj_paket,
-                    'jemaah_total_bayar'=> $query_header[0]->hj_total_payment, 
-                    'jemaah_harga_paket'=> $room_price,
+                    'payment_id'            => $query_header[0]->hj_trans_id,
+                    'payment_date'          => !empty($query_header[0]->hj_tgl_daftar) ? date('d/M/Y', strtotime($query_header[0]->hj_tgl_daftar)) : "",
+                    'jemaah_id'             => $query_header[0]->hj_trans_member_id,
+                    'jemaah_name'           => $query_header[0]->hj_trans_member_name,
+                    'tour_code'             => $query_header[0]->hj_tour_code,
+                    'no_daftar'             => $query_header[0]->hj_no_daftar,
+                    'tgl_daftar'            => !empty($query_header[0]->hj_tgl_daftar) ? date('d/M/Y', strtotime($query_header[0]->hj_tgl_daftar)) : "",
+                    'no_bpih'               => $query_header[0]->hj_no_bpih,
+                    'jemaah_pkg'            => $query_header[0]->hj_paket,
+                    'jemaah_total_bayar'    => $query_header[0]->hj_total_payment, 
+                    'jemaah_harga_paket'    => $room_price,
                     'jemaah_status_bayar'   => $query_header[0]->hj_total_payment < $room_price ? 'Kurang Bayar' : ($query_header[0]->hj_total_payment > $room_price ? 'Lebih Bayar' : 'Lunas'),
+                    'estimasi_keberangkatan'=> $query_header[0]->hj_est_berangkat,
                 ];
 
                 $output     = [
@@ -996,6 +1014,64 @@ class FinanceServices
                 'data'          => [
                     'header'        => [],
                     'detail'        => [],
+                ]
+            ];
+        }
+
+        return $output;
+    }
+
+    // NOTE : AMBIL REPORT PEMBAYARAN HAJI
+    public static function get_data_report_haji_payment($tahun_cari)
+    {
+        $query_header   = DB::table('fin_trans_haji')
+                            ->select('hj_trans_id', 'hj_trans_member_name', 'hj_no_bpih', 'hj_paket')
+                            ->where('hj_est_berangkat', '=', $tahun_cari)
+                            ->orderBy('hj_trans_id', 'asc')
+                            ->get();
+        
+        $query_detail   = DB::table('fin_trans_haji as a')
+                            ->join('fin_trans_haji_detail as b', 'a.hj_trans_id', '=', 'b.hj_trans_id')
+                            ->leftJoin('fin_mas_bank_account as c', 'b.hj_bank_account_id', '=', 'c.bank_account_id')
+                            ->leftJoin('fin_mas_bank as d', 'c.bank_id', '=', 'd.bank_id')
+                            ->select('a.hj_trans_id', 'b.hj_seq', 'b.hj_payment_date', 'b.hj_payment_method', 'b.hj_bank_account_id', 'b.hj_payment_amount', 'b.hj_payment_currency', 'd.bank_name', 'c.bank_account_number')
+                            ->where('a.hj_est_berangkat', '=', $tahun_cari)
+                            ->orderBy('a.hj_trans_id', 'asc')
+                            ->orderBy('b.hj_seq', 'asc')
+                            ->get();
+
+        try {
+            if(count($query_header) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Megambil Data Pembayaran Haji Tahun : ' . $tahun_cari,
+                    'data'          => [
+                        'header'    => $query_header,
+                        'detail'    => $query_detail,  
+                    ]
+                ];
+            } else {
+                $output      = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Pembayaran Haji Tahun : ' . $tahun_cari,
+                    'data'          => [
+                        'header'    => [],
+                        'detail'    => [],
+                    ]
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data Pembayraran Haji',
+                'data'          => [
+                    'header'    => [],
+                    'detail'    => []
                 ]
             ];
         }

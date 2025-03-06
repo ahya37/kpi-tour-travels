@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('fin_trans_haji_detail', function (Blueprint $table) {
-            $table->string('hj_trans_id', length:10);
+            $table->string('hj_trans_id', length:14);
             $table->integer('hj_seq');
             $table->date('hj_payment_date');
             $table->enum('hj_payment_method', ['tf', 'cash']);

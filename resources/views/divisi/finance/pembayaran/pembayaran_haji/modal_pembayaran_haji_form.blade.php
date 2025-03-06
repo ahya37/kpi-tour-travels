@@ -25,16 +25,22 @@
                             <input type="text" id="hj_member_name_edit" class="form-control" readonly placeholder="Nama Jemaah">
                         </div>
                     </div>
+                    <div class="col-xl-6 col-md-12">
+                        <div class="form-group is_empty_data">
+                            <label for="hj_depature_code">Kode Keberangkatan</label>
+                            <select id="hj_depature_code" style="width: 100%;" class="form-control" onchange="showSelectDetail(this.id, this.value)"></select>
+                        </div>
+                        <div class="form-group d-none is_not_empty_data">
+                            <label for="hj_depature_code_edit">Kode Keberangkatan</label>
+                            <input type="text" class="form-control" id="hj_depature_code_edit" readonly placeholder="Kode Keberangkatan">
+                        </div>
+                    </div>
                     <div class="col-12">
                         <div class="row">
                             <div class="col-xl-6 col-12">
-                                <div class="form-group is_empty_data">
-                                    <label for="hj_depature_code">Kode Keberangkatan</label>
-                                    <select id="hj_depature_code" style="width: 100%;" class="form-control" onchange="showSelectDetail(this.id, this.value)"></select>
-                                </div>
-                                <div class="form-group d-none is_not_empty_data">
-                                    <label for="hj_depature_code_edit">Kode Keberangkatan</label>
-                                    <input type="text" class="form-control" id="hj_depature_code_edit" readonly placeholder="Kode Keberangkatan">
+                                <div class="form-group">
+                                    <label for="hj_estimasi_keberangkatan">Estimasi Keberangkatan</label>
+                                    <select id="hj_estimasi_keberangkatan" class="form-control" style="width: 100%;"></select>
                                 </div>
                                 <div class="form-group">
                                     <label for="hj_no_daftar">No. Daftar</label>

@@ -9,8 +9,10 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-xl-3 col-6">
+                    <div class="col">
                         <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_pembayaran_haji_form', 'add', '')"><i class="fa fa-plus"></i> Tambah Data</button>
+                        <button class="btn btn-danger" title="Download PDF" onclick="downloadFile('haji', 'pdf')"><i class="fa fa-file-pdf"></i> Download PDF</button>
+                        <button class="btn btn-primary" title="Download Excel" onclick="downloadFile('haji', 'excel')"><i class="fa fa-file-excel"></i> Download Excel</button>
                     </div>
                 </div>
                 <hr>

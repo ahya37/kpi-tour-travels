@@ -4,6 +4,7 @@ var temp_pengajuan      = [];
 var temp_bulan          = [];
 var temp_haji           = [];
 var temp_data_bank_account  = [];
+var tahun_keberangkatan  = [];
 
 for(let i = 0; i < 11; i++) {
     let monthNumber     = moment(i + 1, 'M').format('MM');
@@ -12,6 +13,13 @@ for(let i = 0; i < 11; i++) {
     temp_bulan.push({
         'bulan_ke'  : monthNumber,
         'bulan_nama': monthName,
+    });
+}
+
+for(let i = 2000; i < parseInt(moment(today, 'YYYY-MM-DD').add(10, 'year').format('YYYY')); i++) {
+    tahun_keberangkatan.push({
+        'value' : i,
+        'text'  : i,
     });
 }
 
@@ -149,6 +157,7 @@ function showModal(idModal, type, data = '')
             $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
             showSelect('hj_member_id', []);
             showSelect('hj_depature_code', []);
+            showSelect('hj_estimasi_keberangkatan', tahun_keberangkatan);
             showTable('table_pembayaran_haji_form', []);
         } else {
             $(".is_not_empty_data").removeClass('d-none');
@@ -181,6 +190,8 @@ function showModal(idModal, type, data = '')
                     $("#hj_room_price").val(paymentHajiHeader['jemaah_harga_paket'].toLocaleString('en-US'));
                     $("#hj_current_payment").val(parseInt(paymentHajiHeader['jemaah_total_bayar']).toLocaleString('en-US'));
                     $("#hj_status_payment").val(paymentHajiHeader['jemaah_status_bayar']);
+
+                    showSelect('hj_estimasi_keberangkatan', tahun_keberangkatan, paymentHajiHeader['estimasi_keberangkatan']);
 
                     showTable('table_pembayaran_haji_form', paymentHajiDetail);
                 })
@@ -469,7 +480,8 @@ function addRowTable(idTable, data, seq)
 
             showSelect('hj_detail_method', dataMethod, data['payment_method'], seq);
             showSelect('hj_detail_curr', dataKurs, data['payment_curr'], seq);
-            if(data['payment_methode'] == 'cash') {
+            console.log(data['payment_method'])
+            if(data['payment_method'] == 'cash') {
                 $("#hj_detail_bank_acc"+seq).prop('disabled', true);
                 showSelect('hj_detail_bank_acc', [], bankAccountID, seq);
             } else {
@@ -579,7 +591,10 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
             minimumInputLength  : 3,
         });        
     } else if(idSelect == 'hj_depature_code') {
-        let html    = `<option selected disabled>Pilih Kode Keberangkatan</option>`;
+        let html    = [
+            "<option selected disabled>Pilih Kode Keberangkatan</option>",
+            "<option value='-'>Belum Ada Kode</option>"
+        ];
         
         if(data.length > 0) {
             for(const item of data) {
@@ -641,6 +656,20 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
         if(selectedData != '') {
             $("#"+idSelect+""+seq).val(selectedData);
         }
+    } else if(idSelect == 'hj_estimasi_keberangkatan') {
+        let html    = [
+            `<option selected disabled>Pilih Tahun Keberangkatan</option>`
+        ];
+
+        for(let i = 0; i < data.length; i++) {
+            html    += `<option value="${data[i]['value']}">${data[i]['text']}</option>`
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
     }
 }
 
@@ -668,40 +697,50 @@ function showSelectDetail(idSelect, data, seq = '')
                 showSelect('hj_depature_code', dataCodeDepature, '');
             })
             .catch((error)      => {
-                // console.log(error);
-                Swal.fire({
-                    icon    : 'error',
-                    title   : 'Terjadi Kesalahan',
-                    text    : error.responseJSON.message,
-                })
+                console.log(error);
+                // Swal.fire({
+                //     icon    : 'error',
+                //     title   : 'Terjadi Kesalahan',
+                //     text    : error.responseJSON.message,
+                // })
             })
     } else if(idSelect == 'hj_depature_code') {
-        const hajiCodeURL   = "divisi/finance/pembayaran/haji/detail_jemaah";
-        const hajiCodeType  = "GET";
-        const hajiCodeData  = {
-            "member_id" : $("#hj_member_id").val(),
-            "haji_kode" : data,
-        };
-        const hajiCodeMsg   = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
+        if(data != '-') {
+            const hajiCodeURL   = "divisi/finance/pembayaran/haji/detail_jemaah";
+            const hajiCodeType  = "GET";
+            const hajiCodeData  = {
+                "member_id" : $("#hj_member_id").val(),
+                "haji_kode" : data,
+            };
+            const hajiCodeMsg   = Swal.fire({ title : "Data Sedang Dimuat.." }); Swal.showLoading();
 
-        doTransaction(hajiCodeURL, hajiCodeType, hajiCodeData, hajiCodeMsg)
-            .then((success)     => {
-                Swal.close();
-                // FILL FORM
-                const hajiCodeGetData   = success.data[0];
-                
-                $("#hj_no_daftar").val(hajiCodeGetData.no_daftar);
-                $("#hj_tgl_daftar").val(hajiCodeGetData.tgl_keberangkatan);
-                $("#hj_no_bpih").val(hajiCodeGetData.no_bpih);
-                $("#hj_room").val(hajiCodeGetData.haji_paket);
-                $("#hj_room_price").val(parseInt(hajiCodeGetData.haji_harga).toLocaleString('en-US'));
-                $("#hj_current_payment").val();
-                $("#hj_status_payment").val();
-            })
-            .catch((error)      => {
-                Swal.close();
-                console.log(error);
-            })
+            doTransaction(hajiCodeURL, hajiCodeType, hajiCodeData, hajiCodeMsg)
+                .then((success)     => {
+                    Swal.close();
+                    // FILL FORM
+                    const hajiCodeGetData   = success.data[0];
+                    
+                    $("#hj_no_daftar").val(hajiCodeGetData.no_daftar);
+                    $("#hj_tgl_daftar").val(hajiCodeGetData.tgl_keberangkatan);
+                    $("#hj_no_bpih").val(hajiCodeGetData.no_bpih);
+                    $("#hj_room").val(hajiCodeGetData.haji_paket);
+                    $("#hj_room_price").val(parseInt(hajiCodeGetData.haji_harga).toLocaleString('en-US'));
+                    $("#hj_current_payment").val();
+                    $("#hj_status_payment").val();
+                })
+                .catch((error)      => {
+                    Swal.close();
+                    console.log(error);
+                })
+        } else {
+            $("#hj_no_daftar").val('-');
+            $("#hj_tgl_daftar").val(moment(today, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+            $("#hj_no_bpih").val('-');
+            $("#hj_room").val('-');
+            $("#hj_room_price").val(0);
+            $("#hj_current_payment").val();
+            $("#hj_status_payment").val();
+        }
     } else if(idSelect == 'hj_detail_method') {
         if(data == 'tf') {
             $("#hj_detail_bank_acc"+seq).prop('disabled', false);
@@ -790,6 +829,7 @@ function simpanData(idForm, type, data = [])
             'tgl_daftar'    : $("#hj_tgl_daftar").val() != '' ? moment($("#hj_tgl_daftar").val(), 'DD/MM/YYYY').format('YYYY-MM-DD') : $("#hj_tgl_daftar").val(),
             'no_bpih'       : $("#hj_no_bpih").val(),
             'paket'         : $("#hj_room").val(),
+            'estimasi_berangkat'    : $("#hj_estimasi_keberangkatan").val(),
         };
 
         const hajiDetailTable   = $("#table_pembayaran_haji_form").DataTable().rows().count();
@@ -851,6 +891,15 @@ function simpanData(idForm, type, data = [])
                     }
                 })
             })
+    }
+}
+
+function downloadFile(jenis, fileFormat)
+{
+    if(jenis == 'haji') {
+        if(fileFormat == 'excel') {
+            window.open(base_url + '/divisi/finance/pembayaran/haji/report_pembayaran_detail_jemaah_excel/2025', '_blank');
+        }
     }
 }
 

@@ -9,6 +9,11 @@ use Dotenv\Repository\RepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class FinanceController extends Controller
 {
@@ -452,5 +457,114 @@ class FinanceController extends Controller
         ];
 
         return Response::json($output, $output['status']);
+    }
+
+    // 06 MARET 2025
+    private function master_get_data_jemaah_haji($year)
+    {
+        $get_data   = FinanceServices::get_data_report_haji_payment($year);
+
+        if(count($get_data['data']) > 0) {
+            $data_header    = $get_data['data']['header'];
+            $data_detail    = $get_data['data']['detail'];
+
+            // BUAT DETAI MENJADI ARRAY
+            for($i = 0; $i < count($data_detail); $i++) {
+                $arr_detail[]   = [
+                    'trans_id'              => $data_detail[$i]->hj_trans_id,
+                    'seq'                   => $data_detail[$i]->hj_seq,
+                    'payment_date'          => $data_detail[$i]->hj_payment_date,
+                    'payment_total'         => $data_detail[$i]->hj_payment_amount,
+                    'payment_method'        => $data_detail[$i]->hj_payment_method == 'tf' ? 'Transfer' : 'Cash',
+                    'payment_bank_account'  => $data_detail[$i]->bank_name,
+                    'payment_bank_account_number'   => $data_detail[$i]->bank_account_number,
+                    'payment_currency'      => $data_detail[$i]->hj_payment_currency
+                ];
+            }
+
+            for($i = 0; $i < count($data_header); $i++) {
+                $trans_id       = $data_header[$i]->hj_trans_id;
+                $jemaah_name    = $data_header[$i]->hj_trans_member_name;
+                $no_bpih        = $data_header[$i]->hj_no_bpih;
+                $hj_paket       = $data_header[$i]->hj_paket;
+
+                $detail_pembayaran  = array_filter($arr_detail, function($item) use ($trans_id) {
+                    return $item['trans_id'] == $trans_id;
+                });
+
+                $arr_pembayaran[]  = [
+                    'trans_id'      => $trans_id,
+                    'jemaah_name'   => $jemaah_name,
+                    'no_bpih'       => $no_bpih,
+                    'hj_paket'      => $hj_paket,
+                    'detail_bayar'  => array_values($detail_pembayaran)
+                ];
+            }
+
+            $output     = [
+                'success'   => $get_data['is_success'],
+                'status'    => $get_data['status_code'],
+                'message'   => $get_data['message'],
+                'data'      => $arr_pembayaran,
+            ];
+        } else {
+            $output     = [
+                'success'   => false,
+                'status'    => 404,
+                'message'   => 'Tidak Ada',
+                'data'      => [],
+            ];
+        }
+
+        return $output;
+    }
+    // NOTE : DEMO REPORT PEMBAYARAN HAJI
+    public function finance_report_pembayaran_detail_jemaah_demo(Request $request, $jenis)
+    {
+        $tahun_cari     = $request->all()['tahun_cari'];
+        $data_jemaah    = $this->master_get_data_jemaah_haji($tahun_cari);
+        if($jenis == 'view') {
+            return view('divisi.finance.pembayaran.pembayaran_haji.report', $data_jemaah);
+        } else if($jenis == 'pdf') {
+            $pdf    = PDF::loadView('divisi/finance/pembayaran/pembayaran_haji/report', $data_jemaah)->setPaper('a4', 'landscape');
+            return $pdf->stream();
+        }
+    }
+
+    public function finance_report_pembayaran_detail_jemaah_excel($tahun)
+    {
+        $data_jemaah    = $this->master_get_data_jemaah_haji($tahun);
+
+        $spreadsheet = new Spreadsheet;
+        $sheet      = $spreadsheet->getActiveSheet();
+
+        $sheet->setTitle('Detail Pembayaran Haji Jemaah');
+
+        $sheet->setCellValue('A1', 'Pembayaran Jemaah Haji Tahun ' . $tahun);
+
+        $sheet->mergeCells('A1:H2');
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('A1:H2')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle('A1:H2')->getFont()->setSize(16)->setBold(true);
+        // $sheet->setCellValue('A1', 'No');
+        // $sheet->setCellValue('B1', 'Nama');
+        // $sheet->setCellValue('C1', 'Trans ID');
+        // for($i = 0; $i < count($data_jemaah['data']); $i++) {
+        //     $trans_id   = $data_jemaah['data'][$i]['trans_id'];
+        //     $nama       = $data_jemaah['data'][$i]['jemaah_name'];
+
+        //     $sheet->setCellValue('A' . $i + 2, $i + 1);
+        //     $sheet->setCellValue('B' . $i + 2, $nama);
+        //     $sheet->setCellValue('C' . $i + 2, $trans_id);
+        // }
+
+        $write  = new Xlsx($spreadsheet);
+
+        $file_name  = 'Test_Excel.xlsx';
+        header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        header("Content-Disposition: attachment;filename=".$file_name);
+        $write->save("php://output");
+        exit();
     }
 }

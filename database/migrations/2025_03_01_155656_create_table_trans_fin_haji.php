@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('fin_trans_haji', function (Blueprint $table) {
-            $table->id('hj_trans_id');
+            $table->string('hj_trans_id', length:14)->primary(true);
             $table->date('hj_create_date')->nullable();
             $table->smallInteger('hj_trans_member_id');
             $table->string('hj_trans_member_name', length:100);
@@ -21,6 +21,7 @@ return new class extends Migration
             $table->date('hj_tgl_daftar')->nullable();
             $table->string('hj_no_bpih', length:15);
             $table->string('hj_paket', length:10);
+            $table->string('hj_est_berangkat', length:4)->nullable();
             $table->string('created_by', length:10);
             $table->dateTime('created_date')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->string('updated_by', length:10);

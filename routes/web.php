@@ -484,6 +484,8 @@ Route::group(['middleware' => ['auth']], function () {
                     Route::get('/detail_jemaah', [finance::class, 'finance_detail_jemaah_haji']);
                     Route::post('/simpan_haji/{type}', [finance::class, 'finance_pembayaran_haji_simpan_haji']);
                     Route::get('/pembayaran_detail_jemaah', [finance::class, 'finance_pembayaran_detail_haji_jemaah']);
+                    Route::get('/report_pembayaran_detail_jemaah_demo/{jenis}', [finance::class, 'finance_report_pembayaran_detail_jemaah_demo']);
+                    Route::get('/report_pembayaran_detail_jemaah_excel/{tahun}', [finance::class, 'finance_report_pembayaran_detail_jemaah_excel']);
                 });
             });
 
