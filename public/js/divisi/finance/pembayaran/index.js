@@ -228,7 +228,6 @@ function closeModal(idModal)
             $("#hj_member_name_edit").val(null);
             $("#hj_depature_code_edit").val(null);
 
-
             $("#hj_member_id").val('');
             $("#hj_no_daftar").val(null);
             $("#hj_tgl_daftar").val(null);
@@ -236,6 +235,7 @@ function closeModal(idModal)
             $("#hj_room").val(null);
             $("#hj_room_price").val(null);
             $("#hj_status_payment").val(null);
+            $("#hj_current_payment").val(null);
         })
     }
 }
@@ -896,10 +896,22 @@ function simpanData(idForm, type, data = [])
 
 function downloadFile(jenis, fileFormat)
 {
-    if(jenis == 'haji') {
-        if(fileFormat == 'excel') {
-            window.open(base_url + '/divisi/finance/pembayaran/haji/report_pembayaran_detail_jemaah_excel/2025', '_blank');
-        }
+    if(jenis == 'haji')
+    {
+        const reportHajiURL     = "divisi/finance/report/pembayaran_haji/"+fileFormat;
+        const reportHajiType    = "POST";
+        const reportHajiData    = {
+            'tahun_cari'    : 2025,
+        }; 
+        const reportHajiMsg     = "";
+
+        doTransaction(reportHajiURL, reportHajiType, reportHajiData, reportHajiMsg)
+            .then((success)     => {
+                console.log(success);
+            })
+            .catch((error)      => {
+                console.log(error);
+            })
     }
 }
 

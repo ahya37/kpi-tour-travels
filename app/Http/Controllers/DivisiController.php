@@ -1785,7 +1785,6 @@ class DivisiController extends Controller
         ];
 
         return Response::json($output, $output['status']);
-        
     }
 
     public function absensi_delete_excel(Request $request)

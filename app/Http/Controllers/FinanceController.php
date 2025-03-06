@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use File;
+use Illuminate\Filesystem\AwsS3V3Adapter;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -559,12 +561,192 @@ class FinanceController extends Controller
         //     $sheet->setCellValue('C' . $i + 2, $trans_id);
         // }
 
-        $write  = new Xlsx($spreadsheet);
+        $file_name  = time() . 'Laporan Pembayaran Haji ' . $tahun . '.xlsx';
+        $writer     = new Xlsx($spreadsheet);
+        $file_path  = public_path('storage/data-files/laporan_haji/');
 
-        $file_name  = 'Test_Excel.xlsx';
-        header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        header("Content-Disposition: attachment;filename=".$file_name);
-        $write->save("php://output");
-        exit();
+        if(!File::exists($file_path)) {
+            File::makeDirectory($file_path, 0755, true);
+        }
+        $writer->save($file_path.$file_name);
+
+        try {
+            $output     = [
+                'success'   => true,
+                'status'    => 200,
+                'message'   => 'Berhasil Generate Excel File : ' . $file_name,
+                'data'      => []
+            ];
+        } catch (\Exception $e) {
+            $output     = [
+                'success'   => false,
+                'status'    => 522,
+                'message'   => $e->getMessage(),
+                'data'      => []
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+        
+        // header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        // header("Content-Disposition: attachment;filename=".$file_name);
+        // $write->save("php://output");
+    }
+    
+    public function finance_report_pembayaran_haji(Request $request, $jenisfile)
+    {
+        $tahun_cari     = $request->all()['tahun_cari'];
+        $data_jemaah    = $this->master_get_data_jemaah_haji($tahun_cari);
+
+        if($jenisfile == 'excel') {
+            $spreadsheet = new Spreadsheet;
+            $sheet      = $spreadsheet->getActiveSheet();
+
+            $sheet->setTitle('Detail Pembayaran Haji Jemaah');
+            $sheet->setCellValue('A1', 'Pembayaran Jemaah Haji Tahun ' . $tahun_cari);
+            $sheet->mergeCells('A1:F2');
+            $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle('A1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet->getStyle('A1:F2')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle('A1:F2')->getFont()->setSize(12)->setBold(true);
+            // SPACER
+            $sheet->setCellValue('A3', '');
+
+            // LOOP DATA JEMAAH
+            
+            $num_sheet_awal     = 4;
+            for($i = 0; $i < count($data_jemaah['data']); $i++) {
+                $data_jemaah_haji   = $data_jemaah['data'];
+                $data_bayar_haji    = $data_jemaah_haji[$i]['detail_bayar'];
+
+                // HEADER
+                $sheet->setCellValue('A' . $num_sheet_awal, 'Nama');
+                $sheet->setCellValue('B' . $num_sheet_awal, $data_jemaah_haji[$i]['jemaah_name']);
+                $sheet->mergeCells('B' . $num_sheet_awal . ':F' . $num_sheet_awal . '');
+                $sheet->getStyle('A' . $num_sheet_awal . ':F' . $num_sheet_awal)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle('A' . $num_sheet_awal)->getFont()->setSize(11)->setBold(true);
+
+                $sheet->setCellValue('A' . $num_sheet_awal + 1, 'Paket');
+                $sheet->setCellValue('B' . $num_sheet_awal + 1, $data_jemaah_haji[$i]['hj_paket']);
+                $sheet->mergeCells('B' . $num_sheet_awal + 1 . ':F' . $num_sheet_awal + 1 . '');
+                $sheet->getStyle('A' . $num_sheet_awal + 1 . ':F' . $num_sheet_awal + 1)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle('A' . $num_sheet_awal + 1)->getFont()->setSize(11)->setBold(true);
+
+                $sheet->setCellValue('A' . $num_sheet_awal + 2, 'No. BPIH');
+                $sheet->setCellValue('B' . $num_sheet_awal + 2, $data_jemaah_haji[$i]['no_bpih']);
+                $sheet->mergeCells('B' . $num_sheet_awal + 2 . ':F' . $num_sheet_awal + 2 . '');
+                $sheet->getStyle('A' . $num_sheet_awal + 2 . ':F' . $num_sheet_awal + 2)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle('A' . $num_sheet_awal + 2)->getFont()->setSize(11)->setBold(true);
+
+
+                $sheet->setCellValue('A' . $num_sheet_awal + 3, 'Pembayaran Ke');
+                $sheet->setCellValue('B' . $num_sheet_awal + 3, 'Tgl. Bayar');
+                $sheet->setCellValue('C' . $num_sheet_awal + 3, 'Metode Pembayaran');
+                $sheet->setCellValue('D' . $num_sheet_awal + 3, 'Nama Bank');
+                $sheet->setCellValue('E' . $num_sheet_awal + 3, 'No. Rekening');
+                $sheet->setCellValue('F' . $num_sheet_awal + 3, 'Jml. Bayar');
+                $sheet->getStyle('A' . $num_sheet_awal + 3 . ':F' . $num_sheet_awal + 3)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle('A' . $num_sheet_awal + 3)->getFont()->setSize(11)->setBold(true);
+                // DETAIL
+                for($j = 0; $j < count($data_bayar_haji); $j++) {
+                    $detail_seq     = $j + 1;
+
+                    $sheet->setCellValue('A' . $num_sheet_awal + 3 + $detail_seq, $data_bayar_haji[$j]['seq']);
+                    $sheet->setCellValue('B' . $num_sheet_awal + 3 + $detail_seq, date('d-m-Y', strtotime($data_bayar_haji[$j]['payment_date'])));
+                    $sheet->setCellValue('C' . $num_sheet_awal + 3 + $detail_seq, $data_bayar_haji[$j]['payment_method']);
+                    $sheet->setCellValue('D' . $num_sheet_awal + 3 + $detail_seq, $data_bayar_haji[$j]['payment_bank_account']);
+                    $sheet->setCellValue('E' . $num_sheet_awal + 3 + $detail_seq, $data_bayar_haji[$j]['payment_bank_account_number']);
+                    $sheet->setCellValue('F' . $num_sheet_awal + 3 + $detail_seq, number_format($data_bayar_haji[$j]['payment_total'], 2));
+                    // $sheet->setCellValue('')
+                }
+                // SPACER
+                $sheet->setCellValue('A' . $num_sheet_awal + 4 + count($data_bayar_haji), '');
+
+                $num_sheet_awal     += 4 + count($data_bayar_haji) + 1;
+            }
+
+            // CONTOH 1 DULU
+            // $sheet->setCellValue('A4', 'Nama');
+            // $sheet->setCellValue('B4', $data_jemaah['data'][0]['jemaah_name']);
+            // $sheet->mergeCells('B4:F4');
+            // $sheet->setCellValue('A5', 'Paket');
+            // $sheet->setCellValue('B5', $data_jemaah['data'][0]['hj_paket']);
+            // $sheet->mergeCells('B5:F5');
+            // $sheet->setCellValue('A6', 'No. BPIH');
+            // $sheet->setCellValue('B6', $data_jemaah['data'][0]['no_bpih']);
+            // $sheet->mergeCells('B6:F6');
+
+            // // DETAIL BAYAR
+            // $sheet_num_detail   = 7;
+            // $sheet->setCellValue('A'.$sheet_num_detail, 'Pembayaran Ke');
+            // $sheet->setCellValue('B'.$sheet_num_detail, 'Tgl. Bayar');
+            // $sheet->setCellValue('C'.$sheet_num_detail, 'Metode Pembayaran');
+            // $sheet->setCellValue('D'.$sheet_num_detail, 'Nama Bank');
+            // $sheet->setCellValue('E'.$sheet_num_detail, 'No. Rekening');
+            // $sheet->setCellValue('F'.$sheet_num_detail, 'Jml. Bayar');
+            // $total_bayar    = 0;
+            // for($i = 0; $i < count($data_jemaah['data'][0]['detail_bayar']); $i++) {
+            //     $seq    = $i + 1;
+            //     $sheet->setCellValue('A' . ($sheet_num_detail + $seq), $data_jemaah['data'][0]['detail_bayar'][$i]['seq']);
+            //     $sheet->setCellValue('B' . ($sheet_num_detail + $seq), $data_jemaah['data'][0]['detail_bayar'][$i]['payment_date']);
+            //     $sheet->setCellValue('C' . ($sheet_num_detail + $seq), $data_jemaah['data'][0]['detail_bayar'][$i]['payment_method']);
+            //     $sheet->setCellValue('D' . ($sheet_num_detail + $seq), $data_jemaah['data'][0]['detail_bayar'][$i]['payment_bank_account']);
+            //     $sheet->setCellValue('E' . ($sheet_num_detail + $seq), $data_jemaah['data'][0]['detail_bayar'][$i]['payment_bank_account_number']);
+            //     $sheet->setCellValue('F' . ($sheet_num_detail + $seq), number_format($data_jemaah['data'][0]['detail_bayar'][$i]['payment_total'], 2));
+
+            //     $total_bayar   += $data_jemaah['data'][0]['detail_bayar'][$i]['payment_total'];
+            // }
+            // $sheet_footer   = $sheet_num_detail + count($data_jemaah['data'][0]['detail_bayar']) + 1;
+            // $sheet->setCellValue('A' . $sheet_footer, 'Total');
+            // $sheet->mergeCells('A'. $sheet_footer . ':E' . $sheet_footer);
+            // $sheet->setCellValue('F' . $sheet_footer, number_format($total_bayar, 2));
+
+
+            // $sheet->setCellValue('A'.($sheet_num_detail + 1), 'Total');
+            // $sheet->mergeCells('A'.($sheet_num_detail + 1).':E'.($sheet_num_detail + 1));
+            // $sheet->setCellValue('F' . ($sheet_num_detail + 1), $total_bayar);
+            // $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            // $sheet->getStyle('A1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            // $sheet->getStyle('A1:H2')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            // $sheet->getStyle('A1:H2')->getFont()->setSize(16)->setBold(true);
+            // $sheet->setCellValue('A1', 'No');
+            // $sheet->setCellValue('B1', 'Nama');
+            // $sheet->setCellValue('C1', 'Trans ID');
+            // for($i = 0; $i < count($data_jemaah['data']); $i++) {
+            //     $trans_id   = $data_jemaah['data'][$i]['trans_id'];
+            //     $nama       = $data_jemaah['data'][$i]['jemaah_name'];
+
+            //     $sheet->setCellValue('A' . $i + 2, $i + 1);
+            //     $sheet->setCellValue('B' . $i + 2, $nama);
+            //     $sheet->setCellValue('C' . $i + 2, $trans_id);
+            // }
+
+            $file_name  = time() . '_Laporan_Pembayaran_Haji_' . $tahun_cari . '.xlsx';
+            $writer     = new Xlsx($spreadsheet);
+            $file_path  = public_path('storage/data-files/laporan_haji/');
+
+            if(!File::exists($file_path)) {
+                File::makeDirectory($file_path, 0755, true);
+            }
+            $writer->save($file_path.$file_name);
+
+            try {
+                $output     = [
+                    'success'   => true,
+                    'status'    => 200,
+                    'message'   => 'Berhasil Generate Excel File : ' . $file_name,
+                    'data'      => []
+                ];
+            } catch (\Exception $e) {
+                $output     = [
+                    'success'   => false,
+                    'status'    => 522,
+                    'message'   => $e->getMessage(),
+                    'data'      => []
+                ];
+            }
+
+            return Response::json($output, $output['status']);
+        }
     }
 }

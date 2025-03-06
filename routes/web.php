@@ -540,6 +540,10 @@ Route::group(['middleware' => ['auth']], function () {
             Route::prefix('aktivitas')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('finance.index.aktivitas.harian');
             });
+
+            Route::prefix('report')->group(function(){
+                Route::post('/pembayaran_haji/{typefile}', [finance::class, 'finance_report_pembayaran_haji']);
+            });
         });
 
         Route::prefix('digital')->group(function(){
