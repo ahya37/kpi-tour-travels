@@ -16,6 +16,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use Storage;
 
 class FinanceController extends Controller
 {
@@ -600,8 +601,8 @@ class FinanceController extends Controller
 
         if($jenisfile == 'excel') {
             $spreadsheet = new Spreadsheet;
+            // SHEET DETAIL PEMBAYARAN UMRAH
             $sheet      = $spreadsheet->getActiveSheet();
-
             $sheet->setTitle('Detail Pembayaran Haji Jemaah');
             $sheet->setCellValue('A1', 'Pembayaran Jemaah Haji Tahun ' . $tahun_cari);
             $sheet->mergeCells('A1:F2');
@@ -618,6 +619,7 @@ class FinanceController extends Controller
             for($i = 0; $i < count($data_jemaah['data']); $i++) {
                 $data_jemaah_haji   = $data_jemaah['data'];
                 $data_bayar_haji    = $data_jemaah_haji[$i]['detail_bayar'];
+                $total_bayar_haji   = 0;
 
                 // HEADER
                 $sheet->setCellValue('A' . $num_sheet_awal, 'Nama');
@@ -636,6 +638,7 @@ class FinanceController extends Controller
                 $sheet->setCellValue('B' . $num_sheet_awal + 2, $data_jemaah_haji[$i]['no_bpih']);
                 $sheet->mergeCells('B' . $num_sheet_awal + 2 . ':F' . $num_sheet_awal + 2 . '');
                 $sheet->getStyle('A' . $num_sheet_awal + 2 . ':F' . $num_sheet_awal + 2)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle('B' . $num_sheet_awal + 2)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
                 $sheet->getStyle('A' . $num_sheet_awal + 2)->getFont()->setSize(11)->setBold(true);
 
 
@@ -646,7 +649,7 @@ class FinanceController extends Controller
                 $sheet->setCellValue('E' . $num_sheet_awal + 3, 'No. Rekening');
                 $sheet->setCellValue('F' . $num_sheet_awal + 3, 'Jml. Bayar');
                 $sheet->getStyle('A' . $num_sheet_awal + 3 . ':F' . $num_sheet_awal + 3)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-                $sheet->getStyle('A' . $num_sheet_awal + 3)->getFont()->setSize(11)->setBold(true);
+                $sheet->getStyle('A' . $num_sheet_awal + 3 . ':F' . $num_sheet_awal + 3)->getFont()->setSize(11)->setBold(true);
                 // DETAIL
                 for($j = 0; $j < count($data_bayar_haji); $j++) {
                     $detail_seq     = $j + 1;
@@ -657,70 +660,133 @@ class FinanceController extends Controller
                     $sheet->setCellValue('D' . $num_sheet_awal + 3 + $detail_seq, $data_bayar_haji[$j]['payment_bank_account']);
                     $sheet->setCellValue('E' . $num_sheet_awal + 3 + $detail_seq, $data_bayar_haji[$j]['payment_bank_account_number']);
                     $sheet->setCellValue('F' . $num_sheet_awal + 3 + $detail_seq, number_format($data_bayar_haji[$j]['payment_total'], 2));
-                    // $sheet->setCellValue('')
-                }
-                // SPACER
-                $sheet->setCellValue('A' . $num_sheet_awal + 4 + count($data_bayar_haji), '');
+                    $sheet->getStyle('F' . $num_sheet_awal + 3 + $detail_seq)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
-                $num_sheet_awal     += 4 + count($data_bayar_haji) + 1;
+                    // BORDER
+                    $sheet->getStyle('A' . $num_sheet_awal + 3 + $detail_seq . ':F' . $num_sheet_awal + 3 + $detail_seq)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+                    $total_bayar_haji    += $data_bayar_haji[$j]['payment_total'];
+                }
+                // TOTAL
+                $sheet->setCellValue('A' . $num_sheet_awal + 4 + count($data_bayar_haji), 'Total');
+                $sheet->setCellValue('F' . $num_sheet_awal + 4 + count($data_bayar_haji), number_format($total_bayar_haji, 2));
+                $sheet->getStyle('A' . $num_sheet_awal + 4 + count($data_bayar_haji) . ':F' . $num_sheet_awal + 4 + count($data_bayar_haji))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                $sheet->getStyle('A' . $num_sheet_awal + 4 + count($data_bayar_haji))->getFont()->setSize(11)->setBold(true);
+                $sheet->mergeCells('A' . $num_sheet_awal + 4 + count($data_bayar_haji) . ':E' . $num_sheet_awal + 4 + count($data_bayar_haji));
+                $sheet->getStyle('A' . $num_sheet_awal + 4 + count($data_bayar_haji) . ':F' . $num_sheet_awal + 4 + count($data_bayar_haji))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                // SPACER
+                $sheet->setCellValue('A' . $num_sheet_awal + 5 + count($data_bayar_haji), '');
+
+                $num_sheet_awal     += 6 + count($data_bayar_haji);
             }
 
-            // CONTOH 1 DULU
-            // $sheet->setCellValue('A4', 'Nama');
-            // $sheet->setCellValue('B4', $data_jemaah['data'][0]['jemaah_name']);
-            // $sheet->mergeCells('B4:F4');
-            // $sheet->setCellValue('A5', 'Paket');
-            // $sheet->setCellValue('B5', $data_jemaah['data'][0]['hj_paket']);
-            // $sheet->mergeCells('B5:F5');
-            // $sheet->setCellValue('A6', 'No. BPIH');
-            // $sheet->setCellValue('B6', $data_jemaah['data'][0]['no_bpih']);
-            // $sheet->mergeCells('B6:F6');
+            // AUTO WIDTH
+            foreach ($sheet->getColumnIterator() as $column) {
+                $sheet->getColumnDimension($column->getColumnIndex())->setAutoSize(true);
+            }
 
-            // // DETAIL BAYAR
-            // $sheet_num_detail   = 7;
-            // $sheet->setCellValue('A'.$sheet_num_detail, 'Pembayaran Ke');
-            // $sheet->setCellValue('B'.$sheet_num_detail, 'Tgl. Bayar');
-            // $sheet->setCellValue('C'.$sheet_num_detail, 'Metode Pembayaran');
-            // $sheet->setCellValue('D'.$sheet_num_detail, 'Nama Bank');
-            // $sheet->setCellValue('E'.$sheet_num_detail, 'No. Rekening');
-            // $sheet->setCellValue('F'.$sheet_num_detail, 'Jml. Bayar');
-            // $total_bayar    = 0;
-            // for($i = 0; $i < count($data_jemaah['data'][0]['detail_bayar']); $i++) {
-            //     $seq    = $i + 1;
-            //     $sheet->setCellValue('A' . ($sheet_num_detail + $seq), $data_jemaah['data'][0]['detail_bayar'][$i]['seq']);
-            //     $sheet->setCellValue('B' . ($sheet_num_detail + $seq), $data_jemaah['data'][0]['detail_bayar'][$i]['payment_date']);
-            //     $sheet->setCellValue('C' . ($sheet_num_detail + $seq), $data_jemaah['data'][0]['detail_bayar'][$i]['payment_method']);
-            //     $sheet->setCellValue('D' . ($sheet_num_detail + $seq), $data_jemaah['data'][0]['detail_bayar'][$i]['payment_bank_account']);
-            //     $sheet->setCellValue('E' . ($sheet_num_detail + $seq), $data_jemaah['data'][0]['detail_bayar'][$i]['payment_bank_account_number']);
-            //     $sheet->setCellValue('F' . ($sheet_num_detail + $seq), number_format($data_jemaah['data'][0]['detail_bayar'][$i]['payment_total'], 2));
+            // SHEET SUMMARY DATA
+            $sheet2     = $spreadsheet->createSheet();
+            $sheet2->setTitle('Rekap Pembayaran Haji');
+            
+            $sheet2->setCellValue('A1', 'Rekap Pembayaran Haji ' . $tahun_cari);
+            $sheet2->mergeCells('A1:G2');
+            $sheet2->getStyle('A1:G2')->getFont()->setSize(12)->setBold(true);
+            $sheet2->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet2->getStyle('A1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet2->getStyle('A1:G2')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            
+            $sheet2->setCellValue('A4', 'No');
+            $sheet2->setCellValue('B4', 'Nama');
+            $sheet2->setCellValue('C4', 'Tahun Daftar');
+            $sheet2->setCellValue('D4', 'Paket');
+            $sheet2->setCellValue('E4', 'No. BPIH');
+            $sheet2->setCellValue('F4', 'Total Bayar');
+            $sheet2->setCellValue('G4', 'Sisa Bayar');
 
-            //     $total_bayar   += $data_jemaah['data'][0]['detail_bayar'][$i]['payment_total'];
-            // }
-            // $sheet_footer   = $sheet_num_detail + count($data_jemaah['data'][0]['detail_bayar']) + 1;
-            // $sheet->setCellValue('A' . $sheet_footer, 'Total');
-            // $sheet->mergeCells('A'. $sheet_footer . ':E' . $sheet_footer);
-            // $sheet->setCellValue('F' . $sheet_footer, number_format($total_bayar, 2));
+            $sheet2->getStyle('A4:G4')->getFont()->setSize(11)->setBold(true);
+            $sheet2->getStyle('A4:G4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet2->getStyle('A4:G4')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet2->getStyle('A4:G4')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            
+            $rekap_start_cell = 5;
+            $grand_total_pembayaran     = 0;
+            $grand_total_sisa           = 0;
+            for($i = 0; $i < count($data_jemaah['data']); $i++) {
+                $rekap_next_cell    = $rekap_start_cell + $i;
+                $rekap_header       = $data_jemaah['data'][$i];
+                $rekap_detail       = $rekap_header['detail_bayar'];
 
+                $rekap_total_bayar  = 0;
 
-            // $sheet->setCellValue('A'.($sheet_num_detail + 1), 'Total');
-            // $sheet->mergeCells('A'.($sheet_num_detail + 1).':E'.($sheet_num_detail + 1));
-            // $sheet->setCellValue('F' . ($sheet_num_detail + 1), $total_bayar);
-            // $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            // $sheet->getStyle('A1')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-            // $sheet->getStyle('A1:H2')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-            // $sheet->getStyle('A1:H2')->getFont()->setSize(16)->setBold(true);
-            // $sheet->setCellValue('A1', 'No');
-            // $sheet->setCellValue('B1', 'Nama');
-            // $sheet->setCellValue('C1', 'Trans ID');
-            // for($i = 0; $i < count($data_jemaah['data']); $i++) {
-            //     $trans_id   = $data_jemaah['data'][$i]['trans_id'];
-            //     $nama       = $data_jemaah['data'][$i]['jemaah_name'];
+                switch ($rekap_header['hj_paket']) {
+                    case 'Double' :
+                        $harga_paket    = 20000;
+                    break;
+                    case 'Triple' : 
+                        $harga_paket    = 18500;
+                    break;
+                    case 'Quad' :
+                        $harga_paket    = 17500;
+                    break;
+                    default     :
+                        $harga_paket    = 0;
+                }
 
-            //     $sheet->setCellValue('A' . $i + 2, $i + 1);
-            //     $sheet->setCellValue('B' . $i + 2, $nama);
-            //     $sheet->setCellValue('C' . $i + 2, $trans_id);
-            // }
+                for($j = 0; $j < count($rekap_detail); $j++) {
+                    $rekap_detail_bayar     = $rekap_detail[$j]['payment_total'];
+                    
+                    $rekap_total_bayar      += $rekap_detail_bayar;
+                }
 
+                $rekap_sisa_bayar   = $rekap_total_bayar - $harga_paket;
+
+                $sheet2->setCellValue('A' . $rekap_next_cell, $i + 1);
+                $sheet2->setCellValue('B' . $rekap_next_cell, $rekap_header['jemaah_name']);
+                $sheet2->setCellValue('C' . $rekap_next_cell, date('Y', strtotime($rekap_header['detail_bayar'][0]['payment_date'])));
+                $sheet2->setCellValue('D' . $rekap_next_cell, $rekap_header['hj_paket']);
+                $sheet2->setCellValue('E' . $rekap_next_cell, $rekap_header['no_bpih']);
+                $sheet2->setCellValue('F' . $rekap_next_cell, number_format($rekap_total_bayar, 2));
+                $sheet2->setCellValue('G' . $rekap_next_cell, number_format($rekap_sisa_bayar, 2));
+
+                // BORDER
+                $sheet2->getStyle('A' . $rekap_next_cell . ':G' . $rekap_next_cell)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                // STYLE
+                $sheet2->getStyle('E' . $rekap_next_cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+                $sheet2->getStyle('F' . $rekap_next_cell . ':G' . $rekap_next_cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+                $grand_total_pembayaran     += $rekap_total_bayar;
+                $grand_total_sisa           += $rekap_sisa_bayar;
+                $rekap_start_cell + $i;
+            }
+
+            $sheet2->setCellValue('A' . count($data_jemaah['data']) + 5, 'Total');
+            $sheet2->getStyle('A' . count($data_jemaah['data']) + 5)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet2->setCellValue('F' . count($data_jemaah['data']) + 5, number_format($grand_total_pembayaran, 2));
+            $sheet2->getStyle('F' . count($data_jemaah['data']) + 5)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet2->setCellValue('G' . count($data_jemaah['data']) + 5, number_format($grand_total_sisa, 2));
+            $sheet2->getStyle('G' . count($data_jemaah['data']) + 5)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheet2->mergeCells('A' . count($data_jemaah['data']) + 5 . ':E' . count($data_jemaah['data']) + 5);
+            $sheet2->getStyle('A' . count($data_jemaah['data']) + 5 . ':G' . count($data_jemaah['data']) + 5)->getFont()->setSize(11)->setBold(true);
+            $sheet2->getStyle('A' . count($data_jemaah['data']) + 5 . ':G' . count($data_jemaah['data']) + 5)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+            // HARGA PAKET
+            $sheet2->setCellValue('I1', 'Double');
+            $sheet2->setCellValue('I2', 'Triple');
+            $sheet2->setCellValue('I3', 'Quad');
+            $sheet2->setCellValue('J1', number_format(20000, 2));
+            $sheet2->setCellValue('J2', number_format(18500, 2));
+            $sheet2->setCellValue('J3', number_format(17500, 2));
+
+            // AUTO WIDTH
+            foreach ($sheet2->getColumnIterator() as $column) {
+                $sheet2->getColumnDimension($column->getColumnIndex())->setAutoSize(true);
+            }
+
+            // MEMBUAT CELL 1 MENJADI ACTIVE SHEET
+            $spreadsheet->setActiveSheetIndex(0);
+
+            // SIMPAN
             $file_name  = time() . '_Laporan_Pembayaran_Haji_' . $tahun_cari . '.xlsx';
             $writer     = new Xlsx($spreadsheet);
             $file_path  = public_path('storage/data-files/laporan_haji/');
@@ -735,7 +801,9 @@ class FinanceController extends Controller
                     'success'   => true,
                     'status'    => 200,
                     'message'   => 'Berhasil Generate Excel File : ' . $file_name,
-                    'data'      => []
+                    'data'      => [
+                        'data_url'  => 'storage/data-files/laporan_haji/' . $file_name,
+                    ],
                 ];
             } catch (\Exception $e) {
                 $output     = [
@@ -747,6 +815,19 @@ class FinanceController extends Controller
             }
 
             return Response::json($output, $output['status']);
+        }
+    }
+
+    // NOTE : AFTER GENERATE EXCEL, THEN DELETE FILE FROM STORAGE WEB
+    public function finance_delete_report_pembayaran_haji(Request $req)
+    {
+        $file_path  = public_path($req['file_path']);
+
+        if(file_exists($file_path)) {
+            unlink($file_path);
+            return Response::json('berhasil', 200);
+        } else {
+            return Response::json('gagal', 500);
         }
     }
 }

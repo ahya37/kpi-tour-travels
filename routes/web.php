@@ -543,6 +543,7 @@ Route::group(['middleware' => ['auth']], function () {
 
             Route::prefix('report')->group(function(){
                 Route::post('/pembayaran_haji/{typefile}', [finance::class, 'finance_report_pembayaran_haji']);
+                Route::post('/delete_pembayaran_haji', [finance::class, 'finance_delete_report_pembayaran_haji']);
             });
         });
 
