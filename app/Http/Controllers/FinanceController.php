@@ -649,6 +649,7 @@ class FinanceController extends Controller
                 $sheet->setCellValue('E' . $num_sheet_awal + 3, 'No. Rekening');
                 $sheet->setCellValue('F' . $num_sheet_awal + 3, 'Jml. Bayar');
                 $sheet->getStyle('A' . $num_sheet_awal + 3 . ':F' . $num_sheet_awal + 3)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle('A' . $num_sheet_awal + 3 . ':F' . $num_sheet_awal + 3)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $sheet->getStyle('A' . $num_sheet_awal + 3 . ':F' . $num_sheet_awal + 3)->getFont()->setSize(11)->setBold(true);
                 // DETAIL
                 for($j = 0; $j < count($data_bayar_haji); $j++) {
@@ -660,6 +661,9 @@ class FinanceController extends Controller
                     $sheet->setCellValue('D' . $num_sheet_awal + 3 + $detail_seq, $data_bayar_haji[$j]['payment_bank_account']);
                     $sheet->setCellValue('E' . $num_sheet_awal + 3 + $detail_seq, $data_bayar_haji[$j]['payment_bank_account_number']);
                     $sheet->setCellValue('F' . $num_sheet_awal + 3 + $detail_seq, number_format($data_bayar_haji[$j]['payment_total'], 2));
+
+                    $sheet->getStyle('A' . $num_sheet_awal + 3 + $detail_seq)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle('E' . $num_sheet_awal + 3 + $detail_seq)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
                     $sheet->getStyle('F' . $num_sheet_awal + 3 + $detail_seq)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 
                     // BORDER
@@ -752,6 +756,8 @@ class FinanceController extends Controller
                 // BORDER
                 $sheet2->getStyle('A' . $rekap_next_cell . ':G' . $rekap_next_cell)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
                 // STYLE
+                $sheet2->getStyle('A' . $rekap_next_cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet2->getStyle('C' . $rekap_next_cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
                 $sheet2->getStyle('E' . $rekap_next_cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
                 $sheet2->getStyle('F' . $rekap_next_cell . ':G' . $rekap_next_cell)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
 

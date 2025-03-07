@@ -130,6 +130,7 @@ function showModal(idModal, type, data = '')
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
         showTable('table_pembayaran_haji', []);
+        showSelect('filter_keberangkatan', tahun_keberangkatan, moment(today, 'YYYY-MM-DD').format('YYYY'));
 
         // GET DATA PEMBAYARAN HAJI
         const paymentHajiURL    = "divisi/finance/pembayaran/haji/list_pembayaran_haji";
@@ -157,7 +158,7 @@ function showModal(idModal, type, data = '')
             $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
             showSelect('hj_member_id', []);
             showSelect('hj_depature_code', []);
-            showSelect('hj_estimasi_keberangkatan', tahun_keberangkatan);
+            showSelect('hj_estimasi_keberangkatan', tahun_keberangkatan, moment(today, 'YYYY-MM-DD').format('YYYY'));
             showTable('table_pembayaran_haji_form', []);
         } else {
             $(".is_not_empty_data").removeClass('d-none');
@@ -357,15 +358,15 @@ function showTable(idTable, data)
                 let seq                 = i + 1;
                 let transID             = data[i]['trans_id'];
                 let jemaahNama          = data[i]['jemaah_name'];
-                let HajiKode            = data[i]['tour_code'];
                 let jemaahPaket         = data[i]['jemaah_pkg'];
                 let jemaahTotalBayar    = data[i]['total_payment'];
                 let jemaahStatusBayar   = parseInt(jemaahTotalBayar) - tourPrice == 0 ? `<span class="badge badge-sm badge-primary">Lunas</span>` : (parseInt(jemaahTotalBayar) - tourPrice < 0 ? `<span class="badge badge-sm badge-warning" style="color: #000">Kurang Bayar</span>` : `<span class="badge badge-sm badge-primary">Lebih Bayar</span>`);
-                let btnJemaahAct        = `<button class="btn btn-sm btn-primary" value="${transID}" title="Lihat Data" onclick="showModal('modal_pembayaran_haji_form', 'edit', this.value)"><i class="fa fa-eye"></i></button>`
+                let btnJemaahAct        = `<button class="btn btn-sm btn-primary" value="${transID}" title="Lihat Data" onclick="showModal('modal_pembayaran_haji_form', 'edit', this.value)"><i class="fa fa-eye"></i></button>`;
+                let estimasi_berangkat  = data[i]['est_berangkat'];
                 $("#"+idTable).DataTable().row.add([
                     `<label class="no-margins font-weight-normal">${seq}</label>`,
                     `<label class="no-margins font-weight-normal">${jemaahNama}</label>`,
-                    `<label class="no-margins font-weight-normal">${HajiKode}</label>`,
+                    `<label class="no-margins font-weight-normal">${estimasi_berangkat}</label>`,
                     `<label class="no-margins font-weight-normal">${jemaahPaket}</label>`,
                     `<label class="no-margins font-weight-normal">${jemaahStatusBayar}</label>`,
                     `<label class="no-margins font-weight-normal">${btnJemaahAct}</label>`,
@@ -670,6 +671,21 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
         if(selectedData != '') {
             $("#"+idSelect).val(selectedData);
         }
+    } else if(idSelect == 'filter_keberangkatan') {
+        let html    = [
+            `<option selected disabled>Pilih Tahun Keberangkatan</option>`,
+            `<option value='9999'>Belum Tersedia</option>`,
+        ];
+
+        for(let i = 0; i < data.length; i++) {
+            html    += `<option value="${data[i]['value']}">${data[i]['text']}</option>`
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
     }
 }
 
@@ -901,7 +917,7 @@ function downloadFile(jenis, fileFormat)
         const reportHajiURL     = "divisi/finance/report/pembayaran_haji/"+fileFormat;
         const reportHajiType    = "POST";
         const reportHajiData    = {
-            'tahun_cari'    : 2025,
+            'tahun_cari'    : $("#filter_keberangkatan").val(),
         }; 
         const reportHajiMsg     = Swal.fire({ title : "Download File" }); Swal.showLoading();
 

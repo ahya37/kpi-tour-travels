@@ -888,8 +888,19 @@ class FinanceServices
     {
         $query  = DB::table('fin_trans_haji as a')
                     ->join('fin_trans_haji_detail as b', 'a.hj_trans_id', '=', 'b.hj_trans_id')
-                    ->select('a.hj_trans_id as trans_id', 'a.hj_trans_member_id as jemaah_id', 'a.hj_trans_member_name as jemaah_name', 'a.hj_tour_code as tour_code', 'a.hj_no_daftar as no_daftar', 'a.hj_tgl_daftar as tgl_daftar', 'a.hj_no_bpih as no_bpih', 'a.hj_paket as jemaah_pkg', DB::raw("SUM(b.hj_payment_amount) as total_payment"))
-                    ->groupBy('a.hj_trans_id', 'a.hj_trans_member_id', 'a.hj_trans_member_name', 'a.hj_tour_code', 'a.hj_no_daftar', 'a.hj_tgl_daftar', 'a.hj_no_bpih', 'a.hj_paket')
+                    ->select(
+                            'a.hj_trans_id as trans_id', 
+                            'a.hj_trans_member_id as jemaah_id', 
+                            'a.hj_trans_member_name as jemaah_name', 
+                            'a.hj_tour_code as tour_code', 
+                            'a.hj_no_daftar as no_daftar', 
+                            'a.hj_tgl_daftar as tgl_daftar', 
+                            'a.hj_no_bpih as no_bpih', 
+                            'a.hj_paket as jemaah_pkg', 
+                            DB::raw("SUM(b.hj_payment_amount) as total_payment"),
+                            'a.hj_est_berangkat as est_berangkat'
+                            )
+                    ->groupBy('a.hj_trans_id', 'a.hj_trans_member_id', 'a.hj_trans_member_name', 'a.hj_tour_code', 'a.hj_no_daftar', 'a.hj_tgl_daftar', 'a.hj_no_bpih', 'a.hj_paket', 'a.hj_est_berangkat')
                     ->orderBy('a.hj_trans_id', 'desc')
                     ->get();
         

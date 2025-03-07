@@ -9,9 +9,17 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col">
+                    <div class="col-xl-3 col-md-6 col-12">
+                        <div class="form-group">
+                            <label for="filter_keberangkatan">Filter Keberangkatan</label>
+                            <select id="filter_keberangkatan" style="form-control" style="width:100%;"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
                         <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_pembayaran_haji_form', 'add', '')"><i class="fa fa-plus"></i> Tambah Data</button>
-                        <button class="btn btn-danger" title="Download PDF" onclick="downloadFile('haji', 'pdf')"><i class="fa fa-file-pdf"></i> Download PDF</button>
+                        {{-- <button class="btn btn-danger" title="Download PDF" onclick="downloadFile('haji', 'pdf')"><i class="fa fa-file-pdf"></i> Download PDF</button> --}}
                         <button class="btn btn-primary" title="Download Excel" onclick="downloadFile('haji', 'excel')"><i class="fa fa-file-excel"></i> Download Excel</button>
                     </div>
                 </div>
@@ -24,8 +32,8 @@
                                     <tr>
                                         <th class="text-center align-middle" style="width: 8%;">No</th>
                                         <th class="text-center align-middle">Nama</th>
-                                        <th class="text-center align-middle" style="width: 15%;">Tour Code</th>
-                                        <th class="text-center align-middle" style="width: 15%;">Paket</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Berangkat</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Est Berangkat</th>
                                         <th class="text-center align-middle" style="width: 10%;">Status Bayar</th>
                                         <th class="text-center align-middle" style="width: 10%;">Aksi</th>
                                     </tr>
