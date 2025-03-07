@@ -204,11 +204,11 @@ function showTable(idTable, data)
                 const employeeName      = data[i]['prs_emp_name'];
                 const presenceDate      = moment(data[i]['prs_date'], 'YYYY-MM-DD').format('DD MMM YYYY');
                 const presenceDay       = moment(data[i]['prs_date'], 'YYYY-MM-DD').format('dddd');
-                const presenceTimeIn    = data[i]['prs_in'];
-                const presenceTimeOut   = data[i]['prs_out'];
-                const totalWorkHour     = data[i]['prs_total_time'];
-                const totalLateHour     = data[i]['prs_late_time'];
-                const totalOverTime     = data[i]['prs_over_time'];
+                const presenceTimeIn    = moment(data[i]['prs_in'], 'HH:mm:ss').format('HH:mm:ss');
+                const presenceTimeOut   = moment(data[i]['prs_out'], 'HH:mm:ss').format('HH:mm:ss');
+                const totalWorkHour     = moment(data[i]['prs_total_time'], 'HH:mm:ss').format('HH:mm:ss');
+                const totalLateHour     = moment(data[i]['prs_late_time'], 'HH:mm:ss').format('HH:mm:ss');
+                const totalOverTime     = moment(data[i]['prs_over_time'], 'HH:mm:ss').format('HH:mm:ss');
 
                 $("#"+idTable).DataTable().row.add([
                     `<label class="no-margins">${seq}</label>`,
