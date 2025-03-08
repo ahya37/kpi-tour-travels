@@ -173,8 +173,8 @@ function showModal(idModal, jenis, data)
     } else if(idModal == 'modal_abs') {
         // SHOW SELECT
         showSelect('abs_user_cari', dataEmployees);
-
         showTable('table_list_absensi', []);
+        $("#table_list_absensi").find('.dataTables_empty').html(`Pilih Jarak Tanggal dan User untuk mengampilkan Data`);
         
         $("#abs_tgl_cari").daterangepicker({
             minDate     : moment(today, 'YYYY-MM-DD').subtract(1, 'year'),
@@ -190,8 +190,6 @@ function showModal(idModal, jenis, data)
         });
 
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-
-
     } else if(idModal == 'modal_emp') {
         const openModal     = (idModal) => {
             $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
@@ -485,86 +483,27 @@ function showTable(idTable, data)
             pageLength  : -1,
             paging      : false,
         });
-        
-        // TAMPIL DATA
-        if(data != '') {
-            abs_data_global = [];
-            const abs_url   = "/divisi/human_resource/absensi/list";
-            const abs_data  = data;
-            const abs_type  = "GET";
-            
-            doTrans(abs_url, abs_type, abs_data, '', true)
-                .then((success) => {
-                    $(".dataTables_empty").html("Data Berhasil Dimuat");
-                    
-                    const abs_getData       = success.data;
-                    let abs_waktu_masuk;
-                    let abs_waktu_pulang;
-                    let seq = 1;
 
-                    for(const abs_item of abs_getData)
-                    {
-                        let abs_hari    = abs_item.tanggal_absen;
-                        if(moment(abs_hari, 'YYYY-MM-DD').format('dddd') == 'Sabtu') {
-                            abs_waktu_masuk = "08:00:00";
-                            abs_waktu_pulang= "13:30:00";
-                        } else if(moment(abs_hari, 'YYYY-MM-DD').format('dddd') == 'Minggu') {
-                            abs_waktu_masuk = "00:00:00";
-                            abs_waktu_pulang= "00:00:00";
-                        } else {
-                            abs_waktu_masuk = "08:00:00";
-                            abs_waktu_pulang= "16:00:00";
-                        }
-                        // MASUK
-                        if(moment(abs_item.jam_masuk, 'HH:mm:ss') > moment(abs_waktu_masuk, 'HH:mm:ss'))
-                        {
-                            const jam_masuk_diff        = moment(abs_item.jam_masuk, 'HH:mm:ss').diff(moment(abs_waktu_masuk, 'HH:mm:ss'));
-                            const jam_masuk_duration    = moment.duration(jam_masuk_diff);
-                            const jam_masuk_hour        = Math.floor(jam_masuk_duration.asHours()) < 10 ? "0"+Math.floor(jam_masuk_duration.asHours()) : Math.floor(jam_masuk_duration.asHours());
-                            const jam_masuk_min         = jam_masuk_duration.minutes() < 10 ? "0"+jam_masuk_duration.minutes() : jam_masuk_duration.minutes();
-                            const jam_masuk_sec         = jam_masuk_duration.seconds() < 10 ? "0"+jam_masuk_duration.seconds() : jam_masuk_duration.seconds();
+        if(data.length > 0) {
+            for(let i = 0; i < data.length; i++) {
+                let empID       = data[i]['user_id'];
+                let nama        = data[i]['nama'];
+                let tanggal     = data[i]['tanggal_absen'];
+                let jamMasuk    = data[i]['jam_masuk'];
+                let jamKeluar   = data[i]['jam_keluar'];
+                let buttonEdit  = `<button type="button" class="btn btn-sm btn-primary" value="${empID}|${tanggal}" title="Edit Absen" onclick="showModal('modal_edit_jam_kerja', 'edit', this.value)"><i class="fa fa-edit"></i></button>`;
 
-                            var jam_masuk               = jam_masuk_hour+":"+jam_masuk_min+":"+jam_masuk_sec;
-                        } else {
-                            var jam_masuk               = "00:00:00";
-                        }
-
-                        if(moment(abs_item.jam_keluar, 'HH:mm:ss') > moment(abs_waktu_pulang, 'HH:mm:ss'))
-                        {
-                            const jam_keluar_diff       = moment(abs_item.jam_keluar, 'HH:mm:ss').diff(moment(abs_waktu_pulang, 'HH:mm:ss'));
-                            const jam_keluar_duration   = moment.duration(jam_keluar_diff);
-                            const jam_keluar_hour       = Math.floor(jam_keluar_duration.asHours()) < 10 ? "0"+Math.floor(jam_keluar_duration.asHours()) : Math.floor(jam_keluar_duration.asHours());
-                            const jam_keluar_min        = jam_keluar_duration.minutes() < 10 ? "0"+jam_keluar_duration.minutes() : jam_keluar_duration.minutes();
-                            const jam_keluar_sec        = jam_keluar_duration.seconds() < 10 ? "0"+jam_keluar_duration.seconds() : jam_keluar_duration.seconds();
-                            
-                            var jam_keluar              = jam_keluar_hour+":"+jam_keluar_min+":"+jam_keluar_sec;
-                        } else {
-                            var jam_keluar              = "00:00:00";
-                        }
-
-                        const abs_user_id   = abs_item.user_id;
-                        const abs_tgl       = moment(abs_item.tanggal_absen, 'YYYY-MM-DD').format('dddd')  == 'Minggu' ? "<label class='no-margins font-weight-normal text-danger'>"+ abs_item.tanggal_absen +"</label>" : "<label class='no-margins font-weight-normal'>" + abs_item.tanggal_absen + "</label>";
-                        const abs_emp_name  = abs_item.nama;
-                        const abs_emp_in    = moment(abs_item.jam_masuk, 'HH:mm:ss').format('HH:mm:ss');
-                        const abs_emp_out   = moment(abs_item.jam_keluar, 'HH:mm:ss').format('HH:mm:ss');
-                        $("#"+idTable).DataTable().row.add([
-                            abs_tgl,
-                            abs_emp_name,
-                            abs_emp_in,
-                            abs_emp_out,
-                            jam_masuk,
-                            jam_keluar,
-                            `<button class='btn btn-sm btn-primary' type='button' id='btnEditAbsen${seq++}' value="${abs_user_id}|${abs_item.tanggal_absen}" title='Edit Absen' onclick="showModal('modal_edit_jam_kerja', 'edit', this.value)"><i class='fa fa-edit'></i></button>`
-                        ]).draw(false);
-                    }
-                })
-                .catch((err)    => {
-                    $(".dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
-                })
-        } else {
-            $(".dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
+                $("#"+idTable).DataTable().row.add([
+                    `<label class="font-weight-normal no-margins">${moment(tanggal, 'YYYY-MM-DD').format('YYYY-MM-DD')}</label>`,
+                    `<label class="font-weight-normal no-margins">${nama}</label>`,
+                    `<label class="font-weight-normal no-margins">${moment(jamMasuk, 'HH:mm:ss').format('HH:mm:ss')}</label>`,
+                    `<label class="font-weight-normal no-margins">${moment(jamKeluar, 'HH:mm:ss').format('HH:mm:ss')}</label>`,
+                    `<label class="font-weight-normal no-margins"></label>`,
+                    `<label class="font-weight-normal no-margins"></label>`,
+                    buttonEdit
+                ]).draw(false);
+            }
         }
-
     } else if(idTable == 'table_emp') {
         $("#"+idTable).DataTable({
             language    : {
@@ -853,6 +792,7 @@ function showData(idData)
 {
     if(idData == 'table_list_absensi')
     {
+        showTable('table_list_absensi', []);
         const tanggal       = $("#abs_tgl_cari").val();
         const tanggal_awal  = tanggal.split(' s/d ')[0];
         const tanggal_akhir = tanggal.split(' s/d ')[1];
@@ -862,14 +802,36 @@ function showData(idData)
             $("#abs_user_cari").val('semua').trigger('change');
         }
 
-        const sendData  = {
-            "tanggal_awal"  : moment(tanggal_awal, 'DD/MM/YYYY').format('YYYY-MM-DD'),
-            "tanggal_akhir" : moment(tanggal_akhir, 'DD/MM/YYYY').format('YYYY-MM-DD'),
-            "user_id"       :  user == 'semua' ? '%' : user,
-            "jml_hari"      : moment(tanggal_akhir, 'DD/MM/YYYY').diff(moment(tanggal_awal, 'DD/MM/YYYY'), 'days') + 1,
+        const absURL    = "/divisi/human_resource/absensi/list";
+        const absType   = "GET";
+        const absData   = {
+            'tanggal_awal'  : moment(tanggal_awal, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+            'tanggal_akhir' : moment(tanggal_akhir, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+            'user_id'       : user == 'semua' ? '%' : user,
+            'jml_hari'      : moment(tanggal_akhir, 'DD/MM/YYYY').diff(moment(tanggal_awal, 'DD/MM/YYYY'), 'days') + 1,
         };
 
-        showTable('table_list_absensi', sendData);
+        doTrans(absURL, absType, absData, '', true)
+            .then((success)     => {
+                const absGetData    = success.data;
+                showTable('table_list_absensi', absGetData);
+                if(absGetData.length < 1) {
+                    $("#table_list_absensi").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`);
+                }
+            })
+            .catch((error)      => {
+                showTable('table_list_absensi', []);
+                $("#table_list_absensi").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`);
+            })
+
+        // const sendData  = {
+        //     "tanggal_awal"  : moment(tanggal_awal, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+        //     "tanggal_akhir" : moment(tanggal_akhir, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+        //     "user_id"       : user == 'semua' ? '%' : user,
+        //     "jml_hari"      : moment(tanggal_akhir, 'DD/MM/YYYY').diff(moment(tanggal_awal, 'DD/MM/YYYY'), 'days') + 1,
+        // };
+
+        // showTable('table_list_absensi', sendData);
     } else if(idData == 'download_data_excel') {
         const tanggal       = $("#abs_tgl_cari").val();
         const tanggal_awal  = tanggal.split(' s/d ')[0];
@@ -1196,15 +1158,7 @@ function doSimpan(type, jenis, data)
                     }).then((res)   => {
                         if(res.isConfirmed) {
                             closeModal('modal_edit_jam_kerja');
-                            let tanggalCari     = $("#abs_tgl_cari").val().split(' s/d ');
-                            let tanggalDiff     = moment(tanggalCari[1], 'DD/MM/YYYY').diff(moment(tanggalCari[0], 'DD/MM/YYYY'), 'days');
-                            const tabelData     = {
-                                "tanggal_akhir" : moment(tanggalCari[1], 'DD/MM/YYYY').format('YYYY-MM-DD'),
-                                "tanggal_awal"  : moment(tanggalCari[0], 'DD/MM/YYYY').format('YYYY-MM-DD'),
-                                "user_id"       : $("#abs_user_cari").val(),
-                                "jml_hari"      : tanggalDiff + 1
-                            };
-                            showTable('table_list_absensi', tabelData);
+                            showData('table_list_absensi');
                         }
                     })
                 })
