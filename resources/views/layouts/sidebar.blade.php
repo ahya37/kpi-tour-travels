@@ -153,7 +153,7 @@
                 </ul>
             </li>
 
-            <li class="{{ request()->is('marketings/*') || request()->is('umhaj/*') ? 'active' : '' }}">
+            <li class="{{ request()->is('marketings/*') || request()->is('umhaj/*') || request()->is('divisi/marketing/*') ? 'active' : '' }}">
                 <a href="#">
                     <i class="fa fa-diamond"></i> 
                     <span class="nav-label">Marketing</span> 
@@ -169,6 +169,14 @@
                     <li class="{{ request()->is('marketings/programKerja/Dashboard') ? 'active' : '' }}"><a href="{{ route('marketing.programkerja.dashboard') }}">Program Kerja</a></li>
                     <li class="{{ request()->is('umhaj/*') ? 'active' : '' }}"><a href="{{ route('umhaj.dashboard') }}">Umhaj</a></li>
                     <li class="{{ request()->is('marketings/agent') || request()->is('marketings/agent/*') ? 'active' : '' }}"><a href="{{ route('marketing.agent') }}">Agent</a></li>
+                    <li class="{{ request()->is('divisi/marketing/pembayaran') || request()->is('divisi/marketing/pembayaran/*') ? 'active' : '' }}">
+                        <a href="#"> Pembayaran <span class="fa arrow"></span></a>
+                        <ul class="nav nav-third-level">
+                            <li class="{{ request()->is('divisi/marketing/pembayaran/haji') || request()->is('divisi/marketing/pembayaran/haji/*') ? 'active' : '' }}"><a href="{{ route('index.marketing.pembayaranHaji') }}">Pembayaran Haji</a></li>
+                            <li class=""><a href="#">Pembayaran Umrah</a></li>
+                            {{-- <li class="{{ request()->is('divisi/finance/pembayaran') || request()->is('divisi/finance/pembayaran/*') ? 'active' : '' }}"><a href="{{ route('finance.pembayaran.index') }}">Pembayaran</a></li> --}}
+                        </ul>
+                    </li>
                 </ul>
             </li>
 

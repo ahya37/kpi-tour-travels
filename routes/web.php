@@ -587,6 +587,12 @@ Route::group(['middleware' => ['auth']], function () {
             });
         });
 
+        Route::prefix('marketing')->group(function(){
+            Route::prefix('pembayaran')->group(function(){
+                Route::get('/haji', [MarketingController::class, 'marketing_pembayaran_haji'])->name('index.marketing.pembayaranHaji');
+            });
+        });
+
         Route::prefix('master')->group(function(){
             Route::get('/getDataProkerTahunan', [DivisiController::class, 'getDataProkerTahunan']);
             Route::get('/getDataSubDivision', [DivisiController::class, 'getDataSubDivision']);

@@ -331,11 +331,11 @@ function showTable(idTable, data)
             autoWidth   : false,
             columnDefs  : [
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
-                { "targets" : [1], "className" : "align-middle", },
-                { "targets" : [2], "className" : "text-left align-middle", "width" : "15%" },
-                { "targets" : [3], "className" : "text-center align-middle", "width" : "15%," },
+                { "targets" : [1], "className" : "align-middle" },
+                { "targets" : [2], "className" : "text-left align-middle", "width" : "10%" },
+                { "targets" : [3], "className" : "text-center align-middle", "width" : "10%," },
                 { "targets" : [4], "className" : "text-center align-middle", "width" : "8%," },
-                { "targets" : [5], "className" : "text-center align-middle", "width" : "8%," },
+                { "targets" : [5], "className" : "text-center align-middle", "width" : "5%," },
             ],
         })
         
@@ -366,8 +366,8 @@ function showTable(idTable, data)
                 $("#"+idTable).DataTable().row.add([
                     `<label class="no-margins font-weight-normal">${seq}</label>`,
                     `<label class="no-margins font-weight-normal">${jemaahNama}</label>`,
-                    `<label class="no-margins font-weight-normal">${estimasi_berangkat}</label>`,
                     `<label class="no-margins font-weight-normal">${jemaahPaket}</label>`,
+                    `<label class="no-margins font-weight-normal">${estimasi_berangkat}</label>`,
                     `<label class="no-margins font-weight-normal">${jemaahStatusBayar}</label>`,
                     `<label class="no-margins font-weight-normal">${btnJemaahAct}</label>`,
                 ]).draw(false);

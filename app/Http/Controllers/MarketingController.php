@@ -2658,4 +2658,18 @@ class MarketingController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 10 MARET 2025
+    // NOTE : VIEW PEMBAYARAN HAJI
+    public function marketing_pembayaran_haji()
+    {
+        $title  = $this->title . "Pembayaran Haji";
+        
+        $data_view     = [
+            'title'         => $title,
+            'sub_title'     => 'Marketing - Pembayaran Haji',
+        ];
+
+        return view('divisi.marketing.pembayaran.index', $data_view);
+    }
 }

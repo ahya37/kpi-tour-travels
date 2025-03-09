@@ -32,10 +32,10 @@
                                     <tr>
                                         <th class="text-center align-middle" style="width: 8%;">No</th>
                                         <th class="text-center align-middle">Nama</th>
-                                        <th class="text-center align-middle" style="width: 15%;">Berangkat</th>
+                                        <th class="text-center align-middle" style="width: 15%;">Paket</th>
                                         <th class="text-center align-middle" style="width: 15%;">Est Berangkat</th>
                                         <th class="text-center align-middle" style="width: 10%;">Status Bayar</th>
-                                        <th class="text-center align-middle" style="width: 10%;">Aksi</th>
+                                        <th class="text-center align-middle" style="width: 8%;">Aksi</th>
                                     </tr>
                                 </thead>
                             </table>
