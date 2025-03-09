@@ -31,8 +31,8 @@
                 <hr>
                 <div class="row">
                     <div class="col-sm-12">
-                        <button class="btn btn-sm btn-primary" onclick="showData('download_data_excel')">
-                            <i class="fa fa-file-excel-o"></i>&nbsp;Download File Excel
+                        <button class="btn btn-sm btn-primary" onclick="showData('download_data_excel')" title="Download Absensi Excel">
+                            <i class="fa fa-file-excel-o"></i>&nbsp;Download Absensi
                         </button>
                     </div>
                 </div>

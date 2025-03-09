@@ -487,10 +487,12 @@ function showTable(idTable, data)
         if(data.length > 0) {
             for(let i = 0; i < data.length; i++) {
                 let empID       = data[i]['user_id'];
-                let nama        = data[i]['nama'];
-                let tanggal     = data[i]['tanggal_absen'];
-                let jamMasuk    = data[i]['jam_masuk'];
-                let jamKeluar   = data[i]['jam_keluar'];
+                let nama        = data[i]['employee_name'];
+                let tanggal     = data[i]['presence_date'];
+                let jamMasuk    = data[i]['presence_in'];
+                let jamKeluar   = data[i]['presence_out'];
+                let jamTelat    = data[i]['late_time'];
+                let jamLebih    = data[i]['over_time'];
                 let buttonEdit  = `<button type="button" class="btn btn-sm btn-primary" value="${empID}|${tanggal}" title="Edit Absen" onclick="showModal('modal_edit_jam_kerja', 'edit', this.value)"><i class="fa fa-edit"></i></button>`;
 
                 $("#"+idTable).DataTable().row.add([
@@ -498,8 +500,8 @@ function showTable(idTable, data)
                     `<label class="font-weight-normal no-margins">${nama}</label>`,
                     `<label class="font-weight-normal no-margins">${moment(jamMasuk, 'HH:mm:ss').format('HH:mm:ss')}</label>`,
                     `<label class="font-weight-normal no-margins">${moment(jamKeluar, 'HH:mm:ss').format('HH:mm:ss')}</label>`,
-                    `<label class="font-weight-normal no-margins"></label>`,
-                    `<label class="font-weight-normal no-margins"></label>`,
+                    `<label class="font-weight-normal no-margins">${moment(jamTelat, 'HH:mm:ss').format('HH:mm:ss')}</label>`,
+                    `<label class="font-weight-normal no-margins">${moment(jamLebih, 'HH:mm:ss').format('HH:mm:ss')}</label>`,
                     buttonEdit
                 ]).draw(false);
             }
@@ -802,13 +804,12 @@ function showData(idData)
             $("#abs_user_cari").val('semua').trigger('change');
         }
 
-        const absURL    = "/divisi/human_resource/absensi/list";
+        const absURL    = "/divisi/human_resource/absensi/list_v2";
         const absType   = "GET";
         const absData   = {
             'tanggal_awal'  : moment(tanggal_awal, 'DD/MM/YYYY').format('YYYY-MM-DD'),
             'tanggal_akhir' : moment(tanggal_akhir, 'DD/MM/YYYY').format('YYYY-MM-DD'),
             'user_id'       : user == 'semua' ? '%' : user,
-            'jml_hari'      : moment(tanggal_akhir, 'DD/MM/YYYY').diff(moment(tanggal_awal, 'DD/MM/YYYY'), 'days') + 1,
         };
 
         doTrans(absURL, absType, absData, '', true)
@@ -823,15 +824,6 @@ function showData(idData)
                 showTable('table_list_absensi', []);
                 $("#table_list_absensi").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`);
             })
-
-        // const sendData  = {
-        //     "tanggal_awal"  : moment(tanggal_awal, 'DD/MM/YYYY').format('YYYY-MM-DD'),
-        //     "tanggal_akhir" : moment(tanggal_akhir, 'DD/MM/YYYY').format('YYYY-MM-DD'),
-        //     "user_id"       : user == 'semua' ? '%' : user,
-        //     "jml_hari"      : moment(tanggal_akhir, 'DD/MM/YYYY').diff(moment(tanggal_awal, 'DD/MM/YYYY'), 'days') + 1,
-        // };
-
-        // showTable('table_list_absensi', sendData);
     } else if(idData == 'download_data_excel') {
         const tanggal       = $("#abs_tgl_cari").val();
         const tanggal_awal  = tanggal.split(' s/d ')[0];
@@ -862,7 +854,7 @@ function showData(idData)
             doTrans(expAbs_url, expAbs_type, expAbs_data, expAbs_message, true)
                 .then((success)     => {
                     // var url_download    = base_url+"/"+success.data.file_url;
-                    var link = document.createElement('a');
+                    let link = document.createElement('a');
                     link.href = base_url+"/"+success.data.file_url+"/"+success.data.file_name;
                     document.body.appendChild(link);
                     link.click();

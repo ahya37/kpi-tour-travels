@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 use App\Helpers\ResponseFormatter;
 use DateInterval;
 use DateTime;
+use Dotenv\Repository\RepositoryInterface;
 use File;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -22,6 +23,8 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use Symfony\Component\Console\Output\Output;
+
+use function Laravel\Prompts\text;
 
 class DivisiController extends Controller
 {
@@ -2156,24 +2159,126 @@ class DivisiController extends Controller
     public function finance_sim_employees_fee(Request $request)
     {
         $get_data   = DivisiService::get_data_finance_sim_employees_fee($request->all());
-        
+
         if(count($get_data['header']) > 0) {
+            $data_header    = $get_data['header'][0];
+            $data_detail    = $get_data['detail'];
+            
+            $header         = [
+                'employee_id'       => $data_header->emp_id,
+                'employee_name'     => $data_header->emp_name,
+                'employee_fee'      => $data_header->emp_fee,
+                'employee_division' => $data_header->emp_division,
+                'employee_fee_hour' => str_replace(',', '', number_format((int) $data_header->emp_fee / 173, 2)),
+                'total_ot_1'        => 0,
+                'total_ot_2'        => 0,
+                'total_ot_3'        => 0
+            ];
+
+            $detail     = [];
+
+            if(count($data_detail) > 0) {
+                $ot_1   = 0;
+                $ot_2   = 0;
+                $ot_3   = 0;
+
+                for($i = 0; $i < count($data_detail); $i++) {
+                    $tanggal_absen  = $data_detail[$i]['emp_prs_date'];
+                    $day_week       = date('N', strtotime($tanggal_absen));
+                    $clock          = EmployeeService::get_data_jam_kerja($tanggal_absen, $day_week);
+                    $clock_in       = $clock[0]->clock_in;
+                    $clock_out      = $clock[0]->clock_out;
+
+                    $jam_masuk      = empty($data_detail[$i]['emp_prs_in_time']) ? $clock_in : date('H:i:s', strtotime($data_detail[$i]['emp_prs_in_time']));
+                    $jam_keluar     = empty($data_detail[$i]['emp_prs_out_time']) ? $clock_out : date('H:i:s', strtotime($data_detail[$i]['emp_prs_out_time']));
+
+                    // HITUNG TELAT DULU
+                    $toleransi_keterlambatan    = date('H:i:s', strtotime('+10 minutes', strtotime($clock_in)));
+
+                    // MENDAPATKAN MENIT TELAT
+                    $hitung_masuk_telat         = strtotime($jam_masuk) - strtotime($toleransi_keterlambatan);
+                    $menit_masuk_telat          = $hitung_masuk_telat < 0 ? "00:00:00" : gmdate('H:i:s', $hitung_masuk_telat);
+
+                    // KURANGI JAM TELAT
+                    $hitung_pengurangan_jam_keluar  = strtotime($jam_keluar) - strtotime($menit_masuk_telat);
+                    $jam_keluar_baru                = gmdate('H:i:s', $hitung_pengurangan_jam_keluar);
+                    
+                    // HITUNG JAM LEBIH
+                    $hitung_jam_lebih           = strtotime($jam_keluar_baru) - strtotime($clock_out);
+                    $jam_lebih                  = $hitung_jam_lebih < 1 ? '00:00:00' : gmdate('H:i:s', $hitung_jam_lebih);
+
+                    // HITUNG JAM KERJ
+                    $hitung_jam_kerja           = strtotime($clock_out) - strtotime($clock_in);
+                    $jam_kerja                  = gmdate('H:i:s', $hitung_jam_kerja);
+                    $jam_kerja_bulat            = floor((strtotime($jam_kerja) - strtotime('00:00:00')) / 3600);
+
+                    // HITUNG TOTAL JAM
+                    $selisih_jam                = floor((strtotime($jam_lebih) - strtotime('00:00:00')) / 3600);
+                    $ot_1                       = $selisih_jam > 0 ? 1 : 0;
+                    $ot_2                       = $ot_1 > 0 ? $selisih_jam - 1 : 0;
+                    $ot_3                       = $ot_2 > $jam_kerja_bulat ? 1 + ($selisih_jam - $ot_2) : 0;
+                    
+                    if((strtotime('+59 minutes', strtotime($clock_out))) < strtotime($jam_keluar_baru)) {
+                        $detail[]   = [
+                            'tgl_absen'         => $tanggal_absen,
+                            'jam_masuk'         => $jam_masuk,
+                            'jam_masuk_actual'  => $jam_masuk,
+                            'menit_telat'       => $menit_masuk_telat,
+                            'jam_keluar'        => $jam_keluar,
+                            'jam_keluar_actual' => $jam_keluar_baru,
+                            'lembur_status'     => $data_detail[$i]['emp_status'],
+                            'lembur_status_note'=> $data_detail[$i]['emp_reason'],
+                            'lembur_jam_pertama'=> $ot_1,
+                            'lembur_jam_kedua'  => $ot_2,
+                            'lembur_jam_ketiga' => $ot_3,
+                        ];
+                    } 
+                }
+
+                // print("<pre>" . print_r($check_data, true) . "</pre>");die();
+            }
             $output     = [
-                "success"   => true,
-                "status"    => 200,
-                "message"   => "Berhasil Ambil Data",
-                "data"      => $get_data,
+                'success'   => true,
+                'status'    => 200,
+                'message'   => 'Berhasil Mengambil Data Lemburan',
+                'data'      => [
+                    'header'    => $header,
+                    'detail'    => $detail
+                ],
             ];
         } else {
             $output     = [
-                "success"   => false,
-                "status"    => 404,
-                "message"   => "Data Tidak Ditemukan",
-                "data"      => [],
+                'success'   => false,
+                'status'    => 404,
+                'message'   => 'Tidak Ada Data Lemburan',
+                'data'      => [
+                    'header'    => [],
+                    'detail'    => []
+                ]
             ];
         }
 
         return Response::json($output, $output['status']);
+
+        // var_dump($request->all());die();
+
+        // if(count($get_data['header']) > 0) {
+        //     $output     = [
+        //         "success"   => true,
+        //         "status"    => 200,
+        //         "message"   => "Berhasil Ambil Data",
+        //         "data"      => $get_data,
+        //     ];
+        // } else {
+        //     $output     = [
+        //         "success"   => false,
+        //         "status"    => 404,
+        //         "message"   => "Data Tidak Ditemukan",
+        //         "data"      => [],
+        //     ];
+        // }
+
+        // return Response::json($output, $output['status']);
     }
 
     public function finance_sim_employees_fee_download(Request $request)
@@ -2915,5 +3020,67 @@ class DivisiController extends Controller
         }
 
         return $output;
+    }
+
+    // 08 MARET 2025
+    // NOTE : AMBIL LIST ABSEN V2
+    public function hr_absensi_list_v2(Request $request)
+    {
+        $data_absensi   = [];
+
+        $send_data  = [
+            'tgl_awal'  => $request->all()['tanggal_awal'],
+            'tgl_akhir' => $request->all()['tanggal_akhir'],
+            'user_id'   => $request->all()['user_id'],
+        ];
+
+        $get_data   = DivisiService::get_data_absensi_karyawan_v2($send_data);        
+        if(count($get_data['data']) > 0) {
+            for($i = 0; $i < count($get_data['data']['absensi']); $i++) {
+                $user_id        = $get_data['data']['absensi'][$i]->prs_user_id;
+                $employee_name  = $get_data['data']['absensi'][$i]->name;
+                $presence_date  = $get_data['data']['absensi'][$i]->prs_date;
+                $day_of_week    = date('N', strtotime($presence_date));
+                // GET JAM KERJA
+                $presence_time  = EmployeeService::get_data_jam_kerja($presence_date, $day_of_week)[0];
+                $clock_in       = $presence_time->clock_in;
+                $clock_out      = $presence_time->clock_out;
+                
+                $presence_in    = !empty($get_data['data']['absensi'][$i]->prs_in_time) ? date('H:i:s', strtotime($get_data['data']['absensi'][$i]->prs_in_time)) : $clock_in;
+                $presence_out   = !empty($get_data['data']['absensi'][$i]->prs_out_time) ? date('H:i:s', strtotime($get_data['data']['absensi'][$i]->prs_out_time)) : $clock_out;
+                
+                // MENDAPATKAN LATE TIME & OVERTIME
+                $hitung_telat   = strtotime($presence_in) - strtotime($clock_in);
+                $hitung_lebih   = strtotime($presence_out) - strtotime($clock_out);
+                $telat_jam      = $hitung_telat < 1 ? '00:00:00' : gmdate('H:i:s', $hitung_telat);
+                $lebih_jam      = $hitung_lebih < 1 ? '00:00:00' : gmdate('H:i:s', $hitung_lebih);
+
+                $data_absensi[]     = [
+                    'user_id'       => $user_id,
+                    'employee_name' => $employee_name,
+                    'presence_date' => $presence_date,
+                    'presence_in'   => $presence_in,
+                    'presence_out'  => $presence_out,
+                    'late_time'     => $telat_jam,
+                    'over_time'     => $lebih_jam
+                ];
+            }
+
+            $output     = [
+                'success'   => $get_data['is_success'],
+                'status'    => $get_data['status_code'],
+                'message'   => $get_data['message'],
+                'data'      => $data_absensi
+            ];
+        } else {
+            $output     = [
+                'success'   => $get_data['is_success'],
+                'status'    => $get_data['status_code'],
+                'message'   => $get_data['message'],
+                'data'      => []
+            ];
+        }
+
+        return Response::json($output, $output['status']);
     }
 }

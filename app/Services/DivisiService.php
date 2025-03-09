@@ -2766,7 +2766,7 @@ class DivisiService
                     "emp_prs_in_time"   => $item->emp_prs_in_time,
                     "emp_prs_out_time"  => $item->emp_prs_out_time,
                     "emp_status"        => $item->emp_prs_date < "2024-10-01" ? "t" : $status,
-                    "emp_status_note"   => $reason
+                    "emp_reason"   => $reason
                 ];
             endforeach;
         } else {
@@ -3432,6 +3432,55 @@ class DivisiService
                 'status'    => 'gagal',
                 'message'   => 'Internal Server Error',
                 'data'      => []
+            ];
+        }
+
+        return $output;
+    }
+
+    // 08 MARET 2025
+    // NOTE : AMBIL DATA KARYAWAN V2
+    public static function get_data_absensi_karyawan_v2($data)
+    {
+        $tgl_awal   = $data['tgl_awal'];
+        $tgl_akhir  = $data['tgl_akhir'];
+        $user_id    = $data['user_id'];
+
+        $query_absensi  = DB::table('tm_presence as a')
+                            ->join('employees as b', 'a.prs_user_id', '=', 'b.user_id')
+                            ->select('a.prs_date', 'a.prs_user_id', 'a.prs_in_time', 'a.prs_out_time', 'b.name')
+                            ->whereBetween('a.prs_date', [$tgl_awal, $tgl_akhir], 'and')
+                            ->where('a.prs_user_id', 'LIKE', $user_id)
+                            ->orderBy('a.prs_in_time', 'asc')
+                            ->get();
+        try {
+            if(count($query_absensi) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Abensi',
+                    'data'          => [
+                        'absensi'   => $query_absensi,
+                    ],
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Data Absen Tidak Ditemukan',
+                    'data'          => [
+                        'absensi'   => [],
+                    ],
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Internal Server Error',
+                'data'          => []
             ];
         }
 

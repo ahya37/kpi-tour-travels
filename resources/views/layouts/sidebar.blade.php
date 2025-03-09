@@ -38,14 +38,7 @@
                     <li class="{{ request()->is('master/subDivisions') ? 'active' : '' }}"><a href="{{ route('subDivisions.index') }}">Sub Division</a></li>
                     <li class="{{ request()->is('master/employees') ? 'active' : '' }}"><a href={{ route('Employees.index') }}>Employee</a></li>
                     <li class="{{ request()->is('master/programkerja/master_program') ? 'active' : '' }}"><a href={{ route('programKerja.masterProgram.index') }}>Program</a></li>
-                    <li class="{{ request()->is('marketings/prospectmaterial/') || request()->is('marketings/prospectmaterial/*') ? 'active' : '' }}"><a href="{{ route('marketing.prospectmaterial') }}">Generate Bahan Prospek Alumni</a></li>
                 </ul>
-				{{-- <ul class="nav nav-second-level">
-                    <li
-                        class="{{ (request()->is('master/programkerja') || request()->is('master/programkerja/*')) ? 'active' : '' }}">
-                        <a href={{ route('programKerja.index') }}>Program Kerja</a>
-                    </li>
-                </ul> --}}
             </li>
 
             <li class="{{ request()->is('marketings/*') || request()->is('umhaj/*') ? 'active' : '' }}">

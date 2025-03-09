@@ -397,116 +397,191 @@ function showTable(idTable, data)
             ],
         });
 
-        if(data != '') {
-            let seq                 = 1;
-            let overtimeOne         = 0;
-            let overtimeTwo         = 0;
-            let overtimeThree       = 0;
+        if(data.length > 0) {
+            let seq  = 1;
             let totalOvertimeOne    = 0;
-            let totalOvertimeTwo    = 0;
-            let totalOvertimeThree  = 0;
+            let totalOverTimeTwo    = 0;
+            let totalOverTimeThree  = 0;
 
-            let amountOverTime      = parseFloat($("#sml_emp_fee_ovt_input").val());
-            let amountOverTimeOne   = 0;
-            let amountOverTimeTwo   = 0;
-            let amountOverTimeThree = 0;
-            let amountTotalOverTime = 0;
+            let totalOvertimeFee    = 0;
+            let feeOverTimeOne      = 0;
+            let feeOverTimeTwo      = 0;
+            let feeOverTimeThree    = 0;
 
-            console.log(data);
+            let feePerHour          = parseFloat((($("#sml_emp_fee_hourly").text().replace('Rp', '')).replace('.', '')).replace(',', '.')).toFixed(2);
 
-            for(const item of data)
-            {
-                let prs_date            = item.emp_prs_date;
-                let prs_in              = item.emp_prs_in_time;
-                let prs_out             = item.emp_prs_out_time;
-                let prs_status          = item.emp_status;
-                let prs_status_note     = item.emp_status_note ?? item.emp_reason;
+            for(const item of data) {
+                let overtimeDate    = moment(item['tgl_absen'], 'YYYY-MM-DD').format('DD/MMM/YYYY');
+                let overtimeDay     = moment(item['tgl_absen'], 'YYYY-MM-DD').format('dddd');
+                let presenceIn      = moment(item['jam_masuk'], 'HH:mm:ss').format('HH:mm');
+                let presenceOut     = moment(item['jam_keluar'], 'HH:mm:ss').format('HH:mm');
+                let actualPresenceOut   = moment(item['jam_keluar_actual'], 'HH:mm:ss').format('HH:mm');
+                let lateMinutes     = moment(item['menit_telat'], 'HH:mm:ss').hours() * 60 + moment(item['menit_telat'], 'HH:mm:ss').minutes();
+                let lemburStatus    = item['lembur_status'];
+                let overTime1       = lemburStatus != 't' ? 0 : item['lembur_jam_pertama'];
+                let overTime2       = lemburStatus != 't' ? 0 : item['lembur_jam_kedua'];
+                let overTime3       = lemburStatus != 't' ? 0 : item['lembur_jam_ketiga'];
+                let lemburBadge;
+                let isLembur;
 
-                // SHOW TIME ONLY
-                let prs_in_time         = moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
-                let prs_out_time        = moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
-                let prs_late_time       = moment("08:10", "HH:mm").format('HH:mm');
-                                
-                // FORMATED TANGGAL
-                var prs_date_formatted  = prs_out != null ? moment(prs_date, 'YYYY-MM-DD').format('DD/MMM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+" - "+moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")" : moment(prs_date, 'YYYY-MM-DD').format('DD/MMM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")";
-
-                if(prs_in_time > prs_late_time) {
-                    var prs_diff_in_time    = moment(prs_in_time, 'HH:mm').diff(moment(prs_late_time, 'HH:mm'), 'minutes');
-                    var prs_out_time_new    = moment(prs_out_time, "HH:mm").subtract(prs_diff_in_time, 'minutes').format('HH:mm');
-                } else {
-                    var prs_diff_in_time    = "0";
-                    var prs_out_time_new    = prs_out_time;
+                switch(lemburStatus) {
+                    case 't' :
+                        lemburBadge     = `<span class="badge badge-sm badge-primary"><label class="font-weight-normal no-margins">Disetujui</label></span>`;
+                        isLembur        = `<i class="fa fa-check"></i>`;
+                    break;
+                    case 'f' :
+                        lemburBadge     = `<span class="badge badge-sm badge-secondary"><label class="font-weight-normal no-margins">${item['lembur_status_note']}</label></span>`;
+                        isLembur        = `<i class="fa fa-times"></i>`;
+                    break;
+                    default :
+                        lemburBadge     = `<span class="badge badge-sm badge-secondary"><label class="font-weight-normal">Belum Diajukan</label></span>`
+                        isLembur        = ``;
                 }
 
-                let isApproved      = prs_status == "t" ? "<i class='fa fa-check'></i>" : "<i class='fa fa-times'></i>";
+                $("#"+idTable).DataTable().row.add([
+                    `<label class="font-weight-normal no-margins">${seq++}</label>`,
+                    `<label class="font-weight-normal no-margins">${overtimeDay}, ${overtimeDate}, (${presenceIn} - ${presenceOut})</label>&nbsp;<i class="fa fa-info-circle" style="cursor:pointer; color:#1ab394" title="Jam Masuk ${presenceIn} | Jam Keluar ${presenceOut} | Telat : ${lateMinutes} | Jam Keluar Actual ${actualPresenceOut}"></i>`,
+                    `<label class="font-weight-normal no-margins">${overTime1}</label>`,
+                    `<label class="font-weight-normal no-margins">${overTime2}</label>`,
+                    `<label class="font-weight-normal no-margins">${overTime3}</label>`,
+                    `<label class="font-weight-normal no-margins">${isLembur}</label>`,
+                    `<label class="font-weight-normal no-margins">${lemburBadge}</label>`,
+                ]).draw(false);
 
-                // KETIKA HARI BUKAN SABTU
-                if(prs_out != null && prs_out_time_new > "16:59" && moment(prs_date, 'YYYY-MM-DD').format('dddd') != 'Sabtu') {
-                    prs_out_time_new >= "17:00" && prs_status == "t" ? overtimeOne = 1 : "";
-                    prs_out_time_new >= "17:01" && prs_out_time_new < "23:59" && prs_status == "t" ? overtimeTwo = hitungJumlahJam("17:01", prs_out_time_new) : "";
-                    prs_out_time_new >= "23:59" && prs_status == "t" ? overtimeThree = hitungJumlahJam("23:59", prs_out_time_new) : "";
-                    
-                    // FOR TOTAL
-                    prs_out_time_new >= "17:00" && prs_status == "t" ? totalOvertimeOne += overtimeOne: "";
-                    prs_out_time_new >= "17:01" && prs_out_time_new < "23:59" && prs_status == "t" ? totalOvertimeTwo += overtimeTwo : "";
-                    prs_out_time_new >= "23:59" && prs_status == "t" ? totalOvertimeThree += overtimeThree : "";
-                    
-                    $("#"+idTable).DataTable().row.add([
-                        seq++,
-                        moment(prs_date, 'YYYY-MM-DD').format('dddd') + ", " + prs_date_formatted + "&nbsp; <i class='fa fa-info-circle' style='color: #1ab394; cursor:pointer;' title='Jam Masuk : " + prs_in_time + " | Jam Keluar : " + prs_out_time + " | Keterlambatan : " + prs_diff_in_time + " Menit | Jam Keluar Actual : " + prs_out_time_new + "'></i>",
-                        overtimeOne,
-                        overtimeTwo,
-                        overtimeThree,
-                        isApproved,
-                        prs_status_note,
-                    ]).draw(false);
-                    $(".dataTables_empty").html("Data Sedang Ditampilkan");
-                } 
-                // KETIKA LEMBURAN SABTU
-                else if(prs_out != null && prs_out_time_new > "13:29" && moment(prs_date, 'YYYY-MM-DD').format('dddd') == 'Sabtu') {
-                    prs_out_time_new >= "13:30" && prs_status == "t" ? overtimeOne = 1 : "";
-                    prs_out_time_new >= "13:31" && prs_out_time_new < "23:29" && prs_status == "t" ? overtimeTwo = hitungJumlahJam("13:31", prs_out_time_new) : "";
-                    prs_out_time_new >= "23:59" && prs_status == "t" ? overtimeThree = hitungJumlahJam("23:59", prs_out_time_new) : "";
-
-                    // FOR TOTAL
-                    prs_out_time_new >= "13:30" && prs_status == "t" ? totalOvertimeOne += overtimeOne : "";
-                    prs_out_time_new >= "15:29" && prs_status == "t" ? totalOvertimeTwo += overtimeTwo : "";
-                    prs_out_time_new >= "17:29" && prs_out_time_new <= "23:59" && prs_status == "t" ? totalOvertimeThree++ : "";
-
-                    $("#"+idTable).DataTable().row.add([
-                        seq++,
-                        moment(prs_date, 'YYYY-MM-DD').format('dddd') + ", " + prs_date_formatted + "&nbsp; <i class='fa fa-info-circle' style='color: #1ab394; cursor:pointer;' title='Jam Masuk : " + prs_in_time + " | Jam Keluar : " + prs_out_time + " | Keterlambatan : " + prs_diff_in_time + " Menit | Jam Keluar Actual : " + prs_out_time_new + "'></i>",
-                        overtimeOne,
-                        overtimeTwo,
-                        overtimeThree,
-                        isApproved,
-                        prs_status_note,
-                    ]).draw(false);
-                    $(".dataTables_empty").html("Data Sedang Ditampilkan");   
-                } else {
-                    $(".dataTables_empty").html("Tidak Ada Data Lemburan");
+                if(lemburStatus == "t") {
+                    totalOvertimeOne    += overTime1;
+                    totalOverTimeTwo    += overTime2;
+                    totalOverTimeThree  += overTime3;
                 }
-
-                overtimeOne = 0;
-                overtimeTwo = 0;
-                overtimeThree = 0;
             }
 
-            amountOverTimeOne   = (amountOverTime * 1.5) * totalOvertimeOne;
-            amountOverTimeTwo   = (amountOverTime * 2) * totalOvertimeTwo;
-            amountOverTimeThree = (amountOverTime * 3) * totalOvertimeThree;
-
-            amountTotalOverTime = amountOverTimeOne + amountOverTimeTwo + amountOverTimeThree;
-            $("#sml_emp_fee_ovt").html(formatRupiah(amountTotalOverTime));
+            feeOverTimeOne  = (feePerHour * 1.5) * totalOvertimeOne;
+            feeOverTimeTwo  = (feePerHour * 2) * totalOverTimeTwo;
+            feeOverTimeThree= (feePerHour * 3) * totalOverTimeThree;
             
-            $("#table_emp_ovt_total_ot1").html(totalOvertimeOne);
-            $("#table_emp_ovt_total_ot2").html(totalOvertimeTwo);
-            $("#table_emp_ovt_total_ot3").html(totalOvertimeThree);
+            totalOvertimeFee    = feeOverTimeOne + feeOverTimeTwo + feeOverTimeThree;
 
-            $("#sml_emp_ot1").html(totalOvertimeOne+" (" + formatRupiah(amountOverTimeOne) + ")");
-            $("#sml_emp_ot2").html(totalOvertimeTwo + " (" + formatRupiah(amountOverTimeTwo) + " )");
-            $("#sml_emp_ot3").html(totalOvertimeThree + " (" + formatRupiah(amountOverTimeThree) + " )");
+            $("#table_emp_ovt_total_ot1").html(totalOvertimeOne);
+            $("#table_emp_ovt_total_ot2").html(totalOverTimeTwo);
+            $("#table_emp_ovt_total_ot3").html(totalOverTimeThree);
+            
+            $("#sml_emp_ot1").html(totalOvertimeOne);
+            $("#sml_emp_ot2").html(totalOverTimeTwo);
+            $("#sml_emp_ot3").html(totalOverTimeThree);
+
+            $("#sml_emp_fee_ovt").html(new Intl.NumberFormat('id-iD', { style: 'currency', currency: 'IDR' }).format(totalOvertimeFee));
         }
+
+        // if(data != '') {
+        //     let seq                 = 1;
+        //     let overtimeOne         = 0;
+        //     let overtimeTwo         = 0;
+        //     let overtimeThree       = 0;
+        //     let totalOvertimeOne    = 0;
+        //     let totalOvertimeTwo    = 0;
+        //     let totalOvertimeThree  = 0;
+
+        //     let amountOverTime      = parseFloat($("#sml_emp_fee_ovt_input").val());
+        //     let amountOverTimeOne   = 0;
+        //     let amountOverTimeTwo   = 0;
+        //     let amountOverTimeThree = 0;
+        //     let amountTotalOverTime = 0;
+
+        //     console.log(data);
+
+        //     for(const item of data)
+        //     {
+        //         let prs_date            = item.emp_prs_date;
+        //         let prs_in              = item.emp_prs_in_time;
+        //         let prs_out             = item.emp_prs_out_time;
+        //         let prs_status          = item.emp_status;
+        //         let prs_status_note     = item.emp_status_note ?? item.emp_reason;
+
+        //         // SHOW TIME ONLY
+        //         let prs_in_time         = moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
+        //         let prs_out_time        = moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm');
+        //         let prs_late_time       = moment("08:10", "HH:mm").format('HH:mm');
+                                
+        //         // FORMATED TANGGAL
+        //         var prs_date_formatted  = prs_out != null ? moment(prs_date, 'YYYY-MM-DD').format('DD/MMM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+" - "+moment(prs_out, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")" : moment(prs_date, 'YYYY-MM-DD').format('DD/MMM/YYYY')+" ("+moment(prs_in, 'YYYY-MM-DD HH:mm:ss').format('HH:mm')+")";
+
+        //         if(prs_in_time > prs_late_time) {
+        //             var prs_diff_in_time    = moment(prs_in_time, 'HH:mm').diff(moment(prs_late_time, 'HH:mm'), 'minutes');
+        //             var prs_out_time_new    = moment(prs_out_time, "HH:mm").subtract(prs_diff_in_time, 'minutes').format('HH:mm');
+        //         } else {
+        //             var prs_diff_in_time    = "0";
+        //             var prs_out_time_new    = prs_out_time;
+        //         }
+
+        //         let isApproved      = prs_status == "t" ? "<i class='fa fa-check'></i>" : "<i class='fa fa-times'></i>";
+
+        //         // KETIKA HARI BUKAN SABTU
+        //         if(prs_out != null && prs_out_time_new > "16:59" && moment(prs_date, 'YYYY-MM-DD').format('dddd') != 'Sabtu') {
+        //             prs_out_time_new >= "17:00" && prs_status == "t" ? overtimeOne = 1 : "";
+        //             prs_out_time_new >= "17:01" && prs_out_time_new < "23:59" && prs_status == "t" ? overtimeTwo = hitungJumlahJam("17:01", prs_out_time_new) : "";
+        //             prs_out_time_new >= "23:59" && prs_status == "t" ? overtimeThree = hitungJumlahJam("23:59", prs_out_time_new) : "";
+                    
+        //             // FOR TOTAL
+        //             prs_out_time_new >= "17:00" && prs_status == "t" ? totalOvertimeOne += overtimeOne: "";
+        //             prs_out_time_new >= "17:01" && prs_out_time_new < "23:59" && prs_status == "t" ? totalOvertimeTwo += overtimeTwo : "";
+        //             prs_out_time_new >= "23:59" && prs_status == "t" ? totalOvertimeThree += overtimeThree : "";
+                    
+        //             $("#"+idTable).DataTable().row.add([
+        //                 seq++,
+        //                 moment(prs_date, 'YYYY-MM-DD').format('dddd') + ", " + prs_date_formatted + "&nbsp; <i class='fa fa-info-circle' style='color: #1ab394; cursor:pointer;' title='Jam Masuk : " + prs_in_time + " | Jam Keluar : " + prs_out_time + " | Keterlambatan : " + prs_diff_in_time + " Menit | Jam Keluar Actual : " + prs_out_time_new + "'></i>",
+        //                 overtimeOne,
+        //                 overtimeTwo,
+        //                 overtimeThree,
+        //                 isApproved,
+        //                 prs_status_note,
+        //             ]).draw(false);
+        //             $(".dataTables_empty").html("Data Sedang Ditampilkan");
+        //         } 
+        //         // KETIKA LEMBURAN SABTU
+        //         else if(prs_out != null && prs_out_time_new > "13:29" && moment(prs_date, 'YYYY-MM-DD').format('dddd') == 'Sabtu') {
+        //             prs_out_time_new >= "13:30" && prs_status == "t" ? overtimeOne = 1 : "";
+        //             prs_out_time_new >= "13:31" && prs_out_time_new < "23:29" && prs_status == "t" ? overtimeTwo = hitungJumlahJam("13:31", prs_out_time_new) : "";
+        //             prs_out_time_new >= "23:59" && prs_status == "t" ? overtimeThree = hitungJumlahJam("23:59", prs_out_time_new) : "";
+
+        //             // FOR TOTAL
+        //             prs_out_time_new >= "13:30" && prs_status == "t" ? totalOvertimeOne += overtimeOne : "";
+        //             prs_out_time_new >= "15:29" && prs_status == "t" ? totalOvertimeTwo += overtimeTwo : "";
+        //             prs_out_time_new >= "17:29" && prs_out_time_new <= "23:59" && prs_status == "t" ? totalOvertimeThree++ : "";
+
+        //             $("#"+idTable).DataTable().row.add([
+        //                 seq++,
+        //                 moment(prs_date, 'YYYY-MM-DD').format('dddd') + ", " + prs_date_formatted + "&nbsp; <i class='fa fa-info-circle' style='color: #1ab394; cursor:pointer;' title='Jam Masuk : " + prs_in_time + " | Jam Keluar : " + prs_out_time + " | Keterlambatan : " + prs_diff_in_time + " Menit | Jam Keluar Actual : " + prs_out_time_new + "'></i>",
+        //                 overtimeOne,
+        //                 overtimeTwo,
+        //                 overtimeThree,
+        //                 isApproved,
+        //                 prs_status_note,
+        //             ]).draw(false);
+        //             $(".dataTables_empty").html("Data Sedang Ditampilkan");   
+        //         } else {
+        //             $(".dataTables_empty").html("Tidak Ada Data Lemburan");
+        //         }
+
+        //         overtimeOne = 0;
+        //         overtimeTwo = 0;
+        //         overtimeThree = 0;
+        //     }
+
+        //     amountOverTimeOne   = (amountOverTime * 1.5) * totalOvertimeOne;
+        //     amountOverTimeTwo   = (amountOverTime * 2) * totalOvertimeTwo;
+        //     amountOverTimeThree = (amountOverTime * 3) * totalOvertimeThree;
+
+        //     amountTotalOverTime = amountOverTimeOne + amountOverTimeTwo + amountOverTimeThree;
+        //     $("#sml_emp_fee_ovt").html(formatRupiah(amountTotalOverTime));
+            
+        //     $("#table_emp_ovt_total_ot1").html(totalOvertimeOne);
+        //     $("#table_emp_ovt_total_ot2").html(totalOvertimeTwo);
+        //     $("#table_emp_ovt_total_ot3").html(totalOvertimeThree);
+
+        //     $("#sml_emp_ot1").html(totalOvertimeOne+" (" + formatRupiah(amountOverTimeOne) + ")");
+        //     $("#sml_emp_ot2").html(totalOvertimeTwo + " (" + formatRupiah(amountOverTimeTwo) + " )");
+        //     $("#sml_emp_ot3").html(totalOvertimeThree + " (" + formatRupiah(amountOverTimeThree) + " )");
+        // }
     } else if(idTable == 'table_list_kurs') {
         $("#"+idTable).DataTable().clear().destroy();
 
@@ -902,7 +977,7 @@ function showModal(idModal, value, jenis)
                     showDropdowns: true,
                 });
                 // SHOW TABLE
-                showTable('table_emp_ovt', '');
+                showTable('table_emp_ovt', []);
             })
             .catch((err)        => {
                 Swal.fire({
@@ -1499,6 +1574,7 @@ function doCari(jenis)
         if(sml_lmb_emp_id == null) {
             $("#sml_emp_id").select2('focus');
         } else {
+            showTable('table_emp_ovt', []);
             // GET DATA 
             const sml_lmb_url   = base_url + "/divisi/finance/simulasi/employees_fee";
             const sml_lmb_type  = "GET";
@@ -1507,26 +1583,29 @@ function doCari(jenis)
                 "date_start": sml_lmb_date_start,
                 "date_end"  : sml_lmb_date_end,
             };
-            const sml_lmb_msg   = Swal.fire({ title : "Data Sedang Dicari", allowOutsideClick: false }); Swal.showLoading();
+            const sml_lmb_msg   = Swal.fire({ title : "Data Sedang Dicari", allowOutsideClick: true }); Swal.showLoading();
             $(".dataTables_empty").html("<i class='fa fa-spinner fa-spin'></i> Data Sedang Dimuat..");
             doTransV2(sml_lmb_url, sml_lmb_type, sml_lmb_data, sml_lmb_msg, true)
                 .then((success)     => {
-                    setTimeout(Swal.close(), 1000);
-                    // HEADER
-                    const header    = success.data.header[0];
-                    let pendapataPerJam     = (1/173) * header['emp_fee'];
-                    $("#sml_emp_name").val(header['emp_name']);
-                    $("#sml_emp_division").val(header['emp_division']);
-                    $("#sml_emp_fee").html(formatRupiah(header['emp_fee']));
-                    $("#sml_emp_fee_hourly").html(formatRupiah(pendapataPerJam));
-                    $("#sml_emp_fee_ovt_input").val(parseFloat(pendapataPerJam).toFixed(2));
+                    const lemburHeader  = success.data.header;
+                    const lemburDetail  = success.data.detail;
+                    
+                    $("#sml_emp_name").val(lemburHeader['employee_name']);
+                    $("#sml_emp_division").val(lemburHeader['employee_division']);
+                    $("#sml_emp_fee").html(new Intl.NumberFormat('id-ID', { style : 'currency', currency: 'IDR' }).format(lemburHeader['employee_fee']));
+                    $("#sml_emp_fee_hourly").html(new Intl.NumberFormat('id-ID', { style: 'currency', currency : 'IDR' }).format(lemburHeader['employee_fee_hour']));
 
-                    // DETAIL
-                    const detail    = success.data.detail;
-                    showTable('table_emp_ovt', detail);
+                    showTable('table_emp_ovt', lemburDetail);
+
+                    if(lemburDetail.length < 1) {
+                        $("#table_emp_ovt").find('.dataTables_empty').html(`Tidak Ada Data Lemburan`);
+                    }
+
+                    Swal.close();
                 })
                 .catch((err)       => {
                     console.log(err);
+                    showTable('table_emp_ovt', []);
                 })
         }
     }
