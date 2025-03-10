@@ -590,6 +590,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::prefix('marketing')->group(function(){
             Route::prefix('pembayaran')->group(function(){
                 Route::get('/haji', [MarketingController::class, 'marketing_pembayaran_haji'])->name('index.marketing.pembayaranHaji');
+                Route::get('/pembayaran_haji_detail', [MarketingController::class, 'marketing_pembayaran_haji_detail']);
+                Route::post('/simpan_pembayaran_haji/{type}', [MarketingController::class, 'marketing_simpan_pembayaran_haji']);
             });
         });
 

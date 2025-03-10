@@ -50,7 +50,7 @@
                         </div>
                         <div class="row">
                             <div class="col-12">
-                                <button class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Tambah Data</button>
+                                <button class="btn btn-primary btn-sm" onclick="showModal('modal_pembayaran_haji')"><i class="fa fa-plus"></i> Tambah Data</button>
                                 <button class="btn btn-primary btn-sm"><i class="fa fa-file-excel"></i> Download Report</button>
                             </div>
                         </div>
@@ -80,6 +80,7 @@
     </div>
 
     {{-- SHOW MODAL PEMBAYARAN HAJI --}}
+    @include('divisi.marketing.pembayaran.modal_pembayaran_haji')
 @endsection
 
 

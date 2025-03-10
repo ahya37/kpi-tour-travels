@@ -32,6 +32,7 @@ use function Laravel\Prompts\select;
 use Illuminate\Support\Facades\Response;
 use Carbon\Carbon;
 use Dotenv\Repository\RepositoryInterface;
+use Validator;
 
 class MarketingController extends Controller
 {
@@ -960,18 +961,7 @@ class MarketingController extends Controller
         $targetMarketing = MarketingTarget::getReportUmrahBulanan($marketingTargetId);
 
         if ($startDate != '' AND $endDate != '') {
-
-            // $startDate      = Carbon::parse($startDate)->format('Y-m-d');
-            // $endDate        = Carbon::parse($endDate)->format('Y-m-d');
-
-            // $carbonStartDate = Carbon::parse($startDate);
-            // $startDate       = $carbonStartDate->month;
-
-            // $carbonEndDate = Carbon::parse($endDate);
-            // $endDate       = $carbonEndDate->month;
-
             $targetMarketing = $targetMarketing->whereBetWeen('a.month_number',[$startDate, $endDate]);
-
         }
 
         $targetMarketing = $targetMarketing->groupBy('a.month_name','a.month_number')->orderBy('a.month_number','asc')->get();
@@ -2671,5 +2661,64 @@ class MarketingController extends Controller
         ];
 
         return view('divisi.marketing.pembayaran.index', $data_view);
+    }
+
+    // NOTE : AMBIL PEMBAYARAN HAJI DETAIL
+    public function marketing_pembayaran_haji_detail(Request $request)
+    {
+        $trans_id  = $request->all()['trans_id'];
+        
+        $get_data   = MarketingService::get_data_pembayaran_haji_detail($trans_id);
+
+        $output     = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'data'      => $get_data['data'],
+            'message'   => $get_data['message']
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : SIMPAN PEMBAYARNA HAJI
+    public function marketing_simpan_pembayaran_haji($type, Request $request)
+    {
+        $send_data  = [
+            'user_id'   => Auth::user()->id,
+            'ip_address'=> $request->ip(),
+            'data'      => $request->all(),
+        ];
+
+        // dd($send_data);
+
+        if($type == 'add') {
+            $validation_rules   = [
+                'hj_member_id'      => 'required',
+                'hj_depature_code'  => 'required', 
+            ];
+        } else {
+            $validation_rules   = [];
+        }
+
+        $validation     = Validator::make($request->all()['header'], $validation_rules);
+
+        if($validation->fails()) {
+            $output     = [
+                'success'   => false,
+                'status'    => 522,
+                'message'   => $validation->errors(),
+                'data'      => []
+            ];
+        } else {
+            $do_simpan      = MarketingService::do_simpan_marketing_pembayaran_haji($send_data, $type);
+            $output         = [
+                'success'       => $do_simpan['is_success'],
+                'status'        => $do_simpan['status_code'],
+                'data'          => $do_simpan['data'],
+                'message'       => $do_simpan['message']
+            ];
+        }
+
+        return Response::json($output, $output['status']);
     }
 }
