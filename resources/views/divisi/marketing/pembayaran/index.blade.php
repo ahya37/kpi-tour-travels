@@ -51,7 +51,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <button class="btn btn-primary btn-sm" onclick="showModal('modal_pembayaran_haji')"><i class="fa fa-plus"></i> Tambah Data</button>
-                                <button class="btn btn-primary btn-sm"><i class="fa fa-file-excel"></i> Download Report</button>
+                                <button class="btn btn-primary btn-sm" onclick="downloadFile('modal_pembayaran_haji', 'excel')"><i class="fa fa-file-excel"></i> Download Report</button>
                             </div>
                         </div>
                         <hr>

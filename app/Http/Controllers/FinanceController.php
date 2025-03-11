@@ -467,7 +467,7 @@ class FinanceController extends Controller
     {
         $get_data   = FinanceServices::get_data_report_haji_payment($year);
 
-        if(count($get_data['data']) > 0) {
+        if(count($get_data['data']['header']) > 0) {
             $data_header    = $get_data['data']['header'];
             $data_detail    = $get_data['data']['detail'];
 
@@ -792,17 +792,17 @@ class FinanceController extends Controller
             // MEMBUAT CELL 1 MENJADI ACTIVE SHEET
             $spreadsheet->setActiveSheetIndex(0);
 
-            // SIMPAN
-            $file_name  = time() . '_Laporan_Pembayaran_Haji_' . $tahun_cari . '.xlsx';
-            $writer     = new Xlsx($spreadsheet);
-            $file_path  = public_path('storage/data-files/laporan_haji/');
+            if(count($data_jemaah['data']) > 0) {
+                // SIMPAN
+                $file_name  = time() . '_Laporan_Pembayaran_Haji_' . $tahun_cari . '.xlsx';
+                $writer     = new Xlsx($spreadsheet);
+                $file_path  = public_path('storage/data-files/laporan_haji/');
 
-            if(!File::exists($file_path)) {
-                File::makeDirectory($file_path, 0755, true);
-            }
-            $writer->save($file_path.$file_name);
+                if(!File::exists($file_path)) {
+                    File::makeDirectory($file_path, 0755, true);
+                }
+                $writer->save($file_path.$file_name);
 
-            try {
                 $output     = [
                     'success'   => true,
                     'status'    => 200,
@@ -811,14 +811,34 @@ class FinanceController extends Controller
                         'data_url'  => 'storage/data-files/laporan_haji/' . $file_name,
                     ],
                 ];
-            } catch (\Exception $e) {
+            } else {
                 $output     = [
                     'success'   => false,
-                    'status'    => 522,
-                    'message'   => $e->getMessage(),
-                    'data'      => []
+                    'status'    => 404,
+                    'message'   => 'Tidak Ada Data Pembayaran Haji',
+                    'data'      => [
+                        'data_url'  => ''
+                    ]
                 ];
             }
+
+            // try {
+            //     $output     = [
+            //         'success'   => true,
+            //         'status'    => 200,
+            //         'message'   => 'Berhasil Generate Excel File : ' . $file_name,
+            //         'data'      => [
+            //             'data_url'  => 'storage/data-files/laporan_haji/' . $file_name,
+            //         ],
+            //     ];
+            // } catch (\Exception $e) {
+            //     $output     = [
+            //         'success'   => false,
+            //         'status'    => 522,
+            //         'message'   => $e->getMessage(),
+            //         'data'      => []
+            //     ];
+            // }
 
             return Response::json($output, $output['status']);
         }

@@ -704,6 +704,53 @@ function doSimpanData(idForm, jenis)
     }
 }
 
+function downloadFile(jenis, fileFormat)
+{
+    if(jenis == 'modal_pembayaran_haji') {
+        const reportHajiURL     = "divisi/finance/report/pembayaran_haji/"+fileFormat;
+        const reportHajiType    = "POST";
+        const reportHajiData    = {
+            'tahun_cari'    : $("#select_filter_keberangkatan").val(),
+        }; 
+        const reportHajiMsg     = Swal.fire({ title : "Download File" }); Swal.showLoading();
+
+        doTransaction(reportHajiURL, reportHajiType, reportHajiData, reportHajiMsg)
+            .then((success)     => {
+                Swal.fire({
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : 'Klik `OK` Untuk Download File',
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        window.open(base_url + '/' + success.data.data_url);
+
+                        setTimeout(()   => {
+                            const deleteReportHajiURL   = "divisi/finance/report/delete_pembayaran_haji";
+                            const deleteReportHajiType  = "POST";
+                            const deleteReportHajiData  = {
+                                'file_path' : success.data.data_url
+                            };
+                            doTransaction(deleteReportHajiURL, deleteReportHajiType, deleteReportHajiData, '')
+                                .then((isSuccess)   => {
+                                    console.log(isSuccess);
+                                })
+                                .catch((isError)    => {
+                                    console.log(isError);
+                                })
+                        }, 5000);
+                    }
+                })
+            })
+            .catch((error)      => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : error.responseJSON.message
+                })
+            })
+    }
+}
+
 function doTransaction(url, type, data, message, processData = true, contentType = 'application/x-www-form-urlencoded; charset=UTF-8')
 {
     return new Promise((resolve, reject)   => {
