@@ -2660,7 +2660,7 @@ class MarketingController extends Controller
             'sub_title'     => 'Marketing - Pembayaran Haji',
         ];
 
-        return view('divisi.marketing.pembayaran.index', $data_view);
+        return view('divisi.marketing.pembayaran.haji.index', $data_view);
     }
 
     // NOTE : AMBIL PEMBAYARAN HAJI DETAIL
@@ -2720,5 +2720,16 @@ class MarketingController extends Controller
         }
 
         return Response::json($output, $output['status']);
+    }
+
+    // 11 MARET 2025
+    // NOTE : INDEX PEMBAYARAN UMRAH
+    public function marketing_pembayaran_umrah()
+    {
+        $view_data  = [
+            'title' => 'ERP Percik Tours | 404 Page',
+        ];
+
+        return view('errors.404', $view_data);
     }
 }

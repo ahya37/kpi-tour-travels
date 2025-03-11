@@ -173,7 +173,7 @@
                         <a href="#"> Pembayaran <span class="fa arrow"></span></a>
                         <ul class="nav nav-third-level">
                             <li class="{{ request()->is('divisi/marketing/pembayaran/haji') || request()->is('divisi/marketing/pembayaran/haji/*') ? 'active' : '' }}"><a href="{{ route('index.marketing.pembayaranHaji') }}">Pembayaran Haji</a></li>
-                            <li class=""><a href="#">Pembayaran Umrah</a></li>
+                            <li class="{{ request()->is('divisi/marketing/pembayaran/umrah') || request()->is('divisi/marketing/pembayaran/umrah/*') ? 'active' : '' }}"><a href="{{ route('index.marketing.pembayaranUmrah') }}">Pembayaran Umrah</a></li>
                             {{-- <li class="{{ request()->is('divisi/finance/pembayaran') || request()->is('divisi/finance/pembayaran/*') ? 'active' : '' }}"><a href="{{ route('finance.pembayaran.index') }}">Pembayaran</a></li> --}}
                         </ul>
                     </li>

@@ -80,7 +80,7 @@
     </div>
 
     {{-- SHOW MODAL PEMBAYARAN HAJI --}}
-    @include('divisi.marketing.pembayaran.modal_pembayaran_haji')
+    @include('divisi.marketing.pembayaran.haji.modal_pembayaran_haji')
 @endsection
 
 
@@ -88,4 +88,5 @@
     @include('layouts.js')
     <script src="{{ asset('js/csrf-token.js') }}"></script>
     <script src="{{ asset('js/divisi/marketing/index.marketing.js') }}"></script>
+    <script src="{{ asset('js/divisi/marketing/pembayaran/umrah/index.pembayaran.umrah.js') }}"></script>
 @endpush
