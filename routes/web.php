@@ -666,6 +666,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/jadwal', [percikToursController::class, 'perciktourscom_master_jadwal']);
             Route::get('/jadwal_tarik', [percikToursController::class, 'perciktourscom_master_jadwal_tarik']);
             Route::get('/jadwal_detail', [percikToursController::class, 'perciktourscom_master_jadwal_detail']);
+            Route::get('/asset_umrah', [percikToursController::class, 'perciktourscom_master_asset_umrah']);
         });
 
         Route::prefix('transaction')->group(function(){
@@ -677,6 +678,11 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/tour_detail', [percikToursController::class, 'perciktourscom_article_tour_detail']);
             Route::post('/save/{type}', [percikToursController::class, 'perciktouscom_article_save']);
             Route::get('/detail/{uuid}', [percikToursController::class, 'perciktourscom_article_detail']);
+        });
+        
+        Route::prefix('assets')->group(function(){
+            Route::get('/dashboard', [percikToursController::class, 'perciktourscom_assets'])->name('index.management.assets');
+            Route::post('/simpan_data_asset', [percikToursController::class, 'perciktourscom_simpan_data_asset']);
         });
     });
 });

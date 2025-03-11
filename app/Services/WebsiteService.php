@@ -530,6 +530,99 @@ class WebsiteService
 
         return $output;
     }
+
+    // 11 MARET 2025
+    // NOTE : AMBIL DATA ASSET
+    public static function get_data_asset_umrah($tour_code)
+    {
+        // GET HEADER
+        $query_header   = DB::table('programs_jadwal')
+                            ->select('jdw_depature_date', 'jdw_arrival_date', 'jdw_mentor_name')
+                            ->where('jdw_tour_code', '=', $tour_code)
+                            ->get();
+
+        $query_detail   = DB::table('programs_jadwal_file')
+                            ->where('jdw_det_tour_code', '=', $tour_code)
+                            ->get();
+
+        try {
+            $output     = [
+                'is_success'    => true,
+                'status_code'   => 200,
+                'message'       => 'Berhasil Mengambil Data Asset Tour Code : ' . $tour_code,
+                'data'          => [
+                    'header'    => $query_header,
+                    'detail'    => $query_detail,
+                ] 
+            ];
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Internal Server Error',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+    
+    // SIMPAN DATA ASSET
+    public static function do_simpan_data_asset_umrah($data)
+    {
+        $user_id        = $data['user_id'];
+        $today          = date('Y-m-d H:i:s');
+        $ip_address     = $data['ip_address'];
+        $tour_code      = $data['tour_code'];
+        $detail_asset   = $data['detail'];
+
+        DB::beginTransaction();
+
+        // DELETE DATA SEBELUMNYA
+        DB::table('programs_jadwal_file')->where('jdw_det_tour_code', '=', $tour_code)->delete();
+        
+        // INSERT DATA BARU
+        for($i = 0; $i < count($detail_asset); $i++) {
+            $data_insert    = [
+                'jdw_det_tour_code'     => $tour_code,
+                'jdw_det_seq'           => $detail_asset[$i]['asd_seq'],
+                'jdw_det_description'   => $detail_asset[$i]['asd_jenis'],
+                'jdw_det_link'          => $detail_asset[$i]['asd_url'],
+                'created_by'            => $user_id,
+                'created_date'          => $today,
+            ];
+
+            DB::table('programs_jadwal_file')->insert($data_insert);
+        }
+
+        try {
+            DB::commit();
+
+            $output     = [
+                'is_success'    => true,
+                'status_code'   => 201,
+                'message'       => 'Berhasil Menambahkan Data Asset',
+                'data'          => []
+            ];
+
+            LogHelper::create('add', $output['message'] . " tour code : ". $tour_code, $ip_address);
+        } catch (\Exception $e) {
+            DB::rollback();
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Internal Server Error',
+                'data'          => []
+            ];
+
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', $output['message'], $ip_address);
+        }
+
+        return $output;
+    }
 }
 
 ?>

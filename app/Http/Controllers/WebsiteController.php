@@ -448,4 +448,55 @@ class WebsiteController extends Controller
 
         return Response::json($output, $output['status']);
     }
+
+    // 11 MARET 2025
+    // NOTE : ASSETS DASHBOARD
+    public function perciktourscom_assets()
+    {
+        $data_view  = [
+            'title'     => $this->title . "Assets",
+            'sub_title' => "Dashboard - Assets",
+        ];
+
+        return view('perciktours.management_asset.index', $data_view);
+    }
+
+    // NOTE : AMBIL DATA ASSET
+    public function perciktourscom_master_asset_umrah(Request $request)
+    {
+        $tour_code  = $request->all()['tour_code'];
+
+        $get_data   = WebsiteService::get_data_asset_umrah($tour_code);
+
+        $output     = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data']
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : SIMPAN DATA ASSET
+    public function perciktourscom_simpan_data_asset(Request $request)
+    {
+        $send_data  = [
+            'user_id'       => Auth::user()->id,
+            'ip_address'    => $request->ip(),
+            'tour_code'     => $request->all()['tour_code'],
+            'detail'        => $request->all()['detail'],
+        ];
+
+        $do_simpan  = WebsiteService::do_simpan_data_asset_umrah($send_data);
+
+        $output     = [
+            'success'   => $do_simpan['is_success'],
+            'status'    => $do_simpan['status_code'],
+            'message'   => $do_simpan['message'],
+            'data'      => $do_simpan['data'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
 }

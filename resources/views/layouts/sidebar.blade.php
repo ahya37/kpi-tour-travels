@@ -134,6 +134,7 @@
                 </a>
                 <ul class="nav nav-second-level collapse">
                     <li class="{{ request()->is('website') ? 'active' : '' }}"><a href="{{ route('index.perciktours.com') }}">Dashboard</a></li>
+                    <li class="{{ request()->is('website/assets/*') ? 'active' : '' }}"><a href="{{ route('index.management.assets') }}">Asset</a></li>
                 </ul>
             </li>
 
