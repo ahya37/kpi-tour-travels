@@ -181,14 +181,15 @@ function addRowTable(idTable, seq = '', data = '')
         let inputDelete = `<button class="btn btn-danger" id="ast_btnDelete${ke}" title="Hapus Baris" onclick="deleteRowTable('${idTable}', ${ke})"><i class="fa fa-trash"></i></button>`;
         let inputNo     = `<input type="text" class="form-control text-center" id="ast_seq${ke}" placeholder="Ke" readonly>`;
         let inputJenis  = `<select class="form-control" id="ast_type${ke}" style="width: 100%;"></select>`;
-        let inputURL    = data == '' ? `<textarea class="form-control" id="ast_link${ke}" rows="3" placeholder="URL Link" style="resize: none;"></textarea>` : `<a href="${data['jdw_det_link']}" title="Download File" target="_blank">Lihat</a>`;
+        let inputURL    = `<span id="ast_input_url${ke}"><textarea class="form-control" id="ast_link${ke}" rows="3" placeholder="URL Link" style="resize: none;"></textarea></span>`;
+        let linkURL     = `<span id="ast_url${ke}"><a href="${data['jdw_det_link']}" title="Download File" target="_blank">Lihat</a></span>`
         let inputAksi   = `<button class="btn btn-success" ${data != '' ? '' : 'disabled'} id="ast_btnEdit${ke}" title="Edit Data"><i class="fa fa-edit"></i></button>`;
 
         $("#"+idTable).DataTable().row.add([
             inputDelete,
             inputNo,
             inputJenis,
-            inputURL,
+            inputURL+""+linkURL,
             inputAksi
         ]).draw(false);
 
@@ -197,8 +198,21 @@ function addRowTable(idTable, seq = '', data = '')
 
         if(data == '') {
             showSelect('ast_type', data_jenis_asset, '', ke);
+            $("#ast_input_url"+ke).removeClass('d-none');
+            $("#ast_url"+ke).addClass('d-none');
         } else {
+            $("#ast_input_url"+ke).addClass('d-none');
+            $("#ast_url"+ke).removeClass('d-none');
             showSelect('ast_type', data_jenis_asset, data['jdw_det_description'], ke);
+
+            $("#ast_link"+ke).val(data['jdw_det_link']);
+
+            $("#ast_btnEdit"+ke).on('click', () => {
+                $("#ast_input_url"+ke).removeClass('d-none');
+                $("#ast_url"+ke).addClass('d-none');
+
+                $("#ast_btnEdit"+ke).prop('disabled', true);
+            });
         }
 
         $("#btn_tambah_baris_form_asset").val(parseInt(seq) + 1);

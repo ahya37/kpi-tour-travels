@@ -19,7 +19,7 @@ class WebsiteService
     {
         $data   = [];
         // GET DATA SUMMARY
-        $get_data     = DB::connection('web_percik')
+        $get_data     = DB::connection('perciktours')
                         ->table('pct_summary_data')
                         ->get();
 
@@ -41,7 +41,7 @@ class WebsiteService
             ];
         }
         // GET DATA PRODUK
-        $product        = DB::connection('web_percik')
+        $product        = DB::connection('perciktours')
                             ->table('pct_master_category')
                             ->get();
         if(count($product) > 0) {
@@ -62,7 +62,7 @@ class WebsiteService
             ];
         }
         // GET DATA PROGRAM
-        $program        = DB::connection('web_percik')
+        $program        = DB::connection('perciktours')
                             ->table('pct_master_program')
                             ->get();
 
@@ -595,6 +595,30 @@ class WebsiteService
             ];
 
             DB::table('programs_jadwal_file')->insert($data_insert);
+
+            if($detail_asset[$i]['asd_jenis'] == 'flyer') {
+                DB::connection('perciktours')->beginTransaction();
+
+                $percik_where   = [
+                    'master_article_tour_code'  => $tour_code,
+                ];
+
+                $percik_update  = [
+                    'master_article_flyer'      => $detail_asset[$i]['asd_url'],
+                ];
+
+                DB::connection('perciktours')
+                    ->table('pct_master_article')
+                    ->where($percik_where)
+                    ->update($percik_update);
+
+                try {
+                    DB::connection('perciktours')->commit();
+                } catch (\Exception $e) {
+                    DB::connection('perciktours')->rollBack();
+                    Log::channel('daily')->error($e->getMessage());
+                }
+            }
         }
 
         try {

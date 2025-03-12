@@ -99,7 +99,7 @@ return [
             ]) : [],
         ],
 
-        'web_percik'    => [
+        'perciktours'    => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
             'host' => env('DB_PERCIK_HOST', '127.0.0.1'),
