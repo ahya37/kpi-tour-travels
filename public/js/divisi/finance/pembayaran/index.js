@@ -4,7 +4,8 @@ var temp_pengajuan      = [];
 var temp_bulan          = [];
 var temp_haji           = [];
 var temp_data_bank_account  = [];
-var tahun_keberangkatan  = [];
+var tahun_keberangkatan = [];
+var temp_paket          = [];
 
 for(let i = 0; i < 11; i++) {
     let monthNumber     = moment(i + 1, 'M').format('MM');
@@ -28,6 +29,13 @@ showSelect('filter_bulan', temp_bulan, moment(today, 'YYYY-MM-DD').format('MM'))
 const isLoading   = (idForm) => {
     return $("#"+idForm).html(`<span class="spinner spinner-border"></span>`);
 } 
+
+temp_paket.push(
+    { "paket" : "Semua" },
+    { "paket" : "Double" },
+    { "paket" : "Triple" },
+    { "paket" : "Quad" },
+);
 
 $(document).ready(function(){
     // GET DATA PENGAJUAN KEUANGAN
@@ -131,6 +139,7 @@ function showModal(idModal, type, data = '')
 
         showTable('table_pembayaran_haji', []);
         showSelect('filter_keberangkatan', tahun_keberangkatan, moment(today, 'YYYY-MM-DD').format('YYYY'));
+        showSelect('filter_paket', temp_paket, "Semua");
 
         // GET DATA PEMBAYARAN HAJI
         const paymentHajiURL    = "divisi/finance/pembayaran/haji/list_pembayaran_haji";
@@ -203,6 +212,10 @@ function showModal(idModal, type, data = '')
         }
 
         $("#btn_simpan_pembayaran_haji").val(type);
+    } else if(idModal == 'modal_report_pembayaran_haji') {
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+
+        showSelect('report_pb_hj_year', tahun_keberangkatan, moment(today, 'YYYY-MM-DD').format('YYYY'));
     }
 }
 
@@ -238,6 +251,8 @@ function closeModal(idModal)
             $("#hj_status_payment").val(null);
             $("#hj_current_payment").val(null);
         })
+    } else if(idModal == 'modal_report_pembayaran_haji') {
+        $("#"+idModal).modal('hide');
     }
 }
 
@@ -686,6 +701,39 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
         if(selectedData != '') {
             $("#"+idSelect).val(selectedData);
         }
+    } else if(idSelect == 'filter_paket') {
+        let html    = `<option selected disabled>Pilih Paket</option>`;
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += `<option value="${item['paket']}">${item['paket']}</option>`
+            });
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
+    }
+     
+    else if(idSelect == 'report_pb_hj_year') {
+        let html    = `<option selected disabled>Pilih Tahun</option>`;
+
+        // SORT
+        data.sort((a, b)    => {
+            return new Date(b['value']) - new Date(a['value']);
+        })
+        
+        $.each(data, (i, item)  => {
+            html    += `<option value="${item['value']}">${item['text']}</option>`
+        });
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
     }
 }
 
@@ -914,11 +962,15 @@ function downloadFile(jenis, fileFormat)
 {
     if(jenis == 'haji')
     {
+        // VARIABLE
+        let tahunCari   = $("#report_pb_hj_year").val();
+
+        // FUNC
         const reportHajiURL     = "divisi/finance/report/pembayaran_haji/"+fileFormat;
         const reportHajiType    = "POST";
         const reportHajiData    = {
-            'tahun_cari'    : $("#filter_keberangkatan").val(),
-        }; 
+            'tahun_cari'    : tahunCari,
+        };
         const reportHajiMsg     = Swal.fire({ title : "Download File" }); Swal.showLoading();
 
         doTransaction(reportHajiURL, reportHajiType, reportHajiData, reportHajiMsg)

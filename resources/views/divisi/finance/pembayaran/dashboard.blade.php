@@ -44,7 +44,7 @@
         </div>
         <hr>
         <div class="row mb-3">
-            <div class="col-lg-4 col-md-6 col-12 mb-sm-0 mb-sm-2">
+            <div class="col-lg-4 col-md-6 col-12 mb-lg-0 mb-2">
                 <div class="card">
                     <div class="card-header bg-success">
                         <h4 class="no-margins font-weight-normal">Saldo Awal Bulan <span id="title_bulan_saldo_awal">{{ date('F') }}</span></h4>
@@ -54,7 +54,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-6 col-12 mb-sm-0 mb-sm-2">
+            <div class="col-lg-4 col-md-6 col-12 mb-lg-0 mb-2">
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h4 class="no-margins font-weight-normal">Debit <span id="title_bulan_debit">{{ date('F') }}</span></h4>
@@ -64,7 +64,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-6 col-12 mb-sm-0 mb-sm-2">
+            <div class="col-lg-4 col-md-6 col-12 mb-lg-0 mb-2">
                 <div class="card">
                     <div class="card-header bg-danger">
                         <h4 class="no-margins font-weight-normal">Kredit <span id="title_bulan_kredit">{{ date('F') }}</span></h4>
@@ -81,7 +81,7 @@
             </div>
         </div>
         <hr>
-        <div class="row">
+        <div class="row mb-3">
             <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-xl-0 mb-2">
                 <div class="card">
                     <div class="card-header bg-primary">
@@ -134,12 +134,36 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-12">
+                <h2 class="no-margins">Menu Pelaporan</h2>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-xl-3 col-md-6 col-12 mb-xl-0 mb-md-2">
+                <div class="card card-body bg-primary" style="cursor: pointer;" title="Download Report Excel" onclick="showModal('modal_report_pembayaran_haji', '', '')">
+                    <div class="row align-items-center justify-content-between">
+                        <div class="col-xl-2 col-0 d-xl-block d-none text-center">
+                            <i class="fa fa-file"></i>
+                        </div>
+                        <div class="col-xl-10 col-12 d-block">
+                            <h4 class="font-weight-bold no-margins">Pembayaran Haji</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    {{-- MODUL TRANSAKSI --}}
     @include('divisi.finance.pembayaran.pengajuan_keuangan.modal_pengajuan_keuangan')
     @include('divisi.finance.pembayaran.pengajuan_keuangan.modal_pengajuan_keuangan_detail')
     @include('divisi.finance.pembayaran.pembayaran_haji.modal_pembayaran_haji')
     @include('divisi.finance.pembayaran.pembayaran_haji.modal_pembayaran_haji_form')
+
+    {{-- REPORT --}}
+    @include('divisi.finance.pembayaran.pembayaran_haji.modal_report_pembayaran_haji');
 @endsection
 
 

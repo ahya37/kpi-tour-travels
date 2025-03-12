@@ -9,18 +9,37 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-xl-3 col-md-6 col-12">
+                    {{-- <div class="col-xl-3 col-md-6 col-12">
                         <div class="form-group">
-                            <label for="filter_keberangkatan">Filter Keberangkatan</label>
+                            <label for="filter_keberangkatan">Estimasi Keberangkatan</label>
                             <select id="filter_keberangkatan" style="form-control" style="width:100%;"></select>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
                 <div class="row">
                     <div class="col-12">
-                        <button class="btn btn-primary" title="Tambah Data" onclick="showModal('modal_pembayaran_haji_form', 'add', '')"><i class="fa fa-plus"></i> Tambah Data</button>
-                        {{-- <button class="btn btn-danger" title="Download PDF" onclick="downloadFile('haji', 'pdf')"><i class="fa fa-file-pdf"></i> Download PDF</button> --}}
-                        <button class="btn btn-primary" title="Download Excel" onclick="downloadFile('haji', 'excel')"><i class="fa fa-file-excel"></i> Download Excel</button>
+                        <button class="btn btn-primary mb-xl-0 mb-2" title="Tambah Data" onclick="showModal('modal_pembayaran_haji_form', 'add', '')"><i class="fa fa-plus"></i> Tambah Data</button>
+                        <button class="btn btn-primary mb-xl-0 mb-2" title="Filter Data" data-toggle="collapse" data-target="#filter_pembayaran_haji"><i class="fa fa-filter"></i> Filter Pencarian</button>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="collapse" id="filter_pembayaran_haji">
+                            <div class="card card-body">
+                                <div class="row">
+                                    <div class="col-xl-3 col-md-6 col-12 mb-xl-0 mb-2">
+                                        <div class="form-group">
+                                            <label for="filter_keberangkatan">Keberangkatan</label>
+                                            <select name="filter_keberangkatan" id="filter_keberangkatan" style="width: 100%;"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-3 col-md-6 col-12 mb-xl-0 mb-2">
+                                        <div class="form-group">
+                                            <label for="filter_paket">Paket</label>
+                                            <select name="filter_paket" id="filter_paket" style="width: 100%;"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <hr>
