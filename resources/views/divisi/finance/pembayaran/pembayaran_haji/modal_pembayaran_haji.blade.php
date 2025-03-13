@@ -49,12 +49,12 @@
                             <table class="table table-sm table-striped table-bordered table-hovered" id="table_pembayaran_haji" style="width: 100%;">
                                 <thead>
                                     <tr>
-                                        <th class="text-center align-middle" style="width: 8%;">No</th>
+                                        <th class="text-center align-middle">No</th>
                                         <th class="text-center align-middle">Nama</th>
-                                        <th class="text-center align-middle" style="width: 15%;">Paket</th>
-                                        <th class="text-center align-middle" style="width: 15%;">Est Berangkat</th>
-                                        <th class="text-center align-middle" style="width: 10%;">Status Bayar</th>
-                                        <th class="text-center align-middle" style="width: 8%;">Aksi</th>
+                                        <th class="text-center align-middle">Paket</th>
+                                        <th class="text-center align-middle">Est Berangkat</th>
+                                        <th class="text-center align-middle">Status Bayar</th>
+                                        <th class="text-center align-middle">Aksi</th>
                                     </tr>
                                 </thead>
                             </table>

@@ -6,6 +6,9 @@ var temp_haji           = [];
 var temp_data_bank_account  = [];
 var tahun_keberangkatan = [];
 var temp_paket          = [];
+var temp_tourCode       = [];
+var temp_total_pembayaran_haji  = 0;
+var temp_master_coa     = [];
 
 for(let i = 0; i < 11; i++) {
     let monthNumber     = moment(i + 1, 'M').format('MM');
@@ -45,6 +48,7 @@ $(document).ready(function(){
 function showModal(idModal, type, data = '')
 {
     if(idModal == 'modal_pengajuan_keuangan') {
+        let selectedBulan   = $("#filter_bulan").val();
         Swal.fire({
             title   : 'Data Sedang Dimuat..'
         });
@@ -53,7 +57,7 @@ function showModal(idModal, type, data = '')
         setTimeout(()   => {
             Swal.close();
             $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-            $("#title_bulan_modal_pengajuan_keuangan").html(`Bulan : ${moment(today, 'YYYY-MM-DD').format('MMMM')},${moment(today, 'YYYY-MM-DD').format('YYYY')}`)
+            $("#title_bulan_modal_pengajuan_keuangan").html(`Bulan : ${moment(selectedBulan, 'MM').format('MMMM')}, ${moment(today, 'YYYY-MM-DD').format('YYYY')}`)
             showTable('table_pengajuan_keuangan', temp_pengajuan);
             if(data.length < 1) {
                 $("#table_pengajuan_keuangan").find('.dataTables_empty').html(`Tidak Ada Data Pengajuan Keuangan`);
@@ -120,6 +124,10 @@ function showModal(idModal, type, data = '')
                         }
                         $("#pgj_file").html(html);
                     }
+
+                    showSelect('pgj_tr_tour_code', temp_tourCode[0]['header'], '');
+                    showSelect('pgj_tr_kredit', temp_master_coa[0]);
+                    showSelect('pgj_tr_debit', temp_master_coa[0]);
 
                     showTable('table_detail_pengajuan_keuangan', detailPengajuanDetail);
                 }
@@ -347,10 +355,9 @@ function showTable(idTable, data)
             columnDefs  : [
                 { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
                 { "targets" : [1], "className" : "align-middle" },
-                { "targets" : [2], "className" : "text-left align-middle", "width" : "10%" },
-                { "targets" : [3], "className" : "text-center align-middle", "width" : "10%," },
-                { "targets" : [4], "className" : "text-center align-middle", "width" : "8%," },
-                { "targets" : [5], "className" : "text-center align-middle", "width" : "5%," },
+                { "targets" : [2], "className" : "align-middle", "width" : "10%" },
+                { "targets" : [3], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [4, 5], "className" : "text-center align-middle", "width" : "10%" },
             ],
         })
         
@@ -715,9 +722,7 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
         if(selectedData != '') {
             $("#"+idSelect).val(selectedData);
         }
-    }
-     
-    else if(idSelect == 'report_pb_hj_year') {
+    } else if(idSelect == 'report_pb_hj_year') {
         let html    = `<option selected disabled>Pilih Tahun</option>`;
 
         // SORT
@@ -733,6 +738,50 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
 
         if(selectedData != '') {
             $("#"+idSelect).val(selectedData);
+        }
+    } else if(idSelect == 'pgj_tr_tour_code') {
+        let html    = [
+            `<option selected disabled>Pilih Tour Code</option>`
+        ];
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += `<option value="${item['tour_code']}">${item['tour_code']}</option>`
+            });
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
+    } else if(idSelect == 'pgj_tr_debit') {
+        let html    = `<option selected disabled>Pilih COA Debit</option>`;
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += `<option value="${item['coa_id']}">${item['coa_id']} | ${item['coa_desc']}</option>`
+            })
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData)
+        }
+    } else  if(idSelect == 'pgj_tr_kredit') {
+        let html    = `<option selected disabled>Pilih COA Kredit</option>`;
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += `<option value="${item['coa_id']}">${item['coa_id']} | ${item['coa_desc']}</option>`
+            })
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData)
         }
     }
 }
@@ -845,12 +894,25 @@ function showDataDashboard(selectedMonth)
     const bankAccountType   = "GET";
     const bankAccountData   = [];
     const bankAccountMsg    = "";
+
+    const tourCodeURL       = "divisi/finance/master/tour_code/list_tour_code/semua";
+    const tourCodeType      = "GET";
+    const tourCodeData      = [];
+    const tourCodeMsg       = "";
+
+    const coaListURL        = "divisi/finance/master/coa/list";
+    const coaListData       = {
+        'coa_id'    : 'semua'
+    };
+    const coaListType       = "GET";
     
     // COLLECTIVE GET DATA
     const collectApi    = [
         doTransaction(pengajuanURL, pengajuanType, pengajuanData, pengajuanMsg),
-        doTransaction(hajiURL, hajiType, hajiData, hajiMsg),
-        doTransaction(bankAccountURL, bankAccountType, bankAccountData, bankAccountMsg)
+        temp_total_pembayaran_haji == 0 ? doTransaction(hajiURL, hajiType, hajiData, hajiMsg) : '',
+        temp_data_bank_account.length < 1 ? doTransaction(bankAccountURL, bankAccountType, bankAccountData, bankAccountMsg) : '',
+        temp_tourCode.length < 1 ? doTransaction(tourCodeURL, tourCodeType, tourCodeData, tourCodeMsg) : '',
+        temp_master_coa.length < 1 ? doTransaction(coaListURL ,coaListType, coaListData, '') : '',
     ];
 
     Promise.allSettled(collectApi)
@@ -865,13 +927,37 @@ function showDataDashboard(selectedMonth)
             // PEMBAYARAN JEMAAH
             $("#dashboard_pembayaran_umrah").html(`<h2 class="no-margins">0</h2>`);
 
-            const hajiGetData   = success[1].status == 'fulfilled' ? success[1].value.data : [];
-            $("#dashboard_pembayaran_haji").html(`<h2 class="no-margins">${hajiGetData.length}</h2>`);
+            if(temp_total_pembayaran_haji == 0) {
+                const hajiGetData   = success[1].status == 'fulfilled' ? success[1].value.data : [];
+                temp_total_pembayaran_haji  = hajiGetData.length;
+            }
+            $("#dashboard_pembayaran_haji").html(`<h2 class="no-margins">${temp_total_pembayaran_haji}</h2>`);
 
             // GET BANK ACCOUNT
-            const bankAccountGetData    = success[2].status == 'fulfilled' ? success[2].value.data.data : [];
-            if(bankAccountGetData.length > 0 && temp_data_bank_account.length < 1) {
-                temp_data_bank_account.push(bankAccountGetData);
+            if(temp_data_bank_account.length < 1) {
+                const bankAccountGetData    = success[2].status == 'fulfilled' ? success[2].value.data.data : [];
+                if(bankAccountGetData.length > 0) {
+                    temp_data_bank_account.push(bankAccountGetData);
+                }
+            }
+
+            // GET TOUR CODE
+            if(temp_tourCode.length < 1) {
+                const tourCodeGetData   = success[3].status == 'fulfilled' ? success[3].value.data : [];
+                if(tourCodeGetData['header'].length > 0) {
+                    temp_tourCode.push(tourCodeGetData);
+                }
+            }
+
+            // GET COA
+            if(temp_master_coa.length < 1) {
+                const coaListGetData    = success[4].status == 'fulfilled' ? success[4].value.data : [];
+                if(coaListGetData.length > 0) {
+                    const coaData   = coaListGetData.filter((item)    => {
+                        return item['coa_level'] == 3
+                    });
+                    temp_master_coa.push(coaData);
+                }
             }
         })
         .catch((error)      => {

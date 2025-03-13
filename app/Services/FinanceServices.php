@@ -1089,6 +1089,62 @@ class FinanceServices
 
         return $output;
     }
+
+    // 14 MARET 2025
+    // NOTE : AMBIL DATA TOUR CODE
+    public static function get_data_tour_code($tour_code)
+    {
+        $query_header  = DB::table('programs_jadwal')
+                            ->where('jdw_tour_code', 'LIKE', $tour_code)
+                            ->orderBy('jdw_depature_date', 'asc')
+                            ->get();
+        
+        try {
+            if(count($query_header) > 0) {
+                if($tour_code == '%') {
+                    for($i = 0; $i < count($query_header); $i++) {
+                        if(date('Y', strtotime($query_header[$i]->jdw_depature_date)) == date('Y')) {
+                            $data_header[]  = [
+                                'tour_code' => $query_header[$i]->jdw_tour_code
+                            ];
+                        }
+                    }
+                } else {
+                    $data_header    = [];
+                }
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Tour Code',
+                    'data'          => [
+                        'header'    => $data_header,
+                        'detail'    => [],
+                    ]
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Tour Code',
+                    'data'          => [
+                        'header'    => [],
+                        'detail'    => [],
+                    ]
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Internal Server Error',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
 }
 
 ?>

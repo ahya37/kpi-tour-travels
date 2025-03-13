@@ -66,6 +66,42 @@
                 <hr>
                 <div class="row">
                     <div class="col-12">
+                        <h2 class="no-margins font-weight-thin">Transaksi Keuangan</h2>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <div class="row">
+                            <div class="col-sm-4 col-12">
+                                <div class="form-group">
+                                    <label class="no-margins" for="pgj_tr_tour_code">Tour Code</label>
+                                    <select name="pgj_tr_tour_code" id="pgj_tr_tour_code" style="width: 100%;" class="form-control form-select"></select>
+                                </div>
+                            </div>
+                            <div class="col-sm-4 col-12">
+                                <div class="form-group">
+                                    <label class="no-margins" for="pgj_tr_debit">Debit</label>
+                                    <select name="pgj_tr_debit" id="pgj_tr_debit" style="width: 100%;" class="form-control form-select"></select>
+                                </div>
+                                <div class="form-group d-none" id="pgj_tr_debit_amount_view">
+                                    <label class="no-margins" for="pgj_tr_debit_amount">Jml. Bayar</label>
+                                    <input type="text" class="form-control" name="pgj_tr_debit_amount" id="pgj_tr_debit_amount" placeholder="Jml. Bayar Debit">
+                                </div>
+                            </div>
+                            <div class="col-sm-4 col-12">
+                                <div class="form-group">
+                                    <label class="no-margins" for="pgj_tr_kredit">Kredit</label>
+                                    <select name="pgj_tr_kredit" id="pgj_tr_kredit" style="width: 100%;" class="form-control form-select"></select>
+                                </div>
+                                <div class="form-group d-none" id="pgj_tr_kredit_amount_view">
+                                    <label class="no-margins" for="pgj_tr_kredit_amount">Jml. Bayar</label>
+                                    <input type="text" class="form-control" name="pgj_tr_kredit_amount" id="pgj_tr_debit_amount" placeholder="Jml. Bayar Debit">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-12">
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered table-hover" id="table_detail_pengajuan_keuangan">
                                 <thead>
@@ -87,6 +123,10 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('detail_modal_pengajuan_keuangan')" title="Tutup Tampilan">Tutup</button>
+                <button class="btn btn-primary" id="btn_modal_pgj_keu" value="">Simpan</button>
             </div>
         </div>
     </div>

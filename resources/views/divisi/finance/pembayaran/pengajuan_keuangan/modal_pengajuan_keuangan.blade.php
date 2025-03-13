@@ -9,7 +9,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="table-responsive">
-                            <table class="table table-sm" id="table_pengajuan_keuangan" style="width: 100%;">
+                            <table class="table table-sm table-striped table-hover table-bordered" id="table_pengajuan_keuangan" style="width: 100%;">
                                 <thead>
                                     <tr>
                                         <th class="text-center align-middle">No</th>

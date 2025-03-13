@@ -854,4 +854,22 @@ class FinanceController extends Controller
             return Response::json('gagal', 500);
         }
     }
+
+    // 14 MARET 2025
+    // NOTE : AMBIL LIST TOUR CODE
+    public function master_tour_code($kode)
+    {
+        $tour_code  = $kode == 'semua' ? '%' : $kode;
+        
+        $get_data   = FinanceServices::get_data_tour_code($tour_code);
+
+        $output     = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'data'      => $get_data['data'],
+            'message'   => $get_data['message'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
 }

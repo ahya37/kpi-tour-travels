@@ -515,14 +515,21 @@ Route::group(['middleware' => ['auth']], function () {
                     Route::post('/save_bank_account/{type}', [finance::class, 'finane_save_bank_account']);
                 });
 
+                // MASTER CURRENCY
                 Route::prefix('currency')->group(function(){
                     Route::get('/list', [finance::class, 'finance_master_currency']);
                     Route::post('/currency_update/{trans_type}', [finance::class, 'finance_master_currency_trans']);
                     Route::get('/list_detail', [finance::class, 'finance_mater_currency_detail']);
                 });
 
+                // MASTER MEMBER HAJI
                 Route::prefix('member')->group(function(){
                     Route::get('/list', [finance::class, 'master_get_data_member']);
+                });
+
+                // MASTER TOUR CODE
+                Route::prefix('tour_code')->group(function(){
+                    Route::get('/list_tour_code/{kode}', [finance::class, 'master_tour_code']);
                 });
             });
             Route::prefix('simulasi')->group(function(){

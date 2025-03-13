@@ -4,8 +4,8 @@
 <link rel="stylesheet" href="{{ asset('css/customCSS/percik_fullcalendar.css') }}">
 {{-- DATATABLES --}}
 <link href="{{ asset('assets/css/plugins/dataTables/datatables.min.css') }}" rel="stylesheet">
-<link rel="stylesheet" href="{{ asset('css/customCSS/DataTables/datatables.min.css') }}">
-<link rel="stylesheet" href="{{ asset('css/customCSS/DataTables/fixedHeader-3.2.0/fixedHeader.dataTables.min.css') }}">
+{{-- <link rel="stylesheet" href="{{ asset('css/customCSS/DataTables/datatables.min.css') }}"> --}}
+{{-- <link rel="stylesheet" href="{{ asset('css/customCSS/DataTables/fixedHeader-3.2.0/fixedHeader.dataTables.min.css') }}"> --}}
 {{-- DATERANGEPICKER --}}
 <link rel="stylesheet" href="{{ asset('css/customCSS/daterangepicker/daterangepicker.css') }}">
 {{-- DROPZONE --}}

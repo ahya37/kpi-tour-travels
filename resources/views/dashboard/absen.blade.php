@@ -63,12 +63,12 @@
                         </div>
                     </div>
                     <div class="row mb-2">
-                        <div class="col-sm-6">
+                        <div class="col-sm-6 mb-sm-0 mb-2">
                             <button class="btn btn-primary w-100" onclick="showModal('modal_open_cam', 'masuk', '')">
                                 <i class="fa fa-sign-in"></i>&nbsp; Absen Masuk
                             </button>
                         </div>
-                        <div class="col-sm-6">
+                        <div class="col-sm-6 mb-sm-0 mb-2">
                             <button class="btn btn-danger w-100" onclick="showModal('modal_open_cam', 'keluar', '')">
                                 <i class="fa fa-sign-out"></i>&nbsp; Absen Pulang
                             </button>
