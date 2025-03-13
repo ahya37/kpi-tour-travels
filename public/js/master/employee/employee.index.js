@@ -1,18 +1,33 @@
+var base_url    = window.location.origin;
+var dataGroupDivision   = [];
+var dataRole            = [];
 $(document).ready(function(){
-    console.log('test');
+    // GET DATA MASTER
+    const dataGroupDivisionURL   = base_url + "/master/employees/trans/get/dataGroupDivision";
+    const dataGroupDivisionType  = "GET";
+
+    const dataRoleURL       = base_url + "/master/data/trans/get/dataRoles";
+    const dataRoleType      = "GET";
+
+    const trans     = [
+        do_transaction(dataGroupDivisionURL, dataGroupDivisionType, [], ''),
+        do_transaction(dataRoleURL, dataRoleType, [], '')
+    ];
+
+    Promise.allSettled(trans)
+        .then((success)     => {
+            const dataGroupDivisionGetData  = success[0].status == 'fulfilled' ? success[0].value.data : [];
+            dataGroupDivision.push(dataGroupDivisionGetData);
+
+            const dataRoleGetData           = success[1].status == 'fulfilled' ? success[1].value.data : [];
+            dataRole.push(dataRoleGetData);
+        })
+        .catch((error)      => {
+            console.log(error);
+        })
+
     show_table('tableEmployees','%');
 });
-
-$.ajaxSetup({
-    headers: {
-        'X-CSRF-TOKEN': CSRF_TOKEN
-    }
-});
-
-function getURL()
-{
-    return $(location).attr('pathname');
-}
 
 function show_table(idTable, value)
 {
@@ -44,100 +59,126 @@ function show_table(idTable, value)
 }
 
 function show_modal(idModal, jenis, value) {
-    if(idModal == 'modalForm') {
+    if(idModal == 'modal_form_employees') {
+        console.log(jenis);
+        if(jenis == 'add') {
+            $("#"+idModal).modal({ backdrop : 'static', keyboard: false });
+        
+            show_select('employee_group_division', dataGroupDivision[0], '');
+            show_select('employee_role', dataRole[0], '');
+    
+            $("#"+idModal).on('shown.bs.modal', () => {
+                $("#employee_name").focus();
+            });
+        } else if(jenis == 'edit') {
+            // GET DATA
+            const employeeDetailURL     = base_url + '/master/employees/trans/getDataEmployeesDetail';
+            const employeeDetailType    = "GET";
+            const employeeDetailData    = {
+                "idEmployee"    : value,
+            };
+            const employeeDetailMsg     = Swal.fire({ title : "Sedang Mengambil Data" }); Swal.showLoading();
+            
+            do_transaction(employeeDetailURL, employeeDetailType, employeeDetailData, employeeDetailMsg)
+                .then((success)     => {
+                    Swal.close();
 
-        var sendData    = {
-            "idEmployee"    : value,
-        };
-        // GET DATA
-        var getAllData     = [
-            getData('/master/employees/trans/get/dataGroupDivision/', 'GET', '', '', true),
-            getData('/master/data/trans/get/dataRoles', 'GET', '%', '', true),
-            jenis == 'add' ? '' : getData('/master/employees/getDataEmployeesDetail', 'GET', sendData, '', true),
-        ];
+                    const employeeDetailGetData     = success.data;
+                    // FILL FORM
+                    const employeeID    = success.data['employee_id'];
+                    const employeeName  = success.data['employee_name'];
+                    const employeeRole  = success.data['roles_id'];
+                    const employeeDivision  = success.data['group_division_id'] + " | " +  success.data['sub_division_id'];
+                    const employeeEmail = success.data['employee_email'];
 
-        Swal.fire({
-            title   : 'Data Sedang Dimuat',
-        });
-        Swal.showLoading();
+                    $("#employee_name").prop('readonly', true);
 
-        Promise.all(getAllData)
-            .then((success) => {
-                // CLOSE ALERT
-                // SHOW MODAL
-                $("#"+idModal).modal({ backdrop : 'static', keyboard : false });
+                    $("#employee_id").val(employeeID);
+                    $("#employee_name").val(employeeName);
+                    $("#employee_username").val(employeeEmail);
 
-                $("#"+idModal).on('shown.bs.modal', () => {
-                    $("#empNameAdd").focus();
-                });
+                    show_select('employee_group_division', dataGroupDivision[0], employeeDivision);
+                    show_select('employee_role', dataRole[0], employeeRole);
 
-                // SHOW DATA
-                show_select('empGdIDAdd', success[0], '');
-                show_select('empRoleAdd', success[1], '');
+                    $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+                    
+                })
+                .catch((error)      => {
+                    console.log(error);
 
-                // PLACE DATA ON COLUMN
-                if(jenis == 'edit') {
-                    $("#empIDAdd").val(success[2].data.employee_id);
-                    $("#empNameAdd").prop('readonly', true);
-                    $("#empNameAdd").val(success[2].data.employee_name);
-                    $("#empGdIDAdd").val(success[2].data.group_division_id+" | "+success[2].data.sub_division_id).trigger('change');
-                    $("#empRoleAdd").val(success[2].data.roles_name).trigger('change');
-                    $("#empUsernameAdd").val(success[2].data.employee_email);
-                } else if(jenis == 'add') {
-                    $("#empNameAdd").prop('readonly', false);
-                }
-                Swal.close();
-            })
-            .catch((err)    => {
-                console.log(err);
-                show_select('empGdIDAdd', '', '');
-                show_select('empRoleAdd', '', '');
-            })
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : 'Data Tidak Ditemukan',
+                    });
+                })
+        }
 
-        $("#btnSimpan").val(jenis);
+        $("#btn_simpan_form_employee").val(jenis);
     }
 }
 
 function close_modal(idModal) {
-    $("#"+idModal).modal('hide');
-    $("#"+idModal).on('hidden.bs.modal', function(){
-        $("#btnSimpan").removeAttr('value');
-        $("#empNameAdd").removeAttr('readonly');
-        $("#empNameAdd").val(null);
-        $("#empUsernameAdd").val(null);
+    if(idModal == 'modal_form_employees') {
+        $("#"+idModal).modal('hide');
 
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#employee_name").prop('readonly', false);
+            $("#employee_name").val(null);
+            $("#employee_username").val(null);
+
+            $("#btn_simpan_form_employee").val(null);
+        });
+    }
+
+    $("#"+idModal).on('hidden.bs.modal', function(){
+        $("#btn_simpan_form_employee").removeAttr('value');
+        $("#employee_name").removeAttr('readonly');
+        $("#employee_name").val(null);
+        $("#employee_username").val(null);
     })
 }
 
-function show_select(idSelect, valueCari, valueSelect)
+function show_select(idSelect, data = [], selectedData = '')
 {
     $("#"+idSelect).select2({
         theme   : 'bootstrap4',
     });
-    if(idSelect == 'empGdIDAdd') {
-        var html    = "<option selected disabled>Pilih Grup Divisi</option>";
-        if(valueCari != '') {
-            $.each(valueCari.data, (i, item) => {
-                var gdID    = item['group_division_id'];
-                var gdName  = item['group_division_name'];
-                var sdID    = item['sub_division_id'];
-                var sdName  = item['sub_division_name'];
+    if(idSelect == 'employee_group_division') {
+        let html    = `<option selected disabled>Pilih Divisi Grup</option>`;
 
-                html    += "<option value='" +gdID+ " | " + sdID + "'>" + gdName + " > " + sdName + "</option>";
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                let groupDivisionID     = item['group_division_id'];
+                let groupDivisionName   = item['group_division_name'];
+                let subDivisioNID       = item['sub_division_id'];
+                let subDivisionName     = item['sub_division_name'];
+
+                html    += `<option value="${groupDivisionID} | ${subDivisioNID}">${groupDivisionName} > ${subDivisionName}</option>`;
             })
-            $("#"+idSelect).html(html);
-        } else {
-            $("#"+idSelect).html(html);
         }
-    } else if(idSelect == 'empRoleAdd') {
-        var html    = "<option selected disabled>Pilih Role</option>";
-        if(valueCari != '') {
-            $.each(valueCari.data, (i, item)    => {
-                html    += "<option value='" + item.role_name + "'>" + item.role_name + "</option>";
-            });
-            $("#"+idSelect).html(html);
-        } else {
-            $("#"+idSelect).html(html);
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
+    } else if(idSelect == 'employee_role') {
+        let html    = `<option selected disabled>Pilih Role</option>`;
+
+        if(data.length > 0 ) {
+            $.each(data, (i, item)  => {
+                let roleID  = item['role_id'];
+                let roleName= item['role_name'];
+
+                html    += `<option value="${roleID}">${roleName}</option>`;
+            })
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
         }
     }
 }
@@ -149,53 +190,87 @@ function generateEmailUser(value)
     var firstWord   = lowerValue.replace(/ .*/,'');
     
     var generate_email  = firstWord == '' ? '' : firstWord.replace(/[^a-zA-Z0-9]/g, '')+'@percik.com';
-    $("#empUsernameAdd").val(generate_email);
+    $("#employee_username").val(generate_email);
 }
 
 function do_simpan(jenis)
 {
     // GET FORM
-    var empNama     = $("#empNameAdd");
-    var empGDID     = $("#empGdIDAdd");
-    var empUserName = $("#empUsernameAdd");
-    var empRoles    = $("#empRoleAdd");
-    var empID       = $("#empIDAdd");
+    let empNama     = $("#employee_name");
+    let empGDID     = $("#employee_group_division");
+    let empUserName = $("#employee_username");
+    let empRoles    = $("#employee_role");
+    let empID       = $("#employee_id");
 
-    var url         = getURL() + "/trans/post/dataEmployeeNew";
-    var type        = "POST";
-    var sendData    = {
-        "empID"         : empID.val(),
-        "empNama"       : empNama.val(),
-        "empGDID"       : empGDID.val(),
-        "empUserName"   : empUserName.val(),
-        "empRole"       : empRoles.val(),
-        "transJenis"    : jenis,
+    let url         = base_url + "/master/employees/trans/post/dataEmployeeNew/"+jenis;
+    let type        = "POST";
+    let sendData    = {
+        "employee_id"               : empID.val(),
+        "employee_name"             : empNama.val(),
+        "employee_group_division"   : empGDID.val(),
+        "employee_username"         : empUserName.val(),
+        "employee_role"             : empRoles.val(),
     };
-    var customMessage   = Swal.fire({title : 'Data Sedang Diproses'});Swal.showLoading();
 
-    getData(url, type, sendData, customMessage)
-        .then(function(xhr){
+    let customMessage   = Swal.fire({title : 'Data Sedang Diproses'});Swal.showLoading();
+
+    do_transaction(url, type, sendData, customMessage)
+        .then(function(success){
             Swal.fire({
-                icon    : xhr.alert.icon,
-                title   : xhr.alert.message.title,
-                text    : xhr.alert.message.text,
-            }).then((results)   => {
-                if(results.isConfirmed) {
-                    close_modal('modalForm');
-                    show_table('tableEmployees','%');
+                icon    : 'success',
+                title   : 'Berhasil',
+                text    : success.message,
+            }).then((res)   => {
+                if(res.isConfirmed) {
+                    close_modal('modal_form_employees');
+                    show_table('tableEmployees', '%');
                 }
             })
+            // Swal.fire({
+            //     icon    : xhr.alert.icon,
+            //     title   : xhr.alert.message.title,
+            //     text    : xhr.alert.message.text,
+            // }).then((results)   => {
+            //     if(results.isConfirmed) {
+            //         close_modal('modal_form_employees');
+            //         show_table('tableEmployees','%');
+            //     }
+            // })
         })
-        .catch(function(xhr){
-            Swal.fire({
-                icon    : xhr.responseJSON.alert.icon,
-                title   : xhr.responseJSON.alert.message.title,
-                text    : xhr.responseJSON.alert.message.text,
-            });
+        .catch(function(error){
+            console.log(error);
+            if(error.status == 422) {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : error.responseJSON.message,
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        const errorList     = error.responseJSON.data;
+                        $.each(errorList, (i, item) => {
+                            $("#"+i).addClass('is-invalid');
+
+                            $("#"+i).on('click', () => {
+                                $("#"+i).removeClass('is-invalid');
+                            })
+
+                            $("#"+i).on('select2:open', () => {
+                                $("#"+i).removeClass('is-invalid');
+                            })
+                        })
+                    }
+                })
+            } else {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : error.responseJSON.message,
+                })
+            }
         });
 }
 
-function getData(url, type, data, customMessage)
+function do_transaction(url, type, data, customMessage)
 {
     return new Promise(function(resolve, reject){
         $.ajax({

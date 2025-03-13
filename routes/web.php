@@ -317,7 +317,9 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/get/dataGroupDivision', [EmployeesController::class, 'getDataDivisionGlobal'])->name('employee.trans.getDataDivisionGlobal');
                 Route::get('/get/dataTableEmployee', [EmployeesController::class, 'getDataTableEmployee'])->name('employee.trans.getDataTableEmployee');
                 Route::get('/getDataEmployeesDetail', [EmployeesController::class, 'getDataEmployeesDetail'])->name('employee.trans.getDataEmployeeDetail');
-                Route::post('/post/dataEmployeeNew', [EmployeesController::class, 'saveDataEmployee'])->name('employees.trans.postDataEmployee');
+                Route::prefix('post')->group(function(){
+                    Route::post('dataEmployeeNew/{jenis}', [EmployeesController::class, 'saveDataEmployee']);
+                });
             });
             Route::get('/data_employees', [EmployeesController::class, 'getDataEmployee']);
         });

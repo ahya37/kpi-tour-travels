@@ -14,8 +14,8 @@ class EmployeesController extends Controller
 {
     public function index() {
         $data   = [
-            'title'     => 'Master Employees',
-            'sub_title' => 'List of Master Employees',
+            'title'     => 'ERP Percik Tours | List System User',
+            'sub_title' => 'List System User',
             'is_active' => '1',
         ];
         return view('master/employees/index', $data);
@@ -36,7 +36,7 @@ class EmployeesController extends Controller
                     $i + 1,
                     $getData[$i]->employee_name,
                     $getData[$i]->group_division_name." (".$getData[$i]->sub_division_name.")",
-                    "<button type='button' class='btn btn-sm btn-primary' title='Info' value=".$getData[$i]->employee_id." onclick='show_modal(`modalForm`, `edit`, this.value)'><i class='fa fa-info-circle'></i></button>"
+                    "<button type='button' class='btn btn-sm btn-primary' title='Info' value=".$getData[$i]->employee_id." onclick='show_modal(`modal_form_employees`, `edit`, this.value)'><i class='fa fa-info-circle'></i></button>"
                 );
             }
         } else {
@@ -122,74 +122,43 @@ class EmployeesController extends Controller
         return Response::json($output, $output['status']);
     }
 
-    public function saveDataEmployee(Request $request)
+    public function saveDataEmployee(Request $request, $jenis)
     {
-        $rules  = [
-            "empNama"   => 'required',
-            "empGDID"   => 'required',
-            "empRole"   => 'required'
-        ];
+        if($jenis == 'add') {
+            $rules  = [
+                'employee_name'             => 'required',
+                'employee_group_division'   => 'required',
+                'employee_role'             => 'required',
+            ];
+        } else {
+            $rules  = [];
+        }
         $validator  = Validator::make($request->all()['sendData'], $rules);
 
         if($validator->fails()) {
-            $output     = array(
+            $output     = [
                 'success'   => false,
-                'status'    => 500,
-                'alert'     => [
-                    'icon'  => 'error',
-                    'message'   => [
-                        'title' => 'Terjadi Kesalahan',
-                        'text'  => 'Data Gagal Disimpan',
-                        'errMsg'=> $validator->getMessageBag()->toArray()
-                    ],
-                ],
-            );
+                'status'    => 422,
+                'message'   => 'Periksa Kembali Inputan',
+                'data'      => $validator->errors(),
+            ];
         } else {
-            $simpanData     = EmployeeService::doSaveDataEmployee($request->all()['sendData'], $request->ip());
-            if($simpanData['status'] == 'berhasil') {
-                $output     = array(
-                    'success'   => true,
-                    'status'    => 200,
-                    'alert'     => [
-                        'icon'      => 'success',
-                        'message'   => [
-                            'title'     => 'Berhasil',
-                            'text'      => $request->all()['sendData']['transJenis'] == 'add' ? 'Berhasil Menambahkan Employees Baru' : 'Berhasil Update Data Employees',
-                            'errMsg'    => $simpanData['errMsg'],
-                        ],
-                    ],
-                );
-            } else if($simpanData['status'] == 'ada_akun') {
-                $output     = array(
-                    'success'       => false,
-                    'status'        => 500,
-                    'alert'         => [
-                        'icon'      => 'error',
-                        'message'   => [
-                            'title' => 'Terjadi Kesalahan',
-                            'text'  => 'Akun ['.$request->all()['sendData']['empNama'].'] sudah tersedia pada sistem..',
-                            'errMsg'=> $simpanData['errMsg'],
-                        ],
-                    ],
-                );
-            } else if($simpanData['status'] == 'gagal'){
-                $output     = array(
-                    'success'       => false,
-                    'status'        => 500,
-                    'alert'         => [
-                        'icon'      => 'error',
-                        'message'   => [
-                            'title' => 'Terjadi Kesalahan',
-                            'text'  => 'Sistem Sedang Gangguan, Silahkan Tunggu dan Coba Lagi..',
-                            'errMsg'=> $simpanData['errMsg'],
-                        ],
-                    ],
-                );
-            }
+            $send_data  = [
+                'data'      => $request->all()['sendData'],
+                'user_id'   => Auth::user()->id,
+                'ip_address'=> $request->ip(),
+            ];
+
+            $do_simpan  = EmployeeService::doSaveDataEmployee($send_data, $jenis);
+
+            $output     = [
+                'success'   => $do_simpan['is_success'],
+                'status'    => $do_simpan['status_code'],
+                'data'      => $do_simpan['data'],
+                'message'   => $do_simpan['message'],
+            ];
         }
-
         return Response::json($output, $output['status']);
-
     }
 
     public function getDataRoles()
