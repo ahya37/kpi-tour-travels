@@ -1137,7 +1137,7 @@ function simpanData(idForm, type = '', data = [])
             'pgj_no_surat'          : $("#pgj_no_surat").val(),
             'pgj_umhaj_id'          : $("#pgj_umhaj_id").val(),
             'pgj_tgl_aju'           : moment($("#pgj_tgl_aju").val(), 'DD MMM YYYY').format('YYYY-MM-DD'),
-            'pgj_total_uang'        : $("#pgj_total_uang").val().replace('.', ''),
+            'pgj_total_uang'        : $("#pgj_total_uang").val(),
             'pgj_total_uang_kurs'   : $("#pgj_total_uang_kurs").text() == 'Rp.' ? 'RUPIAH' : 'DOLLAR',
             'pgj_file_list'         : $("#pgj_file_list").val(),
             'pgj_deskripsi'         : $("#pgj_deskripsi").val(),
@@ -1146,9 +1146,9 @@ function simpanData(idForm, type = '', data = [])
             'pgj_tr_tour_code'      : $("#pgj_tr_tour_code").val(),
             'pgj_tr_category'       : $("#pgj_tr_category").val(),
             'pgj_tr_debit'          : $("#pgj_tr_debit").val(),
-            'pgj_tr_debit_amount'   : $("#pgj_tr_debit_amount").val() == '' ? 0 : parseInt($("#pgj_tr_debit_amount").val().replace('.', '')),
+            'pgj_tr_debit_amount'   : $("#pgj_tr_debit_amount").val() == '' ? 0 : $("#pgj_tr_debit_amount").val(),
             'pgj_tr_kredit'         : $("#pgj_tr_kredit").val(),
-            'pgj_tr_kredit_amount'  : $("#pgj_tr_kredit_amount").val() == '' ? 0 : parseInt($("#pgj_tr_kredit_amount").val().replace('.', '')),
+            'pgj_tr_kredit_amount'  : $("#pgj_tr_kredit_amount").val() == '' ? 0 : $("#pgj_tr_kredit_amount").val(),
         };
 
         let detail  = $("#table_detail_pengajuan_keuangan").DataTable().rows().count();
@@ -1173,15 +1173,16 @@ function simpanData(idForm, type = '', data = [])
         
         doTransaction(pgjURL, pgjType, pgjData, pgjMessage)
             .then((success)     => {
-                Swal.fire({
-                    icon    : 'success',
-                    title   : 'Berhasil',
-                    text    : success.message
-                }).then((res)   => {
-                    if(res.isConfirmed) {
-                        closeModal('detail_modal_pengajuan_keuangan');
-                    }
-                })
+                console.log(success);
+                // Swal.fire({
+                //     icon    : 'success',
+                //     title   : 'Berhasil',
+                //     text    : success.message
+                // }).then((res)   => {
+                //     if(res.isConfirmed) {
+                //         closeModal('detail_modal_pengajuan_keuangan');
+                //     }
+                // })
             })
             .catch((error)      => {
                 console.log(error);

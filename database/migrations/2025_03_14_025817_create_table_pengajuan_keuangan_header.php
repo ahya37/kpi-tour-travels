@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('fin_trans_pengajuan_keuangan', function (Blueprint $table) {
             $table->string('pgj_trans_id', length:15)->primary(true);
             $table->integer('pgj_id_umhaj')->nullable(true);
+            $table->string('pgj_doc_num', length:100);
             $table->date('pgj_date');
             $table->string('pgj_description', length:255)->nullable(true);
             $table->string('pgj_payment_methode', length:20)->nullable(true);

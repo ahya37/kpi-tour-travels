@@ -426,8 +426,7 @@ class FinanceServices
                                 ->where('IDUANG', '=', $id_pengajuan)
                                 ->get();
         } else {
-            $query_header   = [];
-            $query_detail   = [];
+            var_dump($id_pengajuan);die();
         }
         
         try {
