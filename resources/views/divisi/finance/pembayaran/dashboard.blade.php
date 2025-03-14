@@ -163,7 +163,7 @@
     @include('divisi.finance.pembayaran.pembayaran_haji.modal_pembayaran_haji_form')
 
     {{-- REPORT --}}
-    @include('divisi.finance.pembayaran.pembayaran_haji.modal_report_pembayaran_haji');
+    @include('divisi.finance.pembayaran.pembayaran_haji.modal_report_pembayaran_haji')
 @endsection
 
 

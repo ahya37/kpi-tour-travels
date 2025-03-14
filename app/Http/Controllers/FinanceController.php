@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\DivisiService;
 use Illuminate\Http\Request;
 use App\Services\FinanceServices;
 use App\Services\SysUmhajService;
@@ -868,6 +869,27 @@ class FinanceController extends Controller
             'status'    => $get_data['status_code'],
             'data'      => $get_data['data'],
             'message'   => $get_data['message'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : SIMPAN PENGAJUAN KEUANGAN
+    public function finance_simpan_pengajuan_keuangan(Request $request)
+    {
+        $send_data  = [
+            'user_id'       => Auth::user()->id,
+            'ip_address'    => $request->ip(),
+            'data'          => $request->all(),
+        ];
+
+        $do_simpan  = FinanceServices::do_simpan_pengajuan_keuangan($send_data);
+
+        $output     = [
+            'success'   => $do_simpan['is_success'],
+            'status'    => $do_simpan['status_code'],
+            'message'   => $do_simpan['message'],
+            'data'      => $do_simpan['data']
         ];
 
         return Response::json($output, $output['status']);

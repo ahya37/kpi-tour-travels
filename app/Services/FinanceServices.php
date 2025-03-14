@@ -387,7 +387,15 @@ class FinanceServices
     // NOTE : GET DATA PENGAJUAN KEUANGAN HEADER & DETAIL
     public static function get_pengajuan_keuangan_detail_umhaj($id_pengajuan)
     {
-        $query_header = DB::connection('umhaj_percik')
+        // CHECK APAKAH SUDAH ADA DI LOCAL DATABASE?
+        $check_data     = DB::table('fin_trans_pengajuan_keuangan')
+                            ->select('pgj_trans_id')
+                            ->where('pgj_id_umhaj', '=', $id_pengajuan)
+                            ->get()
+                            ->toArray();
+
+        if(count($check_data) < 1) {
+            $query_header = DB::connection('umhaj_percik')
                             ->table('uang as a')
                             ->join('uang_detail as b', 'a.ID', '=', 'b.IDUANG')
                             ->select(
@@ -406,17 +414,21 @@ class FinanceServices
                             ->groupBy('a.NOMOR', 'a.NAMA', 'a.UNTUK', 'a.JENISBAYAR', 'a.REKENING', 'a.FILELOKASI', 'a.TGL', 'a.JENISBAYAR', 'a.CURRENCY')
                             ->get();
 
-        $query_detail   = DB::connection('umhaj_percik')
-                            ->table('uang_detail as a')
-                            ->join('uang as b', 'a.IDUANG', '=', 'b.id')
-                            ->select(
-                                    'a.ID as pengajuan_detail_id',
-                                    'a.URAIAN as pengajuan_detail_deskripsi',
-                                    'a.JUMLAH as pengajuan_detail_jumlah',
-                                    'b.CURRENCY as pengajuan_detail_currency'
-                                    )
-                            ->where('IDUANG', '=', $id_pengajuan)
-                            ->get();
+            $query_detail   = DB::connection('umhaj_percik')
+                                ->table('uang_detail as a')
+                                ->join('uang as b', 'a.IDUANG', '=', 'b.id')
+                                ->select(
+                                        'a.ID as pengajuan_detail_id',
+                                        'a.URAIAN as pengajuan_detail_deskripsi',
+                                        'a.JUMLAH as pengajuan_detail_jumlah',
+                                        'b.CURRENCY as pengajuan_detail_currency'
+                                        )
+                                ->where('IDUANG', '=', $id_pengajuan)
+                                ->get();
+        } else {
+            $query_header   = [];
+            $query_detail   = [];
+        }
         
         try {
             if(count($query_header) > 0) {
@@ -1141,6 +1153,94 @@ class FinanceServices
                 'message'       => 'Internal Server Error',
                 'data'          => []
             ];
+        }
+
+        return $output;
+    }
+
+    // NOTE : SIMPAN TRANSAKSI PENGAJUAN KEUANGAN
+    public static function do_simpan_pengajuan_keuangan($data)
+    {
+        $ip_address     = $data['ip_address'];
+        $user_id        = $data['user_id'];
+        $today          = date('Y-m-d H:i:s');
+        $header         = $data['data']['header'];
+        $detail         = $data['data']['detail'];
+
+        DB::beginTransaction();
+
+        // GENERATE TRANS ID
+        $query_get_last_id  = DB::table('fin_trans_pengajuan_keuangan')
+                            ->select(DB::raw("SUBSTRING_INDEX(pgj_trans_id, '-', -1) as last_number"))
+                            ->where(DB::raw('EXTRACT(YEAR FROM pgj_date)'), '=', date('Y', strtotime($header['pgj_tgl_aju'])))
+                            ->where(DB::raw('EXTRACT(MONTH FROM pgj_date)'), '=', date('m', strtotime($header['pgj_tgl_aju'])))
+                            ->orderBy('created_date', 'desc')
+                            ->limit(1)
+                            ->get();
+        if(count($query_get_last_id) > 0) {
+            $get_last_id    = (int) $query_get_last_id[0]->last_number;
+            $new_last_id    = $get_last_id + 1;
+            $trans_pgj_id   = "PGJ/" . date('Ym', strtotime($header['pgj_tgl_aju'])) . "-" . str_pad($new_last_id, 4, 0, STR_PAD_LEFT); 
+        } else {
+            $trans_pgj_id   = "PGJ/" . date('Ym', strtotime($header['pgj_tgl_aju'])) . "-0001";
+        }
+
+        // INSERT HEADER
+        $header_trans_pengajuan     = [
+            'pgj_trans_id'          => $trans_pgj_id,
+            'pgj_id_umhaj'          => $header['pgj_umhaj_id'],
+            'pgj_date'              => $header['pgj_tgl_aju'],
+            'pgj_description'       => $header['pgj_deskripsi'],
+            'pgj_payment_methode'   => $header['pgj_metode'],
+            'pgj_payment_account'   => $header['pgj_no_rekening'],
+            'pgj_payment_amount'    => $header['pgj_total_uang'],
+            'pgj_currency'          => $header['pgj_total_uang_kurs'],
+            'pgj_file_url'          => $header['pgj_file_list'],
+            'created_by'            => $user_id,
+            'created_date'          => $today,
+            'updated_by'            => $user_id,
+            'updated_date'          => $today
+        ];
+        DB::table('fin_trans_pengajuan_keuangan')->insert($header_trans_pengajuan);
+        
+        // INSERT DETAIL
+        for($i = 0; $i < count($detail); $i++) {
+            $detail_trans_pengajuan     = [
+                'pgj_trans_id'      => $trans_pgj_id,
+                'pgj_seq'           => $detail[$i]['pgj_seq'],
+                'pgj_description'   => $detail[$i]['pgj_description'],
+                'pgj_currency'      => $detail[$i]['pgj_currency'],
+                'pgj_amount'        => $detail[$i]['pgj_amount'],
+                'created_by'        => $user_id,
+                'created_date'      => $today,
+                'updated_by'        => $user_id,
+                'updated_date'      => $today
+            ];
+            DB::table('fin_trans_pengajuan_keuangan_detail')->insert($detail_trans_pengajuan);
+        }
+
+        try {
+            DB::commit();
+            $output     = [
+                'is_success'    => true,
+                'status_code'   => 201,
+                'message'       => 'Berhasil Menambahkan Data Trans. Keuangan',
+                'data'          => []
+            ];
+
+            LogHelper::create('add', $output['message'] . " id : " . $trans_pgj_id, $ip_address);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Menambahkan Data Trans. Keuangan',
+                'data'          => []
+            ];
+            
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', $output['message'], $ip_address);
         }
 
         return $output;

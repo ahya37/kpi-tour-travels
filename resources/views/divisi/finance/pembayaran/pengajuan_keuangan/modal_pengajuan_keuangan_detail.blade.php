@@ -13,6 +13,7 @@
                                 <div class="form-group">
                                     <label for="pgj_no_surat">No. Surat Pengajuan</label>
                                     <input type="text" class="form-control" id="pgj_no_surat" readonly placeholder="No. Surat Pengajuan">
+                                    <input type="hidden" id="pgj_umhaj_id">
                                 </div>
                             </div>
                             <div class="col-12">
@@ -36,6 +37,7 @@
                                 <div class="form-group">
                                     <label for="pgj_file">Bukti Pembayaran</label>
                                     <ul id="pgj_file"></ul>
+                                    <input type="hidden" id="pgj_file_list">
                                 </div>
                             </div>
                         </div>
@@ -73,27 +75,31 @@
                             <div class="col-sm-4 col-12">
                                 <div class="form-group">
                                     <label class="no-margins" for="pgj_tr_tour_code">Tour Code</label>
-                                    <select name="pgj_tr_tour_code" id="pgj_tr_tour_code" style="width: 100%;" class="form-control form-select"></select>
+                                    <select name="pgj_tr_tour_code" id="pgj_tr_tour_code" style="width: 100%;" class="form-control form-select" onchange="showForm('pgj_tr_category_view')"></select>
+                                </div>
+                                <div class="form-group d-none" id="pgj_tr_category_view">
+                                    <label class="no-margins" for="pgj_tr_category">Kategori</label>
+                                    <select name="pgj_tr_category" id="pgj_tr_category" style="width: 100%;" class="form-control form-select"></select>
                                 </div>
                             </div>
                             <div class="col-sm-4 col-12">
                                 <div class="form-group">
                                     <label class="no-margins" for="pgj_tr_debit">Debit</label>
-                                    <select name="pgj_tr_debit" id="pgj_tr_debit" style="width: 100%;" class="form-control form-select"></select>
+                                    <select name="pgj_tr_debit" id="pgj_tr_debit" style="width: 100%;" class="form-control form-select" onchange="showForm('pgj_tr_debit_amount_view')"></select>
                                 </div>
                                 <div class="form-group d-none" id="pgj_tr_debit_amount_view">
                                     <label class="no-margins" for="pgj_tr_debit_amount">Jml. Bayar</label>
-                                    <input type="text" class="form-control" name="pgj_tr_debit_amount" id="pgj_tr_debit_amount" placeholder="Jml. Bayar Debit">
+                                    <input type="text" class="form-control" name="pgj_tr_debit_amount" id="pgj_tr_debit_amount" placeholder="Jml. Bayar Debit" value="0" onclick="this.select()">
                                 </div>
                             </div>
                             <div class="col-sm-4 col-12">
                                 <div class="form-group">
                                     <label class="no-margins" for="pgj_tr_kredit">Kredit</label>
-                                    <select name="pgj_tr_kredit" id="pgj_tr_kredit" style="width: 100%;" class="form-control form-select"></select>
+                                    <select name="pgj_tr_kredit" id="pgj_tr_kredit" style="width: 100%;" class="form-control form-select" onchange="showForm('pgj_tr_kredit_amount_view')"></select>
                                 </div>
                                 <div class="form-group d-none" id="pgj_tr_kredit_amount_view">
                                     <label class="no-margins" for="pgj_tr_kredit_amount">Jml. Bayar</label>
-                                    <input type="text" class="form-control" name="pgj_tr_kredit_amount" id="pgj_tr_debit_amount" placeholder="Jml. Bayar Debit">
+                                    <input type="text" class="form-control" name="pgj_tr_kredit_amount" id="pgj_tr_kredit_amount" placeholder="Jml. Bayar Debit" value="0" onclick="this.select()">
                                 </div>
                             </div>
                         </div>
@@ -126,7 +132,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('detail_modal_pengajuan_keuangan')" title="Tutup Tampilan">Tutup</button>
-                <button class="btn btn-primary" id="btn_modal_pgj_keu" value="">Simpan</button>
+                <button class="btn btn-primary" id="btn_modal_pgj_keu" value="add" onclick="simpanData('detail_modal_pengajuan_keuangan')">Simpan</button>
             </div>
         </div>
     </div>

@@ -544,6 +544,9 @@ Route::group(['middleware' => ['auth']], function () {
                 // PENGAJUAN KEUANGAN
                 Route::get('/keuangan', [finance::class, 'finance_umhaj_pengajuan_keuangan']);
                 Route::get('/keuangan_detail', [finance::class, 'finance_umhaj_pengajuan_keuangan_detail']);
+
+                // SIMPAN TRANSAKSI PENGAJUAN KEUANGAN
+                Route::post('/simpan_keuangan', [finance::class, 'finance_simpan_pengajuan_keuangan']);
             });
 
             Route::prefix('aktivitas')->group(function(){
