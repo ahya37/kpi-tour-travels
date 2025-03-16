@@ -39,6 +39,7 @@
         },
         "files": [
             "app/Http/Helpers/LogHelper.php",
+            "app/Http/Helpers/InsertJournal.php",
             "app/Helpers/GetAuthUserId.php"
         ]
     },

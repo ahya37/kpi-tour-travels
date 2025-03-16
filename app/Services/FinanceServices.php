@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Helpers\LogHelper;
+use App\Helpers\GenerateId as generate_id;
+use App\Helpers\InsertJournal as insert_journal;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 date_default_timezone_set('Asia/Jakarta');
@@ -406,7 +408,6 @@ class FinanceServices
                                     'a.REKENING as pengajuan_rekening',
                                     'a.FILELOKASI as pengajuan_file',
                                     'a.TGL as pengajuan_tanggal',
-                                    'a.JENISBAYAR as pengajuan_metode',
                                     'a.CURRENCY as pengajuan_mata_uang',
                                     DB::raw('SUM(b.JUMLAH) as pengajuan_total')
                                     )
@@ -425,8 +426,54 @@ class FinanceServices
                                         )
                                 ->where('IDUANG', '=', $id_pengajuan)
                                 ->get();
+            $query_debit    = [];
+            $query_credit   = [];
         } else {
-            var_dump($id_pengajuan);die();
+            $query_header = DB::table('fin_trans_pengajuan_keuangan as a')
+                                ->select(   
+                                    'a.pgj_trans_id as trans_pengajuan_id', 
+                                    'a.pgj_doc_num as pengajuan_nomor', 
+                                    'a.pgj_description as pengajuan_deskripsi',
+                                    'a.pgj_payment_methode as pengajuan_metode',
+                                    'a.pgj_payment_account as pengajuan_rekening',
+                                    'a.pgj_file_url as pengajuan_file',
+                                    'a.pgj_date as pengajuan_tanggal',
+                                    'a.pgj_currency as pengajuan_mata_uang',
+                                    'a.pgj_payment_amount as pengajuan_total',
+                                    'b.tour_code as trans_keu_tour_code',
+                                    'b.category as trans_keu_category',
+                                    'b.category_description as trans_keu_description'
+                                    )
+                                ->leftJoin('fin_mas_payment_umrah as b', 'a.pgj_trans_id', '=', 'b.doc_reff')
+                                ->where('a.pgj_id_umhaj','=', $id_pengajuan)
+                                ->get();
+            $query_detail   = DB::table('fin_trans_pengajuan_keuangan as a')
+                                ->join('fin_trans_pengajuan_keuangan_detail as b', 'a.pgj_trans_id', '=', 'b.pgj_trans_id')
+                                ->select(
+                                    'a.pgj_id_umhaj as pengajuan_detail_id',
+                                    'b.pgj_description as pengajuan_detail_deskripsi',
+                                    'b.pgj_amount as pengajuan_detail_jumlah',
+                                    'b.pgj_currency as pengajuan_detail_currency'
+                                )
+                                ->where('a.pgj_id_umhaj', '=', $id_pengajuan)
+                                ->orderBy('b.pgj_seq', 'asc')
+                                ->get();
+
+            $query_debit    = DB::table('fin_trans_pengajuan_keuangan as a')
+                                ->join('fin_trans_journal as b', 'a.pgj_trans_id', '=', 'b.journal_reff_code')
+                                ->select('b.journal_coa_id', 'b.journal_total_amount')
+                                ->where('a.pgj_id_umhaj', '=', $id_pengajuan)
+                                ->where('b.journal_type', '=', 'debit')
+                                ->get()
+                                ->toArray();
+
+            $query_credit   = DB::table('fin_trans_pengajuan_keuangan as a')
+                                ->join('fin_trans_journal as b', 'a.pgj_trans_id', '=', 'b.journal_reff_code')
+                                ->select('b.journal_coa_id', 'b.journal_total_amount')
+                                ->where('a.pgj_id_umhaj', '=', $id_pengajuan)
+                                ->where('b.journal_type', '=', 'credit')
+                                ->get()
+                                ->toArray();
         }
         
         try {
@@ -438,6 +485,8 @@ class FinanceServices
                     'data'          => [
                         'header'    => $query_header,
                         'detail'    => $query_detail,
+                        'debit'     => $query_debit,
+                        'credit'    => $query_credit
                     ]
                 ];
             } else {
@@ -448,6 +497,8 @@ class FinanceServices
                     'data'          => [
                         'header'        => [],
                         'detail'        => [],
+                        'debit'         => [],
+                        'credit'        => []
                     ],
                 ];
             }
@@ -1168,78 +1219,312 @@ class FinanceServices
 
         DB::beginTransaction();
 
-        // GENERATE TRANS ID
-        $query_get_last_id  = DB::table('fin_trans_pengajuan_keuangan')
-                            ->select(DB::raw("SUBSTRING_INDEX(pgj_trans_id, '-', -1) as last_number"))
-                            ->where(DB::raw('EXTRACT(YEAR FROM pgj_date)'), '=', date('Y', strtotime($header['pgj_tgl_aju'])))
-                            ->where(DB::raw('EXTRACT(MONTH FROM pgj_date)'), '=', date('m', strtotime($header['pgj_tgl_aju'])))
-                            ->orderBy('created_date', 'desc')
-                            ->limit(1)
-                            ->get();
-        if(count($query_get_last_id) > 0) {
-            $get_last_id    = (int) $query_get_last_id[0]->last_number;
-            $new_last_id    = $get_last_id + 1;
-            $trans_pgj_id   = "PGJ/" . date('Ym', strtotime($header['pgj_tgl_aju'])) . "-" . str_pad($new_last_id, 4, 0, STR_PAD_LEFT); 
+        if(empty($header['pgj_trans_id'])) {
+            // GENERATE TRANS ID
+            $query_get_last_id  = DB::table('fin_trans_pengajuan_keuangan')
+                                    ->select(DB::raw("SUBSTRING_INDEX(pgj_trans_id, '-', -1) as last_number"))
+                                    ->where(DB::raw('EXTRACT(YEAR FROM pgj_date)'), '=', date('Y', strtotime($header['pgj_tgl_aju'])))
+                                    ->where(DB::raw('EXTRACT(MONTH FROM pgj_date)'), '=', date('m', strtotime($header['pgj_tgl_aju'])))
+                                    ->orderBy('created_date', 'desc')
+                                    ->limit(1)
+                                    ->get();
+            if(count($query_get_last_id) > 0) {
+                $get_last_id    = (int) $query_get_last_id[0]->last_number;
+                $new_last_id    = $get_last_id + 1;
+                $trans_pgj_id   = "PGJ/" . date('Ym', strtotime($header['pgj_tgl_aju'])) . "-" . str_pad($new_last_id, 4, 0, STR_PAD_LEFT); 
+            } else {
+                $trans_pgj_id   = "PGJ/" . date('Ym', strtotime($header['pgj_tgl_aju'])) . "-0001";
+            }
+
+            // MERUBAH KURS MENJADI 3 DIGIT
+            switch($header['pgj_total_uang_kurs']) {
+                case 'RUPIAH' :
+                    $header['pgj_total_uang_kurs'] = 'IDR';
+                break;
+                case 'DOLLAR' : 
+                    $header['pgj_total_uang_kurs'] = 'USD';
+                break;
+                default : $header['pgj_total_uang_kurs'] = $header['pgj_total_uang_kurs'];
+            }
+
+            // INSERT HEADER
+            $header_trans_pengajuan     = [
+                'pgj_trans_id'          => $trans_pgj_id,
+                'pgj_id_umhaj'          => $header['pgj_umhaj_id'],
+                'pgj_doc_num'           => $header['pgj_no_surat'],
+                'pgj_date'              => $header['pgj_tgl_aju'],
+                'pgj_description'       => $header['pgj_deskripsi'],
+                'pgj_payment_methode'   => $header['pgj_metode'],
+                'pgj_payment_account'   => $header['pgj_no_rekening'],
+                'pgj_payment_amount'    => str_replace('.', '', $header['pgj_total_uang']),
+                'pgj_currency'          => $header['pgj_total_uang_kurs'],
+                'pgj_file_url'          => $header['pgj_file_list'],
+                'created_by'            => $user_id,
+                'created_date'          => $today,
+                'updated_by'            => $user_id,
+                'updated_date'          => $today
+            ];
+            DB::table('fin_trans_pengajuan_keuangan')->insert($header_trans_pengajuan);
+
+            // INSERT DETAIL
+            for($i = 0; $i < count($detail); $i++) {
+
+                switch($detail[$i]['pgj_currency']) {
+                    case 'RUPIAH' :
+                        $detail[$i]['pgj_currency'] = 'IDR';
+                    break;
+                    case 'DOLLAR' : 
+                        $detail[$i]['pgj_currency'] = 'USD';
+                    break;
+                    default : $detail[$i]['pgj_currency'] = $detail[$i]['pgj_currency'];
+                }
+
+                $detail_trans_pengajuan     = [
+                    'pgj_trans_id'      => $trans_pgj_id,
+                    'pgj_seq'           => $detail[$i]['pgj_seq'],
+                    'pgj_description'   => $detail[$i]['pgj_description'],
+                    'pgj_currency'      => $detail[$i]['pgj_currency'],
+                    'pgj_amount'        => $detail[$i]['pgj_amount'],
+                    'created_by'        => $user_id,
+                    'created_date'      => $today,
+                    'updated_by'        => $user_id,
+                    'updated_date'      => $today
+                ];
+                
+                DB::table('fin_trans_pengajuan_keuangan_detail')->insert($detail_trans_pengajuan);
+            }
+
+            // CHECK APAKAH TOUR CODE DIISI ATAU TIDAK?
+            if(!empty($header['pgj_tr_tour_code'])) {
+                // INSERT KE FIN MAS PAYMENT UMRAH
+                $payment_umrah_data     = [
+                    'tour_code'             => $header['pgj_tr_tour_code'],
+                    'category'              => $header['pgj_tr_category'],
+                    'category_description'  => $header['pgj_tr_cat_short_desc'],
+                    'doc_reff'              => $trans_pgj_id,
+                    'created_by'            => $user_id,
+                    'created_date'          => $today,
+                    'updated_by'            => $user_id,
+                    'updated_date'          => $today,
+                ];
+
+                DB::table('fin_mas_payment_umrah')->insert($payment_umrah_data);
+
+            // GENERATE ID JOURNAL
+                $journal_insert_debit   = [
+                    'journal_date'          => $header['pgj_tgl_aju'],
+                    'journal_description'   => $header['pgj_deskripsi'],
+                    'journal_coa_id'        => $header['pgj_tr_debit'],
+                    'journal_currency'      => $header['pgj_total_uang_kurs'],
+                    'journal_total_amount'  => str_replace('.', '', $header['pgj_tr_debit_amount']),
+                    'journal_type'          => 'debit',
+                    'journal_reff_code'     => $trans_pgj_id,
+                    'created_by'            => $user_id,
+                    'created_date'          => $today,
+                    'updated_by'            => $user_id,
+                    'updated_date'          => $today,
+                    'ip_address'            => $ip_address,
+                ];
+                insert_journal::insert_finance_journal($journal_insert_debit);
+
+                $journal_insert_credit  = [
+                    'journal_date'          => $header['pgj_tgl_aju'],
+                    'journal_description'   => $header['pgj_deskripsi'],
+                    'journal_coa_id'        => $header['pgj_tr_kredit'],
+                    'journal_currency'      => $header['pgj_total_uang_kurs'],
+                    'journal_total_amount'  => str_replace('.', '', $header['pgj_tr_kredit_amount']),
+                    'journal_type'          => 'credit',
+                    'journal_reff_code'     => $trans_pgj_id,
+                    'created_by'            => $user_id,
+                    'created_date'          => $today,
+                    'updated_by'            => $user_id,
+                    'updated_date'          => $today,
+                    'ip_address'            => $ip_address,
+                ];
+                insert_journal::insert_finance_journal($journal_insert_credit);
+            }
+
+            try {
+                DB::commit();
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 201,
+                    'message'       => 'Berhasil Menambahkan Data Pengajuan Keuangan',
+                    'data'          => []
+                ];
+
+                LogHelper::create('add', $output['message'] . " id : " . $trans_pgj_id, $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 500,
+                    'message'       => 'Gagal Menambahkan Data Pengajuan Keuangan',
+                    'data'          => []
+                ];
+
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
         } else {
-            $trans_pgj_id   = "PGJ/" . date('Ym', strtotime($header['pgj_tgl_aju'])) . "-0001";
-        }
 
-        // INSERT HEADER
-        $header_trans_pengajuan     = [
-            'pgj_trans_id'          => $trans_pgj_id,
-            'pgj_id_umhaj'          => $header['pgj_umhaj_id'],
-            'pgj_date'              => $header['pgj_tgl_aju'],
-            'pgj_description'       => $header['pgj_deskripsi'],
-            'pgj_payment_methode'   => $header['pgj_metode'],
-            'pgj_payment_account'   => $header['pgj_no_rekening'],
-            'pgj_payment_amount'    => $header['pgj_total_uang'],
-            'pgj_currency'          => $header['pgj_total_uang_kurs'],
-            'pgj_file_url'          => $header['pgj_file_list'],
-            'created_by'            => $user_id,
-            'created_date'          => $today,
-            'updated_by'            => $user_id,
-            'updated_date'          => $today
-        ];
-        DB::table('fin_trans_pengajuan_keuangan')->insert($header_trans_pengajuan);
-        
-        // INSERT DETAIL
-        for($i = 0; $i < count($detail); $i++) {
-            $detail_trans_pengajuan     = [
-                'pgj_trans_id'      => $trans_pgj_id,
-                'pgj_seq'           => $detail[$i]['pgj_seq'],
-                'pgj_description'   => $detail[$i]['pgj_description'],
-                'pgj_currency'      => $detail[$i]['pgj_currency'],
-                'pgj_amount'        => $detail[$i]['pgj_amount'],
-                'created_by'        => $user_id,
-                'created_date'      => $today,
-                'updated_by'        => $user_id,
-                'updated_date'      => $today
-            ];
-            DB::table('fin_trans_pengajuan_keuangan_detail')->insert($detail_trans_pengajuan);
-        }
-
-        try {
-            DB::commit();
-            $output     = [
-                'is_success'    => true,
-                'status_code'   => 201,
-                'message'       => 'Berhasil Menambahkan Data Trans. Keuangan',
-                'data'          => []
-            ];
-
-            LogHelper::create('add', $output['message'] . " id : " . $trans_pgj_id, $ip_address);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            $output     = [
-                'is_success'    => false,
-                'status_code'   => 500,
-                'message'       => 'Gagal Menambahkan Data Trans. Keuangan',
-                'data'          => []
-            ];
+            switch($header['pgj_total_uang_kurs']) {
+                case 'RUPIAH' :
+                    $header['pgj_total_uang_kurs'] = 'IDR';
+                break;
+                case 'DOLLAR' : 
+                    $header['pgj_total_uang_kurs'] = 'USD';
+                break;
+                default : $header['pgj_total_uang_kurs'] = $header['pgj_total_uang_kurs'];
+            }
             
-            Log::channel('daily')->error($e->getMessage());
-            LogHelper::create('error_system', $output['message'], $ip_address);
+            $trans_pgj_id   = $header['pgj_trans_id'];
+            
+            // UPDATE HEADER
+            $where_trans_pengajuan_keu  = [
+                'pgj_trans_id'  => $trans_pgj_id,
+            ];
+
+            $data_update_trans_pengajuan_keu    = [
+                'updated_by'    => $user_id,
+                'updated_date'  => $today,
+            ];
+
+            DB::table('fin_trans_pengajuan_keuangan')->where($where_trans_pengajuan_keu)->update($data_update_trans_pengajuan_keu);
+
+            // UPDATE FIN_MAS_PAYMENT_UMRAH
+            $where_trans_payment_umrah  = [
+                'doc_reff'  => $trans_pgj_id,
+            ];
+
+            // CHECK APAKAH ADA DI DATA DI FIN_MAS_PAYMENT_UMRAH
+            $check_payment_umrah    = DB::table('fin_mas_payment_umrah')->where($where_trans_payment_umrah)->get();
+
+            if(count($check_payment_umrah) > 0) {
+                $data_update_payment_umrah  = [
+                    'tour_code'             => $header['pgj_tr_tour_code'],
+                    'category'              => $header['pgj_tr_category'],
+                    'category_description'  => $header['pgj_tr_cat_short_desc'],
+                    'updated_by'            => $user_id,
+                    'updated_date'          => $today,
+                ];
+    
+                DB::table('fin_mas_payment_umrah')->where($where_trans_payment_umrah)->update($data_update_payment_umrah);
+            } else {
+                // CHECK APAKAH HEADER TOUR CODE ADA?
+                if(!empty($header['pgj_tr_tour_code'])) {
+                    // INSERT KE FIN MAS PAYMENT UMRAH
+                    $payment_umrah_data     = [
+                        'tour_code'             => $header['pgj_tr_tour_code'],
+                        'category'              => $header['pgj_tr_category'],
+                        'category_description'  => $header['pgj_tr_cat_short_desc'],
+                        'doc_reff'              => $trans_pgj_id,
+                        'created_by'            => $user_id,
+                        'created_date'          => $today,
+                        'updated_by'            => $user_id,
+                        'updated_date'          => $today,
+                    ];
+
+                    DB::table('fin_mas_payment_umrah')->insert($payment_umrah_data);
+                }
+            }
+
+            // UPDATE JOURNAL
+            $where_update_journal_debit     = [
+                'journal_reff_code' => $trans_pgj_id,
+                'journal_type'      => 'debit',
+            ];
+
+            $check_journal_debit    = DB::table('fin_trans_journal')->where($where_update_journal_debit)->get();
+            
+            if(count($check_journal_debit) > 0) {
+                $data_update_journal_debit      = [
+                    'journal_total_amount'  => str_replace('.', '', $header['pgj_tr_debit_amount']),
+                    'updated_by'            => $user_id,
+                    'updated_date'          => $today,
+                ];
+                
+                DB::table('fin_trans_journal')->where($where_update_journal_debit)->update($data_update_journal_debit);
+            } else {
+                if(!empty($header['pgj_tr_tour_code'])) {
+                    $journal_insert_debit   = [
+                        'journal_date'          => $header['pgj_tgl_aju'],
+                        'journal_description'   => $header['pgj_deskripsi'],
+                        'journal_coa_id'        => $header['pgj_tr_debit'],
+                        'journal_currency'      => $header['pgj_total_uang_kurs'],
+                        'journal_total_amount'  => str_replace('.', '', $header['pgj_tr_debit_amount']),
+                        'journal_type'          => 'debit',
+                        'journal_reff_code'     => $trans_pgj_id,
+                        'created_by'            => $user_id,
+                        'created_date'          => $today,
+                        'updated_by'            => $user_id,
+                        'updated_date'          => $today,
+                        'ip_address'            => $ip_address,
+                    ];
+                    insert_journal::insert_finance_journal($journal_insert_debit);
+                }
+            }
+
+            $where_update_journal_credit     = [
+                'journal_reff_code' => $trans_pgj_id,
+                'journal_type'      => 'credit',
+            ];
+
+            $check_journal_credit   = DB::table('fin_trans_journal')->where($where_update_journal_credit)->get();
+
+            if(count($check_journal_credit) > 0) {
+                $data_update_journal_credit      = [
+                    'journal_total_amount'  => str_replace('.', '', $header['pgj_tr_kredit_amount']),
+                    'updated_by'            => $user_id,
+                    'updated_date'          => $today,
+                ];
+                
+                DB::table('fin_trans_journal')->where($where_update_journal_credit)->update($data_update_journal_credit);
+            } else {
+                if(!empty($header['pgj_tr_tour_code'])) {
+                    $journal_insert_credit  = [
+                        'journal_date'          => $header['pgj_tgl_aju'],
+                        'journal_description'   => $header['pgj_deskripsi'],
+                        'journal_coa_id'        => $header['pgj_tr_kredit'],
+                        'journal_currency'      => $header['pgj_total_uang_kurs'],
+                        'journal_total_amount'  => str_replace('.', '', $header['pgj_tr_kredit_amount']),
+                        'journal_type'          => 'credit',
+                        'journal_reff_code'     => $trans_pgj_id,
+                        'created_by'            => $user_id,
+                        'created_date'          => $today,
+                        'updated_by'            => $user_id,
+                        'updated_date'          => $today,
+                        'ip_address'            => $ip_address,
+                    ];
+                    insert_journal::insert_finance_journal($journal_insert_credit);
+                }
+            }
+
+            try {
+                DB::commit();
+
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 201,
+                    'message'       => 'Berhasil Mengubah Data Pengajuan Keuangan',
+                    'data'          => []
+                ];
+
+                LogHelper::create('edit', $output['message'] . ' id : ' . $trans_pgj_id, $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 500,
+                    'message'       => 'Gagal Mengubah Data Pengajuan Keuangan',
+                    'data'          => []
+                ];
+
+                Log::channel('daily')->error($e->getMessage());
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
         }
 
         return $output;

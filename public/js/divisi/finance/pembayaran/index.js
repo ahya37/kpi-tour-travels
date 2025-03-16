@@ -82,7 +82,7 @@ function showModal(idModal, type, data = '')
         // GET DATA PENGAJUAN KEUANGAN DETAIL
         const detailPengajuanURL    = "divisi/finance/pengajuan/keuangan_detail";
         const detailPengajuanType   = "GET";
-        const detailPengajuanMsg    = Swal.fire({ title : "Data Sedang Diproses..", allowOutsideClick: false }); Swal.showLoading();
+        const detailPengajuanMsg    = Swal.fire({ title : "Data Sedang Diproses..", allowOutsideClick: true }); Swal.showLoading();
         const detailPengajuanData   = {
             'id'    : data,
         };
@@ -94,10 +94,13 @@ function showModal(idModal, type, data = '')
                 
                 const detailPengajuanHeader     = success.data.header;
                 const detailPengajuanDetail     = success.data.detail;
+                const detailPengajuanCredit     = success.data.credit;
+                const detailPengajuanDebit      = success.data.debit;
 
                 if(detailPengajuanHeader.length > 0 || detailPengajuanDetail.length > 0) {
                     // FILL FORM
                     // HEADER
+                    const pengajuanTransID      = !detailPengajuanHeader[0]['trans_pengajuan_id'] ? null : detailPengajuanHeader[0]['trans_pengajuan_id'];
                     const pengajuanNomor        = detailPengajuanHeader[0]['pengajuan_nomor'];
                     const pengajuanDeskripsi    = detailPengajuanHeader[0]['pengajuan_deskripsi'];
                     const pengajuanTanggal      = detailPengajuanHeader[0]['pengajuan_tanggal'];
@@ -106,6 +109,11 @@ function showModal(idModal, type, data = '')
                     const pengajuanMetode       = detailPengajuanHeader[0]['pengajuan_metode'] == "" ? "TRANSFER" : detailPengajuanHeader[0]['pengajuan_metode'];
                     const pengajuanMetodeTujuan = detailPengajuanHeader[0]['pengajuan_rekening'];
                     const pengajuanFile         = detailPengajuanHeader[0]['pengajuan_file'];
+
+                    const transKeuTourCode      = !detailPengajuanHeader[0]['trans_keu_tour_code'] ? null : detailPengajuanHeader[0]['trans_keu_tour_code'];
+                    const transKeuCategory      = !detailPengajuanHeader[0]['trans_keu_category'] ? null : detailPengajuanHeader[0]['trans_keu_category'];
+                    const transKeuDescription   = !detailPengajuanHeader[0]['trans_keu_description'] ? null : detailPengajuanHeader[0]['trans_keu_description'];
+
                     let pengajuanCurrency;
 
                     if(pengajuanMataUang == 'DOLLAR') {
@@ -114,6 +122,7 @@ function showModal(idModal, type, data = '')
                         pengajuanCurrency   = 'Rp.'
                     }
                     
+                    $("#pgj_trans_id").val(pengajuanTransID);
                     $("#pgj_no_surat").val(pengajuanNomor);
                     $("#pgj_deskripsi").val(pengajuanDeskripsi);
                     $("#pgj_tgl_aju").val(moment(pengajuanTanggal, 'YYYY-MM-DD').format('DD MMM YYYY'));
@@ -140,10 +149,40 @@ function showModal(idModal, type, data = '')
                         $("#pgj_file").html(html);
                     }
 
-                    showSelect('pgj_tr_tour_code', temp_tourCode[0]['header'], '');
-                    showSelect('pgj_tr_kredit', temp_master_coa[0]);
-                    showSelect('pgj_tr_debit', temp_master_coa[0]);
-                    showSelect('pgj_tr_category', list_kategori_pengajuan);
+                    if(transKeuTourCode == null) {
+                        showSelect('pgj_tr_tour_code', temp_tourCode[0]['header'], '');
+                        showSelect('pgj_tr_category', list_kategori_pengajuan);
+                        showSelect('pgj_tr_kredit', temp_master_coa[0]);
+                        showSelect('pgj_tr_debit', temp_master_coa[0]);   
+                    } else {
+                        showSelect('pgj_tr_tour_code', temp_tourCode[0]['header'], transKeuTourCode);
+
+                        $("#pgj_tr_cat_short_desc_view").removeClass('d-none');
+                        showSelect('pgj_tr_category', list_kategori_pengajuan, transKeuCategory);
+                        
+                        $("#pgj_tr_category_view").removeClass('d-none');
+                        $("#pgj_tr_cat_short_desc").val(transKeuDescription);
+                        
+                        if(detailPengajuanCredit.length > 0 && detailPengajuanDebit.length > 0) {
+                            const creditCoaID   = detailPengajuanCredit[0]['journal_coa_id'];
+                            const creditAmount  = parseInt(detailPengajuanCredit[0]['journal_total_amount']).toLocaleString('id-ID');
+
+                            const debitCoaID    = detailPengajuanDebit[0]['journal_coa_id'];
+                            const debitAmount   = parseInt(detailPengajuanDebit[0]['journal_total_amount']).toLocaleString('id-ID');
+
+                            showSelect('pgj_tr_debit', temp_master_coa[0], debitCoaID);
+                            $("#pgj_tr_debit_amount_view").removeClass('d-none');
+                            $("#pgj_tr_debit_amount").val(debitAmount);
+
+                            showSelect('pgj_tr_kredit', temp_master_coa[0], creditCoaID);
+                            $("#pgj_tr_kredit_amount_view").removeClass('d-none');
+                            $("#pgj_tr_kredit_amount").val(creditAmount);
+                        } else {
+                            showSelect('pgj_tr_kredit', temp_master_coa[0]);
+                            showSelect('pgj_tr_debit', temp_master_coa[0]);
+                        }
+                    }
+
                     showTable('table_detail_pengajuan_keuangan', detailPengajuanDetail);
 
                     // KEYUP EVENT
@@ -266,6 +305,7 @@ function closeModal(idModal)
         $("#"+idModal).modal('hide');
         
         $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#pgj_trans_id").val('');
             $("#pgj_no_surat").val('');
             $("#pgj_deskripsi").val('');
             $("#pgj_tgl_aju").val('');
@@ -274,6 +314,7 @@ function closeModal(idModal)
             $("#pgj_metode").val('');
             $("#pgj_no_rekening").val('');
             $("#pgj_umhaj_id").val('');
+            $("#pgj_tr_cat_short_desc").val('');
 
             $("#pgj_tr_debit_amount").val(0);
             $("#pgj_tr_kredit_amount").val(0);
@@ -282,6 +323,7 @@ function closeModal(idModal)
             $("#pgj_tr_category_view").addClass('d-none');
             $("#pgj_tr_debit_amount_view").addClass('d-none');
             $("#pgj_tr_kredit_amount_view").addClass('d-none');
+            $("#pgj_tr_cat_short_desc_view").addClass('d-none');
         });
 
         showModal('modal_pengajuan_keuangan', 'list', '');
@@ -873,6 +915,10 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
         }
 
         $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
     }
 }
 
@@ -1134,6 +1180,7 @@ function simpanData(idForm, type = '', data = [])
     } else if(idForm == 'detail_modal_pengajuan_keuangan') {
         let pgj_detail  = [];
         let pgj_header  = {
+            'pgj_trans_id'          : $("#pgj_trans_id").val(),
             'pgj_no_surat'          : $("#pgj_no_surat").val(),
             'pgj_umhaj_id'          : $("#pgj_umhaj_id").val(),
             'pgj_tgl_aju'           : moment($("#pgj_tgl_aju").val(), 'DD MMM YYYY').format('YYYY-MM-DD'),
@@ -1145,6 +1192,7 @@ function simpanData(idForm, type = '', data = [])
             'pgj_no_rekening'       : $("#pgj_no_rekening").val(),
             'pgj_tr_tour_code'      : $("#pgj_tr_tour_code").val(),
             'pgj_tr_category'       : $("#pgj_tr_category").val(),
+            'pgj_tr_cat_short_desc' : $("#pgj_tr_cat_short_desc").val(),
             'pgj_tr_debit'          : $("#pgj_tr_debit").val(),
             'pgj_tr_debit_amount'   : $("#pgj_tr_debit_amount").val() == '' ? 0 : $("#pgj_tr_debit_amount").val(),
             'pgj_tr_kredit'         : $("#pgj_tr_kredit").val(),
@@ -1173,16 +1221,15 @@ function simpanData(idForm, type = '', data = [])
         
         doTransaction(pgjURL, pgjType, pgjData, pgjMessage)
             .then((success)     => {
-                console.log(success);
-                // Swal.fire({
-                //     icon    : 'success',
-                //     title   : 'Berhasil',
-                //     text    : success.message
-                // }).then((res)   => {
-                //     if(res.isConfirmed) {
-                //         closeModal('detail_modal_pengajuan_keuangan');
-                //     }
-                // })
+                Swal.fire({
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : success.message
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        closeModal('detail_modal_pengajuan_keuangan');
+                    }
+                })
             })
             .catch((error)      => {
                 console.log(error);

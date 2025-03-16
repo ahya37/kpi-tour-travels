@@ -1,5 +1,5 @@
 <div class="modal fade" id="detail_modal_pengajuan_keuangan">
-    <div class="modal-dialog modal-xl modal-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header d-flex flex-row align-items-center justify-content-between">
                 <h4 class="no-margins modal-title">Detail Pengajuan Keuangan </h4>
@@ -14,6 +14,7 @@
                                     <label for="pgj_no_surat">No. Surat Pengajuan</label>
                                     <input type="text" class="form-control" id="pgj_no_surat" readonly placeholder="No. Surat Pengajuan">
                                     <input type="hidden" id="pgj_umhaj_id">
+                                    <input type="hidden" id="pgj_trans_id">
                                 </div>
                             </div>
                             <div class="col-12">
@@ -75,28 +76,44 @@
                             <div class="col-sm-4 col-12">
                                 <div class="form-group">
                                     <label class="no-margins" for="pgj_tr_tour_code">Tour Code</label>
-                                    <select name="pgj_tr_tour_code" id="pgj_tr_tour_code" style="width: 100%;" class="form-control form-select" onchange="showForm('pgj_tr_category_view')"></select>
+                                    <select name="pgj_tr_tour_code" id="pgj_tr_tour_code" style="width: 100%;" class="form-control form-select" onchange="showForm('pgj_tr_category_view'), showForm('pgj_tr_cat_short_desc_view')"></select>
                                 </div>
+                            </div>
+                            <div class="col-sm-4 col-12">
                                 <div class="form-group d-none" id="pgj_tr_category_view">
                                     <label class="no-margins" for="pgj_tr_category">Kategori</label>
                                     <select name="pgj_tr_category" id="pgj_tr_category" style="width: 100%;" class="form-control form-select"></select>
                                 </div>
                             </div>
                             <div class="col-sm-4 col-12">
+                                <div class="form-group d-none" id="pgj_tr_cat_short_desc_view">
+                                    <label class="no-margins" form="pgj_tr_cat_short_desc">Deskripsi Singkat</label>
+                                    <input type="text" class="form-control" name="pgj_tr_cat_short_desc" id="pgj_tr_cat_short_desc" placeholder="Deskripsi Singkat">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 col-12">
                                 <div class="form-group">
                                     <label class="no-margins" for="pgj_tr_debit">Debit</label>
                                     <select name="pgj_tr_debit" id="pgj_tr_debit" style="width: 100%;" class="form-control form-select" onchange="showForm('pgj_tr_debit_amount_view')"></select>
                                 </div>
+                            </div>
+                            <div class="col-sm-4 col-12">
                                 <div class="form-group d-none" id="pgj_tr_debit_amount_view">
                                     <label class="no-margins" for="pgj_tr_debit_amount">Jml. Bayar</label>
                                     <input type="text" class="form-control" name="pgj_tr_debit_amount" id="pgj_tr_debit_amount" placeholder="Jml. Bayar Debit" value="0" onclick="this.select()">
                                 </div>
                             </div>
+                        </div>
+                        <div class="row">
                             <div class="col-sm-4 col-12">
                                 <div class="form-group">
                                     <label class="no-margins" for="pgj_tr_kredit">Kredit</label>
                                     <select name="pgj_tr_kredit" id="pgj_tr_kredit" style="width: 100%;" class="form-control form-select" onchange="showForm('pgj_tr_kredit_amount_view')"></select>
                                 </div>
+                            </div>
+                            <div class="col-sm-4 col-12">
                                 <div class="form-group d-none" id="pgj_tr_kredit_amount_view">
                                     <label class="no-margins" for="pgj_tr_kredit_amount">Jml. Bayar</label>
                                     <input type="text" class="form-control" name="pgj_tr_kredit_amount" id="pgj_tr_kredit_amount" placeholder="Jml. Bayar Debit" value="0" onclick="this.select()">
