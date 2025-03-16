@@ -11,6 +11,7 @@ var temp_total_pembayaran_haji  = 0;
 var temp_master_coa     = [];
 
 var list_kategori_pengajuan     = [
+    { 'value' : 'asuransi', 'text' : 'Asuransi'},
     { 'value' : 'tiket', 'text' : 'Tiket' },
     { 'value' : 'fee_pembimbing', 'text' : 'Fee Pembimbing' },
     { 'value' : 'manasik', 'text' : 'Manasik' },
