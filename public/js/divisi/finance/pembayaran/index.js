@@ -295,6 +295,20 @@ function showModal(idModal, type, data = '')
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
         showSelect('report_pb_hj_year', tahun_keberangkatan, moment(today, 'YYYY-MM-DD').format('YYYY'));
+    } else if(idModal == 'modal_hitung_hpp') {
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+
+        showTable('table_list_hpp', []);
+
+        showSelect('hpp_filter_keberangkatan', temp_bulan, 'semua');
+
+        setTimeout(()   => {
+            showTable('table_list_hpp', temp_tourCode[0]['header']);
+
+            if(temp_tourCode.length < 1) {
+                $("#table_list_hpp").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`);
+            }
+        }, 1000);
     }
 }
 
@@ -354,6 +368,8 @@ function closeModal(idModal)
             $("#hj_current_payment").val(null);
         })
     } else if(idModal == 'modal_report_pembayaran_haji') {
+        $("#"+idModal).modal('hide');
+    } else if(idModal == 'modal_hitung_hpp') {
         $("#"+idModal).modal('hide');
     }
 }
@@ -523,6 +539,42 @@ function showTable(idTable, data)
         } else {
             let currentSeq  = $("#btn_tambah_baris_haji").val();
             addRowTable('table_pembayaran_haji_form', [], parseInt(currentSeq));
+        }
+    } else if(idTable == 'table_list_hpp') {
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable"    : `<i class="fa fa-spinner fa-spin"></i> Data Sedang Dimuat..`,
+                "zeroRecords"   : `Data Yang Dicari Tidak Ditemukan`
+            },
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0, 5], "className" : "text-center align-middle", "width" :"8%" },
+                { "targets" : [1], "className" : "align-middle" },
+                { "targets" : [2, 3], "className" : "align-middle", "width" : "15%" },
+                { "targets" : [4], "className" : "align-middle", "width" : "25%" },
+            ],
+        })
+
+        if(data.length > 0) {
+            // SORT DESC
+            data.sort((a, b)    => {
+                return new Date(b['depature_date']) - new Date(a['depature_date'])
+            });
+            for(let i = 0; i < data.length; i++) {
+                let tourCode        = data[i]['tour_code'];
+                let depatureDate    = data[i]['depature_date'];
+                let arrivalDate     = data[i]['arrival_date'];
+                let tourLeader      = data[i]['tour_leader'];
+
+                $("#"+idTable).DataTable().row.add([
+                    `<label class="no-margins font-weight-normal">${i + 1}</label>`,
+                    `<label class="no-margins font-weight-normal">${tourCode}</label>`,
+                    `<label class="no-margins font-weight-normal">${moment(depatureDate, 'YYYY-MM-DD').format('DD MMM YYYY')}</option>`,
+                    `<label class="no-margins font-weight-normal">${moment(arrivalDate, 'YYYY-MM-DD').format('DD MMM YYYY')}</label>`,
+                    `<label class="no-margins font-weight-normal">${tourLeader}</label>`,
+                    `<button class="btn btn-sm btn-success" value="${tourCode}" onclick="showModal('modal_hitung_hpp_form', 'add', this.value)" title="Lihat Data"><i class="fa fa-eye"></i></button>`
+                ]).draw(false);
+            }
         }
     }
 
@@ -913,6 +965,23 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
             $.each(data, (i, item)  => {
                 html    += `<option value="${item['value']}">${item['text']}</option>`;
             });
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
+    } else if(idSelect == 'hpp_filter_keberangkatan') {
+        let html    = [
+            `<option selected disabled>Filter Bulan Keberangkatan`,
+            `<option value='semua'>Semua</option>`
+        ];
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += `<option value="${item['bulan_ke']}">${item['bulan_nama']}</option>`
+            })
         }
 
         $("#"+idSelect).html(html);

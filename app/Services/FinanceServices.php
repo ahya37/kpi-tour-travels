@@ -1167,7 +1167,10 @@ class FinanceServices
                     for($i = 0; $i < count($query_header); $i++) {
                         if(date('Y', strtotime($query_header[$i]->jdw_depature_date)) == date('Y')) {
                             $data_header[]  = [
-                                'tour_code' => $query_header[$i]->jdw_tour_code
+                                'tour_code'         => $query_header[$i]->jdw_tour_code,
+                                'depature_date'     => $query_header[$i]->jdw_depature_date,
+                                'arrival_date'      => $query_header[$i]->jdw_arrival_date,
+                                'tour_leader'       => $query_header[$i]->jdw_mentor_name 
                             ];
                         }
                     }

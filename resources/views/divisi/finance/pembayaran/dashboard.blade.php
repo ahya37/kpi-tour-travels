@@ -153,6 +153,18 @@
                     </div>
                 </div>
             </div>
+            {{-- <div class="col-xl-3 col-md-6 col-12 mb-xl-0 mb-md-2">
+                <div class="card card-body bg-primary" style="cursor: pointer;" title="Perhitungan HPP" onclick="showModal('modal_hitung_hpp', '', '')">
+                    <div class="row align-items-center justify-content-between">
+                        <div class="col-xl-2 col-0 d-xl-block d-none text-center">
+                            <i class="fa fa-dollar"></i>
+                        </div>
+                        <div class="col-xl-10 col-12 d-block">
+                            <h4 class="font-weight-bold no-margins">Perhitungan HPP</h4>
+                        </div>
+                    </div>
+                </div>
+            </div> --}}
         </div>
     </div>
 
@@ -164,6 +176,8 @@
 
     {{-- REPORT --}}
     @include('divisi.finance.pembayaran.pembayaran_haji.modal_report_pembayaran_haji')
+    @include('divisi.finance.pembayaran.perhitungan_hpp.modal_hitung_hpp')
+
 @endsection
 
 
