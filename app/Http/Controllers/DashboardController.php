@@ -25,11 +25,15 @@ class DashboardController extends Controller
     protected $title    = "ERP Percik Tours";
     public function index()
     {
+        // GET USER SUB-DIVISION
+        $user_id    = Auth::user()->id;
         // CHECK APAKAH SUDAH ABSEN ATAU BELUM
         if(Auth::user()->getRoleNames()[0] != 'admin') 
         {
-            $absen  = BaseService::doGetPresenceToday();
-            if(count($absen) > 0) {
+            $get_user_sub_division  = BaseService::doGetCurrentSubDivision('', $user_id);
+            $absen                  = BaseService::doGetPresenceToday();
+
+            if($get_user_sub_division[0]->sub_division_name == 'manager finance' || count($absen) > 0) {
                 $data = [
                     'title'         => $this->title . " | Dashboard",
                     'sub_title'     => 'Selamat Datang '.Auth::user()->name,

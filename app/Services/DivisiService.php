@@ -3207,29 +3207,30 @@ class DivisiService
             "prs_date"      => $data['data']['tanggal'],
         ];
 
-        // CHECK APAKAH ADA DI TANGGAL SEGITU??
+        // CHECK APAKAH ADA ABSEN DI TANGGAL SEGITU??
         $check_kehadiran    = DB::table('tm_presence')->where($data_where)->get();
         if(count($check_kehadiran) > 0) {
-            // UPDATE JAM PULANG
-            // CHECK APAKAH ADA JAM PULANG?
-            $check_jam_pulang   = DB::table('tm_presence')->select('prs_out_time')->where($data_where)->get();
-
-            if(count($check_jam_pulang) > 0 && !empty($check_jam_pulang[0]->prs_out_time)) {
+            $jam_masuk      = $data['data']['jam_masuk'];
+            $jam_keluar     = $data['data']['jam_keluar'];
+            
+            if(date('H:i:s', strtotime($jam_masuk)) != '00:00:00' && date('H:i:s', strtotime($jam_keluar)) != '00:00:00') {
                 $data_update    = [
-                    "prs_in_time"   => $data['data']['jam_masuk'],
-                    "prs_out_time"  => $data['data']['jam_keluar'],
-                    "updated_by"    => $user_id,
-                    "updated_at"    => $today,
-                ];
-            } else if(count($check_jam_pulang) > 0 && empty($check_jam_pulang[0]->prs_out_time)) {
-                $data_update    = [
-                    'prs_out_time'  => $data['data']['jam_keluar'],
+                    'prs_in_time'   => $jam_masuk,
+                    'prs_out_time'  => $jam_keluar,
                     'updated_by'    => $user_id,
                     'updated_at'    => $today,
                 ];
-            } else {
+            } else if(date('H:i:s', strtotime($jam_masuk)) != '00:00:00') {
+                // UPDATE JAM MASUK SAJA
                 $data_update    = [
-                    "prs_in_time"   => $data['data']['jam_masuk'],
+                    'prs_in_time'   => $jam_masuk,
+                    'updated_by'    => $user_id,
+                    'updated_at'    => $today,
+                ];
+            } else if(date('H:i:s', strtotime($jam_keluar)) != '00:00:00') {
+                // UPDATE JAM KELUAR SAJA
+                $data_update    = [
+                    'prs_in_time'   => $jam_keluar,
                     'updated_by'    => $user_id,
                     'updated_at'    => $today,
                 ];
