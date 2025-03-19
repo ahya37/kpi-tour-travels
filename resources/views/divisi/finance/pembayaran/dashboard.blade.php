@@ -35,10 +35,14 @@
             <div class="col-6">
                 <h2 class="no-margins">Summary Data</h2>
             </div>
-            <div class="col-3">&nbsp;</div>
             <div class="col-3">
-                <select name="filter_bulan" id="filter_bulan" style="width: 250px;" class="form-control" onchange="showDataDashboard(this.value)">
+                <select name="filter_bulan" id="filter_bulan" style="width: 100%;" class="form-control" onchange="showDataDashboard(this.value, '')">
                     <option selected disabled>Pilih Bulan</option>
+                </select>
+            </div>
+            <div class="col-3">
+                <select name="filter_tahun" id="filter_tahun" style="width: 100%;" class="form-control" onchange="showDataDashboard('', this.value)">
+                    <option selected disabled>Pilih Tahun</option>
                 </select>
             </div>
         </div>
@@ -153,7 +157,7 @@
                     </div>
                 </div>
             </div>
-            {{-- <div class="col-xl-3 col-md-6 col-12 mb-xl-0 mb-md-2">
+            <div class="col-xl-3 col-md-6 col-12 mb-xl-0 mb-md-2">
                 <div class="card card-body bg-primary" style="cursor: pointer;" title="Perhitungan HPP" onclick="showModal('modal_hitung_hpp', '', '')">
                     <div class="row align-items-center justify-content-between">
                         <div class="col-xl-2 col-0 d-xl-block d-none text-center">
@@ -164,7 +168,7 @@
                         </div>
                     </div>
                 </div>
-            </div> --}}
+            </div>
         </div>
     </div>
 
@@ -173,10 +177,11 @@
     @include('divisi.finance.pembayaran.pengajuan_keuangan.modal_pengajuan_keuangan_detail')
     @include('divisi.finance.pembayaran.pembayaran_haji.modal_pembayaran_haji')
     @include('divisi.finance.pembayaran.pembayaran_haji.modal_pembayaran_haji_form')
+    @include('divisi.finance.pembayaran.perhitungan_hpp.modal_hitung_hpp')
+    @include('divisi.finance.pembayaran.perhitungan_hpp.modal_hitung_hpp_form')
 
     {{-- REPORT --}}
     @include('divisi.finance.pembayaran.pembayaran_haji.modal_report_pembayaran_haji')
-    @include('divisi.finance.pembayaran.perhitungan_hpp.modal_hitung_hpp')
 
 @endsection
 

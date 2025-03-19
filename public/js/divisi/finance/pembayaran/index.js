@@ -2,6 +2,7 @@ var today               = moment().format('YYYY-MM-DD');
 var base_url            = window.location.origin;
 var temp_pengajuan      = [];
 var temp_bulan          = [];
+var temp_tahun          = [];
 var temp_haji           = [];
 var temp_data_bank_account  = [];
 var tahun_keberangkatan = [];
@@ -12,19 +13,20 @@ var temp_master_coa     = [];
 
 var list_kategori_pengajuan     = [
     { 'value' : 'asuransi', 'text' : 'Asuransi'},
+    { 'value' : 'paket', 'text' : 'Biaya Paket' },
     { 'value' : 'tiket', 'text' : 'Tiket' },
     { 'value' : 'fee_pembimbing', 'text' : 'Fee Pembimbing' },
     { 'value' : 'manasik', 'text' : 'Manasik' },
     { 'value' : 'la', 'text' : 'Biaya Land Arrangement' },
-    { 'value' : 'tiket_museum', 'text' : 'Tiket Musemum'},
+    { 'value' : 'tiket_museum', 'text' : 'Tiket Museum'},
     { 'value' : 'perlengkapan_jemaah', 'text' : 'Perlengkapan Jemaah' },
     { 'value' : 'handling', 'text' : 'Handling' },
     { 'value' : 'akomodasi', 'text' : 'Akomodasi' },
     { 'value' : 'kereta_cepat', 'text' : 'Kereta Cepat'},
-    { 'value' : 'lain_lain', 'text' : 'Lain-Lain' }
+    { 'value' : 'lain_lain', 'text' : 'Lain-Lain' },
 ];
 
-for(let i = 0; i < 11; i++) {
+for(let i = 0; i <= 11; i++) {
     let monthNumber     = moment(i + 1, 'M').format('MM');
     let monthName       = moment(i + 1, 'M').format('MMMM');
 
@@ -32,6 +34,14 @@ for(let i = 0; i < 11; i++) {
         'bulan_ke'  : monthNumber,
         'bulan_nama': monthName,
     });
+}
+
+for(let i = 0; i <= 10; i++) {
+    let year    = moment(today, 'YYYY-MM-DD').subtract(i, 'years').year();
+
+    temp_tahun.push({
+        'tahun' : year,
+    })
 }
 
 for(let i = 2000; i < parseInt(moment(today, 'YYYY-MM-DD').add(10, 'year').format('YYYY')); i++) {
@@ -42,6 +52,7 @@ for(let i = 2000; i < parseInt(moment(today, 'YYYY-MM-DD').add(10, 'year').forma
 }
 
 showSelect('filter_bulan', temp_bulan, moment(today, 'YYYY-MM-DD').format('MM'))
+showSelect('filter_tahun', temp_tahun, moment(today, 'YYYY-MM-DD').format('YYYY'));
 
 const isLoading   = (idForm) => {
     return $("#"+idForm).html(`<span class="spinner spinner-border"></span>`);
@@ -56,7 +67,7 @@ temp_paket.push(
 
 $(document).ready(function(){
     // GET DATA PENGAJUAN KEUANGAN
-    showDataDashboard(moment(today, 'YYYY-MM-DD').format('MM'));
+    showDataDashboard(moment(today, 'YYYY-MM-DD').format('MM'), moment(today, 'YYYY-MM-DD').format('YYYY'));
 });
 
 function showModal(idModal, type, data = '')
@@ -71,7 +82,7 @@ function showModal(idModal, type, data = '')
         setTimeout(()   => {
             Swal.close();
             $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-            $("#title_bulan_modal_pengajuan_keuangan").html(`Bulan : ${moment(selectedBulan, 'MM').format('MMMM')}, ${moment(today, 'YYYY-MM-DD').format('YYYY')}`)
+            $("#title_bulan_modal_pengajuan_keuangan").html(`Bulan : ${moment($("#filter_bulan").val(), 'MM').format('MMMM')}, ${moment($("#filter_tahun").val(), 'YYYY').format('YYYY')}`)
             showTable('table_pengajuan_keuangan', temp_pengajuan);
             if(data.length < 1) {
                 $("#table_pengajuan_keuangan").find('.dataTables_empty').html(`Tidak Ada Data Pengajuan Keuangan`);
@@ -309,6 +320,44 @@ function showModal(idModal, type, data = '')
                 $("#table_list_hpp").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`);
             }
         }, 1000);
+    } else if(idModal == 'modal_hitung_hpp_form') {
+        closeModal('modal_hitung_hpp');
+
+        const hppURL    = "divisi/finance/hpp/data_hpp";
+        const hppType   = "GET";
+        const hppData   = {
+            "tour_code" : data,
+        };
+        const hppMsg    = Swal.fire({ title : "Data Sedang Dimuat..", allowOutsideClick: true}); Swal.showLoading();
+
+        doTransaction(hppURL, hppType, hppData, hppMsg)
+            .then((success)     => {
+                Swal.close();
+                // GET DATA HPP
+                const hppGetData    = success.data;
+                showTable('table_detail_hitung_hpp', hppGetData);
+                if(hppGetData.length < 1) {
+                    $("#table_detail_hitung_hpp").find('.dataTables_empty').html(`Tidak Ada Data HPP`);
+                }
+                // FILL FORM
+                const hppHeader     = temp_tourCode[0]['header'].filter((item)   => {
+                    return item['tour_code'] == data
+                });
+
+                $("#hpp_form_tour_code").val(hppHeader[0]['tour_code']);
+                $("#hpp_form_tour_leader").val(hppHeader[0]['tour_leader']);
+                $("#hpp_depature_date").val(moment(hppHeader[0]['depature_date'], 'YYYY-MM-DD').format('DD MMM YYYY'));
+                $("#hpp_form_arrival_date").val(moment(hppHeader[0]['arrival_date'], 'YYYY-MM-DD').format('DD MMM YYYY'));
+
+                $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+            })
+            .catch((error)      => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : error.responseJSON.message,
+                })
+            })
     }
 }
 
@@ -371,6 +420,22 @@ function closeModal(idModal)
         $("#"+idModal).modal('hide');
     } else if(idModal == 'modal_hitung_hpp') {
         $("#"+idModal).modal('hide');
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#filter_data_tour_code").collapse('hide');
+        })
+    } else if(idModal == 'modal_hitung_hpp_form') {
+        $("#"+idModal).modal('hide');
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#hpp_form_tour_code").val('');
+            $("#hpp_form_tour_leader").val('');
+            $("#hpp_depature_date").val('');
+            $("#hpp_form_arrival_date").val('');
+            $("#tambah_baris_table_detail_hitung_hpp").val(1);
+        })
+
+        showModal('modal_hitung_hpp', '', '');
     }
 }
 
@@ -407,13 +472,14 @@ function showTable(idTable, data)
                 let aju_jml_uang            = item['total_pengajuan'];
                 let aju_mata_uang           = item['pengajuan_mata_uang'];
                 let aju_preview             = `<button class="btn btn-success btn-sm" type="button" value="${no_aju}" title="Lihat Detail" onclick="showModal('detail_modal_pengajuan_keuangan', 'view', this.value)"><i class="fa fa-eye"></i></button>`
+                let aju_journal             = item['is_journal'] === true ? `<i class="fa fa-check-circle" title="Sudah Jurnal" style="color: var(--success); cursor: pointer;"></i>` : ``;
 
                 $("#"+idTable).DataTable().row.add([
                     `<label class="font-weight-normal no-margins">${seq++}</label>`,
-                    `<label class="font-weight-normal no-margins">${moment(aju_tgl, 'YYYY-MM-DD').format('DD MMM YYYY')}</label>`,
+                    `<label class="font-weight-normal no-margins">${moment(aju_tgl, 'YYYY-MM-DD').format('DD/MM/YYYY')}</label>`,
                     `<label class="font-weight-normal no-margins">${aju_nama}</label>`,
                     `<label class="font-weight-normal no-margins" title="${aju_deskripsi}">${aju_deskripsi_short}</label>`,
-                    `<label class="font-weight-normal no-margins">${rupiahFormatter(aju_jml_uang, 0, 0, aju_mata_uang)}</label>`,
+                    `<label class="font-weight-normal no-margins">${rupiahFormatter(aju_jml_uang, 0, 0, aju_mata_uang)} ${aju_journal}</label>`,
                     aju_preview
                 ]).draw(false);
             }
@@ -576,6 +642,37 @@ function showTable(idTable, data)
                 ]).draw(false);
             }
         }
+    } else if(idTable == 'table_detail_hitung_hpp') {
+        $("#"+idTable).DataTable({
+            language    : {
+                "emptyTable" : `<i class="fa fa-spinner fa-spin"></i> Data Sedang Dimuat..`,
+                "zeroRecords": `Tidak Ada Data Yang Bisa Dimuat`,
+            },
+            pageLength  : -1,
+            searching   : false,
+            bInfo       : false,
+            paging      : false,
+            ordering    : false,
+            autoWidth   : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "8%" },
+                { "targets" : [1], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [2], "className" : "align-middle", "width" : "20%" },
+                { "targets" : [3], "className" : "text-right align-middle", "width" : "20%" },
+                { "targets" : [4], "className" : "align-middle" },
+            ]
+        });
+        
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                let seq     = i + 1;
+                addRowTable('table_detail_hitung_hpp', item, parseInt(seq));
+            })
+        } else {
+            let seq     = $("#tambah_baris_table_detail_hitung_hpp").val();
+            addRowTable('table_detail_hitung_hpp', [], parseInt(seq));
+        }
     }
 
     $("#"+idTable+"_wrapper").css('padding-bottom', '0px');
@@ -667,6 +764,72 @@ function addRowTable(idTable, data, seq)
         }
 
         buttonSeq.val(parseInt(seq) + 1);
+    } else if (idTable == 'table_detail_hitung_hpp') {
+        let buttonDelete    = `<button class="btn btn-sm btn-danger" title="Hapus Baris" id="hpp_btnDelete${seq}" onclick="deleteRowTable('${idTable}', '', ${seq})"><i class="fa fa-trash"></i></button>`;
+        let inputSeq        = `<input type='text' class="form-control text-center" id="hpp_seq${seq}" name="hpp_seq${seq}" placeholder="Seq" readonly>`;
+        let selectCategory  = `<select class="form-control form-select" id="hpp_category${seq}" name="hpp_category${seq}"></select>`;
+        let inputAmount     = `<input type='text' class="form-control" id="hpp_amount${seq}" name="hpp_amount${seq}" placeholder="Total Bayar">`;
+        let inputDeskripsi  = `<input type='text' class="form-control" id="hpp_description${seq}" name="hpp_description${seq}" placeholder="Deskripsi">`;
+        let inputDocReff    = `<input type="hidden" class="form-control" id="hpp_docReff${seq}" name="hpp_docReff${seq}" placeholder="Doc. Reff">`
+
+        $("#"+idTable).DataTable().row.add([
+            buttonDelete,
+            inputSeq,
+            selectCategory,
+            inputAmount+""+inputDocReff,
+            inputDeskripsi
+        ]).draw(false);
+
+        if(data != '') {
+            // ISI
+            showSelect('hpp_category', list_kategori_pengajuan, data['category'], seq);
+            $("#hpp_amount"+seq).val(parseInt(data['total_amount']).toLocaleString('id-ID'));
+
+            $("#hpp_docReff"+seq).val(data['doc_reff']);
+            
+            $("#hpp_description"+seq).val(data['category_description']);
+
+            $("#hpp_btnDelete"+seq).prop('disabled', true);
+            $("#hpp_btnDelete"+seq).attr('onclick', '');
+            $("#hpp_category"+seq).prop('disabled', true);
+            $("#hpp_amount"+seq).prop('readonly', true);
+            $("#hpp_docReff"+seq).prop('readonly', true);
+            $("#hpp_description"+seq).prop('readonly', true);
+        } else {
+            showSelect('hpp_category', list_kategori_pengajuan, '', seq);
+            $("#hpp_seq"+seq).focus();
+
+            $("#hpp_amount"+seq).val(0);
+
+            $("#inputDocReff"+seq).val('');
+        }
+
+        $("#hpp_seq"+seq).val(seq);
+
+        $("#hpp_amount"+seq).on('click', () => {
+            $("#hpp_amount"+seq).select();
+        });
+
+        $("#hpp_amount"+seq).on('keyup', () => {
+            let currentValue    = $("#hpp_amount"+seq).val();
+            let formatText      = currentValue.replace(/[^0-9]/g, '');
+
+            if(formatText === '') {
+                $("#hpp_amount"+seq).val('');
+            } else {
+                $("#hpp_amount"+seq).val(parseInt(formatText).toLocaleString('id-ID'));
+            }
+        });
+
+        $("#hpp_amount"+seq).on('blur', () => {
+            let currentValue    = $("#hpp_amount"+seq).val();
+            if(currentValue == '') {
+                $("#hpp_amount"+seq).val(0.00);
+            }
+        })
+
+        let next_seq     = parseInt(seq) + 1;
+        $("#tambah_baris_table_detail_hitung_hpp").val(next_seq);
     }
 }
 
@@ -696,6 +859,28 @@ function deleteRowTable(idTable, data, seq)
             }
             
         }
+    } else if(idTable == 'table_detail_hitung_hpp') {
+        if(parseInt(seq) == 1) {
+            Swal.fire({
+                icon    : 'info',
+                title   : 'Terjadi Kesalahan',
+                text    : 'Tidak Bisa Menghapus Baris Pertama'
+            })
+        } else {
+            let currentSeq  = $("#tambah_baris_table_detail_hitung_hpp").val();
+            if(parseInt(currentSeq) - seq == 1) {
+                // DELETE ROW
+                $("#"+idTable).DataTable().row(parseInt(seq) - 1).remove().draw();
+                $("#hpp_seq"+ (parseInt(seq) - 1)).focus();
+                $("#tambah_baris_table_detail_hitung_hpp").val(parseInt(currentSeq) - 1);
+            } else {
+                Swal.fire({
+                    icon    : 'info',
+                    title   : 'Terjadi Kesalahan',
+                    text    : 'Hanya Baris Terakhir Yang Bisa Dihapus'
+                })
+            }
+        }
     }
 }
 
@@ -719,7 +904,23 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
 
         $("#"+idSelect).html(html);
         $("#"+idSelect).val(selectedData);
-    } else if(idSelect == 'hj_member_id') {
+    } else if(idSelect == 'filter_tahun') {
+        $("#"+idSelect).select2({
+            theme   : 'bootstrap4',
+            minimumResultsForSearch  : -1,
+        });
+
+        let html    = `<option selected disabled>Pilih Tahun</option>`;
+
+        $.each(data, (i, item)  => {
+            html    += `<option value="${item['tahun']}">${item['tahun']}</option>`
+        });
+
+        $("#"+idSelect).html(html);
+        $("#"+idSelect).val(selectedData);
+    } 
+    
+    else if(idSelect == 'hj_member_id') {
         $("#"+idSelect).select2({
             theme   : 'bootstrap4',
             placeholder     : `Pilih Nama Jemaah`,
@@ -989,6 +1190,28 @@ function showSelect(idSelect, data, selectedData = '', seq = '')
         if(selectedData != '') {
             $("#"+idSelect).val(selectedData);
         }
+    } else if(idSelect == 'hpp_category') {
+        $("#"+idSelect+""+seq).select2({
+            theme   : 'bootstrap4',
+            dropdownParent  : $("#modal_hitung_hpp_form"),
+            width   : '216px',
+        });
+
+        let html    = [
+            `<option selected disabled>Pilih Kategori</option>`,
+        ];
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += `<option value="${item['value']}">${item['text']}</option>`
+            });
+        }
+
+        $("#"+idSelect+""+seq).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect+""+seq).val(selectedData);
+        }
     }
 }
 
@@ -1068,10 +1291,35 @@ function showSelectDetail(idSelect, data, seq = '')
             $("#hj_detail_bank_acc"+seq).prop('disabled', true);
             showSelect('hj_detail_bank_acc', [], '', seq);
         }
+    } else if(idSelect == 'hpp_filter_keberangkatan') {
+        showTable('table_list_hpp', []);
+
+        if(data == 'semua') {
+            $("#hpp_download_excel").prop('disabled', true);
+            setTimeout(()   => {
+                showTable('table_list_hpp', temp_tourCode[0]['header'])
+
+                if(temp_tourCode[0]['header'].length < 1) {
+                    $("#table_list_hpp").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`);
+                }
+            }, 1000);
+        } else {
+            $("#hpp_download_excel").prop('disabled', false);
+            const dataFiltered  = temp_tourCode[0]['header'].filter(item => {
+                return moment(item['depature_date'], 'YYYY-MM-DD').format('MM') == data;
+            })
+            setTimeout(()   => {
+                showTable('table_list_hpp', dataFiltered);
+
+                if(dataFiltered.length < 1) {
+                    $("#table_list_hpp").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`);
+                }
+            }, 1000);
+        }
     }
 }
 
-function showDataDashboard(selectedMonth)
+function showDataDashboard(selectedMonth = '', selectedYear = '')
 {
     // SHOW DEFAULT LOADING
     isLoading('dashboard_pengajuan_keuangan');
@@ -1086,8 +1334,8 @@ function showDataDashboard(selectedMonth)
     const pengajuanURL  = "divisi/finance/pengajuan/keuangan";
     const pengajuanType = "GET";
     const pengajuanData = {
-        'selected_month'    : selectedMonth,
-        'selected_year'     : moment(today, 'YYYY-MM-DD').format('YYYY'),
+        'selected_month'    : selectedMonth == '' ? $("#filter_bulan").val() : selectedMonth,
+        'selected_year'     : selectedYear == '' ? $("#filter_tahun").val() : selectedYear
     };
     const pengajuanMsg  = "";
 
@@ -1302,17 +1550,92 @@ function simpanData(idForm, type = '', data = [])
                 })
             })
             .catch((error)      => {
-                console.log(error);
+                if(error.status == 522) {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : 'Periksa Kembali Input Form',
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            $.each(error.responseJSON.message, (i, item)    => {
+                                $("#"+i).addClass('is-invalid');
+
+                                $("#"+i).on('click', () => {
+                                    $("#"+i).removeClass('is-invalid');
+                                })
+
+                                $("#"+i).on('select2:open', () => {
+                                    $("#"+i).removeClass('is-invalid');
+                                })
+                            })
+                        }
+                    })
+                } else {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : error.responseJSON.message,
+                    })
+                }
+            })
+    } else if(idForm == 'modal_hitung_hpp_form') {
+        let hppHeader   = {
+            'hpp_form_tour_code'    : $("#hpp_form_tour_code").val(),
+            'hpp_form_tour_leader'  : $("#hpp_form_tour_leader").val(),
+            'hpp_depature_date'     : moment($("#hpp_depature_date").val(), 'DD MMM YYYY').format('YYYY-MM-DD'),
+            'hpp_form_arrival_date' : moment($("#hpp_form_arrival_date").val(), 'DD MMM YYYY').format('YYYY-MM-DD'),
+        };
+
+        let hppDetail   = [];
+        let detailData  = $("#table_detail_hitung_hpp").DataTable().rows().count();
+
+        for(let i = 0; i < detailData; i++)
+        {
+            let seq     = i +1;
+            let detailCategory      = $("#hpp_category"+seq).val();
+            let detailAmount        = $("#hpp_amount"+seq).val();
+            let detailDescription   = $("#hpp_description"+seq).val();
+            let detailDocReff       = $("#hpp_docReff"+seq).val();
+
+            hppDetail.push({
+                'hpp_category'      : detailCategory,
+                'hpp_amount'        : detailAmount,
+                'hpp_description'   : detailDescription,
+                'hpp_docReff'       : detailDocReff,
+            });
+        }
+
+        const transHppUrl   = "divisi/finance/hpp/simpan_data_hpp";
+        const transHppType  = "POST";
+        const transHppData  = {
+            'header'    : hppHeader,
+            'detail'    : hppDetail,
+        };
+        const transHppMsg   = Swal.fire({ title : 'Data Sedang Diproses..', allowOutsideClick: true }); Swal.showLoading();
+
+        doTransaction(transHppUrl, transHppType, transHppData, transHppMsg)
+            .then((success)     => {
+                Swal.fire({
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : success.message,
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        closeModal('modal_hitung_hpp_form');
+                    }
+                })
+            })
+            .catch((error)      => {
                 Swal.fire({
                     icon    : 'error',
                     title   : 'Terjadi Kesalahan',
-                    text    : error.responseJSON.message
+                    text    : error.responseJSON.message,
                 });
             })
     }
 }
 
-function downloadFile(jenis, fileFormat)
+function downloadFile(jenis = '', fileFormat = '')
 {
     if(jenis == 'haji')
     {
@@ -1359,6 +1682,54 @@ function downloadFile(jenis, fileFormat)
                     icon    : 'error',
                     title   : 'Terjadi Kesalahan',
                     text    : 'Gagal Download File'
+                })
+            })
+    } else if(jenis == 'hpp') {
+        // GET VAL BULAN 
+        let selectedBulan   = $("#hpp_filter_keberangkatan").val();
+        let selectedTahun   = moment(today, 'YYYY-MM-DD').format('YYYY');
+
+        const hppDownloadURL    = "divisi/finance/hpp/download_report_hpp";
+        const hppDownloadType   = "POST";
+        const hpppDownloadData  = {
+            'bulan' : selectedBulan,
+            'tahun' : selectedTahun,
+        };
+        const hppDownloadMsg    = Swal.fire({ title : "Download File" }); Swal.showLoading();
+
+        doTransaction(hppDownloadURL, hppDownloadType, hpppDownloadData, hppDownloadMsg)
+            .then((success)     => {
+                Swal.fire({
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : 'Klik `Ok` Untuk Download File'
+                }).then((res)   => {
+                    if(res.isConfirmed) {
+                        window.open(base_url + '/' + success.data.data_url);
+
+                        setTimeout(()   => {
+                            const deleteHPPUrl  = "divisi/finance/hpp/delete_report_hpp";
+                            const deleteHPPType = "POST";
+                            const deleteHPPData = {
+                                'file_path' : success.data.data_url,
+                            };
+
+                            doTransaction(deleteHPPUrl, deleteHPPType, deleteHPPData, '')
+                                .then((isSuccess)   => {
+                                    console.log(isSuccess);
+                                })
+                                .catch((isError)      => {
+                                    console.log(isError)
+                                })
+                        }, 5000);
+                    }
+                })
+            })
+            .catch((error)      => {
+                Swal.fire({
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : error.responseJSON.message,
                 })
             })
     }

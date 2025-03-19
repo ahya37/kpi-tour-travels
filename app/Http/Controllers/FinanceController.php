@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use Dotenv\Repository\RepositoryInterface;
 use File;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -821,24 +822,6 @@ class FinanceController extends Controller
                 ];
             }
 
-            // try {
-            //     $output     = [
-            //         'success'   => true,
-            //         'status'    => 200,
-            //         'message'   => 'Berhasil Generate Excel File : ' . $file_name,
-            //         'data'      => [
-            //             'data_url'  => 'storage/data-files/laporan_haji/' . $file_name,
-            //         ],
-            //     ];
-            // } catch (\Exception $e) {
-            //     $output     = [
-            //         'success'   => false,
-            //         'status'    => 522,
-            //         'message'   => $e->getMessage(),
-            //         'data'      => []
-            //     ];
-            // }
-
             return Response::json($output, $output['status']);
         }
     }
@@ -877,21 +860,433 @@ class FinanceController extends Controller
     // NOTE : SIMPAN PENGAJUAN KEUANGAN
     public function finance_simpan_pengajuan_keuangan(Request $request)
     {
-        $send_data  = [
-            'user_id'       => Auth::user()->id,
-            'ip_address'    => $request->ip(),
-            'data'          => $request->all(),
-        ];
+        // CHECK INPUTAN
+        if(!empty($request->all()['header']['pgj_tr_tour_code'])) {
+            // VALIDATE ERROR
+            $validation     = [
+                'pgj_tr_category'       => 'required',
+                'pgj_tr_cat_short_desc' => 'required',
+            ];
+        } else {
+            $validation     = [];
+        }
+        $validator  = Validator::make($request->all()['header'], $validation);
 
-        $do_simpan  = FinanceServices::do_simpan_pengajuan_keuangan($send_data);
+        if($validator->fails()) {
+            $output     = [
+                'success'   => false,
+                'status'    => 522,
+                'message'   => $validator->errors(),
+                'data'      => []
+            ];
+        } else {
+            $send_data  = [
+                'user_id'       => Auth::user()->id,
+                'ip_address'    => $request->ip(),
+                'data'          => $request->all(),
+            ];
+    
+            $do_simpan  = FinanceServices::do_simpan_pengajuan_keuangan($send_data);
+    
+            $output     = [
+                'success'   => $do_simpan['is_success'],
+                'status'    => $do_simpan['status_code'],
+                'message'   => $do_simpan['message'],
+                'data'      => $do_simpan['data']
+            ];
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+
+    // 17 MARET 2025
+    // NOTE : AMBIL DATA HPP FINANCE BY TOUR CODE
+    public function finance_hpp_get_data(Request $request)
+    {
+        $tour_code  = $request->all()['tour_code'];
+
+        $get_data   = FinanceServices::get_data_hpp_tour_code($tour_code);
 
         $output     = [
-            'success'   => $do_simpan['is_success'],
-            'status'    => $do_simpan['status_code'],
-            'message'   => $do_simpan['message'],
-            'data'      => $do_simpan['data']
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data']
         ];
 
         return Response::json($output, $output['status']);
+    }
+
+    // NOTE : SIMPAN DATA HPP FINANCE
+    public function finance_hpp_save_data(Request $request)
+    {
+        $send_data  = [
+            'ip_address'    => $request->ip(),
+            'user_id'       => Auth::user()->id,
+            'header'        => $request->all()['header'],
+            'detail'        => $request->all()['detail'],
+        ];
+
+        $do_simpan  = FinanceServices::do_save_hpp_data($send_data);
+
+        $output     = [
+            'success'       => $do_simpan['is_success'],
+            'status_code'   => $do_simpan['status_code'],
+            'message'       => $do_simpan['message'],
+            'data'          => $do_simpan['data']
+        ];
+
+        return Response::json($output, $output['status_code']);
+    }
+
+    // 18 MARET 2025
+    // NOTE : DOWNLOAD FILE EXCEL
+    public function finance_hpp_report(Request $request)
+    {
+        $bulan  = $request->all()['bulan'];
+        $tahun  = $request->all()['tahun'];
+        $tab    = str_repeat(" ", 10);
+
+        // GET DATA TOUR CODE BY BULAN
+        $get_tour_code  = FinanceServices::get_tour_code_by_year_month($tahun, $bulan);
+        $get_umrah_payment  = FinanceServices::get_payment_umrah_by_year_month($tahun, $bulan);
+
+        if(count($get_tour_code['data']) > 0) {
+            // GROUPING TOUR CODE
+            for($i = 0; $i < count($get_tour_code['data']); $i++) {
+                if($i == 0) {
+                    $temp_tour_code[]   = [
+                        'tour_code'         => $get_tour_code['data'][$i]->tour_code,
+                        'depature_date'     => $get_tour_code['data'][$i]->depature_date,
+                        'seat_take'         => $get_tour_code['data'][$i]->seat_take,
+                        'program_name'      => $get_tour_code['data'][$i]->program_name,
+                    ];
+                } else {
+                    if($get_tour_code['data'][$i]->tour_code != $get_tour_code['data'][$i-1]->tour_code) {
+                        $temp_tour_code[]   = [
+                            'tour_code'         => $get_tour_code['data'][$i]->tour_code,
+                            'depature_date'     => $get_tour_code['data'][$i]->depature_date,
+                            'seat_take'         => $get_tour_code['data'][$i]->seat_take,
+                            'program_name'      => $get_tour_code['data'][$i]->program_name,
+                        ];
+                    }
+                }
+            }
+
+            // TEMP PAYMENT
+            if(count($get_umrah_payment['data']) > 0) {
+                for($i = 0; $i < count($get_umrah_payment['data']); $i++) {
+                    $temp_umrah_payment[]   = [
+                        'tour_code'     => $get_umrah_payment['data'][$i]->tour_code,
+                        'category'      => $get_umrah_payment['data'][$i]->category,
+                        'total_amount'  => $get_umrah_payment['data'][$i]->grand_total_amount
+                    ];
+                }
+            } else {
+                $temp_umrah_payment   = [];
+            }
+
+            $spreadsheet    = new Spreadsheet;
+            $sheet_summary  = $spreadsheet->getActiveSheet();
+
+            $sheet_summary->getStyle('A1:J46')->getFont()->setName('Book Antiqua');
+
+            $sheet_summary->setTitle('Summary Laba Rugi ' . $bulan . " " . $tahun);
+
+            for($i = 0; $i < count($temp_tour_code); $i++) {
+                $tour_code      = $temp_tour_code[$i]['tour_code'];
+                $depature_date  = $temp_tour_code[$i]['depature_date'];
+                $seat_take      = $temp_tour_code[$i]['seat_take'];
+                $program_name   = $temp_tour_code[$i]['program_name'];
+
+                $data_payment   = array_filter($temp_umrah_payment, function($payment) use($tour_code){
+                    return $payment['tour_code'] === $tour_code;
+                });
+
+                if($seat_take > 0) {
+                    // BUAT SPREADSHEET
+                    $data_tour_code[]   = [
+                        'tour_code'         => $tour_code,
+                        'depature_date'     => $depature_date,
+                        'seat_take'         => $seat_take,
+                        'program_name'      => $program_name,
+                        'detail_payment'    => array_values($data_payment)
+                    ];
+                }
+            }
+            
+            // DAPATKAN A - Z DALAM LOOP
+            $seq = 0;
+            for($i = 65; $i <= 90; $i++) {
+                $data_character[]   = [
+                    'char_seq'  => $seq++,
+                    'character' => chr($i)
+                ];
+            }
+
+            $total_tour_code    = count($data_tour_code);
+            $get_merge_char     = array_filter($data_character, function($char) use($total_tour_code){
+                return $char['char_seq'] == (int) $total_tour_code + 1;
+            });
+
+            // HEADER
+            $sheet_summary->setCellValue('A1', 'PT. PERCIKAN IMAN TOURS & TRAVEL');
+            $sheet_summary->mergeCells('A1:' . array_values($get_merge_char)[0]['character'] . '1');
+            $sheet_summary->setCellValue('A2', 'RINCIAN PENDAPATAN & BIAYA UMRAH BULAN ' . date('F', $bulan) . ' ' . $tahun);
+            $sheet_summary->mergeCells('A2:' . array_values($get_merge_char)[0]['character'] . '2');
+
+            
+            $sheet_summary->getStyle('A1:A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet_summary->getStyle('A1:A2')->getFont()->setSize(11)->setBold(true);
+
+
+            $sheet_summary->setCellValue('A4', 'NAMA PERKIRAAN');
+            $sheet_summary->setCellValue('A7', 'Pendapatan Umrah : ');
+            $sheet_summary->setCellValue('A8', $tab . 'Pendapatan Umrah');
+            $sheet_summary->setCellValue('A9', $tab . 'Airport & Handling');
+            $sheet_summary->setCellValue('A10', $tab . 'Surat Mahram');
+            $sheet_summary->setCellValue('A11', $tab . 'Pendapatan Tambahan Biaya Paket (Visa, Asuransi, dan lain-lain');
+            $sheet_summary->setCellValue('A12', $tab . 'Pendapatan Kereta Cepat');
+            $sheet_summary->setCellValue('A13', $tab . 'Lain-Lain');
+            $sheet_summary->setCellValue('A14', 'Jumlah');
+
+            $sheet_summary->setCellValue('A16', 'Biaya Umrah : ');
+            $sheet_summary->setCellValue('A17', $tab . 'Biaya Tiket');
+            $sheet_summary->setCellValue('A18', $tab . 'Biaya Perjalanan & Fee Pembimbing');
+            $sheet_summary->setCellValue('A19', $tab . 'Biaya Manasik Umrah');
+            $sheet_summary->setCellValue('A20', $tab . 'Biaya Additional Tours & Ekstra Tip');
+            $sheet_summary->setCellValue('A21', $tab . 'Biaya Land Arrangment');
+            $sheet_summary->setCellValue('A22', $tab . 'Biaya Tiket Museum');
+            $sheet_summary->setCellValue('A23', $tab . 'Biaya Perlengkapan Jemaah');
+            $sheet_summary->setCellValue('A24', $tab . 'Biaya Administrasi Jemaah');
+            $sheet_summary->setCellValue('A25', $tab . 'Biaya Akomodasi & Transportasi (Airport & Handling)');
+            $sheet_summary->setCellValue('A26', $tab . 'Biaya Mahram');
+            $sheet_summary->setCellValue('A27', $tab . 'Biaya Hotel');
+            $sheet_summary->setCellValue('A28', $tab . 'Biaya Visa & LA Tours');
+            $sheet_summary->setCellValue('A29', $tab . 'Biaya Fee Bendera & Pengurusan');
+            $sheet_summary->setCellValue('A30', $tab . 'Biaya Visa');
+            $sheet_summary->setCellValue('A31', $tab . 'Biaya Insentif Umrah Pembimbing');
+            $sheet_summary->setCellValue('A32', $tab . 'Biaya Insentif Karyawan');
+            $sheet_summary->setCellValue('A33', $tab . 'Biaya Biometrik');
+            $sheet_summary->setCellValue('A34', $tab . 'Biaya Visa Asuransi');
+            $sheet_summary->setCellValue('A35', $tab . 'Biaya Karantina');
+            $sheet_summary->setCellValue('A36', $tab . 'Biaya PCR');
+            $sheet_summary->setCellValue('A37', $tab . 'Biaya Lokal');
+            $sheet_summary->setCellValue('A38', $tab . 'Biaya Kereta Cepat');
+            $sheet_summary->setCellValue('A39', $tab . 'Biaya Lain-Lain');
+            $sheet_summary->setCellValue('A40', $tab . 'Biaya Paket');
+            $sheet_summary->setCellValue('A41', $tab . 'Biaya Lain-Lain (spanduk & obat-obatan');
+
+            $sheet_summary->setCellValue('A43', 'Jumlah');
+
+            $sheet_summary->setCellValue('A45', 'Laba (Rugi) Kotor');
+            $sheet_summary->setCellValue('A46', 'Laba (Rugi) Kotor Per Pax');
+
+            // STYLE HEADER
+            $sheet_summary->getStyle('A4')->getFont()->setSize(11)->setBold(true);
+            $sheet_summary->getStyle('A7')->getFont()->setSize(11)->setBold(true);
+            $sheet_summary->getStyle('A14')->getFont()->setSize(11)->setBold(true);
+            $sheet_summary->getStyle('A16')->getFont()->setSize(11)->setBold(true);
+            $sheet_summary->getStyle('A43')->getFont()->setSize(11)->setBold(true);
+            $sheet_summary->getStyle('A45')->getFont()->setSize(11)->setBold(true);
+            $sheet_summary->getStyle('A46')->getFont()->setSize(11)->setBold(true);
+            
+            $sheet_summary->mergeCells('A4:A5');
+            $sheet_summary->getStyle('A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet_summary->getStyle('A4')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            $sheet_summary->getStyle('A14')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet_summary->getStyle('A43')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+            // FIXED WIDTH
+            $total_biaya_tiket          = 0;
+            $total_biaya_perjalanan     = 0;
+            $total_biaya_la             = 0;
+            $total_biaya_manasik        = 0;
+            $total_biaya_tiket_museum   = 0;
+            $total_biaya_perlengkapan   = 0;
+            $total_biaya_asuransi       = 0;
+            $total_biaya_akomodasi      = 0;
+            $total_biaya_handling       = 0;
+            $total_biaya_kereta_cepat   = 0;
+            $total_biaya_paket          = 0;
+            $total_biaya_lain_lain      = 0;
+
+            $sheet_summary->getColumnDimension('A')->setWidth(50);
+            for($i = 0; $i < count($data_tour_code); $i++) {
+                $get_merge_char_1   = array_filter($data_character, function($char) use($i){
+                    return $char['char_seq'] == (int) $i + 1;
+                });
+
+                $char       = array_merge($get_merge_char_1)[0]['character'];
+                $sheet_summary->getColumnDimension($char)->setWidth(26);
+
+                $sheet_summary->setCellValue($char.'4', "UMRAH " . strtoupper($data_tour_code[$i]['program_name']));
+                $sheet_summary->setCellValue($char.'5', $data_tour_code[$i]['seat_take'] . " PAX");
+                $sheet_summary->setCellValue($char."6", "UMRAH " . strtoupper(date('d M Y', strtotime($data_tour_code[$i]['depature_date']))));
+
+                $sheet_summary->getStyle($char."4:".$char."6")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet_summary->getStyle($char."4:".$char."6")->getFont()->setBold(true);
+                
+                $detail_payment_umrah   = $data_tour_code[$i]['detail_payment'];
+                
+                $grand_total_biaya_umrah    = 0;
+
+                if(count($detail_payment_umrah) > 0) {
+                    for($j = 0; $j < count($detail_payment_umrah); $j++) {
+                        $total_amount   = !empty($detail_payment_umrah[$j]['total_amount']) ? $detail_payment_umrah[$j]['total_amount'] : 0;
+                        $grand_total_biaya_umrah     += $total_amount;
+                        switch($detail_payment_umrah[$j]['category']) {
+                            case 'tiket' :
+                                $sheet_summary->setCellValue($char . '17', $total_amount);
+                                $total_biaya_tiket    = $total_biaya_tiket + $total_amount;
+                            break;
+                            case 'fee_pembimbing' :
+                                $sheet_summary->setCellValue($char . '18', $total_amount);
+                                $total_biaya_perjalanan     = $total_biaya_perjalanan + $total_amount;
+                            break;
+                            case 'manasik' :
+                                $sheet_summary->setCellValue($char . '19', $total_amount);
+                                $total_biaya_manasik    = $total_biaya_manasik + $total_amount;
+                            break;
+                            case 'la' :
+                                $sheet_summary->setCellValue($char . '21', $total_amount);
+                                $total_biaya_la     = $total_biaya_la + $total_amount;
+                            break;
+                            case 'tiket_museum' :
+                                $sheet_summary->setCellValue($char . '22', $total_amount);
+                                $total_biaya_tiket_museum   = $total_biaya_tiket_museum + $total_amount;
+                            break;
+                            case 'perlengkapan_jemaah' :
+                                $sheet_summary->setCellValue($char . '23', $total_amount);
+                                $total_biaya_perlengkapan   = $total_biaya_perlengkapan + $total_amount;
+                            break;
+                            case 'asuransi' :
+                                $sheet_summary->setCellValue($char . '24', $total_amount);
+                                $total_biaya_asuransi   = $total_biaya_asuransi + $total_amount;
+                            break;
+                            case 'akomodasi' :
+                                $sheet_summary->setCellValue($char . '25', $total_amount);
+                                $total_biaya_akomodasi  = $total_biaya_akomodasi + $total_amount;
+                            break;
+                            case 'handling' :
+                                $sheet_summary->setCellValue($char . '37', $total_amount);
+                                $total_biaya_handling   = $total_biaya_handling + $total_amount;
+                            break;
+                            case 'kereta_cepat' :
+                                $sheet_summary->setCellValue($char . '38', $total_amount);
+                                $total_biaya_kereta_cepat   = $total_biaya_kereta_cepat + $total_amount;
+                            break;
+                            case 'paket' :
+                                $sheet_summary->setCellValue($char . '40', $total_amount);
+                                $total_biaya_paket  = $total_biaya_paket + $total_amount;
+                            break;
+                            case 'lain-lain' :
+                                $sheet_summary->setCellValue($char . '41', $total_amount);
+                                $total_biaya_lain_lain  = $total_biaya_lain_lain + $total_amount;
+                            break;
+                        }
+                    }
+                }
+                $sheet_summary->setCellValue($char . '43', $grand_total_biaya_umrah);
+                $sheet_summary->getStyle($char . '8:' . $char . '46')->getNumberFormat()->setFormatCode('_-"Rp"* #,##0.00_-;-"Rp"* #,##0.00_-;_-"Rp"* "-"??_-;_-@_-');
+            }
+            // TOTAL
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'].'4', 'Total');
+            $sheet_summary->mergeCells(array_values($get_merge_char)[0]['character'] . '4:' .array_values($get_merge_char)[0]['character'].'5');
+            $sheet_summary->getStyle(array_values($get_merge_char)[0]['character'].'4')->getFont()->setSize(11)->setBold(true);
+            $sheet_summary->getStyle(array_values($get_merge_char)[0]['character'].'4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet_summary->getStyle(array_values($get_merge_char)[0]['character'].'4')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            // FORMAT RP
+            $sheet_summary->getStyle(array_values($get_merge_char)[0]['character'] . '8:' . array_values($get_merge_char)[0]['character'] . '46')->getNumberFormat()->setFormatCode('_-"Rp"* #,##0.00_-;-"Rp"* #,##0.00_-;_-"Rp"* "-"??_-;_-@_-');
+
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '17', $total_biaya_tiket);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '18', $total_biaya_perjalanan);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '19', $total_biaya_manasik);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '21', $total_biaya_la);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '22', $total_biaya_tiket_museum);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '23', $total_biaya_perlengkapan);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '24', $total_biaya_asuransi);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '25', $total_biaya_akomodasi);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '37', $total_biaya_handling);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '38', $total_biaya_kereta_cepat);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '40', $total_biaya_paket);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '41', $total_biaya_lain_lain);
+            $sheet_summary->setCellValue(array_values($get_merge_char)[0]['character'] . '43', $total_biaya_tiket + $total_biaya_perjalanan + $total_biaya_manasik + $total_biaya_la + $total_biaya_tiket_museum + $total_biaya_perlengkapan + $total_biaya_asuransi + $total_biaya_akomodasi + $total_biaya_handling + $total_biaya_kereta_cepat + $total_biaya_paket + $total_biaya_lain_lain);
+
+
+            // HIDDEN ROW
+            $sheet_summary->getRowDimension(10)->setVisible(false);
+            $sheet_summary->getRowDimension(11)->setVisible(false);
+            $sheet_summary->getRowDimension(20)->setVisible(false);
+            $sheet_summary->getRowDimension(26)->setVisible(false);
+            $sheet_summary->getRowDimension(27)->setVisible(false);
+            $sheet_summary->getRowDimension(28)->setVisible(false);
+            $sheet_summary->getRowDimension(29)->setVisible(false);
+            $sheet_summary->getRowDimension(30)->setVisible(false);
+            $sheet_summary->getRowDimension(31)->setVisible(false);
+            $sheet_summary->getRowDimension(32)->setVisible(false);
+            $sheet_summary->getRowDimension(33)->setVisible(false);
+            $sheet_summary->getRowDimension(34)->setVisible(false);
+            $sheet_summary->getRowDimension(35)->setVisible(false);
+            $sheet_summary->getRowDimension(36)->setVisible(false);
+            $sheet_summary->getRowDimension(39)->setVisible(false);
+
+            // SET WIDTH
+            $sheet_summary->getColumnDimension(array_values($get_merge_char)[0]['character'])->setWidth(25);
+
+            // DEFAULT ACTIVE SHEET
+            $spreadsheet->setActiveSheetIndex(0);
+
+            // SIMPAN FILE
+            $file_name  = time() . "_Laporan_Laba_Rugi_Umrah_" . date('F', strtotime($bulan)) ."-". $tahun . ".xlsx";
+            $writer     = new Xlsx($spreadsheet);
+            $file_path  = public_path('storage/data-files/laporan_finance/');
+
+            if(!File::exists($file_path)) {
+                File::makeDirectory($file_path, 0755, true);
+            }
+
+            $writer->save($file_path.$file_name);
+
+            try {
+                $output     = [
+                    'success'   => true,
+                    'status'    => 201,
+                    'message'   => 'Berhasil Download File Laba Rugi',
+                    'data'      => [
+                        'data_url'  => 'storage/data-files/laporan_finance/' . $file_name,
+                    ],
+                ];
+            } catch (\Exception $e) {
+                $output     = [
+                    'success'   => false,
+                    'status'    => 400,
+                    'message'   => 'Gagal Download File Laba Rugi',
+                    'data'      => []
+                ];
+            }
+
+        } else {
+            $output     = [
+                'success'   => $get_tour_code['is_success'],
+                'status'    => $get_tour_code['status_code'],
+                'message'   => 'Tidak Ada Data Yang Bisa Didownload',
+                'data'      => $get_tour_code['data'],
+            ];
+        }
+        
+        return Response::json($output, $output['status']);
+    }
+
+    public function finance_delete_hpp_report(Request $request)
+    {
+        $file_path  = public_path($request['file_path']);
+
+        if(file_exists($file_path)) {
+            unlink($file_path);
+            return Response::json('berhasil', 200);
+        } else {
+            return Response::json('gagal', 500);
+        }
     }
 }

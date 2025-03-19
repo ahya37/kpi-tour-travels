@@ -549,6 +549,14 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::post('/simpan_keuangan', [finance::class, 'finance_simpan_pengajuan_keuangan']);
             });
 
+            Route::prefix('hpp')->group(function(){
+                Route::get('/data_hpp', [finance::class, 'finance_hpp_get_data']);
+                Route::post('/simpan_data_hpp', [finance::class, 'finance_hpp_save_data']);
+
+                Route::post('/download_report_hpp', [finance::class, 'finance_hpp_report']);
+                Route::post('/delete_report_hpp', [finance::class, 'finance_delete_hpp_report']);
+            });
+
             Route::prefix('aktivitas')->group(function(){
                 Route::get('/', [ProgramKerjaController::class, 'indexHarian'])->name('finance.index.aktivitas.harian');
             });

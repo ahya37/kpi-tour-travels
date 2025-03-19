@@ -10,7 +10,6 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-12">
-                        <button class="btn btn-primary" title="Tambah Data"><i class="fa fa-plus"></i> Tambah Data</button>
                         <button class="btn btn-primary" title="Filter Data" data-toggle="collapse" data-target="#filter_data_tour_code"><i class="fa fa-filter"></i> Filter Data</button>
                     </div>
                     <div class="col-12 mt-3">
@@ -18,10 +17,15 @@
                             <div class="card card-body">
                                 <div class="row">
                                     <div class="col-xl-3 col-md-6 col-12 mb-xl-0 mb-2">
-                                        <div class="form-group">
-                                            <label for="hpp_filter_keberangkatan">Keberangkatan</label>
-                                            <select name="hpp_filter_keberangkatan" id="hpp_filter_keberangkatan" style="width: 100%;" onchange="showSelectDetail(this.id, this.value)"></select>
-                                        </div>
+                                        <label for="hpp_filter_keberangkatan">Keberangkatan</label>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-xl-3 col-md-6 col-12 mb-xl-0 mb-2">
+                                        <select name="hpp_filter_keberangkatan" id="hpp_filter_keberangkatan" style="width: 100%;" onchange="showSelectDetail(this.id, this.value)"></select>
+                                    </div>
+                                    <div class="col-xl-3 col-md-6 col-12 mb-xl-0 mb-2">
+                                        <button class="btn btn-primary" style="height: 38px;" tilte="Download Report" disabled id="hpp_download_excel" onclick="downloadFile('hpp')"><i class="fa fa-file-excel"></i> Download File</button>
                                     </div>
                                 </div>
                             </div>

@@ -355,14 +355,81 @@ class FinanceServices
                     ->groupBy('a.ID', 'a.NOMOR', 'a.UNTUK', 'a.TGL', 'a.CURRENCY', 'a.NAMA')
                     ->orderBy('a.CREATED_DATE', 'desc')
                     ->get();
+
+        $q_journal      = DB::table('fin_trans_pengajuan_keuangan as a')
+                            ->join('fin_trans_journal as b', 'a.pgj_trans_id', '=', 'b.journal_reff_code')
+                            ->select('a.pgj_trans_id', 'a.pgj_id_umhaj')
+                            ->where(DB::raw("EXTRACT(YEAR FROM a.pgj_date)"), '=', $tahun)
+                            ->where(DB::raw("EXTRACT(MONTH FROM a.pgj_date)"), '=', $bulan)
+                            ->groupBy('a.pgj_trans_id', 'a.pgj_id_umhaj')
+                            ->get()
+                            ->toArray();
         
         try {
             if(count($query) > 0) {
+                // CHECK APAKAH ADA JURNAL / TIDAK
+                if(count($q_journal) > 0) {
+                    for($i = 0; $i < count($q_journal); $i++) {
+                        $journal[]  = [
+                            'pgj_trans_id'  => $q_journal[$i]->pgj_trans_id,
+                            'pgj_id_umhaj'  => $q_journal[$i]->pgj_id_umhaj,
+                        ];
+                    }
+                    for($i = 0; $i < count($query); $i++) {
+                        $pengajuan_id           = $query[$i]->pengajuan_id;
+                        $pengajuan_nomor_surat  = $query[$i]->pengajuan_nomor_surat;
+                        $pengaju_nama           = $query[$i]->pengaju_nama;
+                        $pengajuan_tanggal      = $query[$i]->pengajuan_tanggal;
+                        $pengajuan_deskripsi    = $query[$i]->pengajuan_deskripsi;
+                        $total_item             = $query[$i]->total_item;
+                        $total_pengajuan        = $query[$i]->total_pengajuan;
+                        $pengajuan_mata_uang    = $query[$i]->pengajuan_mata_uang;
+
+                        $is_journal             = array_filter($journal, function($item) use ($pengajuan_id){
+                            return $item['pgj_id_umhaj'] === $pengajuan_id;
+                        });
+
+                        $data_journal[]         = [
+                            'pengajuan_id'          => $pengajuan_id,
+                            'pengajuan_nomor_surat' => $pengajuan_nomor_surat,
+                            'pengaju_nama'          => $pengaju_nama,
+                            'pengajuan_tanggal'     => $pengajuan_tanggal,
+                            'pengajuan_deskripsi'   => $pengajuan_deskripsi,
+                            'total_item'            => $total_item,
+                            'total_pengajuan'       => $total_pengajuan,
+                            'pengajuan_mata_uang'   => $pengajuan_mata_uang,
+                            'is_journal'            => count($is_journal) > 0 ? true : false,
+                        ];
+                    }
+                } else {
+                    for($i = 0; $i < count($query); $i++) {
+                        $pengajuan_id           = $query[$i]->pengajuan_id;
+                        $pengajuan_nomor_surat  = $query[$i]->pengajuan_nomor_surat;
+                        $pengaju_nama           = $query[$i]->pengaju_nama;
+                        $pengajuan_tanggal      = $query[$i]->pengajuan_tanggal;
+                        $pengajuan_deskripsi    = $query[$i]->pengajuan_deskripsi;
+                        $total_item             = $query[$i]->total_item;
+                        $total_pengajuan        = $query[$i]->total_pengajuan;
+                        $pengajuan_mata_uang    = $query[$i]->pengajuan_mata_uang;
+
+                        $data_journal[]         = [
+                            'pengajuan_id'          => $pengajuan_id,
+                            'pengajuan_nomor_surat' => $pengajuan_nomor_surat,
+                            'pengaju_nama'          => $pengaju_nama,
+                            'pengajuan_tanggal'     => $pengajuan_tanggal,
+                            'pengajuan_deskripsi'   => $pengajuan_deskripsi,
+                            'total_item'            => $total_item,
+                            'total_pengajuan'       => $total_pengajuan,
+                            'pengajuan_mata_uang'   => $pengajuan_mata_uang,
+                            'is_journal'            => false,
+                        ];
+                    }
+                }
                 $output     = [
                     'status_code'   => 201,
                     'is_success'    => true,
                     'message'       => 'Berhasil Mengambil Data Pengajuan Keuangan Bulan ' . $bulan . ' Tahun ' . $tahun,
-                    'data'          => $query,
+                    'data'          => $data_journal,
                 ];
             } else {
                 $output     = [
@@ -1297,13 +1364,13 @@ class FinanceServices
                 DB::table('fin_trans_pengajuan_keuangan_detail')->insert($detail_trans_pengajuan);
             }
 
-            // CHECK APAKAH TOUR CODE DIISI ATAU TIDAK?
             if(!empty($header['pgj_tr_tour_code'])) {
                 // INSERT KE FIN MAS PAYMENT UMRAH
                 $payment_umrah_data     = [
                     'tour_code'             => $header['pgj_tr_tour_code'],
                     'category'              => $header['pgj_tr_category'],
                     'category_description'  => $header['pgj_tr_cat_short_desc'],
+                    'total_amount'          => str_replace('.', '', $header['pgj_total_uang']),
                     'doc_reff'              => $trans_pgj_id,
                     'created_by'            => $user_id,
                     'created_date'          => $today,
@@ -1312,8 +1379,9 @@ class FinanceServices
                 ];
 
                 DB::table('fin_mas_payment_umrah')->insert($payment_umrah_data);
+            }
 
-            // GENERATE ID JOURNAL
+            if(!empty($header['pgj_tr_debit'])) {
                 $journal_insert_debit   = [
                     'journal_date'          => $header['pgj_tgl_aju'],
                     'journal_description'   => $header['pgj_deskripsi'],
@@ -1329,7 +1397,10 @@ class FinanceServices
                     'ip_address'            => $ip_address,
                 ];
                 insert_journal::insert_finance_journal($journal_insert_debit);
+            }
 
+            if(!empty($header['pgj_tr_kredit']))
+            {
                 $journal_insert_credit  = [
                     'journal_date'          => $header['pgj_tgl_aju'],
                     'journal_description'   => $header['pgj_deskripsi'],
@@ -1344,7 +1415,7 @@ class FinanceServices
                     'updated_date'          => $today,
                     'ip_address'            => $ip_address,
                 ];
-                insert_journal::insert_finance_journal($journal_insert_credit);
+                insert_journal::insert_finance_journal($journal_insert_credit);   
             }
 
             try {
@@ -1422,6 +1493,7 @@ class FinanceServices
                         'tour_code'             => $header['pgj_tr_tour_code'],
                         'category'              => $header['pgj_tr_category'],
                         'category_description'  => $header['pgj_tr_cat_short_desc'],
+                        'total_amount'          => str_replace('.', '', $header['pgj_total_uang']),
                         'doc_reff'              => $trans_pgj_id,
                         'created_by'            => $user_id,
                         'created_date'          => $today,
@@ -1450,7 +1522,7 @@ class FinanceServices
                 
                 DB::table('fin_trans_journal')->where($where_update_journal_debit)->update($data_update_journal_debit);
             } else {
-                if(!empty($header['pgj_tr_tour_code'])) {
+                if(!empty($header['pgj_tr_debit'])) {
                     $journal_insert_debit   = [
                         'journal_date'          => $header['pgj_tgl_aju'],
                         'journal_description'   => $header['pgj_deskripsi'],
@@ -1485,7 +1557,7 @@ class FinanceServices
                 
                 DB::table('fin_trans_journal')->where($where_update_journal_credit)->update($data_update_journal_credit);
             } else {
-                if(!empty($header['pgj_tr_tour_code'])) {
+                if(!empty($header['pgj_tr_kredit'])) {
                     $journal_insert_credit  = [
                         'journal_date'          => $header['pgj_tgl_aju'],
                         'journal_description'   => $header['pgj_deskripsi'],
@@ -1528,6 +1600,224 @@ class FinanceServices
                 Log::channel('daily')->error($e->getMessage());
                 LogHelper::create('error_system', $output['message'], $ip_address);
             }
+        }
+
+        return $output;
+    }
+
+    // 17 MARET 2025
+    // NOTE : AMBIL DATA HPP
+    public static function get_data_hpp_tour_code($tour_code)
+    {
+        $q_data_hpp     = DB::table('fin_mas_payment_umrah')
+                            ->select(
+                                'tour_code',
+                                'category',
+                                'category_description',
+                                'total_amount',
+                                'doc_reff',
+                            )
+                            ->where('tour_code', '=', $tour_code)
+                            ->orderBy('created_date', 'asc')
+                            ->orderBy('doc_reff', 'asc')
+                            ->get();
+        try {
+            if(count($q_data_hpp) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data HPP ' . $tour_code,
+                    'data'          => $q_data_hpp,
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Data HPP ' . $tour_code . ' Tidak Ditemukan',
+                    'data'          => [],
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data HPP',
+                'data'          => []
+            ];
+        }
+        
+        return $output;
+    }
+
+    // NOTE : SIMPAN DATA HPP
+    public static function do_save_hpp_data($data)
+    {
+        $user_id        = $data['user_id'];
+        $ip_address     = $data['ip_address'];
+        $data_header    = $data['header'];
+        $data_detail    = $data['detail'];
+
+        DB::beginTransaction();
+
+        $tour_code      = $data_header['hpp_form_tour_code'];
+        
+        $seq    = 0;
+        for($i = 0; $i < count($data_detail); $i++) {
+            if(empty($data_detail[$i]['hpp_docReff'])) {
+                $seq++;
+                // GENERATE DOC_REFF
+                $q_get_doc_reff     = DB::table('fin_mas_payment_umrah')
+                                        ->select(DB::raw("SUBSTRING_INDEX(doc_reff, '-', -1) as last_number"))
+                                        ->where('tour_code', '=', $tour_code)
+                                        ->where(DB::raw("SUBSTRING_INDEX(doc_reff, '/', 1)"), '=', "HPP")
+                                        ->orderBy(DB::raw("CAST(SUBSTRING_INDEX(doc_reff, '-', -1) AS UNSIGNED)"), 'desc')
+                                        ->limit(1)
+                                        ->get();
+
+                if(count($q_get_doc_reff) > 0) {
+                    $last_number    = $q_get_doc_reff[0]->last_number;
+                    $new_number     = $last_number + $seq;
+                    $hpp_doc        = "HPP/" . date('Ym') . "-" . str_pad($new_number, 4, 0, STR_PAD_LEFT);
+                } else {
+                    $new_number     = $seq;
+                    $hpp_doc        = "HPP/" . date('Ym') . "-" . str_pad($new_number, 4, 0, STR_PAD_LEFT);
+                }
+
+                $data_simpan_hpp    = [
+                    'tour_code'             => $tour_code,
+                    'category'              => $data_detail[$i]['hpp_category'],
+                    'category_description'  => $data_detail[$i]['hpp_description'],
+                    'total_amount'          => str_replace('.', '', $data_detail[$i]['hpp_amount']),
+                    'doc_reff'              => $hpp_doc,
+                    'created_by'            => $user_id,
+                    'created_date'          => date('Y-m-d H:i:s'),
+                    'updated_by'            => $user_id,
+                    'updated_date'          => date('Y-m-d H:i:s')
+                ];
+                DB::table('fin_mas_payment_umrah')->insert($data_simpan_hpp);
+            }
+        }
+
+        try {
+            DB::commit();
+            
+            $output     = [
+                'is_success'    => true,
+                'status_code'   => 200,
+                'message'       => 'Berhasil Menyimpan Data HPP Umrah',
+                'data'          => []
+            ];
+
+            LogHelper::create('add', $output['message'], $ip_address);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Menyimpan Data HPP Umrah',
+                'data'          => [],
+            ];
+
+            Log::channel('daily')->error($e->getMessage());
+            LogHelper::create('error_system', $output['message'], $ip_address);
+        }
+
+        return $output;
+    }
+
+    // 18 MARET 2025
+    // NOTE : AMBIL DATA TOUR CODE BY TAHUN DAN BULAN
+    public static function get_tour_code_by_year_month($tahun, $bulan)
+    {
+        $query  = DB::table('programs_jadwal as a')
+                    ->leftJoin('programs as b', 'a.jdw_programs_id', '=', 'b.id')
+                    ->select(
+                            'jdw_tour_code as tour_code', 
+                            'jdw_depature_date as depature_date', 
+                            'jdw_arrival_date as arrival_date', 
+                            'jdw_tour_code as tour_code', 
+                            'jdw_seat as seat_total', 
+                            'jdw_take_seat as seat_take', 
+                            'jdw_available_seat as seat_available',
+                            'b.name as program_name'
+                            )
+                    ->where(DB::raw("EXTRACT(YEAR FROM jdw_depature_date)"), '=', $tahun)
+                    ->where(DB::raw("EXTRACT(MONTH FROM jdw_depature_date)"), '=', $bulan)
+                    ->get();
+        
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Tour Code',
+                    'data'          => $query,
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Tour Code',
+                    'data'          => [],
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data Tour Code',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+
+    // 19 MARET 2025
+    // NOTE : AMBIL DATA PEMBAYARAN UMRAH
+    public static function get_payment_umrah_by_year_month($tahun, $bulan)
+    {
+        $query  = DB::table('programs_jadwal as a')
+                    ->leftJoin('fin_mas_payment_umrah as b', 'a.jdw_tour_code', '=', 'b.tour_code')
+                    ->select('a.jdw_tour_code as tour_code', 'b.category', DB::raw("SUM(b.total_amount) as grand_total_amount"))
+                    ->where(DB::raw("EXTRACT(YEAR FROM a.jdw_depature_date)"), '=', $tahun)
+                    ->where(DB::raw("EXTRACT(MONTH FROM a.jdw_depature_date)"), '=', $bulan)
+                    ->whereNotNull('b.category')
+                    ->groupBy('a.jdw_tour_code', 'b.category', 'a.jdw_depature_date')
+                    ->orderBy('a.jdw_depature_date', 'asc')
+                    ->get();
+        
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 201,
+                    'message'       => 'Berhasil Mengambil Data Pembayaran Umrah Tahun ' . $tahun . ' Bulan ' . $bulan,
+                    'data'          => $query
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Pembayaran Umrah Tahun ' . $tahun . ' Bulan ' . $bulan,
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data Pembayaran Umrah',
+                'data'          => []
+            ];
         }
 
         return $output;
