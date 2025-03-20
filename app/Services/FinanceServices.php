@@ -1736,14 +1736,17 @@ class FinanceServices
         $query  = DB::table('programs_jadwal as a')
                     ->leftJoin('programs as b', 'a.jdw_programs_id', '=', 'b.id')
                     ->select(
-                            'jdw_tour_code as tour_code', 
-                            'jdw_depature_date as depature_date', 
-                            'jdw_arrival_date as arrival_date', 
-                            'jdw_tour_code as tour_code', 
-                            'jdw_seat as seat_total', 
-                            'jdw_take_seat as seat_take', 
-                            'jdw_available_seat as seat_available',
-                            'b.name as program_name'
+                            'a.jdw_tour_code as tour_code', 
+                            'a.jdw_depature_date as depature_date', 
+                            'a.jdw_arrival_date as arrival_date', 
+                            'a.jdw_tour_code as tour_code', 
+                            'a.jdw_seat as seat_total', 
+                            'a.jdw_take_seat as seat_take', 
+                            'a.jdw_available_seat as seat_available',
+                            'b.name as program_name',
+                            'a.jdw_price_double as price_double',
+                            'a.jdw_price_triple as price_triple',
+                            'a.jdw_price_quad as price_quad'
                             )
                     ->where(DB::raw("EXTRACT(YEAR FROM jdw_depature_date)"), '=', $tahun)
                     ->where(DB::raw("EXTRACT(MONTH FROM jdw_depature_date)"), '=', $bulan)
@@ -1816,6 +1819,57 @@ class FinanceServices
                 'is_success'    => false,
                 'status_code'   => 500,
                 'message'       => 'Gagal Mengambil Data Pembayaran Umrah',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+
+    // 20 MARET 2025
+    // NOTE : AMBIL UMRAH SEAT
+    public static function get_take_seat_umrah_by_year_month($tahun, $bulan)
+    {
+        $query      = DB::connection('umhaj_percik')
+                        ->table('umrah as a')
+                        ->join('jadwal_umrah as b', 'a.JENIS_UMRAH', '=', 'b.KODE')
+                        ->select('a.JENIS_UMRAH as tour_code', 'a.ROOM as paket', DB::raw("COUNT(a.ID) as total_jemaah"))
+                        ->where(DB::raw("EXTRACT(YEAR FROM b.BERANGKAT)"), '=', $tahun)
+                        ->where(DB::raw("EXTRACT(MONTH FROM b.BERANGKAT)"), '=', $bulan)
+                        ->groupBy('a.JENIS_UMRAH', 'a.ROOM', 'b.BERANGKAT')
+                        ->orderBy('b.BERANGKAT', 'asc')
+                        ->orderBy('a.ROOM', 'asc')
+                        ->get();
+        
+        try {
+            if(count($query) > 0) {
+                for($i = 0; $i < count($query); $i++) {
+                    $data[]     = [
+                        'tour_code'     => $query[$i]->tour_code,
+                        'paket'         => $query[$i]->paket,
+                        'total_jemaah'  => $query[$i]->total_jemaah,
+                    ];
+                }
+
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Seat Terambil',
+                    'data'          => $data,
+                ];
+            } else {
+                $outptu     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Seat',
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data Umrah',
                 'data'          => []
             ];
         }
