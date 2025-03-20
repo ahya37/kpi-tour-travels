@@ -88,7 +88,7 @@ class BaseService
 
     // 25 JUNI 2024
     // NOTE : GET DATA FOR doGetCurrentSubDivision
-    public static function doGetCurrentSubDivision($role, $userID)
+    public static function doGetCurrentSubDivision($role = '', $userID = '')
     {
         $query  = DB::select(
             "

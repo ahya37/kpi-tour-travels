@@ -1143,16 +1143,17 @@ function doSimpan(type, jenis, data)
 
             doTrans(editUrl, editType, editData, editMsg, true)
                 .then((results) => {
-                    Swal.fire({
-                        icon    : 'success',
-                        title   : 'Berhasil',
-                        text    : results.message,
-                    }).then((res)   => {
-                        if(res.isConfirmed) {
-                            closeModal('modal_edit_jam_kerja');
-                            showData('table_list_absensi');
-                        }
-                    })
+                    console.log(results);
+                    // Swal.fire({
+                    //     icon    : 'success',
+                    //     title   : 'Berhasil',
+                    //     text    : results.message,
+                    // }).then((res)   => {
+                    //     if(res.isConfirmed) {
+                    //         closeModal('modal_edit_jam_kerja');
+                    //         showData('table_list_absensi');
+                    //     }
+                    // })
                 })
                 .catch((error)  => {
                     Swal.fire({
