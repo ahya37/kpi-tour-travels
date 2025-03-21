@@ -951,6 +951,7 @@ class FinanceController extends Controller
         $get_tour_code      = FinanceServices::get_tour_code_by_year_month($tahun, $bulan);
         $get_umrah_payment  = FinanceServices::get_payment_umrah_by_year_month($tahun, $bulan);
         $get_umrah_seat     = FinanceServices::get_take_seat_umrah_by_year_month($tahun, $bulan);
+        $get_detail_payment = FinanceServices::get_payment_detail_umrah_by_year_month($tahun, $bulan);
 
         if(count($get_tour_code['data']) > 0) {
             // GROUPING TOUR CODE
@@ -982,11 +983,33 @@ class FinanceController extends Controller
 
             // TEMP PAYMENT
             if(count($get_umrah_payment['data']) > 0) {
+                if(count($get_detail_payment)) {
+                    for($i = 0; $i < count($get_detail_payment['data']); $i++) {
+                        $detail_payment[]   = [
+                            'tour_code'     => $get_detail_payment['data'][$i]->tour_code,
+                            'category'      => $get_detail_payment['data'][$i]->category,
+                            'description'   => $get_detail_payment['data'][$i]->category_description,
+                            'total_amount'  => $get_detail_payment['data'][$i]->total_amount,
+                            'doc_reference' => $get_detail_payment['data'][$i]->doc_reff,
+                        ];       
+                    }
+                } else {
+                    $detail_payment     = [];
+                }
                 for($i = 0; $i < count($get_umrah_payment['data']); $i++) {
+                    // GET DETAIL UMRAH
+                    $tour_code  = $get_umrah_payment['data'][$i]->tour_code;
+                    $category   = $get_umrah_payment['data'][$i]->category;
+
+                    $temp_detail_payment    = array_filter($detail_payment, function($item) use ($tour_code, $category){
+                        return $item['tour_code'] == $tour_code && $item['category'] == $category;
+                    });
+
                     $temp_umrah_payment[]   = [
                         'tour_code'     => $get_umrah_payment['data'][$i]->tour_code,
                         'category'      => $get_umrah_payment['data'][$i]->category,
-                        'total_amount'  => $get_umrah_payment['data'][$i]->grand_total_amount
+                        'total_amount'  => $get_umrah_payment['data'][$i]->grand_total_amount,
+                        'detail_payment'=> array_values($temp_detail_payment)
                     ];
                 }
             } else {
@@ -998,7 +1021,7 @@ class FinanceController extends Controller
 
             $sheet_summary->getStyle('A1:J46')->getFont()->setName('Book Antiqua');
 
-            $sheet_summary->setTitle('Summary Laba Rugi ' . $bulan . " " . $tahun);
+            $sheet_summary->setTitle('Summary Laba Rugi ' . date('F', strtotime($tahun."-".$bulan."-01")) . " " . $tahun);
 
             for($i = 0; $i < count($temp_tour_code); $i++) {
                 $tour_code      = $temp_tour_code[$i]['tour_code'];
@@ -1250,6 +1273,76 @@ class FinanceController extends Controller
                 $sheet_summary->setCellValue($char . '45', "=+" . $char . "14-" . $char . "43");
                 $sheet_summary->setCellValue($char . '46', "=" . $char . "45/" . $data_tour_code[$i]['seat_take']);
                 $sheet_summary->getStyle($char . '8:' . $char . '46')->getNumberFormat()->setFormatCode('_-"Rp"* #,##0.00_-;-"Rp"* #,##0.00_-;_-"Rp"* "-"??_-;_-@_-');
+
+                // CREATE NEW SHEET DETAIL
+                $sheet_detail   = $spreadsheet->createSheet();
+                $sheet_detail->setTitle(date('d', strtotime($data_tour_code[$i]['depature_date'])));
+                $sheet_detail->setCellValue('A1', 'Keterangan');
+                $sheet_detail->setCellValue('B1', $data_tour_code[$i]['program_name'] . ' ' . $data_tour_code[$i]['seat_take'] . ' Pax');
+
+                $sheet_detail->getColumnDimension('A')->setWidth(27);
+                $sheet_detail->getColumnDimension('B')->setWidth(27);
+
+                if(count($data_tour_code[$i]['detail_payment']) > 0) {
+                    // LOOP
+                    $umrah_detail_payment   = $data_tour_code[$i]['detail_payment'];
+                    $detail_payment_seq     = 3;
+
+                    for($j = 0; $j < count($umrah_detail_payment); $j++) {
+                        switch($umrah_detail_payment[$j]['category']) {
+                            case 'paket'    : 
+                                $detail_payment_category    = 'Biaya Paket';
+                            break;
+                            case 'handling' :
+                                $detail_payment_category    = 'Biaya Lokal';
+                            break;
+                            case 'perlengkapan_jemaah' :
+                                $detail_payment_category    = 'Biaya Perlengkapan Jemaah';
+                            break;
+                            case 'tiket_museum' :
+                                $detail_payment_category    = 'Biaya Tiket Museum';
+                            break;
+                            case 'la' :
+                                $detail_payment_category    = 'Biaya Land Arrangement';
+                            break;
+                            case 'manasik' :
+                                $detail_payment_category    = 'Biaya Manasik Umrah';
+                            break;
+                            case 'fee_pembimbing' :
+                                $detail_payment_category    = 'Biaya Perjalanan & Fee Pembimbing';
+                            break;
+                            case 'tiket' :
+                                $detail_payment_category    = 'Biaya Tiket';
+                            break;
+                            case 'kereta_cepat' :
+                                $detail_payment_category    = 'Biaya Kereta Cepat';
+                            break;
+                            case 'akomodasi' :
+                                $detail_payment_category    = 'Biaya Akomodasi';
+                            break;
+                            case 'asuransi' :
+                                $detail_payment_category    = 'Biaya Administrasi Jemaah';
+                            break;
+                        }
+                        
+                        $list_detail_payment    = $umrah_detail_payment[$j]['detail_payment'];
+                        $sheet_detail->setCellValue('A' . $detail_payment_seq + $j, $detail_payment_category);
+
+                        for($k = 0; $k < count($list_detail_payment); $k++) {
+                            $sheet_detail->setCellValue('A' . $detail_payment_seq + $j + 1 + $k, $tab . $list_detail_payment[$k]['description']);
+                            $sheet_detail->setCellValue('B' . $detail_payment_seq + $j + 1 + $k, $list_detail_payment[$k]['total_amount']);
+
+                            $sheet_detail->getStyle('B' . $detail_payment_seq + $j + 1 + $k)->getNumberFormat()->setFormatCode('_-"Rp"* #,##0.00_-;-"Rp"* #,##0.00_-;_-"Rp"* "-"??_-;_-@_-');
+                        }
+
+                        // TOTAL
+                        $sheet_detail->setCellValue('A' . $detail_payment_seq + $j + count($list_detail_payment) + 1, 'Jumlah');
+                        $sheet_detail->setCellValue('B' . $detail_payment_seq + $j + count($list_detail_payment) + 1, "=SUM(B" . $detail_payment_seq + $j + 1 .":B" . $detail_payment_seq + $j + count($list_detail_payment).")");
+
+                        $sheet_detail->getStyle('B' . $detail_payment_seq + $j + count($list_detail_payment) + 1)->getNumberFormat()->setFormatCode('_-"Rp"* #,##0.00_-;-"Rp"* #,##0.00_-;_-"Rp"* "-"??_-;_-@_-');
+                        $detail_payment_seq     = $detail_payment_seq + count($list_detail_payment) + 2;
+                    }
+                }
             }
             $new_char   = array_values($get_merge_char)[0]['character'];
             // TOTAL

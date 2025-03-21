@@ -1858,7 +1858,7 @@ class FinanceServices
                     'data'          => $data,
                 ];
             } else {
-                $outptu     = [
+                $output     = [
                     'is_success'    => true,
                     'status_code'   => 404,
                     'message'       => 'Tidak Ada Data Seat',
@@ -1871,6 +1871,48 @@ class FinanceServices
                 'status_code'   => 500,
                 'message'       => 'Gagal Mengambil Data Umrah',
                 'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function get_payment_detail_umrah_by_year_month($tahun, $bulan)
+    {
+        $query  = DB::table('programs_jadwal as a')
+                    ->leftJoin('fin_mas_payment_umrah as b', 'a.jdw_tour_code', '=', 'b.tour_code')
+                    ->select('a.jdw_tour_code as tour_code', 'b.category', 'b.category_description', 'b.total_amount', 'b.doc_reff')
+                    ->where(DB::raw("EXTRACT(YEAR FROM a.jdw_depature_date)"), '=', $tahun)
+                    ->where(DB::raw("EXTRACT(MONTH FROM a.jdw_depature_date)"), '=', $bulan)
+                    ->whereNotNull('b.category')
+                    ->orderBy('a.jdw_depature_date', 'asc')
+                    ->orderBy('b.category', 'asc')
+                    ->get();
+
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Pembayaran Detail',
+                    'data'          => $query,
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Pembayaran Detail',
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data Pembayaran Detail Umrah',
+                'data'          => [],
             ];
         }
 
