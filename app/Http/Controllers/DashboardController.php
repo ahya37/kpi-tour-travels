@@ -2,21 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee;
-use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\BaseService;
 use App\Services\EmployeeService;
 use Database\Seeders\EmployeeSeeder;
-use Date;
 use File;
 use Illuminate\Support\Facades\Auth;
 use Response;
-use Storage;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-use function Laravel\Prompts\alert;
+date_default_timezone_set('Asia/Jakarta');
 
 // use Illuminate\Support\Facades\Session;
 
@@ -75,79 +69,6 @@ class DashboardController extends Controller
 
             return view('dashboard/absen', $data);
         }
-    }
-
-    public function dashboard_presence(Request $request, $jenis)
-    {
-        date_default_timezone_set('Asia/Jakarta');
-        $today      = date('Y-m-d');
-        // MOVE DATA TO FOLDER
-        $imageData  = $request->all()['sendData']['prs_image'];
-        $imageData  = str_replace('data:image/png;base64,','', $imageData);
-        $imageData  = str_replace(' ', '+', $imageData);
-
-        $imageName  = Auth::user()->id.'_'.time().'.png';
-        $imagePath  = 'storage/data-files/absen/'.$today.'/';
-
-        $sendData   = [
-            "data"      => $request->all()['sendData'],
-            "data_url"  => $imagePath.$imageName,
-            "ip"        => $request->ip(),
-        ];
-
-        // Storage::put($imagePath, base64_decode($imageData));
-
-        $doSimpan   = BaseService::doAbsen($sendData);
-
-        if($doSimpan['status'] == 'berhasil') {
-            $output     = [
-                "success"   => true,
-                "status"    => 200,
-                "alert"     => [
-                    "icon"  => "success",
-                    "message"   => [
-                        "title"     => "Berhasil",
-                        "text"      => $jenis == 'masuk' ? "Kamu Berhasil Absen Masuk" : "Kamu Berhasil Absen Keluar",
-                    ],
-                ],
-            ];
-            // PINDAHKAN FILE
-            $tujuan_upload  = public_path($imagePath);
-
-            if(!File::exists($tujuan_upload)) {
-                File::makeDirectory($tujuan_upload, 0755, true);
-            }
-
-            File::put($tujuan_upload.$imageName, base64_decode($imageData));
-            
-
-        } else if($doSimpan['status'] == 'gagal') {
-            $output     = [
-                "success"   => true,
-                "status"    => 500,
-                "alert"     => [
-                    "icon"  => "error",
-                    "message"   => [
-                        "title"     => "Terjadi Kesalahan",
-                        "text"      => $jenis == 'masuk' ? "Kamu Gagal Absen Masuk" : "Kamu Gagal Absen Keluar"
-                    ],
-                ],
-            ];
-        } else if($doSimpan['status'] == 'duplikat') {
-            $output     = [
-                "success"   => false,
-                "status"    => 409,
-                "alert"     => [
-                    "icon"      => "error",
-                    "message"   => [
-                        "title"     => "Terjadi Kesalahan",
-                        "text"      => $doSimpan['errMsg'],
-                    ],
-                ],
-            ];
-        }
-
-        return Response::json($output, $output['status']);
     }
 
     public function dashboard_getPresenceToday()
@@ -230,6 +151,34 @@ class DashboardController extends Controller
                 "data"      => [],
             ];
         }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 22 MARET 2025
+    // NOTE : ABSENSI V2
+    public function absensi_user($jenis, Request $request)
+    {
+        $ip_address     = $request->ip();
+        $user_id        = Auth::user()->id;
+        $today          = date('Y-m-d H:i:s');
+        $data_absen     = $request->all();
+
+        $data_simpan    = [
+            'ip_address'    => $ip_address,
+            'user_id'       => $user_id,
+            'today'         => $today,
+            'data_absen'    => $data_absen,
+        ];
+
+        $do_simpan      = BaseService::do_simpan_absensi($jenis, $data_simpan);
+
+        $output      = [
+            'success'   => $do_simpan['is_success'],
+            'status'    => $do_simpan['status_code'],
+            'message'   => $do_simpan['message'],
+            'data'      => $do_simpan['data'],
+        ];
 
         return Response::json($output, $output['status']);
     }

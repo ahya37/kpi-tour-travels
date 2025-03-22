@@ -49,11 +49,11 @@ Route::group(['middleware' => ['auth']], function () {
     //route dashboard
     Route::prefix('dashboard')->group(function() {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-        Route::post('/postPresence/{jenis}', [DashboardController::class, 'dashboard_presence']);
         Route::get('/getDataPresenceToday', [DashboardController::class, 'dashboard_getPresenceToday']);
         Route::get('/absensi_pulang', [DashboardController::class, 'index_pulang'])->name('absen.pulang');
         Route::get('/tarik_data', [DashboardController::class, 'index_tarik_data_presensi']);
         Route::prefix('absensi')->group(function(){
+            Route::post('/{jenis}', [DashboardController::class, 'absensi_user']);
             Route::get('/get_user_presence', [DashboardController::class, 'absensi_ambil_data_user']);
         });
     });

@@ -209,7 +209,7 @@ function batalSimpanData()
     $("#btn_cancelData").addClass('d-none');
 }
 
-function getLocation(jenis)
+function getUserLocation(jenis)
 {
     if(navigator.geolocation)
     {
@@ -223,18 +223,28 @@ function getLocation(jenis)
                 latitude    = pos.coords.latitude;
                 longitude   = pos.coords.longitude;
 
-                simpanData(jenis);
+                let dataSimpan  = {
+                    'lat'  : latitude,
+                    'long' : longitude,
+                };
+
+                simpanData('form_absen', jenis, dataSimpan);
             },
             (fail)  => {
                 Swal.fire({
                     icon    : 'error',
                     title   : 'Terjadi Kesalahan',
-                    text    : fail,
+                    text    : fail.message,
                 });
                 latitude    = "";
                 longitude   = "";
 
-                simpanData(jenis);
+                let dataSimpan  = {
+                    'lat'   : latitude,
+                    'long'  : longitude,
+                };
+
+                simpanData('form_absen', jenis, dataSimpan);
             },
             {
                 enableHighAccuracy  : false,
@@ -249,86 +259,44 @@ function getLocation(jenis)
     }
 }
 
-function simpanData(jenis) {
-    if(jenis == 'masuk')
-    {
+function simpanData(idForm = '', jenis = '', data = []) {
+    if(idForm == 'form_absen') {
         const start_time    = moment().format('YYYY-MM-DD HH:mm:ss');
         const user_id       = $("#prs_user_id").val();
 
-        const prs_url       = "/dashboard/postPresence/"+jenis;
-        const prs_type      = "POST";
-        const prs_img       = document.getElementById('takePhoto').toDataURL('iamge/png');
-        const prs_data      = {
-            "prs_date"          : moment().format('YYYY-MM-DD'),
-            "prs_start_time"    : start_time,
-            "prs_user_id"       : user_id,
-            "prs_status"        : jenis,
-            "prs_image"         : prs_img,
-            "prs_lat"           : latitude,
-            "prs_long"          : longitude,
-        };
+        // GET DATA LOCATION
 
-        const prs_message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
-
-        doTrans(prs_url, prs_type, prs_data, prs_message, true)
-            .then((success) => {
-                Swal.fire({
-                    icon    : success.alert.icon,
-                    title   : success.alert.message.title,
-                    text    : success.alert.message.text,
-                }).then((results)   => {
-                    if(results.isConfirmed) {
-                        closeModal('modal_open_cam');
-                        window.location.href = base_url + "/dashboard";
-                    }
-                });
-            })
-            .catch((err)    => {
-                Swal.fire({
-                    icon    : err.responseJSON.alert.icon,
-                    title   : err.responseJSON.alert.message.title,
-                    text    : err.responseJSON.alert.message.text,
-                });
-            });
-    } else if(jenis == 'keluar') {
-        const end_time  = moment().format('YYYY-MM-DD HH:mm:ss');
-        const user_id   = $("#prs_user_id").val();
-        const prs_img   = document.getElementById('takePhoto').toDataURL('iamge/png');
-        
-        const prs_url       = "/dashboard/postPresence/"+jenis;
+        const prs_url       = base_url + "/dashboard/absensi/"+jenis;
         const prs_type      = "POST";
         const prs_data      = {
-            "prs_date"          : moment().format('YYYY-MM-DD'),
-            "prs_end_time"      : end_time,
-            "prs_user_id"       : user_id,
-            "prs_status"        : jenis,
-            "prs_image"         : prs_img,
-            "prs_lat"           : latitude,
-            "prs_long"          : longitude,
+            'prs_date'          : moment().format('YYYY-MM-DD'),
+            'prs_start_time'    : start_time,
+            'prs_user_id'       : user_id,
+            'prs_status'        : jenis,
+            'prs_lat'           : data['lat'],
+            'prs_long'          : data['long'],
         };
-        const prs_message   = Swal.fire({ title : 'Data Sedang Diproses' }); Swal.showLoading();
+        const prs_msg       = Swal.fire({ title : 'Data Sedang Diproses..', allowOutsideClick: true, }); Swal.showLoading();
 
-        doTrans(prs_url, prs_type, prs_data, prs_message, true)
-            .then((success) => {
+        doTransV2(prs_url, prs_type, prs_data, prs_msg, true)
+            .then((results)     => {
                 Swal.fire({
-                    icon    : success.alert.icon,
-                    title   : success.alert.message.title,
-                    text    : success.alert.message.text,
+                    icon    : 'success',
+                    title   : 'Berhasil',
+                    text    : results.message,
                 }).then((res)   => {
                     if(res.isConfirmed) {
-                        closeModal('modalShowCamera');
-                        prsTempData = [];
-                        window.location.href = base_url + "/dashboard";
+                        window.location.href = base_url + '/dashboard';
                     }
-                });
+                })
             })
-            .catch((err)    => {
+            .catch((error)      => {
                 Swal.fire({
-                    icon    : err.responseJSON.alert.icon,
-                    title   : err.responseJSON.alert.message.title,
-                    text    : err.responseJSON.alert.message.text,
-                });
-            });
+                    icon    : 'error',
+                    title   : 'Terjadi Kesalahan',
+                    text    : error.responseJSON.message,
+                })
+            })
     }
 }
 

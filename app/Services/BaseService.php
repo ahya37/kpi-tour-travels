@@ -114,144 +114,6 @@ class BaseService
         );
     }
 
-    public static function doAbsen($data)
-    {
-        date_default_timezone_set('Asia/Jakarta');
-        DB::beginTransaction();
-
-        $today      = date('Y-m-d');
-        $user_id    = $data['data']['prs_user_id'];
-        $jenis      = $data['data']['prs_status'];
-        $ip         = $data['ip'];
-        
-        if($jenis == 'masuk')
-        {
-            $do_check       = DB::select(
-                "
-                SELECT  *
-                FROM    tm_presence
-                WHERE   prs_date = '$today'
-                AND     prs_user_id  = '$user_id'
-                "
-            );
-            if(count($do_check) < 1) {
-                 // INSERT TO TABLE
-                $data_insert    = [
-                    "prs_date"          => $data['data']['prs_date'],
-                    "prs_user_id"       => $data['data']['prs_user_id'],
-                    "prs_in_time"       => $data['data']['prs_start_time'],
-                    "prs_in_file"       => $data['data_url'],
-                    "prs_in_location"   => $data['data']['prs_lat'].", ".$data['data']['prs_long'],
-                    "created_by"        => $data['data']['prs_user_id'],
-                    "created_at"        => date('Y-m-d H:i:s'),
-                    "updated_by"        => $data['data']['prs_user_id'],
-                    "updated_at"        => date('Y-m-d H:i:s'),
-                ];
-
-                DB::table('tm_presence')->insert($data_insert);
-            } else {
-                DB::rollBack();
-                $output     = [
-                    "status"    => "duplikat",
-                    "errMsg"    => "Absen 2x dalam satu hari tidak diperbolehkan",
-                ];
-
-                return $output;
-            }
-        } else if($jenis == 'keluar') {
-            // CHECK APAKAH DIA SUDHA ABSEN MASUK ATAU BELUM
-            $do_check_in    = DB::select(
-                "
-                SELECT  *
-                FROM    tm_presence
-                WHERE   prs_date = '$today'
-                AND     prs_user_id = '$user_id'
-                "
-            );
-
-            if(count($do_check_in) > 0) {
-                // CHECK APAKAH SUDAH ADA ABSEN KELUAR?
-                $do_check_out   = DB::select(
-                    "
-                    SELECT  *
-                    FROM    tm_presence
-                    WHERE   prs_date = '$today'
-                    AND     prs_user_id = '$user_id'
-                    AND     prs_in_time IS NOT NULL
-                    AND     prs_out_time IS NULL
-                    "
-                );
-
-                if(count($do_check_out) > 0) {
-                    $data_where     = [
-                        "prs_date"      => $data['data']['prs_date'],
-                        "prs_user_id"   => $data['data']['prs_user_id'],
-                    ];
-
-                    $data_update    = [
-                        "prs_out_time"      => $data['data']['prs_end_time'],
-                        "prs_out_file"      => $data['data_url'],
-                        "prs_out_location"  => $data['data']['prs_lat'].", ".$data['data']['prs_long'],
-                        "updated_by"        => $data['data']['prs_user_id'],
-                        "updated_at"        => date('Y-m-d H:i:s'),
-                    ];
-
-                    DB::table('tm_presence')
-                        ->where($data_where)
-                        ->whereNull('prs_out_time')
-                        ->update($data_update);
-                } else {
-                    DB::rollBack();
-                    $output     = [
-                        "status"    => "duplikat",
-                        "errMsg"    => "Absen 2x dalam satu hari tidak diperbolehkan",
-                    ];
-
-                    return $output;
-                }
-            } else {
-                DB::rollBack();
-                $output     = [
-                    "status"    => "duplikat",
-                    "errMsg"    => "Belum Absen Masuk",
-                ];
-
-                return $output;
-            }
-        }
-
-        try {
-            DB::commit();
-            if($jenis == 'masuk') {
-                LogHelper::create('add', 'Berhasil Absen Masuk', $ip);
-                $output     = [
-                    "status"    => "berhasil",
-                    "errMsg"    => ""
-                ];
-            } else if($jenis == 'keluar') {
-                LogHelper::create('add', 'Berhasil Absen Keluar', $ip);
-                $output     = [
-                    "status"    => "berhasil",
-                    "errMsg"    => "",
-                ];
-            }
-        } catch(\Exception $e) {
-            DB::rollBack();
-            if($jenis == 'masuk') {
-                LogHelper::create('error_system', 'Gagal Absen Masuk', $ip);
-            } else if($jenis == 'keluar') {
-                LogHelper::create('error_system', 'Gagal Absen Keluar', $ip);
-            }
-            Log::channel('daily')->error($e->getMessage());
-            $output     = [
-                "status"    => "gagal",
-                "errMsg"    => $e->getMessage(),
-            ];
-        }
-
-        return $output;
-    }
-
     public static function doGetPresenceToday()
     {
         date_default_timezone_set('Asia/Jakarta');
@@ -260,5 +122,130 @@ class BaseService
         $user_id    = Auth::user()->id;
         
         return DB::table('tm_presence')->where(['prs_date' => $today, 'prs_user_id' => $user_id])->get();
+    }
+
+    // 22 MARET 2025
+    // NOTE : ABSENSI V2
+    public static function do_simpan_absensi($jenis, $data_absen)
+    {
+        $ip_address     = $data_absen['ip_address'];
+        $today          = $data_absen['today'];
+        $user_id        = $data_absen['user_id'];
+        $data           = $data_absen['data_absen'];
+
+        if($jenis == 'masuk') {
+            // CHECK APAKAH SUDAH ADA ABSEN MASUK / BELOM
+            $check_absen_masuk  = DB::table('tm_presence')
+                                    ->where('prs_user_id', '=', $user_id)
+                                    ->where('prs_date', '=', date('Y-m-d', strtotime($today)))
+                                    ->get();
+
+            if(count($check_absen_masuk) > 0) {
+                $output     = [
+                    'status_code'   => 422,
+                    'is_success'    => false,
+                    'message'       => 'Anda Sudah Absen Masuk',
+                    'data'          => []
+                ];
+            } else {
+                DB::beginTransaction();
+                // SIMPAN ABSENSI
+                $data_insert_absen  = [
+                    'prs_date'          => $data['prs_date'],
+                    'prs_user_id'       => $data['prs_user_id'],
+                    'prs_in_time'       => $data['prs_start_time'],
+                    'prs_in_location'   => $data['prs_lat'] . ', ' . $data['prs_long'],
+                    'created_by'        => $data['prs_user_id'],
+                    'created_at'        => $today,
+                    'updated_by'        => $data['prs_user_id'],
+                    'updated_at'        => $today,
+                ];
+
+                DB::table('tm_presence')->insert($data_insert_absen);
+
+                try {
+                    DB::commit();
+
+                    $output     = [
+                        'is_success'    => true,
+                        'status_code'   => 201,
+                        'message'       => 'Berhasil Absen Masuk',
+                        'data'          => [],
+                    ];
+
+                    LogHelper::create('add', $output['message'] . ' Tanggal : ' . date('Y-m-d', strtotime($today)), $ip_address);
+                } catch (\Exception $e) {
+                    DB::rollBack();
+
+                    $output     = [
+                        'is_success'    => false,
+                        'status_code'   => 500,
+                        'message'       => 'Gagal Absen Masuk',
+                        'data'          => []
+                    ];
+
+                    Log::channel('daily')->error($e->getMessage());
+                    LogHelper::create('error_system', $output['message'] . ' Tanggal ' . date('Y-m-d', strtotime($today)), $ip_address);
+                }
+            }
+        } else if($jenis == 'keluar') {
+            // CHECK APAKAH SUDAH ADA JAM MASUK?
+            $query_check    = DB::table('tm_presence')
+                                ->where('prs_user_id', '=', $user_id)
+                                ->where('prs_date', '=', date('Y-m-d', strtotime($today)))
+                                ->whereNotNull('prs_in_time')
+                                ->get();
+
+            if(count($query_check) > 0) {
+                DB::beginTransaction();
+                // UPDATE DATA ABSEN
+                $data_where_absen   = [
+                    'prs_date'      => $data['prs_date'],
+                    'prs_user_id'   => $data['prs_user_id'],
+                ];
+                
+                $data_update_absen  = [
+                    'prs_out_time'      => $data['prs_start_time'],
+                    'prs_out_location'  => $data['prs_lat'] . ', ' . $data['prs_long'],
+                    'updated_by'        => $data['prs_user_id'],
+                    'updated_at'        => $today,
+                ];
+
+                DB::table('tm_presence')->where($data_where_absen)->whereNotNull('prs_in_time')->update($data_update_absen);
+
+                try {
+                    DB::commit();
+                    
+                    $output     = [
+                        'is_success'    => true,
+                        'status_code'   => 201,
+                        'message'       => 'Berhasil Absen Keluar',
+                        'data'          => []
+                    ];
+                    LogHelper::create('edit', $output['message'] . ' Tanggal : ' . date('Y-m-d', strtotime($today)), $ip_address);
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::channel('daily')->error($e->getMessage());
+
+                    $output     = [
+                        'is_success'    => false,
+                        'status_code'   => 500,
+                        'message'       => 'Gagal Absen Keluar',
+                        'data'          => []
+                    ];
+
+                    LogHelper::create('error_system', $output['message'] . ' Tanggal : ' . date('Y-m-d', strtotime($today)), $ip_address);
+                }
+            } else {
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 422,
+                    'message'       => 'Anda Belum Absen Masuk',
+                    'data'          => [],
+                ];
+            }
+        }
+
+        return $output;
     }
 }
