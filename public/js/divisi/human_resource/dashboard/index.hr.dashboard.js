@@ -490,7 +490,7 @@ function showTable(idTable, data)
                 let nama        = data[i]['employee_name'];
                 let tanggal     = data[i]['presence_date'];
                 let jamMasuk    = data[i]['presence_in'];
-                let jamKeluar   = data[i]['presence_out'];
+                let jamKeluar   = tanggal == moment(today, 'YYYY-MM-DD').format('YYYY-MM-DD') ? '00:00:00' : data[i]['presence_out'];
                 let jamTelat    = data[i]['late_time'];
                 let jamLebih    = data[i]['over_time'];
                 let buttonEdit  = `<button type="button" class="btn btn-sm btn-primary" value="${empID}|${tanggal}" title="Edit Absen" onclick="showModal('modal_edit_jam_kerja', 'edit', this.value)"><i class="fa fa-edit"></i></button>`;
@@ -1143,17 +1143,16 @@ function doSimpan(type, jenis, data)
 
             doTrans(editUrl, editType, editData, editMsg, true)
                 .then((results) => {
-                    console.log(results);
-                    // Swal.fire({
-                    //     icon    : 'success',
-                    //     title   : 'Berhasil',
-                    //     text    : results.message,
-                    // }).then((res)   => {
-                    //     if(res.isConfirmed) {
-                    //         closeModal('modal_edit_jam_kerja');
-                    //         showData('table_list_absensi');
-                    //     }
-                    // })
+                    Swal.fire({
+                        icon    : 'success',
+                        title   : 'Berhasil',
+                        text    : results.message,
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            closeModal('modal_edit_jam_kerja');
+                            showData('table_list_absensi');
+                        }
+                    })
                 })
                 .catch((error)  => {
                     Swal.fire({

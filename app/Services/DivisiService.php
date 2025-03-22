@@ -3240,7 +3240,7 @@ class DivisiService
 
             try {
                 DB::commit();
-                LogHelper::create('edit', 'Berhasil Mengubah Data Absensi User : ' . $data['data']['user_id'] . 'Tanggal : ' . $data['data']['tanggal'], $ip_address);
+                LogHelper::create('edit', 'Berhasil Mengubah Data Absensi User : ' . $data['data']['user_id'] . ' Tanggal : ' . $data['data']['tanggal'], $ip_address);
                 $output     = [
                     "status"    => "berhasil",
                     "errMsg"    => "",  
@@ -3271,7 +3271,7 @@ class DivisiService
 
             try {
                 DB::commit();
-                LogHelper::create('add', 'Berhasil Menambahkan Absen User :' . $data['data']['user_id'] . ' Pada Tanggal : ' . $data['data']['tanggal'], $ip_address);
+                LogHelper::create('add', 'Berhasil Menambahkan Absen User : ' . $data['data']['user_id'] . ' Pada Tanggal : ' . $data['data']['tanggal'], $ip_address);
                 $output     = [
                     "status"    => "berhasil",
                     "errMsg"    => "",  
