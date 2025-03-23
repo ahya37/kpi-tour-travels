@@ -25,7 +25,10 @@ $(document).ready(() => {
     };
 
     // GET DATA EMPLOYEE
-    const emp_url   = "/master/employees/data_employees";
+    const emp_url   = "/divisi/human_resource/employee/list";
+    const emp_data  = {
+        'cari'  : '%'
+    };
     const emp_type  = "GET";
 
     // GET DATA ABSEN
@@ -52,7 +55,7 @@ $(document).ready(() => {
 
     const sendData  = [
         doTrans(pgj_url, pgj_type, pgj_data, "", true),
-        doTrans(emp_url, emp_type, "", "", true),
+        doTrans(emp_url, emp_type, emp_data, "", true),
         doTrans(abs_url, abs_type, abs_data, "", true),
         doTrans(pgj_lmb_url, pgj_lmb_type, pgj_lmb_data, "", true),
         doTrans(rolesURL, rolesType, rolesData, "", true)
@@ -191,32 +194,9 @@ function showModal(idModal, jenis, data)
 
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
     } else if(idModal == 'modal_emp') {
-        const openModal     = (idModal) => {
-            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
-        }
-        
-        // GET DATA KARYAWAN
-        let employee_URL        = base_url + "/divisi/human_resource/employee/list";
-        let employee_type       = "GET";
-        let employee_data       = {
-            "cari"  : '%',
-        };
-        let employee_msg        = Swal.fire({ title : "Data Sedang Dimuat", allowOutsideClick: false }); Swal.showLoading();
-        
-        doTrans(employee_URL, employee_type, employee_data, employee_msg, true)
-            .then((success)     => {
-                let employee_getData    = success.data;
-                Swal.close();
-                openModal(idModal);
-                showTable('table_emp', employee_getData);
-            })
-            .catch((err)        => {
-                Swal.close();
-                openModal(idModal);
-                showTable('table_emp', []);
-            })
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
-        showTable('table_emp', '');
+        showTable('table_emp', dataEmployees[0]);
     } else if(idModal == 'modal_pgj_lmb') {
         // SHOW SELECT
         const bulanSekarang     = data == '' ? moment(today, 'YYYY-MM-DD').format('MM') : data['bulan'];
@@ -352,6 +332,8 @@ function showModal(idModal, jenis, data)
                     text    : 'Data Yang Dicari Tidak Ditemukan',
                 })
             })
+    } else if(idModal == 'modal_employee_detail') {
+        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
     }
 }
 
@@ -513,11 +495,10 @@ function showTable(idTable, data)
                 zeroRecords : "Data Yang Dicari Tidak Ditemukan"
             },
             columnDefs  : [
-                { "targets" : [0], "className" : "text-center align-middle", "width" : "5%" },
+                { "targets" : [0, 4], "className" : "text-center align-middle", "width" : "8%" },
                 { "targets" : [1], "className" : "text-left align-middle" },
-                { "targets" : [2], "className" : "text-left align-middle", "width" : "35%" },
-                { "targets" : [3], "className" : "text-left align-middle", "width" : "20%" },
-                { "targets" : [4], "className" : "text-center align-middle", "width" : "10%" },
+                { "targets" : [2], "className" : "text-left align-middle", "width" : "25%" },
+                { "targets" : [3], "className" : "text-center align-middle", "width" : "10%" },
             ],
             autoWidth   : false,
         });
@@ -531,13 +512,23 @@ function showTable(idTable, data)
                 let emp_division= emp['emp_division'];
                 let emp_role    = emp['emp_role'];
                 let emp_isActive= emp['emp_is_active'];
-                let emp_button  = emp_isActive == '1' ? `<button class="btn btn-sm btn-primary" value="${emp_id}" onclick="doSimpan('aktivasi', 'active', this.value)" title="Nonaktifkan akun ini?">Aktif</button>` : `<button class="btn btn-sm btn-danger" value="${emp_id}" onclick="doSimpan('aktivasi','deactive', this.value)" title="Aktifkan Akun ini?">Tidak Aktif</button>`;
+                let emp_isActive_label;
+                let emp_button  = `<button class="btn btn-sm btn-primary" value="${emp_id}" title="Lihat Data" onclick="showModal('modal_employee_detail', 'edit', this.value)"><i class="fa fa-eye"></i></button>`; 
+
+                switch(emp_isActive) {
+                    case '1' :
+                        emp_isActive_label  = `<span class="badge badge-sm badge-primary"><label class="font-weight-bold no-margins">Aktif</label></span>`;
+                    break;
+                    case '0' :
+                        emp_isActive_label  = `<span class="badge badge-sm badge-danger"><label class="font-weight-bold no-margins">Tidak Aktif</label></span>`;
+                    break;
+                }
 
                 $("#"+idTable).DataTable().row.add([
                     `<label class="no-margins font-weight-normal">${seq++}</label>`,
                     `<label class="no-margins font-weight-normal">${emp_name}</label>`,
                     `<label class="no-margins font-weight-normal">${emp_division}</label>`,
-                    `<label class="no-margins font-weight-normal">${emp_role}</label>`,
+                    `<label class="no-margins font-weight-normal">${emp_isActive_label}</label>`,
                     emp_button
                 ]).draw(false);
             }
@@ -630,6 +621,8 @@ function showTable(idTable, data)
             $(".dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
         }
     }
+
+    $("#"+idTable+"_wrapper").css('padding-bottom', '0px');
 }
 
 function showSelect(idSelect, data, selectedData, seq)
