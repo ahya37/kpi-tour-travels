@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Helpers\LogHelper;
 use DateInterval;
 use DateTime;
+use Hash;
 use Illuminate\Support\Facades\Log;
 use Route;
 use Str;
@@ -3485,6 +3486,291 @@ class DivisiService
             ];
         }
 
+        return $output;
+    }
+
+    // 24 MARET 2025
+    // NOTE : GET LIST GROUP DIVISION
+    public static function get_list_group_division()
+    {
+        $query  = DB::table('group_divisions')
+                    ->select('id as group_division_id', 'name as group_division_name', 'roles_id as role_system')
+                    ->orderBy('name', 'asc')
+                    ->get()
+                    ->toArray();
+        
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Grup Divisi',
+                    'data'          => $query,
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Grup Divisi',
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data Grup Divisi',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function get_list_sub_division()
+    {
+        $query  = DB::table('sub_divisions')
+                    ->select('id as sub_division_id', 'name as sub_division_name', 'division_group_id as group_division_id')
+                    ->orderBy('name', 'asc')
+                    ->get()
+                    ->toArray();
+        
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Sub Divisi',
+                    'data'          => $query,
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Sub Divisi',
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 404,
+                'message'       => 'Gagal Mengambil Data Sub Divisi',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+
+    public static function get_detail_employee($employee_id)
+    {
+        $query  = DB::table('employees as a')
+                    ->join('job_employees as b', 'a.id', '=', 'b.employee_id')
+                    ->join('group_divisions as c', 'b.group_division_id', '=', 'c.id')
+                    ->join('sub_divisions as d', 'b.sub_division_id', '=', 'd.id')
+                    ->select('a.*', 'b.group_division_id', 'b.sub_division_id', 'c.roles_id')
+                    ->where('a.id', '=', $employee_id)
+                    ->get();
+
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Karyawan',
+                    'data'          => $query[0]
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Tidak Ada Data Karyawan',
+                    'data'          => []
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Gagal Mengambil Data Karyawan',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
+
+    // 25 MARET 2025
+    // NOTE : SIMPAN DATA EMPLOYEE BARU
+    public static function do_simpan_employee($jenis, $data)
+    {
+        $ip_address     = $data['ip_address'];
+        $today          = $data['today'];
+        $request_data   = $data['data'];
+        $user_id        = $data['user_id'];
+        
+        DB::beginTransaction();
+
+        if($jenis == 'add') {
+            // INSERT TO USERS
+            // GENERATE EMAIL USER
+            $data_insert_user   = [
+                'name'      => $request_data['emp_full_name'],
+                'email'     => strtolower(preg_replace("/[^a-zA-Z]/", "", $request_data['emp_first_name'])) . '@percik.com',
+                'password'  => Hash::make('rahasia'),
+                'is_active' => 1,
+                'created_at'=> $today,
+                'updated_at'=> $today,
+            ];
+
+            DB::table('users')->insert($data_insert_user);
+
+            $user_id    = DB::getPdo()->lastInsertId();
+
+            // INSERT TO ROLE
+            $data_insert_role   = [
+                'role_id'   => $request_data['emp_role'],
+                'model_type'=> 'App\Models\User',
+                'model_id'  => $user_id,
+            ];
+            DB::table('model_has_roles')->insert($data_insert_role);
+
+            // INSERT TO EMPLOYEES
+            $data_insert_employees  = [
+                'id'        => Str::random(30),
+                'user_id'   => $user_id,
+                'name'      => $request_data['emp_full_name'],
+                'first_name'=> $request_data['emp_first_name'],
+                'middle_name'   => $request_data['emp_middle_name'],
+                'last_name'     => $request_data['emp_last_name'],
+                'birth_of_date' => date('Y-m-d', strtotime($request_data['emp_bod'])),
+                'birth_of_place'=> $request_data['emp_birth_place'],
+                'join_date'     => date('Y-m-d', strtotime($request_data['emp_join_date'])),
+                'created_by'    => $user_id,
+                'updated_by'    => $user_id,
+                'created_at'    => $today,
+                'updated_at'    => $today,
+                'gender'        => $request_data['emp_gender'],
+            ];
+
+            DB::table('employees')->insert($data_insert_employees);
+
+            // INSERT JOB EMPLOYEES
+            $data_insert_job_employees  = [
+                'id'                => Str::random(30),
+                'employee_id'       => $data_insert_employees['id'],
+                'group_division_id' => $request_data['emp_group_division'],
+                'sub_division_id'   => $request_data['emp_sub_division'],
+                'created_by'    => $user_id,
+                'updated_by'    => $user_id,
+                'created_at'    => $today,
+                'updated_at'    => $today,
+            ];
+
+            DB::table('job_employees')->insert($data_insert_job_employees);
+
+            try {
+                DB::commit();
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Menambahkan Data Karyawan Baru',
+                    'data'          => []
+                ];
+
+                LogHelper::create('add', $output['message'] . ' user id : ' . $user_id, $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 500,
+                    'message'       => 'Gagal Menyimpan Data Karyawan Baru',
+                    'data'          => []
+                ];
+
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
+        } else {
+            // UPDATE JOB EMPLOYEES
+            // GET LAST UPDATED DATE
+            $query_last_job_employees    = DB::table('job_employees')->select('updated_at', 'id')->where('employee_id', '=', $request_data['emp_id'])->get();
+            $query_user_id              = DB::table('employees')->select('user_id')->where('id', '=', $request_data['emp_id'])->get();
+
+            // UPDATE DATA JOB EMPLOYEE
+            $data_job_employees_where   = [
+                'employee_id'       => $request_data['emp_id'],
+                'id'                => $query_last_job_employees[0]->id,
+            ];
+
+            $data_job_employees_update  = [
+                'group_division_id' => $request_data['emp_group_division'],
+                'sub_division_id'   => $request_data['emp_sub_division'],
+                'updated_by'        => $user_id,
+                'updated_at'        => $today,
+            ];
+
+            DB::table('job_employees')->where($data_job_employees_where)->update($data_job_employees_update);
+
+            // INSERT TO TABLE HISTORY JOB EMPLOYEE
+            // CHECK HISTORY
+            $query_check_history    = DB::table('employee_history_title')->where(['group_division_id' => $request_data['emp_group_division'], 'sub_division_id' => $request_data['emp_sub_division']])->get();
+            if(count($query_check_history) < 1) {
+                $data_insert_history_job_employee   = [
+                    'employee_id'       => $request_data['emp_id'],
+                    'group_division_id' => $request_data['emp_group_division'],
+                    'sub_division_id'   => $request_data['emp_sub_division'],
+                    'created_date'      => $query_last_job_employees[0]->updated_at
+                ];
+    
+                DB::table('employee_history_title')->insert($data_insert_history_job_employee);
+            }
+            // UPDATE ROLES
+            $user_id    = $query_user_id[0]->user_id;
+            $data_role_where     = [
+                'model_id'  => $user_id,
+            ];
+
+            $data_role_update    = [
+                'role_id'   => $request_data['emp_role']
+            ];
+
+            DB::table('model_has_roles')->where($data_role_where)->update($data_role_update);
+
+            try {
+                DB::commit();
+
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 201,
+                    'message'       => 'Berhasil Mengubah Data Karyawan',
+                    'data'          => []
+                ];
+                
+                LogHelper::create('edit', $output['message'] . ' id : ' . $request_data['emp_id'], $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 500,
+                    'message'       => 'Gagal Mengubah Data Karyawan',
+                    'data'          => []
+                ];
+
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
+        }
+        
         return $output;
     }
 }

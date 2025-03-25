@@ -6,6 +6,8 @@ var base_url            = window.location.origin;
 var dataBulan           = [];
 var dataRoles           = [];
 var dataEmployees       = [];
+var dataGroupDiv        = [];
+var dataSubDiv          = [];
 
 clearUrl();
 
@@ -15,6 +17,12 @@ for(let i = 0; i < 12; i++) {
         "bulan_name": moment(i + 1, 'M').format('MMMM'),
     })
 }
+
+var dataJenisKelamin    = [
+    { 'value' : '%', 'text' : 'Semua' },
+    { 'value' : 'm', 'text' : 'Laki-Laki' },
+    { 'value' : 'f', 'text' : 'Perempuan' },
+];
 
 $(document).ready(() => {
     // GET DATA PENGAJUAN
@@ -53,12 +61,20 @@ $(document).ready(() => {
     const rolesType     = "GET";
     const rolesData     = [];
 
+    const groupDivisionURL  = base_url + "/divisi/human_resource/master/list_group_division";
+    const groupDivisionType = "GET";
+
+    const subDivisionURL    = base_url + "/divisi/human_resource/master/list_sub_division";
+    const subDivisionType   = "GET";
+
     const sendData  = [
         doTrans(pgj_url, pgj_type, pgj_data, "", true),
         doTrans(emp_url, emp_type, emp_data, "", true),
         doTrans(abs_url, abs_type, abs_data, "", true),
         doTrans(pgj_lmb_url, pgj_lmb_type, pgj_lmb_data, "", true),
-        doTrans(rolesURL, rolesType, rolesData, "", true)
+        doTrans(rolesURL, rolesType, rolesData, "", true),
+        doTrans(groupDivisionURL, groupDivisionType, '', true),
+        doTrans(subDivisionURL, subDivisionType, '', true )
     ];
 
     Promise.allSettled(sendData)
@@ -125,6 +141,17 @@ $(document).ready(() => {
 
             const rolesSendData     = success[4].status == 'fulfilled' ? success[4].value.data : [];
             dataRoles   = rolesSendData;
+
+            // GROUP DIVISION
+            const groupDivisionGetData  = success[5].status == 'fulfilled' ? success[5].value.data : [];
+            if(groupDivisionGetData.length > 0) {
+                dataGroupDiv.push(groupDivisionGetData);
+            }
+
+            const subDivisiGetData      = success[6].status == 'fulfilled' ? success[6].value.data : [];
+            if(subDivisiGetData.length > 0) {
+                dataSubDiv.push(subDivisiGetData);
+            }
         })
         .catch((err)        => {
             console.log(err);
@@ -197,6 +224,17 @@ function showModal(idModal, jenis, data)
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
         showTable('table_emp', dataEmployees[0]);
+        if(dataEmployees.length < 1) {
+            $("#table_emp").find('.dataTables_empty').html(`Tidak Ada Data Yang Bisa Dimuat`);
+        };
+        
+        // SELECT FILTER
+        const filterDataStatus  = [
+            { 'value' : '1', 'text' : 'Aktif' },
+            { 'value' : '0', 'text' : 'Tidak Aktif' },
+        ];
+        showSelect('filter_status_karyawan', filterDataStatus, '', '');
+        showSelect('filter_jk_karyawan', dataJenisKelamin, '', '');
     } else if(idModal == 'modal_pgj_lmb') {
         // SHOW SELECT
         const bulanSekarang     = data == '' ? moment(today, 'YYYY-MM-DD').format('MM') : data['bulan'];
@@ -333,7 +371,93 @@ function showModal(idModal, jenis, data)
                 })
             })
     } else if(idModal == 'modal_employee_detail') {
-        $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        closeModal('modal_emp');
+        $("#emp_bod").daterangepicker({
+            singleDatePicker    : true,
+            showDropdowns       : true,
+            locale              : {
+                format  : 'DD/MM/YYYY'
+            },
+            autoApply   : true,
+            minYear     : 1945,
+            maxYear     : parseInt(moment(today, 'YYYY-MM-DD').add(1, 'years').format('YYYY')),
+        }).prop('style', 'background:white; cursor:pointer;');
+
+        $("#emp_join_date").daterangepicker({
+            singleDatePicker    : true,
+            showDropdowns       : true,
+            locale              : {
+                format  : 'DD/MM/YYYY',
+            },
+            autoApply   : true,
+            minYear     : 200, 
+            maxYear     : parseInt(moment(today, 'YYYY-MM-DD').add(1, 'years').format('YYYY')),
+        }, (start, end, label) => {
+            let year    = moment().diff(start, 'years');
+            let month   = moment().diff(start.add(year, 'years'), 'month');
+
+            $("#emp_work_periode").html(`${year} Tahun ${month} Bulan`);
+        }).prop('style', 'background:white; cursor:pointer;');
+
+        if(jenis == 'add') {
+            showSelect('emp_gender', dataJenisKelamin, '');
+            showSelect('emp_group_division', dataGroupDiv[0], '');
+            showSelect('emp_sub_division', [],'');
+
+            $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+        } else {
+            // GET DATA
+            const empURL    = base_url + '/divisi/human_resource/employee/employee_detail';
+            const empType   = "GET";
+            const empData   = {
+                'employee_id'   : data,
+            };
+            const empMsg    = Swal.fire({ title : 'Data Sedang Dimuat..', allowOutsideClick : true }); Swal.showLoading();
+
+            doTrans(empURL, empType, empData, empMsg, true)
+                .then((success)     => {
+                    Swal.close();
+
+                    $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
+
+                    // FILL FORM
+                    $("#emp_id").val(data);
+                    $("#emp_first_name").val(success.data.first_name);
+                    $("#emp_middle_name").val(success.data.middle_name);
+                    $("#emp_last_name").val(success.data.last_name);
+
+                    $("#emp_bod").data('daterangepicker').setStartDate(moment(success.data.birth_of_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                    $("#emp_bod").data('daterangepicker').setEndDate(moment(success.data.birth_of_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+
+                    $("#emp_birth_place").val(success.data.birth_of_place);
+
+                    $("#emp_join_date").data('daterangepicker').setStartDate(moment(success.data.join_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                    $("#emp_join_date").data('daterangepicker').setEndDate(moment(success.data.join_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+
+                    let workPeriodeYear     = moment().diff(moment(success.data.join_date, 'YYYY-MM-DD'), 'years');
+                    let workPeriodeMonth    = moment().diff(moment(success.data.join_date, 'YYYY-MM-DD').add(workPeriodeYear, 'years'), 'months');
+                    $("#emp_work_periode").html(`${workPeriodeYear} Tahun ${workPeriodeMonth} Bulan`);
+
+                    
+                    showSelect('emp_gender', dataJenisKelamin, success.data.gender);
+                    showSelect('emp_group_division', dataGroupDiv[0], success.data.group_division_id);
+                    // FILTER SUBDIVISIONS
+                    const filterDataSubDiv  = dataSubDiv[0].filter(item => item.group_division_id == success.data.group_division_id);
+
+                    showSelect('emp_sub_division', filterDataSubDiv, success.data.sub_division_id);
+
+                    $("#emp_role").val(success.data.roles_id);
+                })
+                .catch((error)      => {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : error.responseJSON.message,
+                    })
+                })
+        }
+
+        $("#btnSimpan_employeeDetail").val(jenis);
     }
 }
 
@@ -356,6 +480,7 @@ function closeModal(idModal)
     } else if(idModal == 'modal_emp') {
         $("#"+idModal).on('hidden.bs.modal', () => {
             clearUrl();
+            $("#list_filter_umrah").collapse('hide');
         });
     } else if(idModal == 'modal_pgj_lmb') {
         clearUrl();
@@ -382,6 +507,15 @@ function closeModal(idModal)
             $("#edit_jam_kerja_telat").val(null);
             $("#edit_jam_kerja_lebih").val(null);
         });
+    } else if(idModal == 'modal_employee_detail') {
+        showModal('modal_emp', '', '');
+
+        $("#"+idModal).on('hidden.bs.modal', () => {
+            $("#emp_form").trigger('reset');
+            $("#btnSimpan_employeeDetail").val('');
+
+            $("#emp_work_periode").html('0 Tahun 0 Bulan');
+        })
     }
 }
 
@@ -532,9 +666,6 @@ function showTable(idTable, data)
                     emp_button
                 ]).draw(false);
             }
-            $("#"+idTable).find('.dataTables_empty').text('Ada Data');
-        } else {
-            $("#"+idTable).find('.dataTables_empty').text('Tidak Ada Data');
         }
 
         
@@ -695,7 +826,69 @@ function showSelect(idSelect, data, selectedData, seq)
         if(selectedData != '') {
             $("#"+idSelect).val(selectedData);
         }
+    } else if(idSelect == 'filter_status_karyawan') {
+        let html    = [
+            `<option selected disabled>Pilih Status</option>`,
+            `<option value="%">Semua</option>`
+        ];
+
+        $.each(data, (i, item)  => {
+           html     += `<option value="${item['value']}">${item['text']}</option>`
+        })
+
+        $("#"+idSelect).html(html);
+    } else if(idSelect == 'filter_jk_karyawan') {
+        let html    = `<option selected disabled>Pilih Gender</option>`;
+
+        $.each(data, (i, item)  => {
+           html     += `<option value="${item['value']}">${item['text']}</option>`
+        })
+
+        $("#"+idSelect).html(html);
+    } else if(idSelect == 'emp_gender') {
+        let html    = `<option selected disabled>Pilih Gender</option>`;
+
+        $.each(data, (i, item)  => {
+            if(item['value'] != '%') {
+                html     += `<option value="${item['value']}">${item['text']}</option>`   
+            }
+        })
+
+        $("#"+idSelect).html(html);
+        
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
+    } else if(idSelect == 'emp_group_division') {
+        let html    = `<option selected disabled>Pilih Grup Divisi</option>`;
+        
+        if(data.length > 0) {
+            $.each(data, (i, item) => {
+                html    += `<option value="${item['group_division_id']}">${item['group_division_name']}</option>`;
+            });
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
+    } else if(idSelect == 'emp_sub_division') {
+        let html    = `<option selected disabled>Pilih Sub Divisi</option>`;
+        
+        if(data.length > 0) {
+            $.each(data, (i, item) => {
+                html    += `<option value="${item['sub_division_id']}">${item['sub_division_name']}</option>`;
+            });
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
     }
+
 }
 
 function showSelectDetail(idSelect, value, seq = null)
@@ -780,6 +973,29 @@ function showSelectDetail(idSelect, value, seq = null)
                 showTable('table_pgj_lmb', []);
                 $(".dataTables_empty").html('Tidak Ada Data Yang Bisa Ditampilkan');
             })
+    } else if(idSelect == 'filter_status_karyawan') {
+        // FILTER DATA
+        showTable('table_emp', []);
+        let filterData;
+        if(value == '%') {
+            filterData  = dataEmployees[0];
+        } else {
+            filterData  = dataEmployees[0].filter(item => item.emp_is_active == value);
+        }
+        
+        setTimeout(()   => {
+            showTable('table_emp', filterData);
+        }, 500);
+
+    } else if(idSelect == 'filter_jk_karyawan') {
+        
+    } else if(idSelect == 'emp_group_division') {
+        const filterSubDivision     = dataSubDiv[0].filter(item => item.group_division_id == value);
+
+        showSelect('emp_sub_division', filterSubDivision, '', '');
+
+        const filterRole           = dataGroupDiv[0].filter(item => item.group_division_id == value);
+        $("#emp_role").val(filterRole[0].role_system);
     }
 }
 
@@ -1155,17 +1371,89 @@ function doSimpan(type, jenis, data)
                     });
                 })
         break;
+        case 'form_employee' :
+            // GET DATA
+            let firstName       = $("#emp_first_name").val();
+            let middleName      = $("#emp_middle_name").val() == '' ? '' : ' ' + $("#emp_middle_name").val();
+            let lastName        = $("#emp_last_name").val() == '' ? '' : ' ' + $("#emp_last_name").val()
+            
+            let employeeURL     = base_url + "/divisi/human_resource/employee/simpan_data/" + jenis;
+            let employeeType    = "POST";
+            let employeeMsg     = Swal.fire({ title : 'Data Sedang Diproses', allowOutsideClick: true }); Swal.showLoading();
+            let employeeData   = new FormData(document.getElementById('emp_form'));
+            employeeData.append('emp_gender', $("#emp_gender").val() == null ? '' : $("#emp_gender").val());
+            employeeData.append('emp_group_division', $("#emp_group_division").val() == null ? '' : $("#emp_group_division").val());
+            employeeData.append('emp_sub_division', $("#emp_sub_division").val() == null ? '' : $("#emp_sub_division").val());
+            employeeData.append('emp_full_name', `${firstName}${middleName}${lastName}`);
+
+            doTrans(employeeURL, employeeType, employeeData, employeeMsg, true, false, false)
+                .then((success)     => {
+                    Swal.fire({
+                        icon    : 'success',
+                        title   : 'Berhasil',
+                        text    : success.message,
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            // GET DATA EMPLOYEE DULU
+                            let empURL  = base_url + '/divisi/human_resource/employee/list';
+                            let empType = "GET";
+                            let empData = {
+                                'cari' : '%'
+                            };
+                            
+                            doTrans(empURL, empType, empData, "", true)
+                                .then((isSucces)     => {
+                                    if(isSucces.data.length > 0) {
+                                        dataEmployees = [];
+                                        dataEmployees.push(isSucces.data);
+                                    }
+                                    closeModal('modal_employee_detail');
+                                })
+                                .catch((isError)      => {
+                                    console.log(isError);
+                                    closeModal('modal_employee_detail');
+                                })
+                        }
+                    })
+                })
+                .catch((error)      => {
+                    console.log(error);
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : error.responseJSON.message,
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            $.each(error.responseJSON.data, (i, item)   => {
+                                $("#"+i).addClass('is-invalid');
+                                
+                                $("#"+i).on('click', () => {
+                                    $("#"+i).removeClass('is-invalid');
+                                })
+
+                                $("#"+i).on('select2:open', () => {
+                                    $("#"+i).removeClass('is-invalid');
+                                });
+
+
+                            })
+                        }
+                    });
+                })
+        break;
     }
 }
 
-function doTrans(url, type, data, customMessage, isAsync)
+function doTrans(url, type, data, customMessage, isAsync, processData = true, content = 'application/x-www-form-urlencoded; charset=UTF-8')
 {
     return new Promise((resolve, reject)    => {
         $.ajax({
-            cache   : false,
+            cache   : true,
             async   : isAsync,
             url     : url,
             type    : type,
+            processData     : processData,
+            contentType     : content,
             headers : {
                 'X-CSRF-TOKEN' : CSRF_TOKEN
             },

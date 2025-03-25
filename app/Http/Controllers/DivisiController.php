@@ -22,6 +22,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use Symfony\Component\ErrorHandler\Debug;
+use Validator;
 
 use function Laravel\Prompts\text;
 
@@ -3346,6 +3347,94 @@ class DivisiController extends Controller
                 'status'    => $get_data['status_code'],
                 'message'   => $get_data['message'],
                 'data'      => []
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 24 MARET 2025
+    // AMBIL LIST GROUP DIVISION
+    public function hr_list_group_division()
+    {
+        $get_data   = DivisiService::get_list_group_division();
+
+        $output     = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data']
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : AMBIL LIST SUB DIVISION
+    public function hr_list_sub_division()
+    {
+        $get_data   = DivisiService::get_list_sub_division();
+
+        $output     = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'message'   => $get_data['message'],
+            'data'      => $get_data['data']
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // NOTE : AMBIL DETAIL EMPLOYEE
+    public function hr_detail_employee(Request $req)
+    {
+        $employee_id    = $req->all()['employee_id'];
+
+        $get_data       = DivisiService::get_detail_employee($employee_id);
+        
+        $output         = [
+            'success'   => $get_data['is_success'],
+            'status'    => $get_data['status_code'],
+            'data'      => $get_data['data'],
+            'message'   => $get_data['message'],
+        ];
+
+        return Response::json($output, $output['status']);
+    }
+
+    // 25 MARET 2025
+    // NOTE : SIMPAN DATA EMPLOYEE
+    public function hr_simpan_employee($jenis, Request $request)
+    {
+        $checker    = Validator::make($request->all(), [
+            'emp_first_name'    => 'required',
+            'emp_bod'           => 'required',
+            'emp_join_date'     => 'required',
+            'emp_group_division'=> 'required',
+            'emp_sub_division'  => 'required',
+        ]);
+
+        if($checker->fails()) {
+            $output     = [
+                'success'   => false,
+                'status'    => 522,
+                'message'   => 'Periksa Kembali Inputan',
+                'data'      => $checker->messages()
+            ];
+        } else {
+            $send_data  = [
+                'ip_address'    => $request->ip(),
+                'today'         => date('Y-m-d H:i:s'),
+                'data'          => $request->all(),
+                'user_id'       => Auth::user()->id,
+            ];
+
+            $do_simpan          = DivisiService::do_simpan_employee($jenis, $send_data);
+            
+            $output             = [
+                'success'   => $do_simpan['is_success'],
+                'status'    => $do_simpan['status_code'],
+                'message'   => $do_simpan['message'],
+                'data'      => $do_simpan['data'],
             ];
         }
 

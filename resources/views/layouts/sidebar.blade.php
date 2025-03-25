@@ -281,6 +281,20 @@
                 </li>
             @endif
 
+            @if(Auth::user()->hasRole('hr'))
+                <li class="{{ request()->is('divisi/human_resource') || request()->is('divisi/human_resource/*') ? 'active' : '' }}">
+                    <a href="#">
+                        <i class="fa fa-users"></i>
+                        <span class="nav-label">Human Resource</span>
+                        <span class="fa arrow"></span>
+                    </a>
+                    <ul class="nav nav-second-level collapse">
+                        <li class="{{ request()->is('divisi/human_resource/dashboard') || request()->is('divisi/human_resource/dashboard/*') ? 'active' : ''}}">
+                            <a href="{{ route('index.human_resource.dashboard') }}">Dashboard</a>
+                        </li>
+                    </ul>
+                </li>
+            @endif
             {{-- HALAMAN YANG TIDAK PERLU ADMIN AKSES --}}
             @if(!Auth::user()->hasRole('admin'))
                 <li class="{{ request()->is('pengajuan/*') ? 'active' : '' }}">

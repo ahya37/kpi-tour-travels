@@ -9,6 +9,31 @@
             </div>
             <div class="modal-body">
                 <div class="row">
+                    <div class="col-12">
+                        <button class="btn btn-primary" id="filter_modal_emp" data-toggle="collapse" href="#list_filter_umrah"><i class="fa fa-filter"></i> Filter</button>
+                        <button class="btn btn-primary" id="tambah_modal_emp" onclick="showModal('modal_employee_detail', 'add', '')"><i class="fa fa-plus"></i> Tambah Data</button>
+                    </div>
+                    <div class="col-12">
+                        <div class="collapse" id="list_filter_umrah">
+                            <div class="row border-1 mt-2">
+                                <div class="col-md-3 col-sm-12">
+                                    <div class="form-group">
+                                        <label for="filter_status_karyawan">Status Karyawan</label>
+                                        <select name="filter_status_karyawan" id="filter_status_karyawan" class="form-control form-select" style="width: 100%;" onchange="showSelectDetail(this.id, this.value)"></select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-sm-12">
+                                    <div class="form-group">
+                                        <label for="filter_jk_karyawan">Jenis Kelamin</label>
+                                        <select name="filter_jk_karyawan" id="filter_jk_karyawan" class="form-control form-select" style="width: 100%;" onchange="showSelectDetail(this.id, this.value)"></select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
                     <div class="col-sm-12">
                         <div class="table-responsive">
                             <table class="table table-striped table-hover" id="table_emp" style="width: 100%;">
@@ -25,6 +50,10 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal_employee_detiail')">Tutup</button>
+                <button class="btn btn-primary" value="" id="btnSimpan_employee_detail" title="Simpan Data">Simpan</button>
             </div>
         </div>
     </div>
@@ -46,6 +75,7 @@
                                     <div class="form-group">
                                         <label for="emp_first_name" class="font-weight-bold">Nama Depan</label>
                                         <input type="text" class="form-control" id="emp_first_name" name="emp_first_name" placeholder="Nama Depan">
+                                        <input type="hidden" class="form-control" id="emp_id" name="emp_id" placeholder="ID">
                                     </div>
                                 </div>
                                 <div class="col-xl-4 col-12">
@@ -58,6 +88,12 @@
                                     <div class="form-group">
                                         <label for="emp_last_name" class="font-weight-bold">Nama Belakang</label>
                                         <input type="text" class="form-control" id="emp_last_name" name="emp_last_name" placeholder="Nama Belakang">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="emp_gender" class="font-weight-bold">Jenis Kelamin</label>
+                                        <select name="emp_gender" id="emp_gender" class="form-control form-select" style="width: 100%;"></select>
                                     </div>
                                 </div>
                                 <div class="col-xl-6 col-12">
@@ -75,20 +111,41 @@
                                 <div class="col-xl-6 col-12">
                                     <div class="form-group">
                                         <label for="emp_join_date" class="font-weight-bold">Tgl. Bergabung</label>
-                                        <input type="text" class="form-control" id="emp_join_date" name="emp_join_date" placeholder="Tgl. Bergabung">
+                                        <input type="text" class="form-control" id="emp_join_date" name="emp_join_date" placeholder="Tgl. Bergabung" readonly>
                                     </div>
                                 </div>
                                 <div class="col-xl-6">
                                     <div class="form-group">
-                                        <label for="emp_work_periode" class="font-weight-bold">Masa Kerja</label>
-                                        <span id="emp_work_periode"></span>
+                                        <label for="emp_work_periode" class="font-weight-bold">Masa Kerja</label><br>
+                                        <span id="emp_work_periode">0 Tahun 0 Bulan</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-xl-6 col-lg-12 col-12"></div>
+                        <div class="col-xl-6 col-lg-12 col-12">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="emp_group_division">Divisi</label>
+                                        <select name="emp_group_division" id="emp_group_division" class="form-control form-select" style="width: 100%;" onchange="showSelectDetail(this.id, this.value)"></select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="emp_sub_division">Sub-Divisi</label>
+                                        <select name="emp_sub_division" id="emp_sub_division" class="form-control form-select" style="width: 100%;"></select>
+                                    </div>
+                                    <div class="form-group d-none">
+                                        <label for="emp_role">Role System</label>
+                                        <input type="text" id="emp_role" name="emp_role" class="form-control" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modal_employee_detail')">Batal</button>
+                <button class="btn btn-primary" id="btnSimpan_employeeDetail" value="" onclick="doSimpan('form_employee', this.value, '')">Simpan</button>
             </div>
         </div>
     </div>

@@ -592,6 +592,9 @@ Route::group(['middleware' => ['auth']], function () {
             Route::prefix('/employee')->group(function(){
                 Route::get('/list', [DivisiController::class, 'hr_list_employee']);
                 Route::post('/ubahStatus', [DivisiController::class, 'hr_ubah_status_employee']);
+
+                Route::get('/employee_detail', [DivisiController::class, 'hr_detail_employee']);
+                Route::post('/simpan_data/{jenis}', [DivisiController::class, 'hr_simpan_employee']);
             });
             Route::prefix('absensi')->group(function(){
                 Route::get('/list', [DivisiController::class, 'absensi_list']);
@@ -604,6 +607,11 @@ Route::group(['middleware' => ['auth']], function () {
                 Route::get('/', [DivisiController::class, 'HR_indexJamKerja'])->name('index.human_resource.jam_kerja');
                 Route::get('/data_jam_kerja', [DivisiController::class, 'HR_getDataJamKerja']);
                 Route::post('/simpan_jam_kerja/{type}', [DivisiController::class, 'HR_simpanDataJamKerja']);
+            });
+
+            Route::prefix('master')->group(function(){
+                Route::get('/list_group_division', [DivisiController::class, 'hr_list_group_division']);
+                Route::get('/list_sub_division', [DivisiController::class, 'hr_list_sub_division']);
             });
         });
 
