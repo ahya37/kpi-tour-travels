@@ -1846,40 +1846,21 @@ class DivisiController extends Controller
 
     public function hr_ubah_status_employee(Request $request)
     {
-        $sendData   = [
+        $send_data   = [
             "emp_id"        => $request->all()['emp_id'],
-            "emp_status"    => $request->all()['emp_status'] == 'active' ? '0' : '1',
+            "emp_status"    => $request->all()['status'],
             "ip"            => $request->ip(),
+            "user_id"       => Auth::user()->id,
         ];
 
-        $doSimpan   = EmployeeService::do_ubah_status_employee($sendData);
+        $do_simpan   = EmployeeService::do_ubah_status_employee($send_data);
 
-        if($doSimpan['status'] == 'berhasil') {
-            $output     = [
-                "status"    => 200,
-                "success"   => true,
-                "alert"     => [
-                    "icon"  => "success",
-                    "message"   => [
-                        "title"     => "Berhasil",
-                        "text"      => "Berhasil Mengubah Status User",
-                    ],
-                ],
-                "errMsg"    => $doSimpan['errMsg'],
-            ];
-        } else {
-            $output     = [
-                "status"    => 400,
-                "success"   => false,
-                "alert"     => [
-                    "icon"      => "error",
-                    "message"   => [
-                        "title"     => "Terjadi Kesalahan",
-                        "text"      => "Sistem Sedang Gangguan, Silahkan Coba Lagi..",
-                    ],
-                ],
-            ];
-        }
+        $output     = [
+            'success'   => $do_simpan['is_success'],
+            'status'    => $do_simpan['status_code'],
+            'message'   => $do_simpan['message'],
+            'data'      => []
+        ];
 
         return Response::json($output, $output['status']);
     }

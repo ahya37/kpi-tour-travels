@@ -591,7 +591,7 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get('/dashboard', [DivisiController::class, 'indexHR'])->name('index.human_resource.dashboard');
             Route::prefix('/employee')->group(function(){
                 Route::get('/list', [DivisiController::class, 'hr_list_employee']);
-                Route::post('/ubahStatus', [DivisiController::class, 'hr_ubah_status_employee']);
+                Route::post('/simpan_status', [DivisiController::class, 'hr_ubah_status_employee']);
 
                 Route::get('/employee_detail', [DivisiController::class, 'hr_detail_employee']);
                 Route::post('/simpan_data/{jenis}', [DivisiController::class, 'hr_simpan_employee']);

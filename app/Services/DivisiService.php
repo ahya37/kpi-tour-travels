@@ -3573,17 +3573,60 @@ class DivisiService
                     ->join('job_employees as b', 'a.id', '=', 'b.employee_id')
                     ->join('group_divisions as c', 'b.group_division_id', '=', 'c.id')
                     ->join('sub_divisions as d', 'b.sub_division_id', '=', 'd.id')
-                    ->select('a.*', 'b.group_division_id', 'b.sub_division_id', 'c.roles_id')
+                    ->join('users as e', 'a.user_id', '=', 'e.id')
+                    ->select('a.*', 'b.group_division_id', 'b.sub_division_id', 'c.roles_id', 'e.is_active')
                     ->where('a.id', '=', $employee_id)
                     ->get();
+                    
+        // GET DATA HISTORY
+        $query_history  = DB::table('employee_history_title as a')
+                            ->join('group_divisions as b', 'a.group_division_id', '=', 'b.id')
+                            ->join('sub_divisions as c', 'a.sub_division_id', '=', 'c.id')
+                            ->select('a.*', 'b.name as group_division_name', 'c.name as sub_division_name')
+                            ->where('a.employee_id', '=', $employee_id)
+                            ->orderBy('a.created_date', 'asc')
+                            ->get();
+        if(count($query_history) > 0) {
+            for($i = 0; $i < count($query_history); $i++) {
+                $data_history[]     = [
+                    'seq'               => $i + 1,
+                    'group_division'    => $query_history[$i]->group_division_name,
+                    'sub_division_name' => $query_history[$i]->sub_division_name,
+                    'change_date'       => date('Y-m-d', strtotime($query_history[$i]->created_date)),
+                ];
+            }
+        } else {
+            $data_history   = [];
+        }
 
         try {
             if(count($query) > 0) {
+                $data_user  = [
+                    'id'                => $query[0]->id,
+                    'user_id'           => $query[0]->user_id,
+                    'name'              => $query[0]->name,
+                    'pict_dir'          => $query[0]->pict_dir,
+                    'first_name'        => $query[0]->first_name,
+                    'middle_name'       => $query[0]->middle_name,
+                    'last_name'         => $query[0]->last_name,
+                    'gender'            => $query[0]->gender,
+                    'birth_of_date'     => $query[0]->birth_of_date,
+                    'birth_of_place'    => $query[0]->birth_of_place,
+                    'join_date'         => $query[0]->join_date,
+                    'group_division_id' => $query[0]->group_division_id,
+                    'sub_division_id'   => $query[0]->sub_division_id,
+                    'roles_id'          => $query[0]->roles_id,
+                    'is_active'         => $query[0]->is_active,
+                    'status'            => $query[0]->status,
+                ];
                 $output     = [
                     'is_success'    => true,
                     'status_code'   => 200,
                     'message'       => 'Berhasil Mengambil Data Karyawan',
-                    'data'          => $query[0]
+                    'data'          => [
+                        'user'      => $data_user,
+                        'history'   => $data_history,
+                    ]
                 ];
             } else {
                 $output     = [
@@ -3644,10 +3687,10 @@ class DivisiService
 
             // INSERT TO EMPLOYEES
             $data_insert_employees  = [
-                'id'        => Str::random(30),
-                'user_id'   => $user_id,
-                'name'      => $request_data['emp_full_name'],
-                'first_name'=> $request_data['emp_first_name'],
+                'id'            => Str::random(30),
+                'user_id'       => $user_id,
+                'name'          => $request_data['emp_full_name'],
+                'first_name'    => $request_data['emp_first_name'],
                 'middle_name'   => $request_data['emp_middle_name'],
                 'last_name'     => $request_data['emp_last_name'],
                 'birth_of_date' => date('Y-m-d', strtotime($request_data['emp_bod'])),
@@ -3658,6 +3701,7 @@ class DivisiService
                 'created_at'    => $today,
                 'updated_at'    => $today,
                 'gender'        => $request_data['emp_gender'],
+                'status'        => $request_data['emp_status']
             ];
 
             DB::table('employees')->insert($data_insert_employees);
@@ -3675,6 +3719,16 @@ class DivisiService
             ];
 
             DB::table('job_employees')->insert($data_insert_job_employees);
+
+            // INSERT TO HISTORY
+            $data_insert_job_history    = [
+                'employee_id'       => $data_insert_employees['id'],
+                'group_division_id' => $request_data['emp_group_division'],
+                'sub_division_id'   => $request_data['emp_sub_division'],
+                'created_date'      => $today
+            ];
+
+            DB::table('employee_history_title')->insert($data_insert_job_history);
 
             try {
                 DB::commit();

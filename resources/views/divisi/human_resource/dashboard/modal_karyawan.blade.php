@@ -51,10 +51,6 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('modal_employee_detiail')">Tutup</button>
-                <button class="btn btn-primary" value="" id="btnSimpan_employee_detail" title="Simpan Data">Simpan</button>
-            </div>
         </div>
     </div>
 </div>
@@ -71,20 +67,20 @@
                     <div class="row">
                         <div class="col-xl-6 col-lg-12 col-12 border-sm-right border-0">
                             <div class="row border-right">
-                                <div class="col-xl-4 col-12">
+                                <div class="col-lg-4 col-12">
                                     <div class="form-group">
                                         <label for="emp_first_name" class="font-weight-bold">Nama Depan</label>
                                         <input type="text" class="form-control" id="emp_first_name" name="emp_first_name" placeholder="Nama Depan">
                                         <input type="hidden" class="form-control" id="emp_id" name="emp_id" placeholder="ID">
                                     </div>
                                 </div>
-                                <div class="col-xl-4 col-12">
+                                <div class="col-lg-4 col-12">
                                     <div class="form-group">
                                         <label for="emp_middle_name" class="font-weight-bold">Nama Tengah</label>
                                         <input type="text" class="form-control" id="emp_middle_name" name="emp_middle_name" placeholder="Nama Tengah">
                                     </div>
                                 </div>
-                                <div class="col-xl-4 col-12">
+                                <div class="col-lg-4 col-12">
                                     <div class="form-group">
                                         <label for="emp_last_name" class="font-weight-bold">Nama Belakang</label>
                                         <input type="text" class="form-control" id="emp_last_name" name="emp_last_name" placeholder="Nama Belakang">
@@ -96,34 +92,34 @@
                                         <select name="emp_gender" id="emp_gender" class="form-control form-select" style="width: 100%;"></select>
                                     </div>
                                 </div>
-                                <div class="col-xl-6 col-12">
+                                <div class="col-lg-6 col-12">
                                     <div class="form-group">
                                         <label for="emp_bod" class="font-weight-bold">Tgl. Lahir</label>
                                         <input type="text" class="form-control" id="emp_bod" name="emp_bod" placeholder="Tgl. Lahir" readonly>
                                     </div>
                                 </div>
-                                <div class="col-xl-6 col-12">
+                                <div class="col-lg-6 col-12">
                                     <div class="form-group">
                                         <label for="emp_birth_place" class="font-weight-bold">Tempat Lahir</label>
                                         <input type="text" class="form-control" id="emp_birth_place" name="emp_birth_place" placeholder="Tempat Lahir">
-                                    </div>
-                                </div>
-                                <div class="col-xl-6 col-12">
-                                    <div class="form-group">
-                                        <label for="emp_join_date" class="font-weight-bold">Tgl. Bergabung</label>
-                                        <input type="text" class="form-control" id="emp_join_date" name="emp_join_date" placeholder="Tgl. Bergabung" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-xl-6">
-                                    <div class="form-group">
-                                        <label for="emp_work_periode" class="font-weight-bold">Masa Kerja</label><br>
-                                        <span id="emp_work_periode">0 Tahun 0 Bulan</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-xl-6 col-lg-12 col-12">
                             <div class="row">
+                                <div class="col-lg-6 col-12">
+                                    <div class="form-group">
+                                        <label for="emp_join_date" class="font-weight-bold">Tgl. Bergabung</label>
+                                        <input type="text" class="form-control" id="emp_join_date" name="emp_join_date" placeholder="Tgl. Bergabung" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label for="emp_work_periode" class="font-weight-bold">Masa Kerja</label><br>
+                                        <span id="emp_work_periode">0 Tahun 0 Bulan</span>
+                                    </div>
+                                </div>
                                 <div class="col-12">
                                     <div class="form-group">
                                         <label for="emp_group_division">Divisi</label>
@@ -137,11 +133,39 @@
                                         <label for="emp_role">Role System</label>
                                         <input type="text" id="emp_role" name="emp_role" class="form-control" readonly>
                                     </div>
+                                    <div class="form-group">
+                                        <label for="emp_status">Status Karyawan</label>
+                                        <select name="emp_status" id="emp_status" class="form-control form-select" style="width: 100%;"></select>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <button type="button" class="btn d-none" id="btnAktif_employeeDetail" value="" onclick="doSimpan('aktivasi', '', this.value)"></button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </form>
+                <div id="form_table_history" class="d-none">
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <h2 class="font-weight-thin mt-0 mb-3">Tabel Riwayat Jabatan Karyawan</h2>
+                        </div>
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover table-bordered" id="table_history_employee" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center align-middle" style="width: 15%;">Perubahan Ke</th>
+                                            <th class="text-center align-middle" >Divisi / Jabatan</th>
+                                            <th class="text-center align-middle" style="width: 25%;">Tgl. Perubahan</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>                
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('modal_employee_detail')">Batal</button>

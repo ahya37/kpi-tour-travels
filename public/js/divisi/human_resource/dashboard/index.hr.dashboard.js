@@ -24,6 +24,15 @@ var dataJenisKelamin    = [
     { 'value' : 'f', 'text' : 'Perempuan' },
 ];
 
+var dataStatusKaryawan  = [
+    { 'value' : '1', 'text' : 'Komisaris' },
+    { 'value' : '2', 'text' : 'Direksi' },
+    { 'value' : '3', 'text' : 'Karyawan Kontrak' },
+    { 'value' : '4', 'text' : 'Karyawan Tetap' },
+    { 'value' : '5', 'text' : 'Magang' },
+    { 'value' : '0', 'text' : 'Non-Karyawan' },
+];
+
 $(document).ready(() => {
     // GET DATA PENGAJUAN
     const pgj_url   = "/pengajuan/listCuti";
@@ -403,9 +412,12 @@ function showModal(idModal, jenis, data)
             showSelect('emp_gender', dataJenisKelamin, '');
             showSelect('emp_group_division', dataGroupDiv[0], '');
             showSelect('emp_sub_division', [],'');
+            showSelect('emp_status', dataStatusKaryawan, '');
 
             $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
         } else {
+            $("#form_table_history").removeClass('d-none');
+            showTable('table_history_employee', []);
             // GET DATA
             const empURL    = base_url + '/divisi/human_resource/employee/employee_detail';
             const empType   = "GET";
@@ -422,31 +434,54 @@ function showModal(idModal, jenis, data)
 
                     // FILL FORM
                     $("#emp_id").val(data);
-                    $("#emp_first_name").val(success.data.first_name);
-                    $("#emp_middle_name").val(success.data.middle_name);
-                    $("#emp_last_name").val(success.data.last_name);
+                    $("#emp_first_name").val(success.data['user'].first_name);
+                    $("#emp_middle_name").val(success.data['user'].middle_name);
+                    $("#emp_last_name").val(success.data['user'].last_name);
 
-                    $("#emp_bod").data('daterangepicker').setStartDate(moment(success.data.birth_of_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-                    $("#emp_bod").data('daterangepicker').setEndDate(moment(success.data.birth_of_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                    $("#emp_bod").data('daterangepicker').setStartDate(moment(success.data['user'].birth_of_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                    $("#emp_bod").data('daterangepicker').setEndDate(moment(success.data['user'].birth_of_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
 
-                    $("#emp_birth_place").val(success.data.birth_of_place);
+                    $("#emp_birth_place").val(success.data['user'].birth_of_place);
 
-                    $("#emp_join_date").data('daterangepicker').setStartDate(moment(success.data.join_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
-                    $("#emp_join_date").data('daterangepicker').setEndDate(moment(success.data.join_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                    $("#emp_join_date").data('daterangepicker').setStartDate(moment(success.data['user'].join_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
+                    $("#emp_join_date").data('daterangepicker').setEndDate(moment(success.data['user'].join_date, 'YYYY-MM-DD').format('DD/MM/YYYY'));
 
-                    let workPeriodeYear     = moment().diff(moment(success.data.join_date, 'YYYY-MM-DD'), 'years');
-                    let workPeriodeMonth    = moment().diff(moment(success.data.join_date, 'YYYY-MM-DD').add(workPeriodeYear, 'years'), 'months');
+                    let workPeriodeYear     = moment().diff(moment(success.data['user'].join_date, 'YYYY-MM-DD'), 'years');
+                    let workPeriodeMonth    = moment().diff(moment(success.data['user'].join_date, 'YYYY-MM-DD').add(workPeriodeYear, 'years'), 'months');
                     $("#emp_work_periode").html(`${workPeriodeYear} Tahun ${workPeriodeMonth} Bulan`);
 
                     
-                    showSelect('emp_gender', dataJenisKelamin, success.data.gender);
-                    showSelect('emp_group_division', dataGroupDiv[0], success.data.group_division_id);
+                    showSelect('emp_gender', dataJenisKelamin, success.data['user'].gender);
+                    showSelect('emp_group_division', dataGroupDiv[0], success.data['user'].group_division_id);
                     // FILTER SUBDIVISIONS
-                    const filterDataSubDiv  = dataSubDiv[0].filter(item => item.group_division_id == success.data.group_division_id);
+                    const filterDataSubDiv  = dataSubDiv[0].filter(item => item.group_division_id == success.data['user'].group_division_id);
 
-                    showSelect('emp_sub_division', filterDataSubDiv, success.data.sub_division_id);
+                    showSelect('emp_sub_division', filterDataSubDiv, success.data['user'].sub_division_id);
+                    showSelect('emp_status', dataStatusKaryawan, success.data['user'].status);
 
-                    $("#emp_role").val(success.data.roles_id);
+                    $("#emp_role").val(success.data['user'].roles_id);
+
+                    let activeStatus    = success.data['user'].is_active;
+                    if(activeStatus == "1") {
+                        $("#btnAktif_employeeDetail").val('0');
+                        $("#btnAktif_employeeDetail").html(`Non Aktifkan`);
+                        $("#btnAktif_employeeDetail").prop('title', 'Klik Untuk Menonaktifkan Akun');
+                        $("#btnAktif_employeeDetail").removeClass('d-none');
+                        $("#btnAktif_employeeDetail").addClass('btn-danger');
+                    } else {
+                        $("#btnAktif_employeeDetail").val('1');
+                        $("#btnAktif_employeeDetail").html(`Aktifkan`);
+                        $("#btnAktif_employeeDetail").prop('title', 'Klik Untuk Mengaktifkan Akun');
+                        $("#btnAktif_employeeDetail").removeClass('d-none');
+                        $("#btnAktif_employeeDetail").addClass('btn-primary');
+                    }
+
+                    // TABLE HISTORY
+                    const empHistoryData    = success.data['history'];
+                    showTable('table_history_employee', empHistoryData);
+                    if(empHistoryData.length < 1) {
+                        $("#table_history_employee").find('.dataTables_empty').html(`Tidak Ada Data Riwayat`);
+                    }
                 })
                 .catch((error)      => {
                     Swal.fire({
@@ -515,6 +550,15 @@ function closeModal(idModal)
             $("#btnSimpan_employeeDetail").val('');
 
             $("#emp_work_periode").html('0 Tahun 0 Bulan');
+
+            $("#btnAktif_employeeDetail").prop('title', '');
+            $("#btnAktif_employeeDetail").removeClass('btn-primary');
+            $("#btnAktif_employeeDetail").removeClass('btn-danger');
+            $("#btnAktif_employeeDetail").val();
+            $("#btnAktif_employeeDetail").addClass('d-none');
+            
+            // HIDE TABLE
+            $("#form_table_history").addClass('d-none');
         })
     }
 }
@@ -751,6 +795,33 @@ function showTable(idTable, data)
         } else {
             $(".dataTables_empty").html("Tidak Ada Data Yang Bisa Ditampilkan");
         }
+    } else if(idTable == 'table_history_employee') {
+        $("#"+idTable).DataTable({
+            language    : {
+                'emptyTable'    : `<i class="fa fa-spinner fa-spin"></i> Data Sedang Dimuat..`,
+                'zeroRecords'   : `Tidak Ada Data Yang Bisa Dicari`,
+            },
+            searching   : false,
+            paging      : false,
+            autoWidth   : false,
+            pageLength  : -1,
+            bInfo       : false,
+            columnDefs  : [
+                { "targets" : [0], "className" : "text-center align-middle", "width" : "15%" },
+                { "targets" : [2], "className" : "text-left align-middle", "width" : "25%" },
+            ],
+        })
+
+        if(data.length > 0) {
+            for(const item of data)
+            {
+                $("#"+idTable).DataTable().row.add([
+                    `<label class="font-weight-normal no-margins">${item['seq']}</label>`,
+                    `<label class="font-weight-normal no-margins">${item['group_division']} / ${item['sub_division_name']}</label>`,
+                    `<label class="font-weight-normal no-margins">${moment(item['change_date'], 'YYYY-MM-DD').format('DD MMMM YYYY')}</label>`,
+                ]).draw(false);
+            }
+        }
     }
 
     $("#"+idTable+"_wrapper").css('padding-bottom', '0px');
@@ -880,6 +951,21 @@ function showSelect(idSelect, data, selectedData, seq)
             $.each(data, (i, item) => {
                 html    += `<option value="${item['sub_division_id']}">${item['sub_division_name']}</option>`;
             });
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
+    } else if(idSelect == 'emp_status') {
+        let html    = `<option selected disabled>Pilih Status Karyawan</option>`;
+
+        if(data.length > 0) {
+            for(const item of data)
+            {
+                html    += `<option value="${item['value']}">[${item['value']}] ${item['text']}</option>`
+            }
         }
 
         $("#"+idSelect).html(html);
@@ -1205,41 +1291,59 @@ function doSimpan(type, jenis, data)
         case "aktivasi" :
             Swal.fire({
                 icon    : 'question',
-                title   : jenis == 'active' ? 'Nonaktifkan Akun ini?' : 'Aktifkan Akun ini?',
+                title   : data == '1' ? 'Aktifkan Akun Ini?' : 'Non Aktifkan Akun ini?',
                 showConfirmButton   : true,
                 showCancelButton    : true,
-                confirmButtonText   : jenis == 'active' ? 'Ya, Nonaktitkan' : 'Ya, Aktifkan',
-                confirmButtonColor  : jenis == 'active' ? "#ED5565" : "#1AB394",
+                confirmButtonText   : data == '1' ? 'Ya, Aktifkan' : 'Ya, Non Aktifkan',
+                confirmButtonColor  : data == '1' ? "#1AB394" : "#ED5565",
                 cancelButtonText    : 'Batalkan',
             }).then((res)   => {
                 if(res.isConfirmed) {
-                    const emp_url   = base_url + "/divisi/human_resource/employee/ubahStatus";
-                    const emp_data  = {
-                        "emp_id"    : data,
-                        "emp_status": jenis,
+                    const empStatusURL  = base_url + '/divisi/human_resource/employee/simpan_status';
+                    const empStatusType = "POST";
+                    const empStatusData = {
+                        'status'    : data,
+                        'emp_id'    : $("#emp_id").val(),
                     };
-                    const emp_type  = "POST";
-                    const emp_msg   = Swal.fire({ title : 'Permintaan Sedang Diproses' });Swal.showLoading();
-                    
-                    doTrans(emp_url, emp_type, emp_data, emp_msg, true)
-                        .then((success) => {
+                    const empStatusMsg  = Swal.fire({ title : "Data Sedang Diproses..", allowOutsideClick: true }); Swal.showLoading();
+
+                    doTrans(empStatusURL, empStatusType, empStatusData, empStatusMsg, true)
+                        .then((success)     => {
                             Swal.fire({
-                                icon    : success.alert.icon,
-                                title   : success.alert.message.title,
-                                text    : success.alert.message.text,
-                            }).then((results)   => {
-                                if(results.isConfirmed) {
-                                    showModal('modal_emp', '', '');
+                                icon    : 'success',
+                                title   : 'Berhasil',
+                                text    : success.message,
+                            }).then((res)   => {
+                                if(res.isConfirmed) {
+                                    const empURL    = base_url + '/divisi/human_resource/employee/list';
+                                    const empType   = "GET";
+                                    const empData   = {
+                                        'cari'  : '%',
+                                    };
+                                    
+                                    doTrans(empURL, empType, empData, '', true)
+                                        .then((isSuccess)   => {
+                                            if(isSuccess.data.length > 0) {
+                                                dataEmployees   = [];
+                                                dataEmployees.push(isSuccess.data);
+                                                closeModal('modal_employee_detail');
+                                            } else {
+                                                closeModal('modal_employee_detail');
+                                            }
+                                        })
+                                        .catch((isError)    => {
+                                            closeModal('modal_employee_detail');
+                                        })
                                 }
                             })
-                        })
-                        .catch((err)    => {
+                        }).catch((error)    => {
+                            console.log(error);
                             Swal.fire({
-                                icon    : err.responseJSON.alert.icon,
-                                title   : err.responseJSON.alert.message.title,
-                                text    : err.responseJSON.alert.message.text,
+                                icon    : 'error',
+                                title   : 'Terjadi Kesalahan',
+                                text    : error.responseJSON.message,
                             })
-                        });
+                        })
                 }
             })
         break;
@@ -1385,6 +1489,7 @@ function doSimpan(type, jenis, data)
             employeeData.append('emp_group_division', $("#emp_group_division").val() == null ? '' : $("#emp_group_division").val());
             employeeData.append('emp_sub_division', $("#emp_sub_division").val() == null ? '' : $("#emp_sub_division").val());
             employeeData.append('emp_full_name', `${firstName}${middleName}${lastName}`);
+            employeeData.append('emp_status', $("#emp_status").val());
 
             doTrans(employeeURL, employeeType, employeeData, employeeMsg, true, false, false)
                 .then((success)     => {

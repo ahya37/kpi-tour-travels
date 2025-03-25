@@ -39,7 +39,7 @@ class EmployeeService
             INNER JOIN model_has_roles f ON b.user_id = f.model_id
             INNER JOIN roles g ON f.role_id = g.id
             WHERE 	(a.id LIKE '%$cari%' OR b.id LIKE '%$cari%' OR c.id LIKE '%$cari%' OR d.id LIKE '%$cari%')
-            ORDER BY b.name ASC
+            ORDER BY e.is_active, b.name ASC
             "
         );
         return $rawQuery;
@@ -279,21 +279,27 @@ class EmployeeService
 
         try {
             DB::commit();
-            LogHelper::create('edit', 'Berhasil Mengubah Status User : '.$id_selected_user, $ip);
-
+            
             $output     = [
-                "status"    => "berhasil",
-                "errMsg"    => "",
+                'is_success'    => true,
+                'status_code'   => 201,
+                'message'       => $emp_status == "1" ? 'Berhasil Mengaktifkan Akun' : 'Berhasil Menonaktifkan Akun',
+                'data'          => []
             ];
+
+            LogHelper::create('edit', $output['message'] . ' user id : '. $id_selected_user, $ip);
         } catch(\Exception $e) {
             DB::rollBack();
             Log::channel('daily')->error($e->getMessage());
-            LogHelper::create('error_system', 'Gagal Mengubah Status User', $ip);
 
             $output     = [
-                "status"    => "gagal",
-                "errMsg"    => $e->getMessage(),
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => $emp_status == "1" ? 'Gagal Mengaktifkan Akun' : 'Gagal Menonaktifkan Akun',
+                'data'          => []
             ];
+            
+            LogHelper::create('error_system', $output['message'], $ip);
         }
 
         return $output;
