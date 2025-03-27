@@ -33,6 +33,16 @@ var dataStatusKaryawan  = [
     { 'value' : '0', 'text' : 'Non-Karyawan' },
 ];
 
+var dataPendidikan  = [
+    { 'value' : 'SD', 'text' : 'SD / Sederajat' },
+    { 'value' : 'SMP', 'text' : 'SMP / Sederajat' },
+    { 'value' : 'SMA', 'text' : 'SMA / Sederajat' },
+    { 'value' : 'D3', 'text' : 'D3 / Sederajat' },
+    { 'value' : 'S1', 'text' : 'S1 / Sederajat' },
+    { 'value' : 'S2', 'text' : 'S2 / Sederajat' },
+    { 'value' : 'S3', 'text' : 'S3 / Sederajat' },
+];
+
 $(document).ready(() => {
     // GET DATA PENGAJUAN
     const pgj_url   = "/pengajuan/listCuti";
@@ -413,6 +423,7 @@ function showModal(idModal, jenis, data)
             showSelect('emp_group_division', dataGroupDiv[0], '');
             showSelect('emp_sub_division', [],'');
             showSelect('emp_status', dataStatusKaryawan, '');
+            showSelect('emp_degree', dataPendidikan, '');
 
             $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
         } else {
@@ -458,6 +469,7 @@ function showModal(idModal, jenis, data)
 
                     showSelect('emp_sub_division', filterDataSubDiv, success.data['user'].sub_division_id);
                     showSelect('emp_status', dataStatusKaryawan, success.data['user'].status);
+                    showSelect('emp_degree', dataPendidikan, success.data['user'].last_degree);
 
                     $("#emp_role").val(success.data['user'].roles_id);
 
@@ -484,6 +496,7 @@ function showModal(idModal, jenis, data)
                     }
                 })
                 .catch((error)      => {
+                    console.log(error);
                     Swal.fire({
                         icon    : 'error',
                         title   : 'Terjadi Kesalahan',
@@ -973,6 +986,20 @@ function showSelect(idSelect, data, selectedData, seq)
         if(selectedData != '') {
             $("#"+idSelect).val(selectedData);
         }
+    } else if(idSelect == 'emp_degree') {
+        let html    = `<option selected disabled>Pilih Pendidikan Terakhir</option>`;
+
+        if(data.length > 0) {
+            $.each(data, (i, item)  => {
+                html    += `<option value="${item['value']}">${item['text']}</option>`
+            })
+        }
+
+        $("#"+idSelect).html(html);
+
+        if(selectedData != '') {
+            $("#"+idSelect).val(selectedData);
+        }
     }
 
 }
@@ -1320,9 +1347,11 @@ function doSimpan(type, jenis, data)
                                     const empData   = {
                                         'cari'  : '%',
                                     };
+                                    const empMsg    = Swal.fire({ title : "Sedang Memuat Data.." }); Swal.showLoading();
                                     
-                                    doTrans(empURL, empType, empData, '', true)
+                                    doTrans(empURL, empType, empData, empMsg, true)
                                         .then((isSuccess)   => {
+                                            Swal.close();
                                             if(isSuccess.data.length > 0) {
                                                 dataEmployees   = [];
                                                 dataEmployees.push(isSuccess.data);
@@ -1332,6 +1361,8 @@ function doSimpan(type, jenis, data)
                                             }
                                         })
                                         .catch((isError)    => {
+                                            console.log(isError);
+                                            Swal.close();
                                             closeModal('modal_employee_detail');
                                         })
                                 }
@@ -1490,6 +1521,7 @@ function doSimpan(type, jenis, data)
             employeeData.append('emp_sub_division', $("#emp_sub_division").val() == null ? '' : $("#emp_sub_division").val());
             employeeData.append('emp_full_name', `${firstName}${middleName}${lastName}`);
             employeeData.append('emp_status', $("#emp_status").val());
+            employeeData.append('emp_last_degree', $("#emp_degree").val() == '' ? '0' : $("#emp_degree").val());
 
             doTrans(employeeURL, employeeType, employeeData, employeeMsg, true, false, false)
                 .then((success)     => {
@@ -1505,17 +1537,22 @@ function doSimpan(type, jenis, data)
                             let empData = {
                                 'cari' : '%'
                             };
+                            let empMsg  = Swal.fire({ title : 'Sedang Memuat Data..' }); Swal.showLoading();
                             
-                            doTrans(empURL, empType, empData, "", true)
+                            doTrans(empURL, empType, empData, empMsg, true)
                                 .then((isSucces)     => {
+                                    Swal.close();
                                     if(isSucces.data.length > 0) {
                                         dataEmployees = [];
                                         dataEmployees.push(isSucces.data);
+                                        closeModal('modal_employee_detail');
+                                    } else {
+                                        closeModal('modal_employee_detail');
                                     }
-                                    closeModal('modal_employee_detail');
                                 })
                                 .catch((isError)      => {
                                     console.log(isError);
+                                    Swal.close();
                                     closeModal('modal_employee_detail');
                                 })
                         }

@@ -3618,6 +3618,7 @@ class DivisiService
                     'roles_id'          => $query[0]->roles_id,
                     'is_active'         => $query[0]->is_active,
                     'status'            => $query[0]->status,
+                    'last_degree'       => $query[0]->last_degree == '0' ? '' : $query[0]->last_degree
                 ];
                 $output     = [
                     'is_success'    => true,
@@ -3637,6 +3638,7 @@ class DivisiService
                 ];
             }
         } catch (\Exception $e) {
+            dd($e->getMessage());
             Log::channel('daily')->error($e->getMessage());
 
             $output     = [
@@ -3773,6 +3775,18 @@ class DivisiService
             ];
 
             DB::table('job_employees')->where($data_job_employees_where)->update($data_job_employees_update);
+
+            // UPDATE STATUS
+            $data_employee_where    = [
+                'id'            => $request_data['emp_id'],
+            ];
+
+            $data_employee_update   = [
+                'status'            => $request_data['emp_status'],
+                'last_degree'       => $request_data['emp_last_degree'],
+            ];
+
+            DB::table('employees')->where($data_employee_where)->update($data_employee_update);
 
             // INSERT TO TABLE HISTORY JOB EMPLOYEE
             // CHECK HISTORY

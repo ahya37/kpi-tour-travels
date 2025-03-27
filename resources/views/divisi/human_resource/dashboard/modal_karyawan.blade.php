@@ -104,6 +104,15 @@
                                         <input type="text" class="form-control" id="emp_birth_place" name="emp_birth_place" placeholder="Tempat Lahir">
                                     </div>
                                 </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="emp_degree" class="font-weight-bold">Pendidikan Terakhir</label>
+                                        <select name="emp_degree" id="emp_degree" class="form-control form-select" style="width: 100%;"></select>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="font-weight-normal ml-1" style="cursor:pointer; color:blue;" title="Lihat File">Lihat File</label>
+                                </div>
                             </div>
                         </div>
                         <div class="col-xl-6 col-lg-12 col-12">
