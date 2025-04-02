@@ -286,6 +286,8 @@ Route::group(['middleware' => ['auth']], function () {
 
 
     Route::prefix('master')->group(function(){
+        // JABATAN
+        Route::get('/dashboard', [EmployeesController::class, 'dashboard_master_jabatan'])->name('master.jabatan.index');
         // GROUP DIVISIONS
         Route::prefix('groupDivisions')->group(function(){
             Route::get('/', [GroupDivisionController::class, 'index'])->name('groupDivision.index');

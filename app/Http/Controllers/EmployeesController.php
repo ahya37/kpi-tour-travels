@@ -208,4 +208,16 @@ class EmployeesController extends Controller
 
         return Response::json($get_data, $get_data['status']);
     }
+
+    // 27 MARET 2025
+    // NOTE : DASHBOARD MASTER JABATAN
+    public function dashboard_master_jabatan()
+    {
+        $view_data  = [
+            'title'     => 'ERP Percik Tours | Master Jabatan',
+            'sub_title' => 'Dashboard Master Jabatan'
+        ];
+
+        return view('master.index', $view_data);
+    }
 }

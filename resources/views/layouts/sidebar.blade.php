@@ -34,10 +34,11 @@
                     <i class="fa fa-database"></i> <span class="nav-label">Master</span> <span class="fa arrow"></span>
                 </a>
                 <ul class="nav nav-second-level collapse">
-                    <li class="{{ request()->is('master/groupDivisions') ? 'active' : '' }}"><a href="{{ route('groupDivision.index') }}">Group Division</a></li>
+                    <li class="{{ request()->is('master/dashboard') || request()->is('master/dashboard/*') ? 'active' : '' }}"><a href="{{ route('master.jabatan.index') }}">Dashboard</a></li>
+                    {{-- <li class="{{ request()->is('master/groupDivisions') ? 'active' : '' }}"><a href="{{ route('groupDivision.index') }}">Group Division</a></li>
                     <li class="{{ request()->is('master/subDivisions') ? 'active' : '' }}"><a href="{{ route('subDivisions.index') }}">Sub Division</a></li>
                     <li class="{{ request()->is('master/employees') ? 'active' : '' }}"><a href={{ route('Employees.index') }}>Employee</a></li>
-                    <li class="{{ request()->is('master/programkerja/master_program') ? 'active' : '' }}"><a href={{ route('programKerja.masterProgram.index') }}>Program</a></li>
+                    <li class="{{ request()->is('master/programkerja/master_program') ? 'active' : '' }}"><a href={{ route('programKerja.masterProgram.index') }}>Program</a></li> --}}
                 </ul>
             </li>
 
