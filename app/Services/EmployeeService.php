@@ -377,4 +377,129 @@ class EmployeeService
 
         return $query;
     }
+
+    // 02 APRIL 2025
+    // NOTE : SIMPAN ROLE BARU
+    public static function do_simpan_role($jenis, $data)
+    {
+        DB::beginTransaction();
+
+        $user_id    = $data['user_id'];
+        $ip_address = $data['ip_address'];
+        $role_name  = str_replace(' ', '_', $data['data']['fr_name']);
+        $role_id    = $data['data']['fr_id'];
+
+        if($jenis == 'add') {
+            $data_simpan    = [
+                'name'      => $role_name,
+                'guard_name'=> 'web',
+                'created_at'=> date('Y-m-d H:i:s'), 
+                'updated_at'=> date('Y-m-d H:i:s'),
+            ];
+            
+            DB::table('roles')->insert($data_simpan);
+            $new_role_id    = DB::getPdo()->lastInsertId();
+
+            try {
+                DB::commit();
+
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Menambahkan Role Baru',
+                    'data'          => [],
+                ];
+
+                LogHelper::create('add', $output['message'] . ' id : ' . $new_role_id, $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                Log::channel('daily')->error($e->getMessage());
+
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 500,
+                    'message'       => 'Gagal Menambahkan Role Baru',
+                    'data'          => []
+                ];
+
+                LogHelper::create('error_system', $output['message'], $ip_address);
+            }
+        } else if($jenis == 'edit') {
+            $data_where     = [
+                'id'        => $role_id,
+            ];
+            $data_update    = [
+                'name'      => $role_name,
+                'updated_at'=> date('Y-m-d H:i:s'),
+            ];
+
+            DB::table('roles')->where($data_where)->update($data_update);
+
+            try {
+                DB::commit();
+
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 201,
+                    'message'       => 'Berhasil Mengubah Data Roles',
+                    'data'          => []
+                ];
+
+                LogHelper::create('edit', $output['message'] . ' id : ' . $role_id, $ip_address);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('daily')->error($e->getMessage());
+
+                $output     = [
+                    'is_success'    => false,
+                    'status_code'   => 500,
+                    'message'       => 'Gagal Mengubah Data Roles',
+                    'data'          => []
+                ];
+
+                LogHelper::create('error_system', $output['message'] . ' id : ' . $role_id, $ip_address);
+            }
+        }
+
+        return $output;
+    }
+
+    // NOTE : GET ROLE DATA BY ID
+    public static function get_data_role_by_id($id)
+    {
+        $query  = DB::table('roles')
+                    ->select('id as role_id', 'name as role_name')
+                    ->where('id', '=', $id)
+                    ->get();
+        
+        try {
+            if(count($query) > 0) {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 200,
+                    'message'       => 'Berhasil Mengambil Data Role',
+                    'data'          => $query,
+                ];
+            } else {
+                $output     = [
+                    'is_success'    => true,
+                    'status_code'   => 404,
+                    'message'       => 'Data Tidak Ditemukan',
+                    'data'          => [],
+                ];
+            }
+            
+        } catch (\Exception $e) {
+            Log::channel('daily')->error($e->getMessage());
+            $output     = [
+                'is_success'    => false,
+                'status_code'   => 500,
+                'message'       => 'Internal Server Error',
+                'data'          => []
+            ];
+        }
+
+        return $output;
+    }
 }

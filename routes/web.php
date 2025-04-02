@@ -13,7 +13,6 @@ use App\Http\Controllers\SubDivisionController;
 use App\Http\Controllers\WorkPlanController;
 use App\Http\Controllers\ProgramKerjaController;
 use App\Http\Controllers\BaseController;
-use App\Http\Controllers\DailyActivityController;
 use App\Http\Controllers\DivisiController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\NotificationController;
@@ -21,12 +20,7 @@ use App\Http\Controllers\TarikDataController;
 use App\Http\Controllers\SysUmhajController;
 use App\Http\Controllers\WebsiteController as percikToursController;
 use App\Http\Controllers\FinanceController as finance;
-use App\Http\Controllers\noLoginController as noLogin;
-use App\Models\Division;
-use App\Services\ProgramKerjaService;
-use App\Services\SysUmhajService;
 use Illuminate\Support\Facades\Route;
-use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 Route::get('/', function () {
     if(!empty(Auth::user()->id)) {
@@ -286,8 +280,12 @@ Route::group(['middleware' => ['auth']], function () {
 
 
     Route::prefix('master')->group(function(){
-        // JABATAN
+        // DASHBOARD
         Route::get('/dashboard', [EmployeesController::class, 'dashboard_master_jabatan'])->name('master.jabatan.index');
+
+        // ROLE
+        Route::post('/trans_role/{type}', [EmployeesController::class, 'dashboard_master_role_trans']);
+        Route::get('/get_role/{id}', [EmployeesController::class, 'dashboard_master_role_get_by_id']);
         // GROUP DIVISIONS
         Route::prefix('groupDivisions')->group(function(){
             Route::get('/', [GroupDivisionController::class, 'index'])->name('groupDivision.index');

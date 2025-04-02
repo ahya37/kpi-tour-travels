@@ -9,6 +9,7 @@ use App\Services\EmployeeService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Auth;
+use Illuminate\Auth\Events\Validated;
 
 class EmployeesController extends Controller
 {
@@ -219,5 +220,52 @@ class EmployeesController extends Controller
         ];
 
         return view('master.index', $view_data);
+    }
+
+    // 02 APRIL 2025
+    // NOTE : SIMPAN ROLE BARU
+    public function dashboard_master_role_trans($jenis, Request $request) {
+        // VALIDATE INPUT
+        $validator  = Validator::make($request->all(), ['fr_name' => 'required|string']);
+
+        if($validator->fails()) {
+            $output     = [
+                'success'   => false,
+                'status'    => 522,
+                'message'   => 'Periksa Kembali Inputan',
+                'data'      => $validator->errors(),
+            ];
+        } else {
+            $send_data  = [
+                'ip_address'    => $request->ip(),
+                'user_id'       => Auth::user()->id,
+                'data'          => $request->all(),
+            ];
+
+            $do_simpan          = EmployeeService::do_simpan_role($jenis, $send_data);
+
+            $output             = [
+                'success'       => $do_simpan['is_success'],
+                'status'        => $do_simpan['status_code'],
+                'message'       => $do_simpan['message'],
+                'data'          => $do_simpan['data'],
+            ];
+        }
+
+        return Response::json($output, $output['status']);
+    }
+
+    public function dashboard_master_role_get_by_id($id)
+    {
+        $get_data   = EmployeeService::get_data_role_by_id($id);
+
+        $output             = [
+            'success'       => $get_data['is_success'],
+            'status'        => $get_data['status_code'],
+            'message'       => $get_data['message'],
+            'data'          => $get_data['data'],
+        ];
+
+        return Response::json($output, $output['status']);
     }
 }

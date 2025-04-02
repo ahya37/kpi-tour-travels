@@ -76,7 +76,7 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-12">
-                            <button class="btn btn-success btn-sm" data-toggle="collapse" href="#collapse_form_role"><i class="fa fa-plus"></i> Tambah Data</button>
+                            <button class="btn btn-success btn-sm" data-toggle="collapse" href="#collapse_form_role" onclick="collapseAction('collapse_form_role', 'add', '')"><i class="fa fa-plus"></i> Tambah Data</button>
                         </div>
                     </div>
                     <div class="row mt-2">
@@ -84,8 +84,14 @@
                             <div class="collapse" id="collapse_form_role">
                                 <form id="form_role">
                                     <div class="form-group">
-                                        <label for="role_name">Nama</label>
-                                        <input type="text" class="form-control" id="form_role" name="form_role" placeholder="Nama Role">
+                                        <label for="role_name" class="font-weight-bold no-margins">Nama</label>
+                                        <input type="hidden" id="fr_id" name="fr_id" placeholder="ID Role">
+                                        <input type="text" class="form-control" id="fr_name" name="fr_name" placeholder="Nama Role" autocomplete="off">
+                                    </div>
+                                    <div class="row text-right">
+                                        <div class="col-12">
+                                            <button type="button" class="btn btn-primary btn-sm" value="" id="btn_act_fr" onclick="doSaveTransaction('form_role', this.value, )"><i class="fa fa-save"></i> Simpan</button>
+                                        </div>
                                     </div>
                                 </form>
                             </div>

@@ -3,7 +3,6 @@ var base_url    = window.location.origin;
 var roleData    = [];
 
 $(document).ready(function(){
-    console.log(today);
 
     const getData   = [
         doTransaction('master/data/trans/get/dataRoles', 'GET')
@@ -21,7 +20,53 @@ $(document).ready(function(){
         })
 });
 
+const collapseAction    = (id, type = '', data = '') => {
+    if(id == 'collapse_form_role') {
+        if(data == '') {
+            $("#"+id).on('shown.bs.collapse', () => {
+                $("#fr_name").focus();
+            });
+        } else {
+            let url         = "master/get_role/" + data;
+            let transType   = "GET";
+            let message     = Swal.fire({ title : 'Data Sedang Dimuat..', allowOutsideClick: true }); Swal.showLoading();
+
+            doTransaction(url, transType, [], message)
+                .then((success)     => {
+                    Swal.close();
+                    
+                    $("#"+id).collapse('show');
+
+                    $("#fr_id").val(success.data[0].role_id);
+                    $("#fr_name").val(success.data[0].role_name);
+                })
+                .catch((error)      => {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : error.responseJSON.message,
+                    })
+                })
+        }
+
+        $("#btn_act_fr").val(type);
+
+        $("#"+id).on('hidden.bs.collapse', () => {
+            $("#form_role").trigger('reset');
+            $("#btn_act_fr").val('');
+        })
+    }
+}
+
 const showModal     = (idModal = '', jenis = '', data = '') => {
+    // REMOVE ENTER ON FORM
+    
+    (event) => {
+        if(event.which == '13') {
+            event.preventDefault();
+        }
+    }
+
     if(idModal == 'modal_role') {
         $("#"+idModal).modal({ backdrop: 'static', keyboard: false });
 
@@ -37,7 +82,7 @@ const closeModal    = (idModal = '') => {
         $("#"+idModal).modal('hide');
 
         $("#"+idModal).on('hidden.bs.modal', () => {
-            
+            $("#collapse_form_role").collapse('hide');
         })
     }
 }
@@ -73,7 +118,7 @@ const showTable     = (idTable = '', data = []) => {
                 $("#"+idTable).DataTable().row.add([
                     `<label class="font-weight-normal no-margins">${seq++}</label>`,
                     `<label class="font-wieght-normal no-margins">${roleName}</label>`,
-                    `<button class="btn btn-sm btn-primary" type="button" value="${roleID}" title="Edit Data"><i class="fa fa-edit"></i></button>`
+                    `<button class="btn btn-sm btn-primary" type="button" value="${roleID}" title="Edit Data" onclick="collapseAction('collapse_form_role', 'edit', this.value)"><i class="fa fa-edit"></i></button>`
                 ]).draw(false);
             })
         }
@@ -85,6 +130,71 @@ const showTable     = (idTable = '', data = []) => {
 const destroyTable  = async (idTable = '') => {
     if(idTable != '') {
         return await $("#"+idTable).DataTable().clear().destroy();
+    }
+}
+
+const doSaveTransaction     = (idForm = '', type = '', data = '') => {
+    switch (idForm) {
+        case 'form_role' :
+            let formData  = new FormData(document.getElementById(idForm));
+
+            let url         = "master/trans_role/" + type;
+            let transType   = "POST";
+            let data        = formData;
+            let msg         = Swal.fire({ title : 'Data Sedang Diproses..', allowOutsideClick : true }); Swal.showLoading();
+
+            doTransaction(url, transType, data, msg, false, false)
+                .then((success)     => {
+                    Swal.fire({
+                        icon    : 'success',
+                        title   : 'Berhasil',
+                        text    : success.message,
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            showTable('table_role', []);
+                            
+                            $("#collapse_form_role").collapse('hide');
+                            
+                            setTimeout(()   => {
+                                // GET DATA ROLE
+                                let roleURL     = 'master/data/trans/get/dataRoles';
+                                let roleType    = "GET";
+
+                                doTransaction(roleURL, roleType)
+                                    .then((isSuccess)     => {
+                                        roleData    = [];
+                                        roleData.push(isSuccess.data);
+                                        showTable('table_role', roleData[0]);
+                                    })
+                                    .catch((error)      => {
+                                        showTable('table_role', roleData[0]);
+                                    })
+                            }, 1000);
+                        }
+                    })
+                })
+                .catch((error)      => {
+                    Swal.fire({
+                        icon    : 'error',
+                        title   : 'Terjadi Kesalahan',
+                        text    : error.responseJSON.message,
+                    }).then((res)   => {
+                        if(res.isConfirmed) {
+                            const errorMsg  = error.responseJSON.data;
+                            $.each(errorMsg, (i, item)  => {
+                                if(i == 0) {
+                                    $("#"+i).focus();
+                                }
+                                $("#"+i).addClass('is-invalid');
+
+                                $("#"+i).on('click',() => {
+                                    $("#"+i).removeClass('is-invalid');
+                                })
+                            })
+                        }
+                    })
+                })
+        break;
     }
 }
 
